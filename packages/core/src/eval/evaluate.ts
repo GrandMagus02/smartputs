@@ -46,7 +46,10 @@ export function evaluateNode(
         const meta = kindMeta[choice.kind];
         return deepFreeze({
           kind: choice.kind,
-          canonical: toCanonical(n.value, kind, choice.unit, locale, meta),
+          canonical: toCanonical(n.value, kind, choice.unit, {
+            locale,
+            ...(meta ? { meta } : {}),
+          }),
           unit: choice.unit,
           ...(meta ? { meta } : {}),
         });

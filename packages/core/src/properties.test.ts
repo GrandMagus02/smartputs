@@ -30,7 +30,12 @@ test("conversion round-trips for every unit of every kind", () => {
     for (const unit of kind.units.keys()) {
       for (const sample of SAMPLES) {
         const v = new Decimal(sample);
-        const back = fromCanonical(toCanonical(v, kind, unit, "en"), kind, unit, "en");
+        const back = fromCanonical(
+          toCanonical(v, kind, unit, { locale: "en" }),
+          kind,
+          unit,
+          { locale: "en" },
+        );
         expect(back.minus(v).abs().lessThan("1e-20")).toBe(true);
       }
     }
@@ -43,8 +48,13 @@ test("conversion is transitive across every unit pair", () => {
     const units = [...kind.units.keys()];
     for (const a of units) {
       for (const b of units) {
-        const direct = toCanonical(new Decimal("7"), kind, a, "en");
-        const viaB = toCanonical(fromCanonical(direct, kind, b, "en"), kind, b, "en");
+        const direct = toCanonical(new Decimal("7"), kind, a, { locale: "en" });
+        const viaB = toCanonical(
+          fromCanonical(direct, kind, b, { locale: "en" }),
+          kind,
+          b,
+          { locale: "en" },
+        );
         const diff = viaB.minus(direct).abs();
         // RULING 12: an absolute epsilon assumes every kind's canonical
         // magnitude is small, which held for every M1 kind but not for
@@ -81,7 +91,7 @@ test("parse(format(v)) === v for every unit of every kind (spec §10 property 2)
     for (const unit of kind.units.keys()) {
       for (const sample of SAMPLES) {
         const authored = new Decimal(sample);
-        const canonical = toCanonical(authored, kind, unit, "en");
+        const canonical = toCanonical(authored, kind, unit, { locale: "en" });
         const formatted = formatValue({ kind: kind.id, canonical, unit }, registry, en);
 
         // Strip the rendered unit or display word back off; what remains is the
@@ -146,7 +156,7 @@ test("formatting never emits exponential notation for any sample", () => {
     if (kind.spec.mode !== "ratio") continue;
     for (const unit of kind.units.keys()) {
       for (const sample of ["1e41", "1e-22", ...SAMPLES]) {
-        const canonical = toCanonical(new Decimal(sample), kind, unit, "en");
+        const canonical = toCanonical(new Decimal(sample), kind, unit, { locale: "en" });
         const formatted = formatValue({ kind: kind.id, canonical, unit }, registry, en);
         expect(`${kind.id}:${unit} ${formatted}`).not.toMatch(/e[+-]\d/);
       }
@@ -187,8 +197,8 @@ test("affine round-trips are exact at the anchor points", () => {
     ["f", "32"],
     ["k", "273.15"],
   ] as const) {
-    const canonical = toCanonical(new Decimal(expected), temp, unit, "en");
-    const back = fromCanonical(canonical, temp, unit, "en");
+    const canonical = toCanonical(new Decimal(expected), temp, unit, { locale: "en" });
+    const back = fromCanonical(canonical, temp, unit, { locale: "en" });
     expect(back.toString()).toBe(expected);
   }
 });

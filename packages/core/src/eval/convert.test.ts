@@ -39,31 +39,87 @@ const measure = normalizeKind(
 );
 
 test("converts a unit to canonical", () => {
-  expect(toCanonical(new Decimal(2), length, "km", "en").toString()).toBe("2000");
+  expect(toCanonical(new Decimal(2), length, "km", { locale: "en" }).toString()).toBe(
+    "2000",
+  );
 });
 
 test("converts canonical back to a unit", () => {
-  expect(fromCanonical(new Decimal(2000), length, "km", "en").toString()).toBe("2");
+  expect(
+    fromCanonical(new Decimal(2000), length, "km", { locale: "en" }).toString(),
+  ).toBe("2");
 });
 
 test("round-trips through an unrelated unit", () => {
-  const canonical = toCanonical(new Decimal(150), length, "cm", "en");
-  expect(fromCanonical(canonical, length, "m", "en").toString()).toBe("1.5");
+  const canonical = toCanonical(new Decimal(150), length, "cm", { locale: "en" });
+  expect(fromCanonical(canonical, length, "m", { locale: "en" }).toString()).toBe("1.5");
 });
 
 test("applies the affine offset before the ratio", () => {
   // 212F -> (212 - 32) * 5/9 = 100C
-  expect(toCanonical(new Decimal(212), temp, "f", "en").toString()).toBe("100");
+  expect(toCanonical(new Decimal(212), temp, "f", { locale: "en" }).toString()).toBe(
+    "100",
+  );
 });
 
 test("reverses the affine offset on the way out", () => {
-  expect(fromCanonical(new Decimal(100), temp, "f", "en").toString()).toBe("212");
+  expect(fromCanonical(new Decimal(100), temp, "f", { locale: "en" }).toString()).toBe(
+    "212",
+  );
 });
 
 test("a function ratio reads dpi from the value's meta", () => {
   // 1/300 does not terminate, so 300px at 300dpi lands within 1e-20 of an inch
   // rather than exactly on it. 1/96 does terminate, so the default is exact.
-  const at300 = toCanonical(new Decimal(300), measure, "px", "en", { dpi: 300 });
+  const at300 = toCanonical(new Decimal(300), measure, "px", {
+    locale: "en",
+    meta: { dpi: 300 },
+  });
   expect(at300.minus(1).abs().lessThan("1e-20")).toBe(true);
-  expect(toCanonical(new Decimal(96), measure, "px", "en").toString()).toBe("1");
+  expect(toCanonical(new Decimal(96), measure, "px", { locale: "en" }).toString()).toBe(
+    "1",
+  );
+});
+
+test("conversion takes its context as an object", () => {
+  const kind = normalizeKind(
+    defineKind({
+      id: "mass",
+      value: { mode: "ratio", canonical: "g", units: { g: 1, kg: 1000 } },
+    }),
+  );
+  const canonical = toCanonical(new Decimal("1.5"), kind, "kg", { locale: "en" });
+  expect(canonical.toString()).toBe("1500");
+  expect(fromCanonical(canonical, kind, "kg", { locale: "en" }).toString()).toBe("1.5");
+});
+
+test("a unit whose ratio reads meta sees it through the context", () => {
+  const kind = normalizeKind(
+    defineKind({
+      id: "measure",
+      value: {
+        mode: "ratio",
+        canonical: "inch",
+        units: {
+          inch: 1,
+          px: {
+            ratio: (ctx) => {
+              const dpi = ctx.self.meta?.dpi;
+              return new Decimal(1).div(typeof dpi === "number" ? dpi : 96);
+            },
+          },
+        },
+      },
+    }),
+  );
+  const at300 = toCanonical(new Decimal(300), kind, "px", {
+    locale: "en",
+    meta: { dpi: 300 },
+  });
+  // 1/300 does not terminate at 28 significant digits, so 300px at 300dpi
+  // lands within 1e-20 of an inch rather than exactly on it — see the
+  // identical case a few tests up ("a function ratio reads dpi from the
+  // value's meta"). The brief's literal assertion (`toBe("1")`) does not
+  // hold for this reason; see the task report for the investigation.
+  expect(at300.minus(1).abs().lessThan("1e-20")).toBe(true);
 });

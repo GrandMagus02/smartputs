@@ -62,13 +62,10 @@ export function formatValue(
 
   const authored =
     kind.spec.mode === "ratio"
-      ? fromCanonical(
-          value.canonical,
-          kind,
-          value.unit,
-          locale.id,
-          value.meta as Record<string, unknown>,
-        )
+      ? fromCanonical(value.canonical, kind, value.unit, {
+          locale: locale.id,
+          ...(value.meta ? { meta: value.meta as Record<string, unknown> } : {}),
+        })
       : value.canonical;
 
   const numberText = formatNumber(authored, locale, opts);

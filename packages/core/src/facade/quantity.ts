@@ -205,23 +205,17 @@ export function createFacade(args: {
 
     /** Canonical magnitude, the basis for every conversion and comparison. */
     private canonical(): Decimal {
-      return toCanonical(
-        this.value,
-        kind,
-        this.unit,
-        locale.id,
-        this.meta as Record<string, unknown>,
-      );
+      return toCanonical(this.value, kind, this.unit, {
+        locale: locale.id,
+        ...(this.meta ? { meta: this.meta as Record<string, unknown> } : {}),
+      });
     }
 
     to(unit: string): Decimal {
-      return fromCanonical(
-        this.canonical(),
-        kind,
-        requireUnit(unit),
-        locale.id,
-        this.meta as Record<string, unknown>,
-      );
+      return fromCanonical(this.canonical(), kind, requireUnit(unit), {
+        locale: locale.id,
+        ...(this.meta ? { meta: this.meta as Record<string, unknown> } : {}),
+      });
     }
 
     as(unit: string): Quantity {
@@ -271,13 +265,10 @@ export function createFacade(args: {
       const delta = (rhs as Q).canonical().times(sign);
       const total = this.canonical().plus(delta);
       return new Q(
-        fromCanonical(
-          total,
-          kind,
-          this.unit,
-          locale.id,
-          this.meta as Record<string, unknown>,
-        ),
+        fromCanonical(total, kind, this.unit, {
+          locale: locale.id,
+          ...(this.meta ? { meta: this.meta as Record<string, unknown> } : {}),
+        }),
         this.unit,
         this.meta as Record<string, unknown>,
       );
@@ -347,13 +338,10 @@ export function createFacade(args: {
         .canonical()
         .plus((rhs as unknown as { canonical(): Decimal }).canonical());
       return new Q(
-        fromCanonical(
-          total,
-          kind,
-          this.unit,
-          locale.id,
-          this.meta as Record<string, unknown>,
-        ),
+        fromCanonical(total, kind, this.unit, {
+          locale: locale.id,
+          ...(this.meta ? { meta: this.meta as Record<string, unknown> } : {}),
+        }),
         this.unit,
         this.meta as Record<string, unknown>,
       );
