@@ -88,6 +88,13 @@ test("a genuine half-cent tie rounds to even, canonical currency or not", () => 
   expect(engine.evaluate("0.025 usd").formatted).toBe("$0.02");
 });
 
+test("a negative amount puts the sign outside the symbol", () => {
+  expect(engine.evaluate("-10 usd").formatted).toBe("-$10.00");
+  expect(engine.evaluate("-10 eur").formatted).toBe("-€10.00");
+  // Rounding a small negative down to zero must not produce "-$0.00".
+  expect(engine.evaluate("-0.001 usd").formatted).toBe("$0.00");
+});
+
 test("a currency absent from the snapshot raises MissingRateError", () => {
   expect(() => engine.evaluate("30 jpy")).toThrow(MissingRateError);
 });

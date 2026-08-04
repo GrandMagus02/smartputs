@@ -166,6 +166,15 @@ export const money: Kind = defineKind({
     );
     const rounded = new Decimal(guarded.toFixed(minorUnits, rounding));
     const symbol = def?.symbol ?? value.unit.toUpperCase();
-    return `${symbol}${ctx.formatNumber(rounded, { precision: 34, minFractionDigits: minorUnits })}`;
+    // Sign outside the symbol: every locale convention writes "-$10.00", never
+    // "$-10.00". `isZero` guards the case where rounding a small negative to
+    // the minor unit lands on zero — "-$0.00" would be worse than what it
+    // replaces.
+    const sign = rounded.isNegative() && !rounded.isZero() ? "-" : "";
+    const digits = ctx.formatNumber(rounded.abs(), {
+      precision: 34,
+      minFractionDigits: minorUnits,
+    });
+    return `${sign}${symbol}${digits}`;
   },
 });
