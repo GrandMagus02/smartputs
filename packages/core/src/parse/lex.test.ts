@@ -41,6 +41,21 @@ test("recognizes locale keywords", () => {
   expect(tokens[2]).toMatchObject({ type: "keyword", keyword: "in" });
 });
 
+test("keyword matching is case-insensitive, like unit matching", () => {
+  for (const input of ["10 kg IN g", "10 kg In g", "10 kg iN g"]) {
+    expect(lex(input, en)[2]).toMatchObject({ type: "keyword", keyword: "in" });
+  }
+});
+
+test("a keyword alias written in caps still matches a lowercase surface", () => {
+  const shouty = defineLocale({
+    id: "en",
+    numberFormat: "intl",
+    keywords: { in: ["IN"] },
+  });
+  expect(lex("10 kg in g", shouty)[2]).toMatchObject({ type: "keyword", keyword: "in" });
+});
+
 test("keeps grouped numbers as one token", () => {
   const tokens = lex("1,500.25 kg", en);
   expect(tokens[0]).toMatchObject({ type: "number" });

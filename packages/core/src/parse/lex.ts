@@ -18,8 +18,14 @@ function defaultSegment(run: string, localeId: string): string[] {
 }
 
 function keywordFor(word: string, locale: Locale): Keyword | null {
+  // Keywords match case-insensitively, like units do. The fold happens here and
+  // not in normalize() on purpose: normalize() feeds every kind, and later
+  // milestones (currency codes, hex colours) need the raw case preserved.
+  const folded = word.toLocaleLowerCase(locale.id);
   for (const [keyword, aliases] of Object.entries(locale.keywords)) {
-    if (aliases?.includes(word)) return keyword as Keyword;
+    if (aliases?.some((a) => a.toLocaleLowerCase(locale.id) === folded)) {
+      return keyword as Keyword;
+    }
   }
   return null;
 }
