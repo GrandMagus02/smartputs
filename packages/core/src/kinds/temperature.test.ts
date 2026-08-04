@@ -59,6 +59,27 @@ test("scaling in the commuted order is also always an error", () => {
   expect(() => engine.evaluate("2 * 20 C")).toThrow(DimensionMismatchError);
 });
 
+// "20 C * 2" and "20 C + 20%" are the same operation — scaling an absolute
+// reading. Until the refusals were generated rather than hand-listed, the
+// first raised and the second silently answered "24°C" via tempdelta, with
+// the reinterpretation not even recorded as an assumption.
+test("adjusting an absolute temperature by a percentage is an error", () => {
+  expect(() => engine.evaluate("20 C + 20%")).toThrow(DimensionMismatchError);
+  expect(() => engine.evaluate("20 C - 20%")).toThrow(DimensionMismatchError);
+});
+
+test("taking a percentage of an absolute temperature is an error", () => {
+  expect(() => engine.evaluate("20% of 20 C")).toThrow(DimensionMismatchError);
+});
+
+test("percent adjustment of a difference is fine", () => {
+  // The delta kind is an ordinary ratio kind, so it keeps the whole percent
+  // block — only the absolute reading refuses.
+  const r = engine.evaluate("(30 C - 20 C) + 20%");
+  expect(r.kind).toBe("tempdelta");
+  expect(r.value.canonical.toString()).toBe("12");
+});
+
 test("the refusal error carries the source expression, not a blank placeholder", () => {
   let thrown: unknown;
   try {

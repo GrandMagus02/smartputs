@@ -32,6 +32,21 @@ test("subtracting a percentage is relative too", () => {
   expect(engine.evaluate("50 - 20%").value.canonical.toString()).toBe("40");
 });
 
+// A percentage is a quantity like any other, so scaling it by a bare number
+// is meaningful. `generateRatioOps` used to exclude percent from the
+// number-scaling trio along with number, so these three threw
+// DimensionMismatchError while the facade's `Percent.scale(3)` answered 60% —
+// two public surfaces disagreeing about the same operation.
+test("a percentage scales by a bare number in both orders", () => {
+  expect(engine.evaluate("20% * 3").formatted).toBe("60%");
+  expect(engine.evaluate("3 * 20%").formatted).toBe("60%");
+  expect(engine.evaluate("20% * 3").kind).toBe("percent");
+});
+
+test("a percentage divides by a bare number", () => {
+  expect(engine.evaluate("20% / 2").formatted).toBe("10%");
+});
+
 test("of binds tighter than plus", () => {
   expect(engine.evaluate("50 + 20% of 100").value.canonical.toString()).toBe("70");
 });
