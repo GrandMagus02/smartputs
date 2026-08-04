@@ -3152,7 +3152,11 @@ const mass = defineKind({
   id: "mass",
   value: { mode: "ratio", canonical: "g", units: { g: 1, kg: 1000 } },
   lexicon: {
-    kg: { aliases: ["kg"], symbol: "kg", display: { one: "kilogram", other: "kilograms" } },
+    // No `display` here on purpose: this fixture exercises the symbol path.
+    // Intl.PluralRules("en").select(1.5) is "other", so a display.other entry
+    // would make every test below render "1.5 kilograms" instead of "1.5kg".
+    // The display path gets its own fixture (mass2) in the test that needs it.
+    kg: { aliases: ["kg"], symbol: "kg" },
     g: { aliases: ["g"], symbol: "g" },
   },
 });
@@ -3177,7 +3181,8 @@ test("uses the plural display form when the number selects it", () => {
 });
 
 test("falls back to the symbol when no display form covers the category", () => {
-  expect(formatValue(value("3000", "g"), registry, "en")).toBe("3000g");
+  // Grouped: en renders 3000 as "3,000".
+  expect(formatValue(value("3000", "g"), registry, "en")).toBe("3,000g");
 });
 
 test("formats a plain number without a unit", () => {
