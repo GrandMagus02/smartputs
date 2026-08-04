@@ -155,6 +155,19 @@ export interface RatioSpec {
   canonical: string;
   units: Record<string, UnitDef | number | Decimal>;
   affine?: { deltaKind: KindId };
+  /**
+   * Names the unit whose ratio is a function of `meta.dpi` — `measure`'s `px`,
+   * and nothing else today. Declaring it is what gives a facade of this kind
+   * the `.dpi` getter and the `withDpi()` method; a kind that does not declare
+   * it gets neither.
+   *
+   * Explicit opt-in rather than inference: the facade used to look for "the
+   * first unit with a function ratio", which was a sound proxy for `px` only
+   * while `measure` was the only kind with one. `money` has twelve, so its
+   * quantities acquired a `withDpi()` that wrote into a `meta` nothing reads,
+   * and a `.dpi` getter that threw `MissingRateError`.
+   */
+  dpiUnit?: string;
 }
 
 export interface OpaqueSpec {

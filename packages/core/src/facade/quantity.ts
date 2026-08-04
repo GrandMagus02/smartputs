@@ -149,19 +149,24 @@ export function createFacade(args: {
     }
   };
 
-  // The unit (if any) whose ratio is context-dependent — currently only
-  // `measure`'s `px`, which reads dpi from `meta`. Keeping a handle on the
-  // NormalizedUnit itself (rather than a bare boolean) lets the `dpi` getter
-  // below ask the kind for its own default instead of restating one.
-  const dpiUnitName =
-    kind.spec.mode === "ratio"
-      ? Object.entries(kind.spec.units).find(
-          ([, u]) =>
-            typeof u === "object" && "ratio" in u && typeof u.ratio === "function",
-        )?.[0]
-      : undefined;
-  const dpiUnit = dpiUnitName !== undefined ? kind.units.get(dpiUnitName) : undefined;
-  const usesDpi = dpiUnit !== undefined;
+  // The unit whose ratio reads `meta.dpi`, if the kind declares one. Explicit
+  // opt-in via `spec.dpiUnit`: this used to be inferred as "the first unit with
+  // a function ratio", which stopped being a proxy for `measure`'s `px` the
+  // moment `money` arrived with twelve rate-driven units — a money quantity
+  // grew a meaningless `withDpi()` and a `.dpi` getter that threw
+  // MissingRateError. Keeping a handle on the NormalizedUnit itself (rather
+  // than a bare boolean) lets the `dpi` getter below ask the kind for its own
+  // default instead of restating one.
+  const dpiUnitName = kind.spec.mode === "ratio" ? kind.spec.dpiUnit : undefined;
+  const dpiUnit = dpiUnitName === undefined ? undefined : kind.units.get(dpiUnitName);
+  if (dpiUnitName !== undefined && dpiUnit === undefined) {
+    // A declaration naming a unit the kind does not have is a wiring error, and
+    // silently dropping the dpi surface would look like the bug this replaced.
+    throw new KindConflictError(
+      kind.id,
+      `dpiUnit ${JSON.stringify(dpiUnitName)} is not a unit`,
+    );
+  }
 
   class Q implements Quantity {
     readonly value: Decimal;
@@ -284,19 +289,6 @@ export function createFacade(args: {
         this.meta as Record<string, unknown>,
       );
     }
-
-    get dpi(): number | undefined {
-      const d = this.meta?.dpi;
-      if (typeof d === "number") return d;
-      if (dpiUnit === undefined) return undefined;
-      // Ask the kind's own ratio function for its default, with no dpi in
-      // meta, rather than restating that default (currently 96) here.
-      const ctx: EvalCtx = {
-        self: { kind: kind.id, canonical: new Decimal(0), unit: dpiUnit.unit },
-        locale: locale.id,
-      };
-      return new Decimal(1).div(dpiUnit.ratio(ctx)).toNumber();
-    }
   }
 
   const affine = kind.spec.mode === "ratio" ? kind.spec.affine : undefined;
@@ -371,7 +363,26 @@ export function createFacade(args: {
     };
   }
 
-  if (usesDpi) {
+  if (dpiUnit !== undefined) {
+    // Both members are defined only for a kind that declared `spec.dpiUnit`, so
+    // `"dpi" in q` and `"withDpi" in q` answer honestly — a money quantity has
+    // neither, rather than a getter that throws and a setter nothing reads.
+    Object.defineProperty(proto, "dpi", {
+      get(this: Quantity): number | undefined {
+        const d = this.meta?.dpi;
+        if (typeof d === "number") return d;
+        // Ask the kind's own ratio function for its default, with no dpi in
+        // meta, rather than restating that default (currently 96) here. It
+        // gets `rates` for the same reason every other conversion site does:
+        // the ratio is a function, and a function may consult them.
+        const ctx: EvalCtx = {
+          self: { kind: kind.id, canonical: new Decimal(0), unit: dpiUnit.unit },
+          locale: locale.id,
+          ...(rates ? { rates } : {}),
+        };
+        return new Decimal(1).div(dpiUnit.ratio(ctx)).toNumber();
+      },
+    });
     proto.withDpi = function (this: Quantity, dpi: number) {
       return new Q(this.value, this.unit, { ...this.meta, dpi });
     };

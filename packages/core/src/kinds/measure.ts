@@ -16,6 +16,9 @@ export const measure = defineKind({
   value: {
     mode: "ratio",
     canonical: "inch",
+    // Opt in to the facade's dpi surface — `.dpi` and `withDpi()`. See
+    // RatioSpec.dpiUnit.
+    dpiUnit: "px",
     units: {
       inch: 1,
       mm: new Decimal(1).div(25.4),

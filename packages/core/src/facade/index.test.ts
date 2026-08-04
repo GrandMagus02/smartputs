@@ -85,6 +85,36 @@ test("dpi defaults to 96 and is readable", () => {
   expect(new M(1, "inch", { dpi: 300 }).dpi).toBe(300);
 });
 
+test("a kind that does not declare dpiUnit gets neither dpi nor withDpi", () => {
+  // The dpi surface is opt-in via `spec.dpiUnit`. It used to be inferred from
+  // "the first unit with a function ratio", which every rate-driven kind
+  // (money) also satisfies.
+  const M = F.mass;
+  if (M === undefined) throw new Error("missing");
+  const q = new M(1, "kg");
+  expect("withDpi" in q).toBe(false);
+  expect("dpi" in q).toBe(false);
+  expect(q.dpi).toBeUndefined();
+});
+
+test("declaring a dpiUnit that is not a unit is a wiring error", () => {
+  const registry = buildRegistry(
+    [
+      {
+        id: "bogus",
+        value: { mode: "ratio", canonical: "a", units: { a: 1 }, dpiUnit: "b" },
+      },
+    ],
+    [],
+    "en",
+  );
+  const bogus = registry.kinds.get("bogus");
+  if (bogus === undefined) throw new Error("missing");
+  expect(() => createFacade({ kind: bogus, registry, locale: en })).toThrow(
+    KindConflictError,
+  );
+});
+
 test("an affine facade built without its delta kind reports a wiring error, not a parse error", () => {
   // `temperature` alone, deliberately built without `tempdelta`: no
   // `deltaFacades` map is supplied, so it defaults to empty and `.add`/`.diff`

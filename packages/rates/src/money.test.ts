@@ -126,3 +126,20 @@ test("a money facade converts, using the same rates the engine does", () => {
   const fromEngine = engine.evaluate("30 usd").value.canonical;
   expect(converted.toString()).toBe(fromEngine.toString());
 });
+
+test("a money facade has no dpi surface", () => {
+  // The facade used to decide "this kind is dpi-aware" by finding the first
+  // unit with a function ratio — true of `measure`'s px, and of all eleven
+  // non-euro currencies. `new Money(30,"usd").dpi` threw MissingRateError from
+  // a getter on the public Quantity interface, and `withDpi()` wrote a `dpi`
+  // into meta that nothing reads. `money` declares no `dpiUnit`, so it now
+  // gets neither member.
+  const facades = createFacades({ kinds: [number, money], locale: en, rates });
+  const Money = facades.money;
+  if (Money === undefined) throw new Error("missing money facade");
+  const q = new Money(30, "usd");
+  expect("withDpi" in q).toBe(false);
+  expect("dpi" in q).toBe(false);
+  expect(() => q.dpi).not.toThrow();
+  expect(q.dpi).toBeUndefined();
+});
