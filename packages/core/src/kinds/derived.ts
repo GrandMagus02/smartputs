@@ -1,9 +1,15 @@
 import { Decimal } from "../decimal";
 import { defineKind } from "../kind/define";
+import { deriveValue } from "../kind/ratio-ops";
 import type { Value } from "../types";
 
-const make = (kind: string, unit: string, canonical: Decimal): Value =>
-  Object.freeze({ kind, canonical, unit });
+/**
+ * A derived kind's result is a different kind and unit than either operand,
+ * but it still inherits the left operand's `meta` — that is what `deriveValue`
+ * is for, and hand-building the frozen Value here is what dropped it.
+ */
+const make = (source: Value, kind: string, unit: string, canonical: Decimal): Value =>
+  deriveValue(source, canonical, { kind, unit });
 
 /** Canonical metres per second. Produced by dividing a length by a duration. */
 export const speed = defineKind({
@@ -30,7 +36,7 @@ export const speed = defineKind({
       left: "length",
       right: "duration",
       result: "speed",
-      apply: (l, r) => make("speed", "mps", l.canonical.div(r.canonical)),
+      apply: (l, r) => make(l, "speed", "mps", l.canonical.div(r.canonical)),
     },
   ],
 });
@@ -56,7 +62,7 @@ export const area = defineKind({
       left: "length",
       right: "length",
       result: "area",
-      apply: (l, r) => make("area", "m2", l.canonical.times(r.canonical)),
+      apply: (l, r) => make(l, "area", "m2", l.canonical.times(r.canonical)),
     },
   ],
 });
@@ -86,14 +92,16 @@ export const volume = defineKind({
       left: "area",
       right: "length",
       result: "volume",
-      apply: (l, r) => make("volume", "m3", l.canonical.times(r.canonical).times(1000)),
+      apply: (l, r) =>
+        make(l, "volume", "m3", l.canonical.times(r.canonical).times(1000)),
     },
     {
       op: "*",
       left: "length",
       right: "area",
       result: "volume",
-      apply: (l, r) => make("volume", "m3", l.canonical.times(r.canonical).times(1000)),
+      apply: (l, r) =>
+        make(l, "volume", "m3", l.canonical.times(r.canonical).times(1000)),
     },
   ],
 });

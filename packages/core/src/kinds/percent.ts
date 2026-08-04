@@ -1,6 +1,6 @@
 import { Decimal } from "../decimal";
 import { defineKind } from "../kind/define";
-import { NUMBER_KIND } from "../kind/ratio-ops";
+import { deriveValue, NUMBER_KIND } from "../kind/ratio-ops";
 
 /**
  * Canonical is the plain ratio, so "20%" is 0.2 and needs no special case to
@@ -17,7 +17,10 @@ import { NUMBER_KIND } from "../kind/ratio-ops";
  * percent must declare them itself. The arithmetic mirrors
  * generateRatioOps's generated `+|K|percent` / `-|K|percent` / `of|percent|K`
  * cases exactly (relative to the left operand for +/-, product for of) so
- * the two paths cannot drift.
+ * the two paths cannot drift. Both build their result with `deriveValue`,
+ * which is what makes that claim true for `meta` as well as for the
+ * arithmetic — these three used to hand-build a frozen Value and silently
+ * drop it.
  */
 export const percent = defineKind({
   id: "percent",
@@ -34,24 +37,14 @@ export const percent = defineKind({
       left: "percent",
       right: NUMBER_KIND,
       result: NUMBER_KIND,
-      apply: (l, r) =>
-        Object.freeze({
-          kind: NUMBER_KIND,
-          canonical: r.canonical.times(l.canonical),
-          unit: r.unit,
-        }),
+      apply: (l, r) => deriveValue(r, r.canonical.times(l.canonical)),
     },
     {
       op: "+",
       left: NUMBER_KIND,
       right: "percent",
       result: NUMBER_KIND,
-      apply: (l, r) =>
-        Object.freeze({
-          kind: NUMBER_KIND,
-          canonical: l.canonical.times(r.canonical.plus(1)),
-          unit: l.unit,
-        }),
+      apply: (l, r) => deriveValue(l, l.canonical.times(r.canonical.plus(1))),
     },
     {
       op: "-",
@@ -59,11 +52,7 @@ export const percent = defineKind({
       right: "percent",
       result: NUMBER_KIND,
       apply: (l, r) =>
-        Object.freeze({
-          kind: NUMBER_KIND,
-          canonical: l.canonical.times(new Decimal(1).minus(r.canonical)),
-          unit: l.unit,
-        }),
+        deriveValue(l, l.canonical.times(new Decimal(1).minus(r.canonical))),
     },
   ],
 });
