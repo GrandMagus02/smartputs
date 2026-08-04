@@ -80,6 +80,13 @@ export interface FormatCtx {
   readonly locale: string;
 }
 
+export interface FormatOptions {
+  /** Significant digits to display. Defaults to 26. */
+  readonly precision?: number;
+  /** Rounding mode. Defaults to Decimal's configured mode. */
+  readonly rounding?: Decimal.Rounding;
+}
+
 export interface UnitDef {
   ratio: Decimal | number | ((ctx: EvalCtx) => Decimal);
   offset?: Decimal | number;

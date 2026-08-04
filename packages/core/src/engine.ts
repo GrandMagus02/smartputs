@@ -39,6 +39,12 @@ export interface EngineOptions {
    * The `measure` kind reads `{ dpi }` from here; nothing else uses it yet.
    */
   kindMeta?: Readonly<Record<KindId, Readonly<Record<string, unknown>>>>;
+  /**
+   * Significant digits in formatted output. Defaults to 26 — two guard digits
+   * below the 28 Decimal computes at, which is what keeps a round trip through
+   * a non-terminating ratio from surfacing as trailing noise.
+   */
+  formatPrecision?: number;
 }
 
 export interface EvalOptions {
@@ -87,6 +93,7 @@ export function createEngine(opts: EngineOptions): Engine {
   const epsilon = opts.ambiguityEpsilon ?? 0.05;
   const tiebreak = opts.tiebreak ?? "error";
   const kindMeta = opts.kindMeta ?? {};
+  const formatPrecision = opts.formatPrecision;
 
   const layersFor = (call?: Weights) => [locale.weights, opts.weights, call];
 
@@ -124,7 +131,9 @@ export function createEngine(opts: EngineOptions): Engine {
     );
     return {
       value,
-      formatted: formatValue(value, registry, locale as Locale),
+      formatted: formatValue(value, registry, locale as Locale, {
+        ...(formatPrecision === undefined ? {} : { precision: formatPrecision }),
+      }),
       kind: value.kind,
       confidence: assignment.confidence,
       spans: [node.span],

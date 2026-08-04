@@ -12,6 +12,8 @@ export type {
   QuantitySnapshot,
 } from "./facade/index";
 export { createFacade, createFacades } from "./facade/index";
+export type { FormatOptions } from "./format/format";
+export { formatNumber, formatValue } from "./format/format";
 export { defineKind } from "./kind/define";
 // Every built-in kind is exported by name, not only as an anonymous member of
 // BUILTIN_KINDS. `measure` in particular has no other route: it is deliberately

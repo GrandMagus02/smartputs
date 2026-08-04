@@ -24,12 +24,12 @@ test("the engine's kindMeta overrides the default dpi", () => {
 test("A4 width in points", () => {
   expect(at().evaluate("210 mm in pt").value.canonical.toFixed(3)).toBe("8.268");
   // mm -> inch is 1/25.4 = 5/127, and 127 has no factor of 2 or 5, so the
-  // conversion never terminates in decimal. formatValue renders the exact
-  // authored value, not a display-rounded one (see angle.test.ts for the
-  // same phenomenon with pi-based ratios) — so this is 28 significant
+  // conversion never terminates in decimal. formatValue guard-rounds the
+  // exact authored value to 26 significant digits (see format.ts) rather
+  // than printing all 28 Decimal computes at — so this is 26 significant
   // digits, not "595.276 points".
   expect(at().evaluate("210 mm in pt").formatted).toBe(
-    "595.2755905511811023622047243 points",
+    "595.27559055118110236220472 points",
   );
 });
 

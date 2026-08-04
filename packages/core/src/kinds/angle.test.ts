@@ -13,19 +13,11 @@ test("degrees convert to radians", () => {
 
 test("a quarter turn is 90 degrees", () => {
   expect(engine.evaluate("0.25 turn in deg").value.canonical.toFixed(6)).toBe("1.570796");
-  // Irrational ratios (π/180, 2π) don't round-trip exactly at 28 significant digits.
-  // formatValue renders the exact authored value, not a display-rounded one.
-  expect(engine.evaluate("0.25 turn in deg").formatted).toBe(
-    "90.00000000000000000000000005 degrees",
-  );
+  expect(engine.evaluate("0.25 turn in deg").formatted).toBe("90 degrees");
 });
 
 test("gradians convert", () => {
-  // Irrational ratios (π/200) don't round-trip exactly at 28 significant digits.
-  // formatValue renders the exact authored value, not a display-rounded one.
-  expect(engine.evaluate("200 grad in deg").formatted).toBe(
-    "180.0000000000000000000000001 degrees",
-  );
+  expect(engine.evaluate("200 grad in deg").formatted).toBe("180 degrees");
 });
 
 test("angles add", () => {

@@ -5,7 +5,7 @@ import { buildRegistry } from "../kind/registry";
 import { defineLocale } from "../locale/define";
 import { parseNumber } from "../locale/number";
 import type { Value } from "../types";
-import { formatValue } from "./format";
+import { formatNumber, formatValue } from "./format";
 
 const number = defineKind({
   id: "number",
@@ -125,8 +125,36 @@ test("a kind's own format hook wins over the default rendering", () => {
 });
 
 test("groups a 28-significant-digit value without losing a digit", () => {
+  // Guard-digit rounding (see format.ts) rounds the default display to 26
+  // significant digits, so exercising the full 28 the grouping regex must
+  // handle requires opting back in to the un-rounded precision explicitly.
   const digits = "1234567890123456789012345678";
-  const out = formatValue(value(digits, "g"), registry, en);
+  const out = formatValue(value(digits, "g"), registry, en, { precision: 28 });
   expect(out).toBe("1,234,567,890,123,456,789,012,345,678g");
   expect(parseNumber(out.replace("g", ""), en)?.toFixed()).toBe(digits);
+});
+
+test("guard-digit rounding removes one-ulp noise from a round trip", () => {
+  const noisy = new Decimal("0.4999999999999999999999999998");
+  expect(formatNumber(noisy, en)).toBe("0.5");
+  expect(formatNumber(new Decimal("799.9999999999999999999999996"), en)).toBe("800");
+  expect(formatNumber(new Decimal("1.00000000000000000000000001"), en)).toBe("1");
+});
+
+test("guard-digit rounding leaves an exactly-representable value alone", () => {
+  // 21 significant digits, all meaningful: 1 GB expressed in GiB.
+  expect(formatNumber(new Decimal("0.931322574615478515625"), en)).toBe(
+    "0.931322574615478515625",
+  );
+});
+
+test("precision is configurable per call", () => {
+  const pi = new Decimal("3.14159265358979323846264338328");
+  expect(formatNumber(pi, en, { precision: 5 })).toBe("3.1416");
+});
+
+test("grouping still applies after rounding", () => {
+  expect(formatNumber(new Decimal("1234567.8999999999999999999999999"), en)).toBe(
+    "1,234,567.9",
+  );
 });
