@@ -1536,6 +1536,13 @@ test("an explicit NumberFormatSpec overrides Intl", () => {
   expect(parseNumber("1 500,25", custom)?.toString()).toBe("1500.25");
 });
 
+test("strips non-breaking and narrow no-break spaces", () => {
+  // Written as escapes on purpose: these characters are invisible in source.
+  // U+00A0 arrives via pasted text; U+202F is French ICU's group separator.
+  expect(parseNumber("1\u00A0500.25", en)?.toString()).toBe("1500.25");
+  expect(parseNumber("1\u202F500.25", en)?.toString()).toBe("1500.25");
+});
+
 test("returns null for non-numeric text", () => {
   expect(parseNumber("kg", en)).toBeNull();
 });
@@ -1582,6 +1589,18 @@ test("keeps grouped numbers as one token", () => {
   const tokens = lex("1,500.25 kg", en);
   expect(tokens[0]).toMatchObject({ type: "number" });
   expect(tokens).toHaveLength(2);
+});
+
+test("backs off a trailing separator that is not part of the number", () => {
+  const tokens = lex("1,500. kg", en);
+  expect(tokens[0]).toMatchObject({ type: "number", text: "1,500", start: 0, end: 5 });
+  expect(tokens.map((t) => t.type)).toEqual(["number", "word"]);
+});
+
+test("skips unrecognized characters instead of throwing", () => {
+  // suggest() must never crash on junk.
+  expect(() => lex("10 kg @@ 5", en)).not.toThrow();
+  expect(lex("10 kg @@ 5", en).map((t) => t.type)).toEqual(["number", "word", "number"]);
 });
 
 test("word runs are split by the locale segmenter when provided", () => {
@@ -1652,7 +1671,10 @@ export function parseNumber(text: string, locale: Locale): Decimal | null {
   const { group, decimal } = numberSymbols(locale);
   let cleaned = "";
   for (const ch of text) {
-    if (ch === group || ch === " " || ch === " ") continue;
+    // Escapes, not literals: NBSP and narrow NBSP are invisible in source and
+    // silently degrade to a plain space when retyped. French ICU uses U+202F as
+    // its group separator, so this is load-bearing, not defensive padding.
+    if (ch === group || ch === "\u00A0" || ch === "\u202F") continue;
     cleaned += ch === decimal ? "." : ch;
   }
   if (cleaned.length === 0 || !/^-?\d*\.?\d+$/.test(cleaned)) return null;
