@@ -1,10 +1,13 @@
 import {
   Decimal,
+  DISPLAY_PRECISION,
   defineKind,
+  type EvalCtx,
   type Kind,
   type Lexicon,
   MissingRateError,
   type UnitDef,
+  type Value,
 } from "@smartput/core";
 import { CURRENCIES } from "./currencies";
 
@@ -30,6 +33,32 @@ function rateRatio(code: string): UnitDef {
       return rate;
     },
   };
+}
+
+/**
+ * Records the one assumption money makes: that a rate the snapshot does not
+ * quote directly was derived by pivoting through the base currency. Every
+ * signature that can see two currencies at once calls this — `in`, `+` and `-`
+ * — because a derived rate is exactly as derived in `30 usd - 10 gbp` as it is
+ * in `30 usd in gbp`, and spec §8 says cross-rates are never silent.
+ *
+ * One helper rather than three copies: `@smartput/rates` is the shape M4's
+ * datetime and M5's colour packages will read, and a disclosure rule that lives
+ * in three places is a disclosure rule that will be applied in two.
+ *
+ * The evaluator dedupes identical notes, so calling this once per operand pair
+ * in a nested expression is harmless.
+ */
+function noteCross(ctx: EvalCtx, l: Value, r: Value): void {
+  const base = ctx.rates?.base;
+  const from = l.unit.toUpperCase();
+  const to = r.unit.toUpperCase();
+  if (base === undefined || from === to || from === base || to === base) return;
+  ctx.note?.({
+    code: "cross-rate",
+    message: `${from} to ${to} was derived via ${base}`,
+    detail: { from, to, via: base },
+  });
 }
 
 const units: Record<string, UnitDef | number> = { [CANONICAL]: 1 };
@@ -60,16 +89,7 @@ export const money: Kind = defineKind({
       right: "money",
       result: "money",
       apply: (l, r, ctx) => {
-        const base = ctx.rates?.base;
-        const from = l.unit.toUpperCase();
-        const to = r.unit.toUpperCase();
-        if (base !== undefined && from !== to && from !== base && to !== base) {
-          ctx.note?.({
-            code: "cross-rate",
-            message: `${from} to ${to} was derived via ${base}`,
-            detail: { from, to, via: base },
-          });
-        }
+        noteCross(ctx, l, r);
         // Same shape the generated signature produces, meta included — M2's
         // review found six hand-written applies that silently dropped it.
         // The generated `in|money|money` this replaces is
@@ -80,6 +100,41 @@ export const money: Kind = defineKind({
           canonical: l.canonical,
           unit: r.unit,
           ...(r.meta ? { meta: r.meta } : {}),
+        });
+      },
+    },
+    // `30 usd - 10 gbp` derives USD/GBP through the euro exactly as
+    // `30 usd in gbp` does, so it owes the user the same disclosure. Both
+    // replace a generated signature whose apply is
+    // `deriveValue(l, l.canonical.op(r.canonical))` — meta, kind and unit all
+    // from `l`, the left operand whose currency the result keeps (spec §8).
+    {
+      op: "+",
+      left: "money",
+      right: "money",
+      result: "money",
+      apply: (l, r, ctx) => {
+        noteCross(ctx, l, r);
+        return Object.freeze({
+          kind: l.kind,
+          canonical: l.canonical.plus(r.canonical),
+          unit: l.unit,
+          ...(l.meta ? { meta: l.meta } : {}),
+        });
+      },
+    },
+    {
+      op: "-",
+      left: "money",
+      right: "money",
+      result: "money",
+      apply: (l, r, ctx) => {
+        noteCross(ctx, l, r);
+        return Object.freeze({
+          kind: l.kind,
+          canonical: l.canonical.minus(r.canonical),
+          unit: l.unit,
+          ...(l.meta ? { meta: l.meta } : {}),
         });
       },
     },
@@ -95,7 +150,21 @@ export const money: Kind = defineKind({
     // it's reconstructed. `minFractionDigits` on the formatNumber call below
     // is what restores it, padding back up to the minor-unit scale, using the
     // locale's own decimal symbol rather than a hand-rolled one.
-    const rounded = new Decimal(ctx.authored.toFixed(minorUnits, rounding));
+    //
+    // The guard-digit trim has to happen BEFORE the mode is applied. For any
+    // non-canonical currency `ctx.authored` is `fromCanonical(canonical, ...)`,
+    // so the amount has passed through the rate twice and carries ±1ulp at the
+    // 28th significant digit — "0.005 usd" comes back as
+    // 0.005000000000000000000000000001. Feeding that to a half-even tie-break
+    // decides the cent by round-trip noise whose direction varies with the
+    // rate: $0.01 for one currency, €0.00 for the same nominal amount in
+    // another. Trimming to the display precision first (the same two guard
+    // digits `formatNumber` uses) restores the tie, so the rounding mode
+    // decides it.
+    const guarded = new Decimal(
+      ctx.authored.toPrecision(ctx.precision ?? DISPLAY_PRECISION),
+    );
+    const rounded = new Decimal(guarded.toFixed(minorUnits, rounding));
     const symbol = def?.symbol ?? value.unit.toUpperCase();
     return `${symbol}${ctx.formatNumber(rounded, { precision: 34, minFractionDigits: minorUnits })}`;
   },

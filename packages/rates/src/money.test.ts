@@ -4,8 +4,8 @@ import en from "@smartput/core/locale/en";
 import { money } from "./money";
 import { snapshot } from "./snapshot";
 
-// One euro buys 1.1 dollars and 45.5 hryvnia.
-const rates = snapshot("EUR", "2026-08-04", { USD: 1.1, UAH: 45.5 });
+// One euro buys 1.1 dollars, 45.5 hryvnia and 0.8412 pounds.
+const rates = snapshot("EUR", "2026-08-04", { USD: 1.1, UAH: 45.5, GBP: 0.8412 });
 const engine = createEngine({ locales: [en], kinds: [number, money], rates });
 
 test("a bare amount is money in its authored currency", () => {
@@ -38,6 +38,54 @@ test("a cross rate is recorded, never silent", () => {
 
 test("a conversion involving the base records no cross-rate assumption", () => {
   expect(engine.evaluate("30 usd in eur").meta.assumptions).toEqual([]);
+});
+
+test("mixed-currency subtraction records the cross rate too", () => {
+  // The disclosure used to live only in the `in` override, so arithmetic —
+  // which goes through the generated `-|money|money` — derived USD/GBP through
+  // the euro in silence. Spec §8: never silent.
+  const r = engine.evaluate("30 usd - 10 gbp");
+  const cross = r.meta.assumptions.find((a) => a.code === "cross-rate");
+  expect(cross?.detail).toEqual({ from: "USD", to: "GBP", via: "EUR" });
+});
+
+test("mixed-currency addition records the cross rate too", () => {
+  const r = engine.evaluate("1 usd + 1 uah");
+  const cross = r.meta.assumptions.find((a) => a.code === "cross-rate");
+  expect(cross?.detail).toEqual({ from: "USD", to: "UAH", via: "EUR" });
+});
+
+test("arithmetic through the base currency records nothing", () => {
+  expect(engine.evaluate("30 usd - 10 eur").meta.assumptions).toEqual([]);
+  expect(engine.evaluate("5 usd + 5 usd").meta.assumptions).toEqual([]);
+});
+
+test("the arithmetic overrides keep the left operand's unit and meta", () => {
+  // They replace generated signatures whose apply is deriveValue(l, ...), so
+  // kind, unit and meta must all still come from `l`.
+  const r = engine.evaluate("30 usd - 10 gbp");
+  expect(r.value.unit).toBe("usd");
+  expect(r.value.kind).toBe("money");
+  expect(r.formatted).toBe("$16.92");
+});
+
+test("a half-cent amount rounds the same way in every currency", () => {
+  // `ctx.authored` for a non-canonical currency has been through the rate
+  // twice and carries ±1ulp at the 28th digit, which used to decide the
+  // half-even tie-break: "$0.01" for usd, "€0.00" for the same nominal
+  // amount in euro. Guarding at display precision restores the tie.
+  expect(engine.evaluate("0.005 usd").formatted).toBe("$0.00");
+  expect(engine.evaluate("0.005 eur").formatted).toBe("€0.00");
+  expect(engine.evaluate("0.005 uah").formatted).toBe("₴0.00");
+});
+
+test("a genuine half-cent tie rounds to even, canonical currency or not", () => {
+  // 1.5 cents -> 2 (even), 2.5 cents -> 2 (even). ROUND_HALF_EVEN, unchanged
+  // by the guard: the guard only removes noise that was never in the value.
+  expect(engine.evaluate("0.015 eur").formatted).toBe("€0.02");
+  expect(engine.evaluate("0.015 usd").formatted).toBe("$0.02");
+  expect(engine.evaluate("0.025 eur").formatted).toBe("€0.02");
+  expect(engine.evaluate("0.025 usd").formatted).toBe("$0.02");
 });
 
 test("a currency absent from the snapshot raises MissingRateError", () => {

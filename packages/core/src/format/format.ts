@@ -18,7 +18,7 @@ export type { FormatOptions } from "../types";
  * digits; at 26 it strengthens it, because the noise it removes is exactly
  * what made the property fail for temperature, angle and speed.
  */
-const DISPLAY_PRECISION = 26;
+export const DISPLAY_PRECISION = 26;
 
 export function formatNumber(
   value: Decimal,
