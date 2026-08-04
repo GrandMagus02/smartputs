@@ -3526,7 +3526,9 @@ const engine = createEngine({ locales: [en], kinds: BUILTIN_KINDS });
 test("evaluate returns a formatted result for an unambiguous input", () => {
   const r = engine.evaluate("1 kg + 500 g");
   expect(r.kind).toBe("mass");
-  expect(r.formatted).toBe("1.5kg");
+  // The kg lexeme carries display forms, and Intl.PluralRules("en").select(1.5)
+  // is "other" — so this renders the word, not the symbol.
+  expect(r.formatted).toBe("1.5 kilograms");
 });
 
 test("evaluate resolves ambiguity from context", () => {
@@ -3904,15 +3906,15 @@ Expected: PASS, 16 tests.
 ```
 # input	kind	canonical	formatted
 10 km	length	10000	10km
-1 kg + 500 g	mass	1500	1.5kg
+1 kg + 500 g	mass	1500	1.5 kilograms
 30 h - 30 min	duration	106200	29.5h
 10 m + 5 h	duration	18600	310min
-10 m + 5 km	length	5010	5010m
-2 km in m	length	2000	2000m
+10 m + 5 km	length	5010	5,010m
+2 km in m	length	2000	2,000m
 10 km * 3	length	30000	30km
 (1 + 2) * 3	number	9	9
 -5 km	length	-5000	-5km
-1,500 g	mass	1500	1500g
+1,500 g	mass	1500	1,500g
 12 inch	length	0.3048	12in
 3 lbs	mass	1360.77711	3lb
 2 wk	duration	1209600	2wk
