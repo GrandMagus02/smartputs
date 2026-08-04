@@ -83,11 +83,19 @@ _(nothing currently listed)_
   the duplication and the sign trap, at the cost of churning test expectations
   that were already corrected once during M2.
 
-- **Currency symbols are output-only.** `$30` does not parse: core's lexer
-  allowlist (`UNIT_SYMBOLS`) contains only `%`, so a leading `$` is skipped.
+- **Currency symbols are output-only, and a money string parses as `number`.**
+  Core's lexer allowlist (`UNIT_SYMBOLS`) contains only `%`, so a leading `$` is
+  skipped rather than rejected: `evaluate("$30.00")` returns `number` 30, and
+  `evaluate("$30")` returns `number` 30. That is a *silent kind change* on a
+  money string, which is materially worse than a throw — the amount survives and
+  the currency does not. The same skip breaks the facade round trip:
+  `Money.parse(new Money(30, "usd").toString())` throws `UnitParseError`,
+  because `toString()` emits `$30.00`. `packages/rates/src/properties.test.ts`
+  pins both, so this stops being invisible.
   Adding currency symbols to the allowlist is a lexer change with its own
   ambiguity questions — `$` prefixes the number rather than following it — and
-  belongs in its own task.
+  belongs in its own task. (Ruled out of M3 scope by the M3 plan's Self-Review;
+  only this text was corrected there.)
 
 - **`money` is not in any default kind set.** It lives in `@smartput/rates` and
   callers pass it explicitly, like every other kind.
