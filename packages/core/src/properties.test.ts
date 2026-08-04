@@ -45,7 +45,31 @@ test("conversion is transitive across every unit pair", () => {
       for (const b of units) {
         const direct = toCanonical(new Decimal("7"), kind, a, "en");
         const viaB = toCanonical(fromCanonical(direct, kind, b, "en"), kind, b, "en");
-        expect(viaB.minus(direct).abs().lessThan("1e-18")).toBe(true);
+        const diff = viaB.minus(direct).abs();
+        // RULING 12: an absolute epsilon assumes every kind's canonical
+        // magnitude is small, which held for every M1 kind but not for
+        // `datasize` (b..tib spans 12 orders of magnitude). `tib`'s ratio is
+        // 1024^4 = 2^40; converting a decimal-SI magnitude (e.g. 7 tb =
+        // 7e12 bytes) through it produces an exact terminating decimal that
+        // needs more significant digits than the fixed 28-digit Decimal
+        // precision provides, so the round trip loses a few digits at the
+        // tail. That loss is on the order of one ulp at 28 significant
+        // digits (~1e-28 relative), and two chained conversions
+        // (a -> canonical -> b -> canonical) can compound it a little
+        // further, so 1e-25 relative has real headroom above the expected
+        // error while still catching a genuine logic error (an
+        // off-by-a-decade ratio, say, would miss this by many orders of
+        // magnitude). `direct` can be exactly zero, where a relative
+        // comparison is meaningless, so fall back to the original absolute
+        // epsilon in that case. The real fix — a display-precision policy at
+        // format time — is deliberately out of scope for M2 (the corpus
+        // asserts full 28-digit values, e.g. "90 deg in rad" ->
+        // ...1.570796326794896619231321691rad) and is tracked as a deferred
+        // whole-branch finding.
+        const tolerance = direct.isZero()
+          ? new Decimal("1e-18")
+          : direct.abs().times("1e-25");
+        expect(diff.lessThan(tolerance)).toBe(true);
       }
     }
   }
@@ -66,9 +90,52 @@ test("parse(format(v)) === v for every unit of every kind (spec §10 property 2)
         // parseNumber tolerates (U+0020, U+00A0, U+202F).
         const digits = formatted.replace(/[^\d.,\-\u0020\u00A0\u202F]/gu, "").trim();
         const label = `${kind.id}:${unit}:${sample}`;
-        expect(`${label} ${parseNumber(digits, en)?.toFixed() ?? "UNPARSEABLE"}`).toBe(
-          `${label} ${authored.toFixed()}`,
-        );
+        const parsed = parseNumber(digits, en);
+
+        if (parsed === null) {
+          expect(`${label} UNPARSEABLE`).toBe(`${label} ${authored.toFixed()}`);
+          continue;
+        }
+
+        // RULING 12: exact string equality is provably unattainable for a
+        // kind whose ratio doesn't terminate in decimal — temperature (F is
+        // 5/9, further offset by -32 into a different magnitude), angle
+        // (deg/rad is pi/180, grad is pi/200) and speed (kph is 1000/3600)
+        // all have one. `authored -> canonical -> formatted -> parsed`
+        // passes through that ratio twice, so the last digit or two of a
+        // 28-significant-digit value drifts — by design, not by bug:
+        // formatValue renders the exact authored value, never a
+        // display-rounded one (see angle.test.ts and measure.test.ts for the
+        // same phenomenon documented at the single-assertion level), and the
+        // corpus deliberately asserts full-precision output (e.g.
+        // "90 deg in rad" -> ...1.570796326794896619231321691rad). The
+        // property that's actually true, and worth asserting, is round-trip
+        // stability at the configured precision: parsed and authored agree
+        // to within a couple of ulps — the same 1e-25 relative reasoning as
+        // the transitivity test above. A tighter, human-facing
+        // display-precision policy at format time would close this gap for
+        // real, but is deliberately out of scope for M2 and is tracked as a
+        // deferred whole-branch finding.
+        //
+        // The reference magnitude for "relative to what" is
+        // max(authored, canonical), not authored alone: the value that
+        // actually passes through the lossy 28-significant-digit pipeline is
+        // `canonical` (formatValue renders it, parseNumber recovers a value
+        // near it), and for an affine kind with a large offset relative to a
+        // small authored value — e.g. authored 0.000001°F, offset -32 —
+        // canonical (~-17.78°C) is seven orders of magnitude bigger than
+        // authored. The absolute drift scales with whichever of the two is
+        // larger, so bounding against authored alone would demand
+        // impossibly tight precision from exactly the case the offset makes
+        // hardest, and silently fail it forever. `authored.isZero()` cannot
+        // happen alongside a nonzero `canonical.abs()` co-dominating it, so
+        // the max-based fallback is a strict generalisation of a plain
+        // authored-only zero fallback, not a separate branch.
+        const diff = parsed.minus(authored).abs();
+        const scale = Decimal.max(authored.abs(), canonical.abs());
+        const tolerance = scale.isZero() ? new Decimal("1e-20") : scale.times("1e-25");
+        const detail = `${label} diff=${diff.toString()} tolerance=${tolerance.toString()}`;
+        expect(diff.lessThan(tolerance) ? detail : `${detail} EXCEEDED`).toBe(detail);
       }
     }
   }
