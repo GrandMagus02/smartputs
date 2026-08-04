@@ -143,8 +143,12 @@ export function createEngine(opts: EngineOptions): Engine {
       try {
         const { node, assignments } = pipeline(input, call);
         return assignments.map((a) => toResult(node, a, input));
-      } catch {
-        return [];
+      } catch (e) {
+        // Only the library's own errors mean "this input has no interpretation".
+        // A TypeError from a bug in the pipeline must keep its stack rather than
+        // masquerade as an empty result.
+        if (e instanceof SmartputError) return [];
+        throw e;
       }
     },
 
@@ -158,6 +162,8 @@ export function createEngine(opts: EngineOptions): Engine {
         node = run.node;
       } catch (e) {
         if (e instanceof NoCandidateError) throw e;
+        // Same rule as suggest: never convert a genuine bug into "no candidate".
+        if (!(e instanceof SmartputError)) throw e;
         throw new NoCandidateError(input, input, []);
       }
       const best = assignments.find((a) => a.kind === kind);

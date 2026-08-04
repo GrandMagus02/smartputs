@@ -5,7 +5,12 @@ import type { EvalCtx, Kind } from "../types";
 
 /**
  * Assertions every kind must satisfy. Built-in and third-party kinds run the
- * same suite — this is what keeps the extension seam honest.
+ * same suite — this is what keeps the extension seam honest. The one
+ * exception is the engine's internal `number` pseudo-kind (`NUMBER_KIND`):
+ * it is never reached through the alias index (bare numeric literals are
+ * constructed directly by `evaluateNode`), so it is deliberately excluded
+ * from this suite by its callers rather than exempted here — no real,
+ * user-authored kind gets a pass on having typeable units.
  */
 export function assertKindContract(kind: Kind): void {
   const registry = buildRegistry([kind]);

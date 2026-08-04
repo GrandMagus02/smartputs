@@ -3,6 +3,7 @@ import { createEngine } from "./engine";
 import { AmbiguityError, DimensionMismatchError, NoCandidateError } from "./errors";
 import { defineKind } from "./kind/define";
 import { BUILTIN_KINDS } from "./kinds/index";
+import { defineLocale } from "./locale/define";
 import en from "./locale/en";
 
 const engine = createEngine({ locales: [en], kinds: BUILTIN_KINDS });
@@ -58,6 +59,36 @@ test("suggest never throws and returns ranked results", () => {
 test("suggest returns an empty array for unparseable input", () => {
   expect(engine.suggest("!!!")).toEqual([]);
   expect(engine.suggest("10 zork")).toEqual([]);
+});
+
+test("suggest re-throws a genuine bug instead of swallowing it", () => {
+  const exploding = defineLocale({
+    id: "en",
+    numberFormat: "intl",
+    analyze: [
+      () => {
+        throw new TypeError("boom");
+      },
+    ],
+    keywords: {},
+  });
+  const e = createEngine({ locales: [exploding], kinds: BUILTIN_KINDS });
+  expect(() => e.suggest("10 kg")).toThrow(TypeError);
+});
+
+test("coerce re-throws a genuine bug instead of reporting no candidate", () => {
+  const exploding = defineLocale({
+    id: "en",
+    numberFormat: "intl",
+    analyze: [
+      () => {
+        throw new TypeError("boom");
+      },
+    ],
+    keywords: {},
+  });
+  const e = createEngine({ locales: [exploding], kinds: BUILTIN_KINDS });
+  expect(() => e.coerce("mass", "10 kg")).toThrow(TypeError);
 });
 
 test("coerce filters candidates to the requested kind", () => {
