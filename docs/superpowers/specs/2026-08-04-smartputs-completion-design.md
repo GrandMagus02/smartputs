@@ -226,7 +226,17 @@ change:
 3 lbs          mass      1360.77  3lb     ->  3 pounds
 ```
 
-`format.test.ts` and the playground documentation change with them.
+Two assertions in `engine.test.ts` change with them (`:182` `"2,000m"`, and the
+conversion-keyword comparison that depends on it), along with three lines of
+guide documentation (`guide/pipeline.md:144`, `guide/getting-started.md:85-86`
+and `:106`).
+
+`format.test.ts` does **not** change: it builds its own local `mass` fixture
+rather than importing `BUILTIN_KINDS`, and that fixture's comment already
+explains it omits `display` deliberately to exercise the symbol path. The
+custom-`datasize` assertion at `engine.test.ts:205` is likewise unaffected,
+because a kind with no `lexicon` gets `toLexeme`'s fallback, which has no
+`display`.
 
 This is accepted deliberately. The status quo is already inconsistent: `kg`
 renders `"1.5 kilograms"` while `g` renders `"1,500g"`, for no reason other than
