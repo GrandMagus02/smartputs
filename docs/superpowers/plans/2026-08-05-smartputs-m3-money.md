@@ -240,8 +240,7 @@ export function formatValue(
 ): string {
   const kind = registry.kinds.get(value.kind);
   if (kind === undefined) return value.canonical.toFixed();
-  if (kind.format !== undefined)
-    return kind.format(value, { locale: locale.id, ...opts });
+  if (kind.format !== undefined) return kind.format(value, { locale: locale.id });
 ```
 
 and:
@@ -250,7 +249,7 @@ and:
   const numberText = formatNumber(authored, locale, opts);
 ```
 
-The `...opts` spread into the `format` hook's context is what lets Task 6's money hook see the caller's rounding mode. `FormatCtx` gains those fields in Task 3; until then the spread is structurally compatible because both fields are optional.
+**Leave the `format` hook's context exactly as it is** — `{ locale: locale.id }`, unchanged from today. `FormatCtx` is still `{ locale: string }` at this point, and spreading `opts` into it would not typecheck. Task 3 widens `FormatCtx` and rebuilds this call site; doing it here would only be half of that change.
 
 - [ ] **Step 5: Add the engine option**
 
