@@ -81,6 +81,37 @@ test("conversion type-checks and takes the target unit's kind", () => {
   expect(assignments[0]?.kind).toBe("length");
 });
 
+test("the context bonus decides when both assignments type-check", () => {
+  // With only same-kind ops, typeOf prunes the mixed assignment outright, so
+  // the bonus is never compared against anything — every other test here
+  // passes for that stronger reason and would still pass with CONTEXT_BONUS
+  // set to 0. A cross-kind signature keeps both assignments viable, and the
+  // length weight is set high enough that removing the bonus flips the result.
+  const bridge = defineKind({
+    id: "length-bridge",
+    extendsKind: "length",
+    value: { mode: "ratio", canonical: "m", units: {} },
+    ops: [
+      { op: "+", left: "length", right: "duration", result: "length", apply: (l) => l },
+    ],
+  });
+  const bridged = buildRegistry([number, length, duration, bridge]);
+  const resolver = createResolver({
+    registry: bridged,
+    locale: en,
+    packs: [],
+    layers: [{ "length:m": 10 }],
+  });
+  const input = "10 m + 5 h";
+  const node = parse(lex(input, en), resolver, input);
+  const assignments = solve(node, bridged, { maxCandidates: 10_000, input });
+
+  expect(assignments).toHaveLength(2);
+  // duration: 0 weight + 30 context bonus. length: 10 weight, no bonus.
+  expect(assignments[0]?.kind).toBe("duration");
+  expect(assignments[1]?.kind).toBe("length");
+});
+
 test("exceeding maxCandidates throws TooAmbiguousError", () => {
   const resolver = createResolver({ registry, locale: en, packs: [], layers: [] });
   const input = "1 m + 1 m + 1 m + 1 m";
