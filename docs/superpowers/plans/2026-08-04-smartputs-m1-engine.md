@@ -3520,6 +3520,7 @@ import { AmbiguityError, DimensionMismatchError, NoCandidateError } from "./erro
 import { defineKind } from "./kind/define";
 import { BUILTIN_KINDS } from "./kinds/index";
 import en from "./locale/en";
+import { defineLocale } from "./locale/define";
 
 const engine = createEngine({ locales: [en], kinds: BUILTIN_KINDS });
 
@@ -3572,6 +3573,36 @@ test("suggest never throws and returns ranked results", () => {
 test("suggest returns an empty array for unparseable input", () => {
   expect(engine.suggest("!!!")).toEqual([]);
   expect(engine.suggest("10 zork")).toEqual([]);
+});
+
+test("suggest re-throws a genuine bug instead of swallowing it", () => {
+  const exploding = defineLocale({
+    id: "en",
+    numberFormat: "intl",
+    analyze: [
+      () => {
+        throw new TypeError("boom");
+      },
+    ],
+    keywords: {},
+  });
+  const e = createEngine({ locales: [exploding], kinds: BUILTIN_KINDS });
+  expect(() => e.suggest("10 kg")).toThrow(TypeError);
+});
+
+test("coerce re-throws a genuine bug instead of reporting no candidate", () => {
+  const exploding = defineLocale({
+    id: "en",
+    numberFormat: "intl",
+    analyze: [
+      () => {
+        throw new TypeError("boom");
+      },
+    ],
+    keywords: {},
+  });
+  const e = createEngine({ locales: [exploding], kinds: BUILTIN_KINDS });
+  expect(() => e.coerce("mass", "10 kg")).toThrow(TypeError);
 });
 
 test("coerce filters candidates to the requested kind", () => {
@@ -3781,8 +3812,12 @@ export function createEngine(opts: EngineOptions): Engine {
       try {
         const { node, assignments } = pipeline(input, call);
         return assignments.map((a) => toResult(node, a, input));
-      } catch {
-        return [];
+      } catch (e) {
+        // Only the library's own errors mean "this input has no interpretation".
+        // A TypeError from a bug in the pipeline must keep its stack rather than
+        // masquerade as an empty result.
+        if (e instanceof SmartputError) return [];
+        throw e;
       }
     },
 
@@ -3796,6 +3831,8 @@ export function createEngine(opts: EngineOptions): Engine {
         node = run.node;
       } catch (e) {
         if (e instanceof NoCandidateError) throw e;
+        // Same rule as suggest: never convert a genuine bug into "no candidate".
+        if (!(e instanceof SmartputError)) throw e;
         throw new NoCandidateError(input, input, []);
       }
       const best = assignments.find((a) => a.kind === kind);
