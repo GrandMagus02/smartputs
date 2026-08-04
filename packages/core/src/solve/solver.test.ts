@@ -58,6 +58,17 @@ test("a cross-kind expression with no signature throws", () => {
   expect(() => run("10 km + 5 h")).toThrow(DimensionMismatchError);
 });
 
+test("a dimension mismatch names the operands in source order", () => {
+  try {
+    run("10 km + 5 h");
+    throw new Error("should have thrown");
+  } catch (e) {
+    const err = e as DimensionMismatchError;
+    expect(err.left).toBe("length");
+    expect(err.right).toBe("duration");
+  }
+});
+
 test("weights flip an ambiguous result", () => {
   const { assignments } = run("10 m", [{ "duration:min": 999 }]);
   expect(assignments[0]?.kind).toBe("duration");

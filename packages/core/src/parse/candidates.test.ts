@@ -64,6 +64,14 @@ test("nearest suggests close aliases for an unknown surface", () => {
   expect(resolver().nearest("kmm")).toContain("km");
 });
 
+test("nearest excludes exact matches, caps at three, and orders by distance", () => {
+  const r = resolver();
+  expect(r.nearest("km")).not.toContain("km");
+  expect(r.nearest("m").length).toBeLessThanOrEqual(3);
+  const near = r.nearest("kmm");
+  expect(near[0]).toBe("km");
+});
+
 test("analyzed forms reach the lexicon and are penalised", () => {
   const uk = defineLocale({
     id: "uk",

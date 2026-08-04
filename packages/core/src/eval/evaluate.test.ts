@@ -1,8 +1,11 @@
 import { expect, test } from "bun:test";
+import { createEngine } from "../engine";
 import { DivideByZeroError } from "../errors";
 import { defineKind } from "../kind/define";
 import { buildRegistry } from "../kind/registry";
+import { BUILTIN_KINDS } from "../kinds/index";
 import { defineLocale } from "../locale/define";
+import enLocale from "../locale/en";
 import { createResolver } from "../parse/candidates";
 import { lex } from "../parse/lex";
 import { parse } from "../parse/pratt";
@@ -121,4 +124,15 @@ test("evaluateNode collects the assumption of every signature it applies", () =>
 
 test("a plain expression records no assumptions", () => {
   expect(evaluate("1 km + 500 m").assumptions).toEqual([]);
+});
+
+test("a value's meta is frozen, not just the value", () => {
+  const engine = createEngine({
+    locales: [enLocale],
+    kinds: BUILTIN_KINDS,
+    kindMeta: { mass: { note: "x" } },
+  });
+  const v = engine.evaluate("1 kg").value;
+  expect(Object.isFrozen(v)).toBe(true);
+  expect(Object.isFrozen(v.meta)).toBe(true);
 });

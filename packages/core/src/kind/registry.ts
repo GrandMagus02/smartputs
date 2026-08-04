@@ -84,8 +84,7 @@ export function buildRegistry(
       if (kind === undefined) throw new UnknownKindError(pack.locale, kindId);
       for (const [unit, entry] of Object.entries(lexicon)) {
         const existing = kind.units.get(unit);
-        if (existing === undefined)
-          throw new UnknownKindError(pack.locale, `${kindId}:${unit}`);
+        if (existing === undefined) throw new UnknownKindError(pack.locale, kindId, unit);
         const patch: UnitLexeme = Array.isArray(entry) ? { aliases: entry } : entry;
         existing.lexeme = mergeLexeme(existing.lexeme, patch);
       }

@@ -70,13 +70,16 @@ export class KindConflictError extends Error {
 export class UnknownKindError extends Error {
   readonly pack: string;
   readonly kind: KindId;
-  constructor(pack: string, kind: KindId) {
+  readonly unit: string | undefined;
+  constructor(pack: string, kind: KindId, unit?: string) {
+    const where = unit === undefined ? "" : `, unit ${JSON.stringify(unit)}`;
     super(
-      `Locale pack ${JSON.stringify(pack)} contributes to unregistered kind ${JSON.stringify(kind)}`,
+      `Locale pack ${JSON.stringify(pack)} contributes to unregistered kind ${JSON.stringify(kind)}${where}`,
     );
     this.name = "UnknownKindError";
     this.pack = pack;
     this.kind = kind;
+    this.unit = unit;
   }
 }
 

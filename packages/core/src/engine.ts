@@ -6,7 +6,7 @@ import {
 } from "./errors";
 import { evaluateNode } from "./eval/evaluate";
 import { formatValue } from "./format/format";
-import { buildRegistry } from "./kind/registry";
+import { buildRegistry, NUMBER_KIND } from "./kind/registry";
 import { createResolver } from "./parse/candidates";
 import { lex, type Token } from "./parse/lex";
 import { normalize } from "./parse/normalize";
@@ -166,7 +166,7 @@ export function createEngine(opts: EngineOptions): Engine {
     },
 
     coerce(kind, input, call) {
-      const merged: EvalOptions = { ...call, kinds: [kind, "number"] };
+      const merged: EvalOptions = { ...call, kinds: [kind, NUMBER_KIND] };
       let assignments: Assignment[];
       let node: ReturnType<typeof pipeline>["node"];
       try {

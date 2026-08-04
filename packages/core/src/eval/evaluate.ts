@@ -1,5 +1,6 @@
 import { Decimal } from "../decimal";
 import { DimensionMismatchError, DivideByZeroError } from "../errors";
+import { deepFreeze } from "../freeze";
 import { NUMBER_KIND, opKey, type Registry } from "../kind/registry";
 import type { Node } from "../parse/ast";
 import type { Assignment } from "../solve/solver";
@@ -31,7 +32,7 @@ export function evaluateNode(
   const evalNode = (n: Node): Value => {
     switch (n.type) {
       case "number":
-        return Object.freeze({ kind: NUMBER_KIND, canonical: n.value, unit: "one" });
+        return deepFreeze({ kind: NUMBER_KIND, canonical: n.value, unit: "one" });
 
       case "quantity": {
         const choice = assignment.choices.get(n);
@@ -43,7 +44,7 @@ export function evaluateNode(
         // Per-kind default meta is how a px measure learns its dpi without the
         // evaluator knowing what dpi is.
         const meta = kindMeta[choice.kind];
-        return Object.freeze({
+        return deepFreeze({
           kind: choice.kind,
           canonical: toCanonical(n.value, kind, choice.unit, locale, meta),
           unit: choice.unit,
@@ -53,7 +54,7 @@ export function evaluateNode(
 
       case "unary": {
         const operand = evalNode(n.operand);
-        return Object.freeze({ ...operand, canonical: operand.canonical.negated() });
+        return deepFreeze({ ...operand, canonical: operand.canonical.negated() });
       }
 
       case "convert": {
@@ -65,13 +66,13 @@ export function evaluateNode(
         if (sig === undefined)
           throw new DimensionMismatchError(input, "in", operand.kind, target.kind);
         note(sig);
-        const rhs: Value = Object.freeze({
+        const rhs: Value = deepFreeze({
           kind: target.kind,
           canonical: new Decimal(0),
           unit: target.unit,
           ...(operand.meta ? { meta: operand.meta } : {}),
         });
-        return Object.freeze(sig.apply(operand, rhs, ctxFor(operand)));
+        return deepFreeze(sig.apply(operand, rhs, ctxFor(operand)));
       }
 
       case "binary": {
@@ -82,7 +83,7 @@ export function evaluateNode(
         if (sig === undefined)
           throw new DimensionMismatchError(input, n.op, left.kind, right.kind);
         note(sig);
-        return Object.freeze(sig.apply(left, right, ctxFor(left)));
+        return deepFreeze(sig.apply(left, right, ctxFor(left)));
       }
     }
   };

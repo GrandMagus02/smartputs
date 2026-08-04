@@ -142,8 +142,9 @@ export function solve(
   enumerate(0, new Map(), 0);
 
   if (viable.length === 0) {
-    const first = slots[0]?.candidates[0]?.kind ?? "unknown";
-    const second = slots[1]?.candidates[0]?.kind ?? "unknown";
+    const bySource = [...slots].sort((a, b) => a.node.span.start - b.node.span.start);
+    const first = bySource[0]?.candidates[0]?.kind ?? "unknown";
+    const second = bySource[1]?.candidates[0]?.kind ?? "unknown";
     throw new DimensionMismatchError(opts.input, "operation", first, second);
   }
 

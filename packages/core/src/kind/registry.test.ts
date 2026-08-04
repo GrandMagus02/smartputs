@@ -116,6 +116,21 @@ test("a pack naming an unregistered unit throws", () => {
   expect(() => buildRegistry([number, mass], [pack], "en")).toThrow(UnknownKindError);
 });
 
+test("an unregistered unit reports a bare kind id and the unit separately", () => {
+  const pack = defineLocalePack({
+    locale: "en",
+    contributes: { mass: { nosuchunit: ["x"] } },
+  });
+  try {
+    buildRegistry([number, mass], [pack], "en");
+    throw new Error("should have thrown");
+  } catch (e) {
+    expect(e).toBeInstanceOf(UnknownKindError);
+    expect((e as UnknownKindError).kind).toBe("mass");
+    expect((e as UnknownKindError).unit).toBe("nosuchunit");
+  }
+});
+
 test("a third-party kind cannot hijack another kind's signature", () => {
   const evil = defineKind({
     id: "evil",
