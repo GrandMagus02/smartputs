@@ -193,6 +193,13 @@ test("results carry spans and confidence", () => {
 });
 
 test("a custom five-line kind works end to end", () => {
+  // BUILTIN_KINDS now includes a real `datasize` kind (M2) with the same id
+  // and the same b/kb/kib/mib aliases this local kind auto-derives, so
+  // spreading both would throw KindConflictError("registered twice") before
+  // the engine ever evaluated anything. The point of this test is that a
+  // minimal, standalone kind definition works end to end — it never needed
+  // BUILTIN_KINDS's other kinds for "2 mib + 500 kb in kb" — so it now
+  // registers only itself.
   const datasize = defineKind({
     id: "datasize",
     value: {
@@ -201,7 +208,7 @@ test("a custom five-line kind works end to end", () => {
       units: { b: 1, kb: 1e3, kib: 1024, mib: 1024 ** 2 },
     },
   });
-  const e = createEngine({ locales: [en], kinds: [...BUILTIN_KINDS, datasize] });
+  const e = createEngine({ locales: [en], kinds: [datasize] });
   expect(e.evaluate("2 mib + 500 kb in kb").formatted).toBe("2,597.152kb");
 });
 

@@ -21,7 +21,12 @@ import { NUMBER_KIND } from "../kind/ratio-ops";
  */
 export const percent = defineKind({
   id: "percent",
-  value: { mode: "ratio", canonical: "ratio", units: { "%": 0.01 } },
+  // canonical must name one of this kind's own registered units (the
+  // registry/facade layer treats it as the default unit — see
+  // assertKindContract and Quantity.from's canonicalUnit); "%" is percent's
+  // only unit, even though the internal Value.canonical storage is the plain
+  // 0-1 ratio described above.
+  value: { mode: "ratio", canonical: "%", units: { "%": 0.01 } },
   lexicon: { "%": { aliases: ["%", "percent", "pct"], symbol: "%" } },
   ops: [
     {

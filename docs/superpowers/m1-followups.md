@@ -32,15 +32,33 @@ implicit", with a paragraph stating the trade-off (a launcher can register two
 kinds and tree-shake the rest; the cost is that omitting `number` silently
 disables digit grouping).
 
+## Closed in M2
+
+- **`Value` was shallow-frozen** while descriptors were deep-frozen. Fixed by
+  `deepFreeze`ing every `Value` `evaluateNode` constructs, so `Value.meta` —
+  M2's dpi carrier — is frozen too. `8c7ecd3`.
+- **`UnknownKindError.kind` held a composite `"kindId:unit"` string** in the
+  unregistered-unit branch. `UnknownKindError` now takes an explicit `unit`
+  parameter, keeping `kind: KindId` true to its type. `8c7ecd3`.
+- **`DimensionMismatchError` reported operands in traversal order.** The
+  solver's no-viable-assignment path now sorts candidate slots by source
+  position before naming the first and second operand (`8c7ecd3`); a
+  convert-node's own span tied with its operand's, so a residual reversal
+  there was fixed by giving `ConvertNode` the target unit token's span and
+  sorting convert slots by it (`8df1bae`).
+- **`en.ts` declared `plus`, `minus`, `of` keywords the parser never
+  handled.** `of` is now implemented (M2's percent `of` operator); `plus` and
+  `minus` remain unimplemented and were dropped. `8c7ecd3`.
+- **`en.ts`'s `tableAnalyzer({ feet: "foot", inches: "inch" })` was
+  redundant** — removed. `8c7ecd3`.
+- **`engine.ts` hardcoded `"number"`** instead of the `NUMBER_KIND` constant
+  every other module imports — `coerce` now imports and uses it. `8c7ecd3`.
+- **`nearest()` was untested** for exact-match exclusion, the 3-result cap,
+  and distance-then-alphabetical ordering — covered by a new
+  `parse/candidates.test.ts` test. `8c7ecd3`.
+
 ## Correctness, deferred
 
-- **`Value` is shallow-frozen** while descriptors are deep-frozen (spec §8
-  groups them). `Value.meta` — M2's dpi carrier — would be mutable.
-- **`UnknownKindError.kind` holds a composite `"kindId:unit"` string** in the
-  unregistered-unit branch, breaking its documented `kind: KindId` type.
-- **`DimensionMismatchError` reports operands in traversal order**, so
-  `10 km in kg` reads "Cannot apply operation to mass and length" — reversed.
-  The plan accepted an imprecise message; the reversal makes it misleading.
 - **Two `extendsKind` patches targeting the same base with colliding op
   signatures** still silently last-write-wins. Independent kinds now throw
   `KindConflictError`; patches do not, because owner tracking runs downstream of
@@ -58,15 +76,6 @@ disables digit grouping).
   internal type between `candidates.ts` and `explain()` — was judged not worth
   the indirection while nothing consumes `Candidate` externally. Revisit before
   the first published release.
-- **`en.ts` declares `plus`, `minus`, `of` keywords the parser never handles.**
-  `10 kg plus 5 kg` throws `UnitParseError`; without the declaration the user
-  would get the more useful `NoCandidateError: Unknown unit "plus". Did you
-  mean…`. Drop them until M2 implements the ops.
-- **`en.ts`'s `tableAnalyzer({ feet: "foot", inches: "inch" })` is redundant** —
-  `feet` is already a direct alias and `suffixStripper` already derives `inch`
-  from `inches`. It only nudges the weight from -2 to -1.
-- **`engine.ts` hardcodes `"number"`** instead of the `NUMBER_KIND` constant
-  every other module imports.
 
 ## Tooling, M6
 
@@ -90,8 +99,6 @@ disables digit grouping).
 - **The `extendsKind`-patch-override test asserts only `.not.toThrow()`**, so it
   would not catch a regression that flipped merge order and let the base's
   generated op win. The mechanism was verified by hand-trace instead.
-- **`nearest()` is untested** for exact-match exclusion, the 3-result cap, and
-  distance-then-alphabetical ordering.
 - **The determinism test compares only `.kind`** across runs, not score,
   confidence or units.
 - **`opts.kinds` filtering is untested against a binary node** where filtering

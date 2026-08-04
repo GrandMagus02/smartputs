@@ -3,11 +3,10 @@ import { createEngine } from "../engine";
 import { DimensionMismatchError } from "../errors";
 import en from "../locale/en";
 import { BUILTIN_KINDS } from "./index";
-import { tempdelta, temperature } from "./temperature";
 
 const engine = createEngine({
   locales: [en],
-  kinds: [...BUILTIN_KINDS, temperature, tempdelta],
+  kinds: BUILTIN_KINDS,
 });
 
 test("absolute conversion applies the offset", () => {

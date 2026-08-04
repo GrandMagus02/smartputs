@@ -111,3 +111,17 @@ test("every kind satisfies the kind contract", async () => {
     assertKindContract(kind);
   }
 });
+
+test("affine round-trips are exact at the anchor points", () => {
+  const temp = registry.kinds.get("temperature");
+  if (temp === undefined) throw new Error("temperature missing");
+  for (const [unit, expected] of [
+    ["c", "0"],
+    ["f", "32"],
+    ["k", "273.15"],
+  ] as const) {
+    const canonical = toCanonical(new Decimal(expected), temp, unit, "en");
+    const back = fromCanonical(canonical, temp, unit, "en");
+    expect(back.toString()).toBe(expected);
+  }
+});

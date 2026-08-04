@@ -2,9 +2,8 @@ import { expect, test } from "bun:test";
 import { createEngine } from "../engine";
 import en from "../locale/en";
 import { BUILTIN_KINDS } from "./index";
-import { percent } from "./percent";
 
-const engine = createEngine({ locales: [en], kinds: [...BUILTIN_KINDS, percent] });
+const engine = createEngine({ locales: [en], kinds: BUILTIN_KINDS });
 
 test("a bare percentage is a ratio", () => {
   const r = engine.evaluate("20%");

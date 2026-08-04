@@ -3,13 +3,13 @@ import { KindConflictError } from "../errors";
 import { buildRegistry } from "../kind/registry";
 import { BUILTIN_KINDS } from "../kinds/index";
 import { measure } from "../kinds/measure";
-import { tempdelta, temperature } from "../kinds/temperature";
+import { temperature } from "../kinds/temperature";
 import en from "../locale/en";
 import { createFacades } from "./index";
 import { createFacade, type Quantity, type QuantityClass } from "./quantity";
 
 const F = createFacades({
-  kinds: [...BUILTIN_KINDS, temperature, tempdelta, measure],
+  kinds: [...BUILTIN_KINDS, measure],
   locale: en,
 });
 

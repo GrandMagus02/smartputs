@@ -1,10 +1,9 @@
 import { expect, test } from "bun:test";
 import { createEngine } from "../engine";
 import en from "../locale/en";
-import { angle } from "./angle";
 import { BUILTIN_KINDS } from "./index";
 
-const engine = createEngine({ locales: [en], kinds: [...BUILTIN_KINDS, angle] });
+const engine = createEngine({ locales: [en], kinds: BUILTIN_KINDS });
 
 test("degrees convert to radians", () => {
   expect(engine.evaluate("90 deg in rad").value.canonical.toFixed(10)).toBe(

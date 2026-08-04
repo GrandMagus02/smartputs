@@ -1,10 +1,9 @@
 import { expect, test } from "bun:test";
 import { createEngine } from "../engine";
 import en from "../locale/en";
-import { datasize } from "./datasize";
 import { BUILTIN_KINDS } from "./index";
 
-const engine = createEngine({ locales: [en], kinds: [...BUILTIN_KINDS, datasize] });
+const engine = createEngine({ locales: [en], kinds: BUILTIN_KINDS });
 
 test("decimal and binary prefixes are distinct", () => {
   expect(engine.evaluate("1 kb in b").value.canonical.toString()).toBe("1000");

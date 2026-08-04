@@ -2,12 +2,12 @@ import { expect, test } from "bun:test";
 import { createEngine } from "../engine";
 import { KindConflictError } from "../errors";
 import en from "../locale/en";
-import { area, speed, volume } from "./derived";
+import { area } from "./derived";
 import { BUILTIN_KINDS } from "./index";
 
 const engine = createEngine({
   locales: [en],
-  kinds: [...BUILTIN_KINDS, speed, area, volume],
+  kinds: BUILTIN_KINDS,
 });
 
 test("length over duration is a speed", () => {
@@ -54,7 +54,13 @@ test("registering two kinds that claim the same signature throws", () => {
     ...area,
     id: "impostor",
   };
+  // `area` is already in BUILTIN_KINDS, so it must not be spread again here —
+  // that would throw KindConflictError("registered twice") from pass 1
+  // (duplicate id) before pass 4 ever compares signatures, which would pass
+  // this test for the wrong reason. Only `impostor` is added, so the failure
+  // this test asserts comes from pass 4: two distinct kind ids both claiming
+  // area's `*` signature.
   expect(() =>
-    createEngine({ locales: [en], kinds: [...BUILTIN_KINDS, area, impostor] }),
+    createEngine({ locales: [en], kinds: [...BUILTIN_KINDS, impostor] }),
   ).toThrow(KindConflictError);
 });
