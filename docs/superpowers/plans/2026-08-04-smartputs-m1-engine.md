@@ -844,7 +844,7 @@ git commit -m "feat(core): add defineKind with shorthand normalization"
 ```ts
 import { expect, test } from "bun:test";
 import { defineLocalePack } from "../locale/define";
-import { UnknownKindError } from "../errors";
+import { KindConflictError, UnknownKindError } from "../errors";
 import { defineKind } from "./define";
 import { buildRegistry, opKey } from "./registry";
 
@@ -927,6 +927,36 @@ test("extendsKind merges units and aliases into the base kind", () => {
   expect(r.kinds.get("mass")?.units.has("t")).toBe(true);
   expect(r.aliasIndex.get("t")).toEqual([{ kind: "mass", unit: "t" }]);
   expect(r.kinds.has("mass-extra")).toBe(false);
+});
+
+test("a kind registered twice throws", () => {
+  expect(() => buildRegistry([number, mass, mass])).toThrow(KindConflictError);
+});
+
+test("extending an unknown kind throws", () => {
+  const orphan = defineKind({
+    id: "orphan",
+    extendsKind: "nosuchkind",
+    value: { mode: "ratio", canonical: "g", units: { z: 1 } },
+  });
+  expect(() => buildRegistry([number, mass, orphan])).toThrow(KindConflictError);
+});
+
+test("a patch whose value.mode differs from its base throws", () => {
+  const opaquePatch = defineKind({
+    id: "mass-opaque",
+    extendsKind: "mass",
+    value: { mode: "opaque", parse: () => null, equals: (a, b) => a === b },
+  });
+  expect(() => buildRegistry([number, mass, opaquePatch])).toThrow(KindConflictError);
+});
+
+test("a pack naming an unregistered unit throws", () => {
+  const pack = defineLocalePack({
+    locale: "en",
+    contributes: { mass: { nosuchunit: ["x"] } },
+  });
+  expect(() => buildRegistry([number, mass], [pack], "en")).toThrow(UnknownKindError);
 });
 
 test("an ambiguous alias yields several entries sorted by kind id", () => {
@@ -1392,10 +1422,27 @@ Expected: PASS, 11 tests.
 
 - [ ] **Step 7: Restore the skipped registry tests**
 
-In `packages/core/src/kind/registry.test.ts`, change the two `test.skip(` back to `test(` for "a locale pack unions aliases into the index" and "a pack for another locale is ignored".
+Task 4 could not use a static import of `../locale/define` — ES modules evaluate
+static imports before any test body runs, so `test.skip` does not prevent the
+module-load crash. It therefore used a dynamic `import()` inside each skipped
+test, suppressed with `@ts-expect-error`. Now that the module exists, undo all
+of that in `packages/core/src/kind/registry.test.ts`:
+
+1. Add the static import at the top: `import { defineLocalePack } from "../locale/define";`
+2. Delete every `@ts-expect-error` comment that suppressed the missing module, and
+   the dynamic `import()` line each one guarded. **`tsc` errors on an unused
+   `@ts-expect-error`, so leaving them breaks the typecheck** — this step is not
+   optional.
+3. Change all **three** `test.skip(` back to `test(`: "a locale pack unions aliases
+   into the index", "a pack for another locale is ignored", and "a pack naming an
+   unregistered kind throws at build time".
+4. Drop the now-unneeded `async` on those test callbacks.
 
 Run: `bun test packages/core/src/kind/registry.test.ts`
-Expected: PASS, 10 tests, 0 skipped.
+Expected: PASS, 14 tests, 0 skipped.
+
+Run: `bun run check`
+Expected: clean — in particular `tsc` must report no unused-suppression errors.
 
 - [ ] **Step 8: Commit**
 
