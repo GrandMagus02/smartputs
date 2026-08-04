@@ -3042,6 +3042,7 @@ git commit -m "feat(core): add value formatting with Intl.PluralRules"
 
 ```ts
 import { expect, test } from "bun:test";
+import { Decimal } from "../decimal";
 import { buildRegistry } from "../kind/registry";
 import en from "../locale/en";
 import { BUILTIN_KINDS } from "./index";
@@ -3061,7 +3062,8 @@ test("m is ambiguous between length and duration", () => {
 
 test("canonical ratios are correct", () => {
   const length = registry.kinds.get("length");
-  expect(length?.units.get("km")?.ratio({ self: { kind: "length", canonical: new (require("../decimal").Decimal)(0), unit: "km" }, locale: "en" }).toString()).toBe("1000");
+  const self = { kind: "length", canonical: new Decimal(0), unit: "km" };
+  expect(length?.units.get("km")?.ratio({ self, locale: "en" }).toString()).toBe("1000");
 });
 
 test("imperial length units are present", () => {
@@ -3239,24 +3241,12 @@ export default defineLocale({
 });
 ```
 
-- [ ] **Step 5: Fix the test's awkward require**
-
-Replace the third test in `kinds.test.ts` with a clean import at the top of the file (`import { Decimal } from "../decimal";`) and this body:
-
-```ts
-test("canonical ratios are correct", () => {
-  const length = registry.kinds.get("length");
-  const self = { kind: "length", canonical: new Decimal(0), unit: "km" };
-  expect(length?.units.get("km")?.ratio({ self, locale: "en" }).toString()).toBe("1000");
-});
-```
-
-- [ ] **Step 6: Run tests**
+- [ ] **Step 5: Run tests**
 
 Run: `bun test packages/core/src/kinds/kinds.test.ts`
 Expected: PASS, 8 tests.
 
-- [ ] **Step 7: Commit**
+- [ ] **Step 6: Commit**
 
 ```bash
 git add packages/core/src/kinds packages/core/src/locale/en.ts
