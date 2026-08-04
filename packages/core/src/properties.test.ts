@@ -1,11 +1,28 @@
 import { expect, test } from "bun:test";
 import { Decimal } from "./decimal";
 import { fromCanonical, toCanonical } from "./eval/convert";
+import { formatValue } from "./format/format";
 import { buildRegistry, NUMBER_KIND } from "./kind/registry";
 import { BUILTIN_KINDS } from "./kinds/index";
+import en from "./locale/en";
+import { parseNumber } from "./locale/number";
 
 const registry = buildRegistry(BUILTIN_KINDS, [], "en");
-const SAMPLES = ["0", "1", "0.5", "12.25", "1000", "999999", "0.000001"];
+const SAMPLES = [
+  "0",
+  "1",
+  "0.5",
+  "12.25",
+  "1000",
+  "999999",
+  "0.000001",
+  // Beyond a JS number's 17 significant digits. Without these the Decimal-only
+  // discipline is held by inspection alone: a reintroduced Number() anywhere in
+  // the conversion or formatting path would pass every other sample.
+  "1234567890123456789012345678",
+  "0.1234567890123456789012345678",
+  "1234567890123456789.0625",
+];
 
 test("conversion round-trips for every unit of every kind", () => {
   for (const kind of registry.kinds.values()) {
@@ -29,6 +46,42 @@ test("conversion is transitive across every unit pair", () => {
         const direct = toCanonical(new Decimal("7"), kind, a, "en");
         const viaB = toCanonical(fromCanonical(direct, kind, b, "en"), kind, b, "en");
         expect(viaB.minus(direct).abs().lessThan("1e-18")).toBe(true);
+      }
+    }
+  }
+});
+
+test("parse(format(v)) === v for every unit of every kind (spec §10 property 2)", () => {
+  for (const kind of registry.kinds.values()) {
+    if (kind.spec.mode !== "ratio") continue;
+    for (const unit of kind.units.keys()) {
+      for (const sample of SAMPLES) {
+        const authored = new Decimal(sample);
+        const canonical = toCanonical(authored, kind, unit, "en");
+        const formatted = formatValue({ kind: kind.id, canonical, unit }, registry, en);
+
+        // Strip the rendered unit or display word back off; what remains is the
+        // number exactly as a user would retype it. Keep digits, the en group
+        // and decimal symbols, a sign, and the space-like separators that
+        // parseNumber tolerates (U+0020, U+00A0, U+202F).
+        const digits = formatted.replace(/[^\d.,\-\u0020\u00A0\u202F]/gu, "").trim();
+        const label = `${kind.id}:${unit}:${sample}`;
+        expect(`${label} ${parseNumber(digits, en)?.toFixed() ?? "UNPARSEABLE"}`).toBe(
+          `${label} ${authored.toFixed()}`,
+        );
+      }
+    }
+  }
+});
+
+test("formatting never emits exponential notation for any sample", () => {
+  for (const kind of registry.kinds.values()) {
+    if (kind.spec.mode !== "ratio") continue;
+    for (const unit of kind.units.keys()) {
+      for (const sample of ["1e41", "1e-22", ...SAMPLES]) {
+        const canonical = toCanonical(new Decimal(sample), kind, unit, "en");
+        const formatted = formatValue({ kind: kind.id, canonical, unit }, registry, en);
+        expect(`${kind.id}:${unit} ${formatted}`).not.toMatch(/e[+-]\d/);
       }
     }
   }

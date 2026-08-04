@@ -43,12 +43,30 @@ test("an explicit lexicon replaces the default aliases and keeps display forms",
       id: "mass",
       value: { mode: "ratio", canonical: "g", units: { kg: 1000 } },
       lexicon: {
-        kg: { aliases: ["kg", "kilo"], symbol: "kg", display: { one: "kilogram" } },
+        // symbol deliberately differs from aliases[0]: with them equal the
+        // assertion below holds whether or not the precedence rule exists.
+        kg: {
+          aliases: ["kilogramme", "kilo"],
+          symbol: "kg",
+          display: { one: "kilogram" },
+        },
       },
     }),
   );
-  expect(n.units.get("kg")?.lexeme.aliases).toEqual(["kg", "kilo"]);
+  expect(n.units.get("kg")?.lexeme.aliases).toEqual(["kilogramme", "kilo"]);
   expect(n.units.get("kg")?.lexeme.display?.one).toBe("kilogram");
+  expect(n.units.get("kg")?.lexeme.symbol).toBe("kg");
+});
+
+test("symbol falls back to the first alias when none is given", () => {
+  const n = normalizeKind(
+    defineKind({
+      id: "mass",
+      value: { mode: "ratio", canonical: "g", units: { kg: 1000 } },
+      lexicon: { kg: { aliases: ["kilogramme", "kilo"] } },
+    }),
+  );
+  expect(n.units.get("kg")?.lexeme.symbol).toBe("kilogramme");
 });
 
 test("a string array is lexicon shorthand for aliases", () => {
@@ -94,7 +112,11 @@ test("affine offsets normalize to a Decimal-returning function", () => {
       value: {
         mode: "ratio",
         canonical: "c",
-        units: { c: 1, f: { ratio: 5 / 9, offset: -32 } },
+        // new Decimal(5).div(9), never 5 / 9: the latter is a JS float rounded
+        // before Decimal ever sees it, and is exactly what made an affine
+        // conversion land on 100.000000000000008. This fixture is the one a
+        // future kind author will copy.
+        units: { c: 1, f: { ratio: new Decimal(5).div(9), offset: -32 } },
       },
     }),
   );
@@ -104,6 +126,13 @@ test("affine offsets normalize to a Decimal-returning function", () => {
       ?.offset(ctx(val("f")))
       .toString(),
   ).toBe("-32");
+  // 28 significant digits, not the float's 0.5555555555555556.
+  expect(
+    n.units
+      .get("f")
+      ?.ratio(ctx(val("f")))
+      .toString(),
+  ).toBe("0.5555555555555555555555555556");
   expect(
     n.units
       .get("c")
