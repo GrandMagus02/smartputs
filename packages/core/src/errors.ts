@@ -67,19 +67,25 @@ export class TooAmbiguousError extends SmartputError {
   }
 }
 
-export class KindConflictError extends Error {
+// The two registration errors are raised from buildRegistry(), before any input
+// exists, so `input` is "". They still extend SmartputError: engine.ts branches
+// on `instanceof SmartputError` to separate "this input has no interpretation"
+// from "a bug in the pipeline", and an error outside the hierarchy would be
+// rethrown as a crash the moment registration stops being boot-only.
+export class KindConflictError extends SmartputError {
   constructor(id: string, detail: string) {
-    super(`Kind ${JSON.stringify(id)} conflicts: ${detail}`);
+    super(`Kind ${JSON.stringify(id)} conflicts: ${detail}`, "");
     this.name = "KindConflictError";
   }
 }
 
-export class UnknownKindError extends Error {
+export class UnknownKindError extends SmartputError {
   readonly pack: string;
   readonly kind: KindId;
   constructor(pack: string, kind: KindId) {
     super(
       `Locale pack ${JSON.stringify(pack)} contributes to unregistered kind ${JSON.stringify(kind)}`,
+      "",
     );
     this.name = "UnknownKindError";
     this.pack = pack;
