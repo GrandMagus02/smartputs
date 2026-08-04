@@ -1,10 +1,12 @@
 import { expect, test } from "bun:test";
+import { KindConflictError } from "../errors";
+import { buildRegistry } from "../kind/registry";
 import { BUILTIN_KINDS } from "../kinds/index";
 import { measure } from "../kinds/measure";
 import { tempdelta, temperature } from "../kinds/temperature";
 import en from "../locale/en";
 import { createFacades } from "./index";
-import type { Quantity, QuantityClass } from "./quantity";
+import { createFacade, type Quantity, type QuantityClass } from "./quantity";
 
 const F = createFacades({
   kinds: [...BUILTIN_KINDS, temperature, tempdelta, measure],
@@ -81,4 +83,27 @@ test("dpi defaults to 96 and is readable", () => {
   if (M === undefined) throw new Error("missing");
   expect(new M(1, "inch").dpi).toBe(96);
   expect(new M(1, "inch", { dpi: 300 }).dpi).toBe(300);
+});
+
+test("an affine facade built without its delta kind reports a wiring error, not a parse error", () => {
+  // `temperature` alone, deliberately built without `tempdelta`: no
+  // `deltaFacades` map is supplied, so it defaults to empty and `.add`/`.diff`
+  // can never find a delta class. This is a misconfiguration, not something
+  // `UnitParseError` (whose message is always "Cannot parse ... as a
+  // quantity") describes.
+  const registry = buildRegistry([temperature], [], "en");
+  const temperatureKind = registry.kinds.get("temperature");
+  if (temperatureKind === undefined) throw new Error("missing");
+  const Standalone = createFacade({
+    kind: temperatureKind,
+    registry,
+    locale: en,
+  }) as unknown as With<"add">;
+  expect(() => new Standalone(20, "c").add(5)).toThrow(KindConflictError);
+  try {
+    new Standalone(20, "c").add(5);
+  } catch (err) {
+    expect((err as Error).message).not.toContain("Cannot parse");
+    expect((err as Error).message).toContain("tempdelta");
+  }
 });

@@ -1,5 +1,5 @@
 import { Decimal } from "../decimal";
-import { UnitParseError } from "../errors";
+import { KindConflictError, UnitParseError } from "../errors";
 import { fromCanonical, toCanonical } from "../eval/convert";
 import { formatValue } from "../format/format";
 import type { NormalizedKind } from "../kind/define";
@@ -156,9 +156,13 @@ export function createFacade(args: {
     }
 
     /**
-     * Result keeps the left operand's unit — spec §8. Not `private`: it is
-     * only ever called through a cast from the prototype functions attached
-     * below, and Biome's unused-member check cannot see through that cast.
+     * Result keeps the left operand's unit — spec §8. Not `private`: `Q` is
+     * in lexical scope where the prototype functions below are defined, so
+     * typing them `this: Q` lets them call `this.combine(...)` directly —
+     * but only if `combine` is accessible from outside the class body, which
+     * `private` (checked syntactically by TypeScript, not by `this`'s type)
+     * would forbid. It stays out of the `Quantity` interface, so it is not
+     * part of the public contract.
      */
     combine(other: QuantityInput, sign: 1 | -1): Quantity {
       const rhs = Q.from(other);
@@ -197,15 +201,11 @@ export function createFacade(args: {
   if (affine === undefined) {
     // Ratio kinds: every unit is a pure multiple, so sums and products are
     // meaningful. An affine kind gets none of these — 20C * 2 has no meaning.
-    proto.add = function (this: Quantity, other: QuantityInput) {
-      return (
-        this as unknown as { combine(o: QuantityInput, s: 1 | -1): Quantity }
-      ).combine(other, 1);
+    proto.add = function (this: Q, other: QuantityInput) {
+      return this.combine(other, 1);
     };
-    proto.sub = function (this: Quantity, other: QuantityInput) {
-      return (
-        this as unknown as { combine(o: QuantityInput, s: 1 | -1): Quantity }
-      ).combine(other, -1);
+    proto.sub = function (this: Q, other: QuantityInput) {
+      return this.combine(other, -1);
     };
     proto.scale = function (this: Quantity, factor: Decimal | number | string) {
       return new Q(
@@ -225,7 +225,11 @@ export function createFacade(args: {
     const requireDeltaClass = (): QuantityClass => {
       const DeltaClass = deltaFacades.get(deltaKind);
       if (DeltaClass === undefined) {
-        throw new UnitParseError(`delta kind ${deltaKind} is not registered`, kind.id);
+        // A wiring error — this kind declares `affine.deltaKind` but no
+        // facade for that kind was built — not a parse failure, so
+        // `UnitParseError` (which always wraps its input as "Cannot parse
+        // ... as a quantity") doesn't fit.
+        throw new KindConflictError(kind.id, `delta kind ${deltaKind} is not registered`);
       }
       return DeltaClass;
     };
@@ -249,6 +253,7 @@ export function createFacade(args: {
           this.meta as Record<string, unknown>,
         ),
         this.unit,
+        this.meta as Record<string, unknown>,
       );
     };
     proto.diff = function (this: Quantity, other: QuantityInput) {
