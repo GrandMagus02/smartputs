@@ -72,11 +72,14 @@ export const money: Kind = defineKind({
         }
         // Same shape the generated signature produces, meta included — M2's
         // review found six hand-written applies that silently dropped it.
+        // The generated `in|money|money` this replaces is
+        // `deriveValue(r, l.canonical)`, which sources meta from `r` (the
+        // target currency), not `l` — so this does too.
         return Object.freeze({
           kind: r.kind,
           canonical: l.canonical,
           unit: r.unit,
-          ...(l.meta ? { meta: l.meta } : {}),
+          ...(r.meta ? { meta: r.meta } : {}),
         });
       },
     },
