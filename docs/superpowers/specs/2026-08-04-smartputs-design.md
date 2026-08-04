@@ -59,7 +59,9 @@ about them.
 | D5 | Scored candidates with a strict/loose split | `10 m` is genuinely ambiguous; context (`10 m + 5 min`) must be able to resolve it. |
 | D6 | Sync core with injected `RateSnapshot`; separate async facade | Keystroke-rate parsing and deterministic tests require a pure sync core. |
 | D7 | Hand-authored parsing lexicons; runtime `Intl` for formatting and number grammar | `Intl` provides canonical display forms, not the input variants people type. |
-| D8 | Medium package split | Kinds share dimension algebra; splitting per-kind costs churn for no bundle win. |
+| D8 | Medium package split, drawn along dependency lines | Dependency-free ratio kinds stay in core; kinds that pull weight (datetime, money, color) get their own package. Splitting per-kind beyond that costs churn for no bundle win. |
+| D9 | Layered additive weights with softmax-normalized confidence | A plugin author must be able to outrank a built-in, and the integrator must be able to override the plugin. A single 0..1 `prior` allows neither. Addition keeps four independent layers composable without a precedence table. |
+| D10 | `@smartput/core` has one runtime dependency; datetime is a separate package | Temporal and chrono outweigh the engine. A consumer who wants units and money should not download a date parser. |
 
 Rejected: Yahoo Finance as the rate source. No official public API; the
 `query1.finance.yahoo.com` endpoints are undocumented, cookie/crumb gated, and
@@ -80,7 +82,7 @@ input string
   2. Lex            locale-aware. NUMBER | WORD | SYMBOL | OP | KEYWORD | PAREN
   │                 numbers read via locale numberFormat (1.000,50 vs 1,000.50)
   │
-  3. Candidates     each WORD/SYMBOL → Set<{kind, unit, prior}> from merged lexicons
+  3. Candidates     each WORD/SYMBOL → Set<{kind, unit, weight}> from merged lexicons
   │                 "m" → [{length,m,.55}, {duration,min,.52}]   ← both kept
   │
   4. Parse          Pratt parser → AST. Nodes carry candidate SETS, not choices.
@@ -105,18 +107,24 @@ The load-bearing component and the only part with real invention risk.
 
 ```ts
 solve(node): Assignment[]
-  BinaryOp(+|-)  → left.kind must equal right.kind, or both coercible via a
-                   Kind's `unify` hook
+  BinaryOp(op)   → find an OpSignature matching (op, left.kind, right.kind)
   BinaryOp(in)   → right is a unit token; its kind constrains left
-  BinaryOp(*|/)  → dimension algebra: length/duration → speed, if some Kind
-                   declares that signature
   Literal        → its candidate set
 
-score(assignment) = Σ prior(token)      // lexicon / kind priority
-                  + contextBonus        // sibling agreement
-                  + localeBonus         // active locale's overrides
-                  + callerHint          // opts.kinds, or the coerce<K> target
+raw(candidate) = weight(candidate)        // Σ of matching selectors, see §4.5
+               + contextBonus             // a matching OpSignature exists for the sibling
+               + hintBonus                // opts.kinds or the coerce<K> target
+
+score(assignment) = Σ raw(candidate)
+confidence        = softmax(score over all consistent assignments)
 ```
+
+Three scoring terms, one signature lookup. There is no separate type system: the
+`OpSignature` table (§4) *is* the check, for `+` as much as for `datetime + duration`.
+
+Raw scores are unbounded; `confidence` is the softmax normalization, so
+`ambiguityEpsilon` always compares normalized values. Weights therefore change
+ranking without changing what the epsilon means.
 
 Candidate sets are small (1–3 entries), so exhaustive search over assignments is
 acceptable. Guarded by `maxCandidates` (default 10,000); exceeding it raises
@@ -162,30 +170,45 @@ on `@urvis/unit`, so third-party kinds are first-class.
 type KindId = string;
 
 export type Kind = {
-  id: KindId;
-  extendsKind?: KindId;        // patch a built-in; deep-merges lexicon/units/ops
-  prior?: number;              // 0..1 base solver score, locale-overridable
+  id: KindId;                  // required
+  value: RatioSpec | OpaqueSpec;   // required
 
-  value: RatioSpec | OpaqueSpec;
-
-  lexicon?: Lexicon;           // default (en) aliases; locale packs add more
+  // everything below is optional and has a working default
+  extendsKind?: KindId;        // patch a built-in; merges lexicon/units/ops
+  prior?: number;              // base solver weight, default 0. See §4.5
+  lexicon?: Lexicon;           // default (en) aliases; defaults to the unit keys
   literals?: LiteralMatcher[]; // non-word forms: #fff, 2026-01-01, $30
-  ops?: OpSignature[];
-  format: (v: Value, ctx: FormatCtx) => string;
-  facade?: FacadeSpec;         // optional custom class; default generated
+  ops?: OpSignature[];         // ratio kinds get + - * / and `in` for free
+  format?: (v: Value, ctx: FormatCtx) => string;   // default `${value}${unit}`
 };
 ```
+
+**A minimal kind is five lines.** Defaults do the rest — aliases fall back to the
+unit keys, arithmetic and `in` conversion are generated for any ratio kind, and
+the facade class is generated from the descriptor:
+
+```ts
+const dataSize = defineKind({
+  id: "datasize",
+  value: { mode: "ratio", canonical: "b",
+           units: { b: 1, kb: 1e3, kib: 1024, mb: 1e6, mib: 1024 ** 2 } },
+});
+
+const engine = createEngine({ locales: [en], kinds: [dataSize] });
+engine.evaluate("2 mib + 500 kb in kb");   // 2597.152 kb
+```
+
+You only reach for `lexicon`, `literals`, `ops` or `format` when the defaults are
+actually wrong. Nothing else is mandatory.
 
 ### Ratio kinds
 
 ```ts
 type RatioSpec = {
   mode: "ratio";
-  canonical: string;                       // "metre", "gram", "byte", "eur"
-  units: Record<string, UnitDef>;
-  dimension?: Dimension;                   // { length: 1, time: -1 } enables * and /
+  canonical: string;                       // "metre", "gram", "b", "eur"
+  units: Record<string, UnitDef | number>; // a bare number is shorthand for { ratio }
   affine?: { deltaKind: KindId };          // Temperature ↔ TempDelta
-  context?: ContextSpec;                   // extra per-value state, e.g. dpi
 };
 
 type UnitDef = {
@@ -216,22 +239,25 @@ defineKind({
 //   ratio: (ctx) => ctx.rates.get("USD", "EUR") ?? throwMissingRate("USD", "EUR"),
 // }
 
-// measure — px ratio depends on the value's own dpi context
+// measure — px ratio depends on the value's own dpi, carried in Value.meta
 defineKind({
   id: "measure",
   value: {
     mode: "ratio",
     canonical: "inch",
-    context: { dpi: { default: 96 } },
     units: {
-      inch: { ratio: 1 },
-      mm:   { ratio: 1 / 25.4 },
-      pt:   { ratio: 1 / 72 },
-      px:   { ratio: (ctx) => new Decimal(1).div(ctx.self.dpi) },
+      inch: 1,
+      mm: 1 / 25.4,
+      pt: 1 / 72,
+      px: { ratio: (ctx) => new Decimal(1).div(ctx.self.meta?.dpi ?? 96) },
     },
   },
 });
 ```
+
+Note there is no per-kind "context" mechanism. `Value.meta` already exists on
+every value; dpi rides along in it. One generic escape hatch, used by the one
+kind that needs it.
 
 `Measure` carries the dpi its pixels are read against, default 96. Arithmetic
 runs in canonical inches, so operands authored at different dpi combine
@@ -275,7 +301,14 @@ ops: [
 
 The solver reads this signature table directly — it is the type system.
 Registering a signature immediately makes that expression form parseable.
-`10 km / 2 h → speed` works as soon as a `speed` kind declares the dimension.
+
+Ratio kinds get their same-kind signatures (`+ - * / in`) generated
+automatically, so `ops` is only written for cross-kind cases. Derived quantities
+are declared the same explicit way — `10 km / 2 h → speed` is one signature on
+the `speed` kind. There is deliberately **no general dimensional algebra**: a
+dimension-vector engine would be the second-largest subsystem in the library and
+would earn its keep only for quantities nobody types into a launcher. Six
+hand-written signatures cover speed, area and volume.
 
 ### `extendsKind` merge rules
 
@@ -301,6 +334,71 @@ A patch is itself a Kind with its own `id`, registered through the same
 `createEngine({ kinds })` channel as any other. There is no mutable global
 registry to reach into.
 
+### 4.5 Weights and priority
+
+When two candidates score equally or near-equally, the outcome must be tunable —
+by the kind author, by the locale, by the integrator, and per call. A single
+number on the Kind cannot express that, so priority is layered.
+
+```ts
+type Selector =
+  | `token:${string}`     // one surface form, any kind   "token:м"
+  | `${KindId}:${string}` // one unit of one kind         "duration:min"
+  | KindId;               // every unit of a kind         "mycompany-ticker"
+
+type Weights = Record<Selector, number>;   // added to the candidate's score
+```
+
+**Weights are plain numbers and they add.** Every selector that matches a
+candidate contributes; there is no precedence table, no override semantics, no
+transform callbacks. `{ "duration": 5, "duration:min": -20 }` gives `min` a net
+`-15` and every other duration unit `+5`. Positive favours, negative disfavours.
+
+This is the whole model. It stays predictable under composition, which matters
+precisely because four independent layers contribute:
+
+| # | Layer | Set via | Purpose |
+| --- | --- | --- | --- |
+| 1 | `kind.prior` | `defineKind` | the author's default |
+| 2 | `locale.weights` | `defineLocale` | locale conventions, e.g. `lb` in `en-GB` |
+| 3 | `engine.weights` | `createEngine` | the integrator's override — where custom kinds are boosted |
+| 4 | `opts.weights` | `evaluate` / `suggest` | per-call adjustment |
+
+```ts
+const engine = createEngine({
+  locales: [uk, en],
+  kinds: [myDataSize, myTicker],
+  weights: {
+    "mycompany-ticker": 40,   // custom kind outranks built-ins
+    "duration:min": -15,      // "m" never means minutes here
+    "token:т": 100,           // in this domain "т" is always tonnes
+  },
+});
+
+engine.evaluate("10 m", { weights: { "duration:min": 999 } });   // 10 min
+```
+
+**Ties.** After all layers, exactly equal scores must resolve deterministically —
+otherwise output varies between runs:
+
+```ts
+tiebreak?: "error" | "first";
+// "error" (default) → AmbiguityError, listing candidates
+// "first"           → registration order, then kind id lexicographic. Stable, never random.
+```
+
+**Introspection.** Because weights are a sum, `explain()` needs only to list the
+contributions — no provenance tracking through the solver:
+
+```
+token "m" → duration:min
+  duration          +5    (locale uk)
+  duration:min     -15    (engine)
+  contextBonus     +30    (sibling operand is duration)
+  ─────────────────────
+  raw               20    confidence 0.71
+```
+
 ### Locales
 
 Data only, no logic:
@@ -311,7 +409,7 @@ export type Locale = {
   numberFormat: "intl" | NumberFormatSpec;
   lexicon: Record<KindId, Record<string /* unit */, string[] /* aliases */>>;
   keywords: Partial<Record<Keyword, string[]>>;   // in/to/as/plus/minus/of/ago/next…
-  priors?: Record<KindId, number>;                // e.g. "lb" in en-GB
+  weights?: Weights;                              // locale conventions, see §4.5
 };
 ```
 
@@ -338,27 +436,45 @@ locales coexist in one process.
 smartputs/                      Bun workspace, Biome, tsc for .d.ts only
 ├─ packages/
 │  ├─ core/          @smartput/core      registry, lexer, parser, solver, evaluator,
-│  │                                     built-in kinds, facade classes, errors
+│  │                                     ratio kinds, facade classes, errors
 │  ├─ locale-en/     @smartput/locale-en
 │  ├─ locale-uk/     @smartput/locale-uk
-│  ├─ rates/         @smartput/rates     RateSnapshot, providers, async facade
+│  ├─ datetime/      @smartput/datetime  datetime + duration kinds, chrono bridge
+│  ├─ rates/         @smartput/rates     money kind, RateSnapshot, providers, async facade
 │  ├─ color/         @smartput/color     @urcolor adapter → color kind
 │  ├─ http/          @smartput/http      Hono on Bun, REST + OpenAPI
-│  └─ smartputs/     smartputs           meta: core + locale-en + rates/ecb
+│  └─ smartputs/     smartputs           meta: core + locale-en + datetime + rates
 └─ docs/superpowers/specs/
 ```
 
 | Package | Runtime dependencies |
 | --- | --- |
-| `core` | `decimal.js`, `temporal-polyfill`, `chrono-node` |
+| `core` | `decimal.js` — and nothing else |
 | `locale-*` | none — data only; peer-dep on core for types |
+| `datetime` | `temporal-polyfill`, `chrono-node` |
 | `rates` | none in the interface; provider adapters use `fetch` only |
 | `color` | `@urcolor/core`, `@urcolor/i18n` (peer) |
 | `http` | `hono` (peer), `@smartput/core` |
 
-`chrono-node` is confined to
-`packages/core/src/kinds/datetime/chrono-bridge.ts` so it can be swapped or made
-optional without touching the solver.
+**`@smartput/core` has exactly one runtime dependency.** `temporal-polyfill` and
+`chrono-node` together are several times the size of the engine, so datetime
+moves out into its own package rather than taxing every consumer. A user who
+wants only units and money never downloads a date parser; a user who wants dates
+adds one package.
+
+This is only possible because datetime is an ordinary plugin — it registers
+through `defineKind` like any third-party kind, and `chrono-node` sits behind
+`packages/datetime/src/chrono-bridge.ts`. If the engine needed special knowledge
+of dates, the split would not work. That it does work is the strongest available
+evidence that the extension seam is real.
+
+```ts
+import { createEngine } from "@smartput/core";
+import { datetime, duration } from "@smartput/datetime";
+import { money } from "@smartput/rates";
+
+const engine = createEngine({ locales: [en], kinds: [datetime, duration, money] });
+```
 
 ## 6. Public API
 
@@ -373,7 +489,6 @@ export interface Engine {
   suggest(input: string, opts?: EvalOptions): Result[];          // ranked, never throws
   coerce<K extends KindId>(kind: K, input: unknown): ValueOf<K>; // type-directed
   explain(input: string): Explanation;                           // tokens, AST, scores
-  with(patch: Partial<EngineOptions>): Engine;                   // immutable derive
 }
 
 export type EngineOptions = {
@@ -383,16 +498,23 @@ export type EngineOptions = {
   now?: () => Temporal.ZonedDateTime;    // injectable clock
   timeZone?: string;
   maxCandidates?: number;                // solver guard, default 10_000
+  weights?: Weights;                     // priority overrides, see §4.5
+  tiebreak?: "error" | "first";          // default "error"
   ambiguityEpsilon?: number;             // evaluate() throws within this margin, default 0.05
-  maxRateAge?: number;                   // ms; opt-in, raises StaleRatesError. Off by default
   rounding?: Decimal.Rounding;           // money formatting, default ROUND_HALF_EVEN
+};
+
+export type EvalOptions = {
+  kinds?: KindId[];                      // hard filter — candidates outside this set are dropped
+  weights?: Weights;                     // per-call layer 4
+  timeZone?: string;
 };
 
 export type Result = {
   value: Value;
   formatted: string;
   kind: KindId;
-  confidence: number;                    // 0..1, normalized solver score
+  confidence: number;                    // 0..1, softmax over raw solver scores
   spans: Span[];                         // token → source offsets
   meta: { ratesAsOf?: string; assumptions: Assumption[] };
 };
@@ -472,11 +594,10 @@ the offending token.
 | Error | Raised when | Carries |
 | --- | --- | --- |
 | `UnitParseError` | `X.parse("abc")`; bare number where a unit is required | `input`, `kind` |
-| `AmbiguityError` | `evaluate()` top two candidates within `epsilon` (default 0.05) | `candidates: Result[]` |
+| `AmbiguityError` | `evaluate()` top two confidences within `ambiguityEpsilon` (default 0.05) and `tiebreak` is `"error"` | `candidates: Result[]` |
 | `NoCandidateError` | nothing in the registry matches a token | `token`, `nearest: string[]` |
 | `DimensionMismatchError` | `5 kg + 3 km` — no matching op signature | `left`, `right`, `op` |
 | `MissingRateError` | FX pair absent from the snapshot | `from`, `to`, `asOf` |
-| `StaleRatesError` | snapshot older than `maxRateAge` (opt-in, off by default) | `asOf`, `maxAge` |
 | `TooAmbiguousError` | assignment search exceeds `maxCandidates` | `count` |
 | `KindConflictError` | registration time: two kinds claim the same id or signature | both source ids |
 | `DivideByZeroError` | explicit; wraps the Decimal throw | — |
@@ -504,8 +625,9 @@ time, never lazily at parse time, so a bad plugin fails on boot.
   cases: `20% of 50 → 10`; `50 + 20% → 60` (relative to the left operand); bare
   `20% → 0.2`.
 - **Date math uses Temporal, never milliseconds.** `next month` from Jan 31 gives
-  Feb 28 or 29, DST-safe and calendar-aware. `30 hours - 10 minutes` stays a
-  `Duration` (`PT29H50M`); no date is involved.
+  Feb 28 or 29, DST-safe and calendar-aware. `30 hours - 10 minutes` is plain
+  ratio arithmetic on a `Duration` (`29h 50m`) — no date, no Temporal, no
+  calendar.
 - **Timezone conversion is an op**, not a subsystem: `3pm in Tokyo` is an `in`
   signature on the datetime kind.
 - **Ambiguous number grammar needs no new mechanism.** `1,500` is 1500 in `en` and
@@ -516,8 +638,13 @@ time, never lazily at parse time, so a bad plugin fails on boot.
 - **Parsing accepts surrounding whitespace and an optional degree sign**: `"20°C"`
   and `"20C"` are equivalent. A bare number with no unit is rejected by `parse()`
   — use the constructor or `from()`.
-- **Immutability throughout.** Descriptors and values are frozen, every operation
-  returns a new instance, and `engine.with()` derives rather than mutates.
+- **Ranking is deterministic.** Identical input, engine options and clock always
+  produce identical ranking. Exact score ties resolve by `tiebreak` (§4.5), never
+  by map iteration order or registration accident.
+- **Immutability throughout.** Descriptors and values are frozen and every
+  operation returns a new instance. Engines are immutable too; to vary options,
+  call `createEngine` again — it is a cheap pure composition of frozen
+  descriptors.
 
 ## 9. Tooling
 
@@ -540,7 +667,9 @@ Test-driven: a corpus row first, then the code that satisfies it.
    `add` within a kind; Decimal precision holding across operation chains.
 3. **Solver tests.** Ambiguity fixtures assert full rankings, not just winners —
    `10 m` must rank length above duration in `en`, with a margin under epsilon so
-   `evaluate()` still throws.
+   `evaluate()` still throws. Weights get their own matrix: all four layers
+   (§4.5) sum, all matching selectors sum, and `tiebreak` produces the same
+   ordering across repeated runs and shuffled registration order.
 4. **Plugin contract tests.** A shared `assertKindContract(kind)` suite exported
    from `@smartput/core/testing`, run by every built-in kind and available to
    third-party kinds. This is what proves the extension seam is genuinely
@@ -559,15 +688,20 @@ Each is independently shippable and gets its own implementation plan.
 
 | Milestone | Scope | Validates |
 | --- | --- | --- |
-| **M1** | Contracts, registry, lexer, Pratt parser, solver, evaluator. Kinds: number, length, mass, duration. Locale: en. | The engine. `10 m + 5 min` resolves correctly. |
-| **M2** | Temperature (affine), Measure (dpi context), angle, datasize, speed/area/volume via dimension algebra. Facade class generator. | The Kind contract under every numeric shape. |
+| **M1** | Contracts, registry, lexer, Pratt parser, solver, layered weights, softmax confidence, `explain()`. Kinds: number, length, mass, duration. Locale: en. | The engine. `10 m + 5 min` resolves correctly, and a weight override can flip it. |
+| **M2** | Temperature (affine), Measure (dpi via `Value.meta`), angle, datasize, and speed/area/volume as explicit op signatures. Facade class generator. | The Kind contract under every numeric shape. |
 | **M3** | Money kind, `@smartput/rates`, ECB provider, `createLiveEngine`. | `30 usd - 10 eur`. The `ratio: (ctx)` escape hatch. |
-| **M4** | datetime, chrono bridge, Temporal ops, timezones. `"today"`, `"next week monday"`. | Opaque kinds and cross-kind op signatures. |
+| **M4** | `@smartput/datetime`: datetime kind, chrono bridge, Temporal ops, timezones. `"today"`, `"next week monday"`. | Opaque kinds and cross-kind op signatures — and that a major kind can live outside core. |
 | **M5** | `@smartput/color` (@urcolor adapter), `@smartput/locale-uk`, `defineLocale` docs. | i18n and non-numeric kinds. `червоний` → Color. |
 | **M6** | `@smartput/http`, meta-package, docs site, npm release. | Ship. |
 
 M1 carries the only real invention risk. M2–M5 are largely descriptor tables once
 M1 holds, which is the point of the design.
+
+`duration` lives in `core`, not in `@smartput/datetime`: it is a pure ratio kind
+(canonical seconds; ms, s, min, h, d, wk), so `30 hours - 10 minutes` needs no
+Temporal and no calendar. Only `datetime` — where DST, timezones and calendar
+arithmetic are genuinely hard — pulls the heavy dependencies.
 
 ## 12. Out of scope for v1
 
@@ -575,3 +709,28 @@ Stated explicitly so it does not creep back in: variables and assignment
 (`x = 5kg`), multi-line notepad mode, spreadsheet references, natural-language
 sentences (`"how many km in a marathon"`), LLM fallback, historical FX by date,
 and plural or gender agreement in output formatting beyond what `Intl` provides.
+
+## 13. Complexity budget
+
+The engine is small on purpose. `@smartput/core` is a lexer, a Pratt parser, a
+scored solver, a signature table and a Decimal evaluator — nothing else. These
+mechanisms were considered and deliberately rejected:
+
+| Rejected | Instead | Why |
+| --- | --- | --- |
+| Dimensional-vector algebra for `*` and `/` | Explicit `OpSignature` per derived quantity | Would be the second-largest subsystem in the library, to serve quantities nobody types into a launcher. Six signatures cover speed, area, volume. |
+| Per-kind `context` declarations | `Value.meta`, which already exists | A generic framework built for one consumer (dpi). |
+| Weight transform callbacks and selector precedence | Plain numbers that add | Predictable under four-layer composition; no precedence table to document or debug. |
+| Custom `tiebreak` callback | `"error" \| "first"` | Weights already express every preference a callback could. |
+| `Kind.facade` custom class override | Generated facade only | The generated surface is the contract; an override would let plugin classes drift from it. |
+| `engine.with(patch)` | Call `createEngine` again | Composing frozen descriptors is already cheap. |
+| `unify` hook on Kind | `OpSignature` | Two mechanisms for one job. |
+| `StaleRatesError` / `maxRateAge` | `Result.meta.ratesAsOf` | The caller can compare a timestamp. |
+
+Two consequences worth stating as targets rather than hopes:
+
+- **`@smartput/core` ships one runtime dependency** (`decimal.js`). CI fails on a
+  second.
+- **A new ratio kind is five lines**, and needs no knowledge of the solver. The
+  `datasize` example in §4 is the acceptance test for that claim: if adding a
+  kind ever needs more than `id`, `canonical` and `units`, a default is missing.
