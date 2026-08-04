@@ -241,20 +241,24 @@ load-bearing punctuation elsewhere.
 
 ### 5.5 Digits followed by a scale word
 
-A `number` token followed by a `word` run that the hook parses as a bare scale
-multiplier — `hundred`, `thousand`, `million`, `billion`, `trillion` — multiplies
-the number: `1.5 million` is `1500000`.
+A `number` token followed by a bare scale word — `hundred`, `thousand`,
+`million`, `billion`, `trillion` — multiplies the number: `1.5 million` is
+`1500000`.
 
-The fold detects this by offering the run to the hook and checking that the match
-consumed only scale words. Anything else after a number is left alone, so
-`5 one` still raises `NoCandidateError` exactly as it does today.
+The fold offers the hook the *single* word after the number and accepts only a
+match worth 100 or more. That test identifies a scale word without the fold
+having to know the locale's table: no other one-word cardinal reaches 100.
+`5 twenty` and `5 one` are rejected, and end up as two adjacent number tokens
+that the parser refuses — `UnitParseError` where the same input raises
+`NoCandidateError` today. Both are `SmartputError`, so `suggest()` and `coerce()`
+behave identically; only the error class on `evaluate()` differs.
 
 ### 5.6 Collisions
 
 `one` is not a resolvable alias. The `number` kind's canonical unit is *keyed*
 `one` (`kinds/number.ts:5`), but unit keys are not auto-aliased: `evaluate("5 one")`
-raises `NoCandidateError` today. No numeral word in the English table collides
-with a shipped alias.
+raises `NoCandidateError` today and `UnitParseError` after this change (§5.5). No
+numeral word in the English table collides with a shipped alias.
 
 The fold is greedy and does not preserve an alternative reading. A locale that
 gives a numeral word to a unit lexicon loses the unit. This is the same trade the
