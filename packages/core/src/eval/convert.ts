@@ -5,10 +5,15 @@ import type { EvalCtx, RateLookup, Value } from "../types";
 /**
  * Everything a unit's `ratio`/`offset` function might need, in one object.
  *
- * It grows: `note` arrives with a later task. A positional parameter list
- * would let a call site silently omit one — which is exactly the defect M2
- * shipped when `coerce` dropped `kindMeta` and disagreed with `evaluate` about
- * the canonical value of the same input.
+ * It grows: earlier drafts expected `note` (the assumption sink) to land
+ * here too, but M3 Task 4 deliberately put it on `EvalCtx` instead. A unit
+ * ratio sees only one unit — it has no way to name the cross-rate pivot a
+ * conversion went through, since that requires seeing both sides of the
+ * conversion. `note` belongs where both operands are visible, which is
+ * `EvalCtx`, not here. A positional parameter list for what does live here
+ * would let a call site silently omit a field — which is exactly the defect
+ * M2 shipped when `coerce` dropped `kindMeta` and disagreed with `evaluate`
+ * about the canonical value of the same input.
  */
 export interface ConversionCtx {
   readonly locale: string;

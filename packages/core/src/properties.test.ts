@@ -113,19 +113,19 @@ test("parse(format(v)) === v for every unit of every kind (spec §10 property 2)
         // (deg/rad is pi/180, grad is pi/200) and speed (kph is 1000/3600)
         // all have one. `authored -> canonical -> formatted -> parsed`
         // passes through that ratio twice, so the last digit or two of a
-        // 28-significant-digit value drifts — by design, not by bug:
-        // formatValue renders the exact authored value, never a
-        // display-rounded one (see angle.test.ts and measure.test.ts for the
-        // same phenomenon documented at the single-assertion level), and the
-        // corpus deliberately asserts full-precision output (e.g.
-        // "90 deg in rad" -> ...1.570796326794896619231321691rad). The
-        // property that's actually true, and worth asserting, is round-trip
-        // stability at the configured precision: parsed and authored agree
-        // to within a couple of ulps — the same 1e-25 relative reasoning as
-        // the transitivity test above. A tighter, human-facing
-        // display-precision policy at format time would close this gap for
-        // real, but is deliberately out of scope for M2 and is tracked as a
-        // deferred whole-branch finding.
+        // 28-significant-digit value drifts — by design, not by bug. M3
+        // added guard-digit rounding at format time (26 significant digits,
+        // two below the 28 Decimal computes at — see angle.test.ts and
+        // measure.test.ts for the same phenomenon documented at the
+        // single-assertion level, and the corpus, e.g. "90 deg in rad" ->
+        // ...1.570796326794896619231321691rad canonical formatted as
+        // ...1.5707963267948966192313217 radians), but that rounding only
+        // trims trailing noise from a display string; the conversion itself
+        // is still exact, so the relative-tolerance reasoning below still
+        // applies. The property that's actually true, and worth asserting,
+        // is round-trip stability at the configured precision: parsed and
+        // authored agree to within a couple of ulps — the same 1e-25
+        // relative reasoning as the transitivity test above.
         //
         // The reference magnitude for "relative to what" is
         // max(authored, canonical), not authored alone: the value that
