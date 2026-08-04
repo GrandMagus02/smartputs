@@ -4,7 +4,7 @@ import { deepFreeze } from "../freeze";
 import { NUMBER_KIND, opKey, type Registry } from "../kind/registry";
 import type { Node } from "../parse/ast";
 import type { Assignment } from "../solve/solver";
-import type { EvalCtx, OpSignature, Value } from "../types";
+import type { EvalCtx, OpSignature, RateLookup, Value } from "../types";
 import { toCanonical } from "./convert";
 
 export interface EvalResult {
@@ -12,16 +12,26 @@ export interface EvalResult {
   assumptions: string[];
 }
 
-export function evaluateNode(
-  node: Node,
-  assignment: Assignment,
-  registry: Registry,
-  locale: string,
-  input: string,
-  kindMeta: Readonly<Record<string, Readonly<Record<string, unknown>>>> = {},
-): EvalResult {
+export interface EvaluateOptions {
+  node: Node;
+  assignment: Assignment;
+  registry: Registry;
+  locale: string;
+  input: string;
+  kindMeta?: Readonly<Record<string, Readonly<Record<string, unknown>>>>;
+  rates?: RateLookup;
+}
+
+export function evaluateNode(opts: EvaluateOptions): EvalResult {
+  const { node, assignment, registry, locale, input, rates } = opts;
+  const kindMeta = opts.kindMeta ?? {};
   const assumptions: string[] = [];
-  const ctxFor = (self: Value): EvalCtx => ({ self, locale, input });
+  const ctxFor = (self: Value): EvalCtx => ({
+    self,
+    locale,
+    input,
+    ...(rates ? { rates } : {}),
+  });
 
   const note = (sig: OpSignature): void => {
     if (sig.assumption !== undefined && !assumptions.includes(sig.assumption)) {
@@ -49,6 +59,7 @@ export function evaluateNode(
           canonical: toCanonical(n.value, kind, choice.unit, {
             locale,
             ...(meta ? { meta } : {}),
+            ...(rates ? { rates } : {}),
           }),
           unit: choice.unit,
           ...(meta ? { meta } : {}),

@@ -81,18 +81,14 @@ test("a function ratio reads dpi from the value's meta", () => {
   );
 });
 
-test("conversion takes its context as an object", () => {
-  const kind = normalizeKind(
-    defineKind({
-      id: "mass",
-      value: { mode: "ratio", canonical: "g", units: { g: 1, kg: 1000 } },
-    }),
-  );
-  const canonical = toCanonical(new Decimal("1.5"), kind, "kg", { locale: "en" });
-  expect(canonical.toString()).toBe("1500");
-  expect(fromCanonical(canonical, kind, "kg", { locale: "en" }).toString()).toBe("1.5");
-});
-
+// "conversion takes its context as an object" (the brief's first new test,
+// asserted against `mass`, whose g/kg ratios are plain numbers) is not here:
+// per Task 2's review, it never reads `ctx` on its assertion path, so it
+// passed against the old positional signature too and proves nothing about
+// the object shape. The sibling test right below — a function ratio that
+// reads `ctx.self.meta.dpi` — already IS load-bearing on `ctx` being an
+// object with the right shape, so the redundant one is deleted rather than
+// patched. See the task-3 report for the full reasoning.
 test("a unit whose ratio reads meta sees it through the context", () => {
   const kind = normalizeKind(
     defineKind({

@@ -58,15 +58,24 @@ export function formatValue(
 ): string {
   const kind = registry.kinds.get(value.kind);
   if (kind === undefined) return value.canonical.toFixed();
-  if (kind.format !== undefined) return kind.format(value, { locale: locale.id });
 
   const authored =
     kind.spec.mode === "ratio"
       ? fromCanonical(value.canonical, kind, value.unit, {
           locale: locale.id,
           ...(value.meta ? { meta: value.meta as Record<string, unknown> } : {}),
+          ...(opts.rates ? { rates: opts.rates } : {}),
         })
       : value.canonical;
+
+  if (kind.format !== undefined) {
+    return kind.format(value, {
+      locale: locale.id,
+      authored,
+      ...opts,
+      formatNumber: (v, o) => formatNumber(v, locale, o ?? opts),
+    });
+  }
 
   const numberText = formatNumber(authored, locale, opts);
   if (value.kind === NUMBER_KIND) return numberText;

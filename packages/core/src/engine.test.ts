@@ -1,8 +1,14 @@
 import { expect, test } from "bun:test";
+import { Decimal } from "./decimal";
 import { createEngine } from "./engine";
-import { AmbiguityError, DimensionMismatchError, NoCandidateError } from "./errors";
+import {
+  AmbiguityError,
+  DimensionMismatchError,
+  MissingRateError,
+  NoCandidateError,
+} from "./errors";
 import { defineKind } from "./kind/define";
-import { BUILTIN_KINDS } from "./kinds/index";
+import { BUILTIN_KINDS, number } from "./kinds/index";
 import { defineLocale } from "./locale/define";
 import en from "./locale/en";
 
@@ -254,4 +260,85 @@ test("engine.complete never throws on half-typed input", () => {
   for (const input of ["", " ", "10 kg +", "(((", "10 zzz", "30"]) {
     expect(Array.isArray(engine.complete(input))).toBe(true);
   }
+});
+
+test("a unit ratio reads the injected rates, and the result is dated", () => {
+  // Half a "florin" per "guilder" — an invented pair, so nothing here depends
+  // on a real currency table or on @smartput/rates existing yet.
+  const rates = {
+    base: "GLD",
+    asOf: "2026-08-04",
+    get: (from: string, to: string) =>
+      from === "FLN" && to === "GLD" ? new Decimal("0.5") : null,
+  };
+  const treasure = defineKind({
+    id: "treasure",
+    value: {
+      mode: "ratio",
+      canonical: "gld",
+      units: {
+        gld: 1,
+        fln: {
+          ratio: (ctx) => {
+            const rate = ctx.rates?.get("FLN", "GLD");
+            if (rate === null || rate === undefined) {
+              throw new MissingRateError(
+                ctx.input ?? "",
+                "FLN",
+                "GLD",
+                ctx.rates?.asOf ?? "",
+              );
+            }
+            return rate;
+          },
+        },
+      },
+    },
+    lexicon: { gld: { aliases: ["gld"] }, fln: { aliases: ["fln"] } },
+  });
+
+  const e = createEngine({ locales: [en], kinds: [number, treasure], rates });
+  const r = e.evaluate("10 fln + 1 gld");
+  expect(r.value.canonical.toString()).toBe("6");
+  expect(r.meta.ratesAsOf).toBe("2026-08-04");
+});
+
+test("without rates, a rate-dependent unit raises MissingRateError", () => {
+  const rates = {
+    base: "GLD",
+    asOf: "2026-08-04",
+    get: () => null,
+  };
+  const treasure = defineKind({
+    id: "treasure",
+    value: {
+      mode: "ratio",
+      canonical: "gld",
+      units: {
+        gld: 1,
+        fln: {
+          ratio: (ctx) => {
+            const rate = ctx.rates?.get("FLN", "GLD");
+            if (rate === null || rate === undefined) {
+              throw new MissingRateError(
+                ctx.input ?? "",
+                "FLN",
+                "GLD",
+                ctx.rates?.asOf ?? "",
+              );
+            }
+            return rate;
+          },
+        },
+      },
+    },
+    lexicon: { gld: { aliases: ["gld"] }, fln: { aliases: ["fln"] } },
+  });
+  const e = createEngine({ locales: [en], kinds: [number, treasure], rates });
+  expect(() => e.evaluate("10 fln")).toThrow(MissingRateError);
+});
+
+test("a result carries no ratesAsOf when no rates were supplied", () => {
+  const e = createEngine({ locales: [en], kinds: BUILTIN_KINDS });
+  expect(e.evaluate("1 km").meta.ratesAsOf).toBeUndefined();
 });

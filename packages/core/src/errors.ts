@@ -106,3 +106,16 @@ export class DivideByZeroError extends SmartputError {
     this.name = "DivideByZeroError";
   }
 }
+
+export class MissingRateError extends SmartputError {
+  readonly from: string;
+  readonly to: string;
+  readonly asOf: string;
+  constructor(input: string, from: string, to: string, asOf: string) {
+    super(`No rate for ${from}->${to} in the snapshot as of ${asOf}`, input);
+    this.name = "MissingRateError";
+    this.from = from;
+    this.to = to;
+    this.asOf = asOf;
+  }
+}

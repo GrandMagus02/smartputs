@@ -1,4 +1,5 @@
 import { type CompleteOptions, type Completion, complete } from "./complete/complete";
+import type { Decimal } from "./decimal";
 import {
   AmbiguityError,
   NoCandidateError,
@@ -20,6 +21,7 @@ import type {
   KindId,
   Locale,
   LocalePack,
+  RateLookup,
   ResultCandidate,
   Span,
   Value,
@@ -45,6 +47,13 @@ export interface EngineOptions {
    * a non-terminating ratio from surfacing as trailing noise.
    */
   formatPrecision?: number;
+  /**
+   * FX rates for kinds whose unit ratios are not constants. `@smartput/rates`'s
+   * RateSnapshot satisfies this structurally; core never imports it.
+   */
+  rates?: RateLookup;
+  /** Rounding mode for money formatting. Default ROUND_HALF_EVEN. */
+  rounding?: Decimal.Rounding;
 }
 
 export interface EvalOptions {
@@ -58,7 +67,7 @@ export interface Result {
   kind: KindId;
   confidence: number;
   spans: Span[];
-  meta: { assumptions: string[] };
+  meta: { ratesAsOf?: string; assumptions: string[] };
 }
 
 export interface Explanation {
@@ -94,6 +103,8 @@ export function createEngine(opts: EngineOptions): Engine {
   const tiebreak = opts.tiebreak ?? "error";
   const kindMeta = opts.kindMeta ?? {};
   const formatPrecision = opts.formatPrecision;
+  const rates = opts.rates;
+  const rounding = opts.rounding;
 
   const layersFor = (call?: Weights) => [locale.weights, opts.weights, call];
 
@@ -121,23 +132,29 @@ export function createEngine(opts: EngineOptions): Engine {
     assignment: Assignment,
     input: string,
   ): Result {
-    const { value, assumptions } = evaluateNode(
+    const { value, assumptions } = evaluateNode({
       node,
       assignment,
       registry,
-      (locale as Locale).id,
+      locale: (locale as Locale).id,
       input,
       kindMeta,
-    );
+      ...(rates ? { rates } : {}),
+    });
     return {
       value,
       formatted: formatValue(value, registry, locale as Locale, {
         ...(formatPrecision === undefined ? {} : { precision: formatPrecision }),
+        ...(rounding === undefined ? {} : { rounding }),
+        ...(rates ? { rates } : {}),
       }),
       kind: value.kind,
       confidence: assignment.confidence,
       spans: [node.span],
-      meta: { assumptions },
+      meta: {
+        assumptions,
+        ...(rates ? { ratesAsOf: rates.asOf } : {}),
+      },
     };
   }
 
@@ -192,7 +209,15 @@ export function createEngine(opts: EngineOptions): Engine {
       }
       const best = assignments.find((a) => a.kind === kind);
       if (best === undefined) throw new NoCandidateError(input, input, []);
-      return evaluateNode(node, best, registry, locale.id, input, kindMeta).value;
+      return evaluateNode({
+        node,
+        assignment: best,
+        registry,
+        locale: locale.id,
+        input,
+        kindMeta,
+        ...(rates ? { rates } : {}),
+      }).value;
     },
 
     explain(input, call) {

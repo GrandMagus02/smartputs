@@ -39,7 +39,7 @@ function evaluate(input: string) {
   const node = parse(lex(input, en), resolver, input);
   const [best] = solve(node, registry, { maxCandidates: 10_000, input });
   if (best === undefined) throw new Error("no assignment");
-  return evaluateNode(node, best, registry, "en", input);
+  return evaluateNode({ node, assignment: best, registry, locale: "en", input });
 }
 
 test("evaluates a single quantity in its authored unit", () => {
@@ -117,7 +117,7 @@ test("evaluateNode collects the assumption of every signature it applies", () =>
   const [best] = solve(node, r, { maxCandidates: 10_000, input });
   if (best === undefined) throw new Error("no assignment");
 
-  const out = evaluateNode(node, best, r, "en", input);
+  const out = evaluateNode({ node, assignment: best, registry: r, locale: "en", input });
   expect(out.value.canonical.toString()).toBe("20000");
   expect(out.assumptions).toEqual(["read as a scale factor"]);
 });

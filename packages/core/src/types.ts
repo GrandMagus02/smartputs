@@ -65,6 +65,21 @@ export interface UnitLexeme {
 
 export type Lexicon = Record<string, UnitLexeme | string[]>;
 
+/**
+ * The shape the engine needs from a rate table, declared here rather than
+ * imported: `@smartput/rates`'s `RateSnapshot` satisfies it structurally, and
+ * core stays free of a dependency on a package that depends on core.
+ *
+ * `get` returns null for an unknown pair rather than throwing, so the kind that
+ * asked decides what a missing rate means. The money kind raises
+ * MissingRateError; a different kind might fall back.
+ */
+export interface RateLookup {
+  readonly base: string;
+  readonly asOf: string;
+  get(from: string, to: string): Decimal | null;
+}
+
 export interface EvalCtx {
   readonly self: Value;
   readonly locale: string;
@@ -74,10 +89,8 @@ export interface EvalCtx {
    * which has no expression of its own to report.
    */
   readonly input?: string;
-}
-
-export interface FormatCtx {
-  readonly locale: string;
+  /** The engine's injected rate table, when one was supplied. */
+  readonly rates?: RateLookup;
 }
 
 export interface FormatOptions {
@@ -85,6 +98,26 @@ export interface FormatOptions {
   readonly precision?: number;
   /** Rounding mode. Defaults to Decimal's configured mode. */
   readonly rounding?: Decimal.Rounding;
+  /** FX rates, threaded through so a money value can format back into its authored currency. */
+  readonly rates?: RateLookup;
+}
+
+export interface FormatCtx extends FormatOptions {
+  readonly locale: string;
+  /**
+   * `value.canonical` already converted into `value.unit`. A hook that wants
+   * the number the user typed wants this, not `value.canonical` — and it means
+   * a hook never has to resolve a unit ratio, which for money would mean
+   * reaching the rate table from inside the formatter.
+   */
+  readonly authored: Decimal;
+  /**
+   * The locale-aware number formatter, pre-bound to this locale. Hooks MUST
+   * render through it: M2 rejected a per-kind hook precisely because it
+   * formatted by hand and silently dropped locale grouping and the locale
+   * decimal separator.
+   */
+  formatNumber(value: Decimal, opts?: FormatOptions): string;
 }
 
 export interface UnitDef {

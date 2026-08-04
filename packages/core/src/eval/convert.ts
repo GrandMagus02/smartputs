@@ -1,11 +1,11 @@
 import { Decimal } from "../decimal";
 import type { NormalizedKind } from "../kind/define";
-import type { EvalCtx, Value } from "../types";
+import type { EvalCtx, RateLookup, Value } from "../types";
 
 /**
  * Everything a unit's `ratio`/`offset` function might need, in one object.
  *
- * It grows: `rates` and `note` arrive with money. A positional parameter list
+ * It grows: `note` arrives with a later task. A positional parameter list
  * would let a call site silently omit one — which is exactly the defect M2
  * shipped when `coerce` dropped `kindMeta` and disagreed with `evaluate` about
  * the canonical value of the same input.
@@ -13,6 +13,7 @@ import type { EvalCtx, Value } from "../types";
 export interface ConversionCtx {
   readonly locale: string;
   readonly meta?: Record<string, unknown>;
+  readonly rates?: RateLookup;
 }
 
 function evalCtxFor(kind: NormalizedKind, unit: string, ctx: ConversionCtx): EvalCtx {
@@ -22,7 +23,7 @@ function evalCtxFor(kind: NormalizedKind, unit: string, ctx: ConversionCtx): Eva
     unit,
     ...(ctx.meta ? { meta: ctx.meta } : {}),
   };
-  return { self, locale: ctx.locale };
+  return { self, locale: ctx.locale, ...(ctx.rates ? { rates: ctx.rates } : {}) };
 }
 
 function unitOf(kind: NormalizedKind, unit: string) {

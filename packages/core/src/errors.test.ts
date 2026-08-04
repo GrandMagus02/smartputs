@@ -2,6 +2,7 @@ import { expect, test } from "bun:test";
 import {
   AmbiguityError,
   KindConflictError,
+  MissingRateError,
   NoCandidateError,
   SmartputError,
   UnknownKindError,
@@ -40,4 +41,16 @@ test("configuration errors are SmartputErrors too", () => {
   expect(unknown.name).toBe("UnknownKindError");
   expect(unknown.pack).toBe("uk");
   expect(unknown.unit).toBe("x");
+});
+
+test("a missing rate names the pair and the snapshot date", () => {
+  const err = new MissingRateError("30 usd in jpy", "USD", "JPY", "2026-08-04");
+  expect(err).toBeInstanceOf(SmartputError);
+  expect(err.name).toBe("MissingRateError");
+  expect(err.from).toBe("USD");
+  expect(err.to).toBe("JPY");
+  expect(err.asOf).toBe("2026-08-04");
+  expect(err.message).toContain("USD");
+  expect(err.message).toContain("JPY");
+  expect(err.message).toContain("2026-08-04");
 });
