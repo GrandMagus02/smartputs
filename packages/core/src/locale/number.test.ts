@@ -29,6 +29,13 @@ test("an explicit NumberFormatSpec overrides Intl", () => {
   expect(parseNumber("1 500,25", custom)?.toString()).toBe("1500.25");
 });
 
+test("strips non-breaking and narrow no-break spaces", () => {
+  // Written as escapes on purpose: these characters are invisible in source.
+  // U+00A0 arrives via pasted text; U+202F is French ICU's group separator.
+  expect(parseNumber("1\u00A0500.25", en)?.toString()).toBe("1500.25");
+  expect(parseNumber("1\u202F500.25", en)?.toString()).toBe("1500.25");
+});
+
 test("returns null for non-numeric text", () => {
   expect(parseNumber("kg", en)).toBeNull();
 });

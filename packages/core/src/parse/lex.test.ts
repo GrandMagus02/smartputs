@@ -47,6 +47,18 @@ test("keeps grouped numbers as one token", () => {
   expect(tokens).toHaveLength(2);
 });
 
+test("backs off a trailing separator that is not part of the number", () => {
+  const tokens = lex("1,500. kg", en);
+  expect(tokens[0]).toMatchObject({ type: "number", text: "1,500", start: 0, end: 5 });
+  expect(tokens.map((t) => t.type)).toEqual(["number", "word"]);
+});
+
+test("skips unrecognized characters instead of throwing", () => {
+  // suggest() must never crash on junk.
+  expect(() => lex("10 kg @@ 5", en)).not.toThrow();
+  expect(lex("10 kg @@ 5", en).map((t) => t.type)).toEqual(["number", "word", "number"]);
+});
+
 test("word runs are split by the locale segmenter when provided", () => {
   const zh = defineLocale({
     id: "zh",

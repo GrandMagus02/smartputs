@@ -22,7 +22,10 @@ export function parseNumber(text: string, locale: Locale): Decimal | null {
   const { group, decimal } = numberSymbols(locale);
   let cleaned = "";
   for (const ch of text) {
-    if (ch === group || ch === " " || ch === " ") continue;
+    // Escapes, not literals: NBSP and narrow NBSP are invisible in source and
+    // silently degrade to a plain space when retyped. French ICU uses U+202F as
+    // its group separator, so this is load-bearing, not defensive padding.
+    if (ch === group || ch === "\u00A0" || ch === "\u202F") continue;
     cleaned += ch === decimal ? "." : ch;
   }
   if (cleaned.length === 0 || !/^-?\d*\.?\d+$/.test(cleaned)) return null;
