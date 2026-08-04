@@ -1,4 +1,5 @@
 import { Decimal } from "../decimal";
+import { deepFreeze } from "../freeze";
 import type {
   EvalCtx,
   FormatCtx,
@@ -30,7 +31,7 @@ export interface NormalizedKind {
 }
 
 export function defineKind(k: Kind): Kind {
-  return Object.freeze(k);
+  return deepFreeze(k);
 }
 
 function toDecimalFn(
@@ -72,7 +73,9 @@ export function normalizeKind(k: Kind): NormalizedKind {
     spec: k.value,
     prior: k.prior ?? 0,
     units,
-    ops: k.ops ?? [],
+    // Copy, never alias: the descriptor's ops array is deep-frozen, and the
+    // registry in Task 4 pushes generated signatures onto this one.
+    ops: [...(k.ops ?? [])],
     ...(k.format ? { format: k.format } : {}),
   };
 }

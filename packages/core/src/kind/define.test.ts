@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
 import { Decimal } from "../decimal";
-import type { EvalCtx, Value } from "../types";
+import type { EvalCtx, OpSignature, RatioSpec, Value } from "../types";
 import { defineKind, normalizeKind } from "./define";
 
 const ctx = (v: Value): EvalCtx => ({ self: v, locale: "en" });
@@ -112,10 +112,28 @@ test("affine offsets normalize to a Decimal-returning function", () => {
   ).toBe("0");
 });
 
-test("defineKind freezes its descriptor", () => {
+test("defineKind deep-freezes its descriptor", () => {
   const k = defineKind({
     id: "x",
     value: { mode: "ratio", canonical: "a", units: { a: 1 } },
+    lexicon: { a: ["a", "alpha"] },
   });
   expect(Object.isFrozen(k)).toBe(true);
+  expect(Object.isFrozen(k.value)).toBe(true);
+  expect(Object.isFrozen((k.value as RatioSpec).units)).toBe(true);
+  expect(Object.isFrozen(k.lexicon)).toBe(true);
+  expect(Object.isFrozen(k.lexicon?.a)).toBe(true);
+});
+
+test("normalizeKind copies ops rather than aliasing the frozen array", () => {
+  const k = defineKind({
+    id: "x",
+    value: { mode: "ratio", canonical: "a", units: { a: 1 } },
+    ops: [],
+  });
+  const n = normalizeKind(k);
+  // The registry pushes generated signatures onto this array; it must not be
+  // the descriptor's frozen one.
+  expect(() => n.ops.push({} as OpSignature)).not.toThrow();
+  expect(k.ops).toHaveLength(0);
 });
