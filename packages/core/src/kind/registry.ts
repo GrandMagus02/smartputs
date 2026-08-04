@@ -92,11 +92,26 @@ export function buildRegistry(
     }
   }
 
-  // Pass 4: op table.
+  // Pass 4: op table. Spec §7 makes a duplicate *signature* as much of a
+  // conflict as a duplicate id, so track which kind contributed each key and
+  // refuse a second claimant. Bookkeeping stays local: it is a build-time
+  // concern, not part of the Registry contract.
   const ops = new Map<string, OpSignature>();
+  const opOwners = new Map<string, KindId>();
   for (const kind of normalized.values()) {
+    // Generated first, then kind.ops — so an author can replace a signature
+    // their own kind generated, which stays legal.
     for (const sig of [...generateRatioOps(kind), ...kind.ops]) {
-      ops.set(opKey(sig.op, sig.left, sig.right), sig);
+      const key = opKey(sig.op, sig.left, sig.right);
+      const owner = opOwners.get(key);
+      if (owner !== undefined && owner !== kind.id) {
+        throw new KindConflictError(
+          kind.id,
+          `signature ${key} is already defined by kind ${JSON.stringify(owner)}`,
+        );
+      }
+      opOwners.set(key, kind.id);
+      ops.set(key, sig);
     }
   }
 

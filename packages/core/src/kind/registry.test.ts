@@ -1,4 +1,5 @@
 import { expect, test } from "bun:test";
+import { Decimal } from "../decimal";
 import { KindConflictError, UnknownKindError } from "../errors";
 import { defineLocalePack } from "../locale/define";
 import { defineKind } from "./define";
@@ -113,6 +114,121 @@ test("a pack naming an unregistered unit throws", () => {
     contributes: { mass: { nosuchunit: ["x"] } },
   });
   expect(() => buildRegistry([number, mass], [pack], "en")).toThrow(UnknownKindError);
+});
+
+test("a third-party kind cannot hijack another kind's signature", () => {
+  const evil = defineKind({
+    id: "evil",
+    value: { mode: "ratio", canonical: "e", units: { e: 1 } },
+    ops: [
+      {
+        op: "+",
+        left: "mass",
+        right: "mass",
+        result: "evil",
+        apply: (l) => ({ kind: "evil", canonical: l.canonical, unit: "e" }),
+      },
+    ],
+  });
+  expect(() => buildRegistry([number, mass, evil])).toThrow(KindConflictError);
+  // The message names both sources, per spec §7.
+  expect(() => buildRegistry([number, mass, evil])).toThrow(
+    /"evil".*\+\|mass\|mass.*"mass"/,
+  );
+});
+
+test("registration order does not decide who wins a signature clash", () => {
+  const evil = defineKind({
+    id: "evil",
+    value: { mode: "ratio", canonical: "e", units: { e: 1 } },
+    ops: [
+      {
+        op: "+",
+        left: "mass",
+        right: "mass",
+        result: "evil",
+        apply: (l) => ({ kind: "evil", canonical: l.canonical, unit: "e" }),
+      },
+    ],
+  });
+  expect(() => buildRegistry([number, evil, mass])).toThrow(KindConflictError);
+});
+
+test("a kind may override a signature it generated itself", () => {
+  const doubling = defineKind({
+    id: "mass",
+    value: { mode: "ratio", canonical: "g", units: { g: 1, kg: 1000 } },
+    ops: [
+      {
+        op: "+",
+        left: "mass",
+        right: "mass",
+        result: "mass",
+        apply: (l, r) => ({
+          kind: "mass",
+          canonical: l.canonical.plus(r.canonical).times(2),
+          unit: l.unit,
+        }),
+      },
+    ],
+  });
+  const r = buildRegistry([number, doubling]);
+  const sig = r.ops.get(opKey("+", "mass", "mass"));
+  expect(sig).toBeDefined();
+  const g = (n: number) => ({ kind: "mass", canonical: new Decimal(n), unit: "g" });
+  // The author's replacement, not the generated one.
+  expect(sig?.apply(g(1), g(2), { self: g(1), locale: "en" }).canonical.toString()).toBe(
+    "6",
+  );
+});
+
+test("a declared cross-kind signature is not a conflict", () => {
+  const length = defineKind({
+    id: "length",
+    value: { mode: "ratio", canonical: "m", units: { m: 1 } },
+  });
+  const duration = defineKind({
+    id: "duration",
+    value: { mode: "ratio", canonical: "s", units: { s: 1 } },
+  });
+  const speed = defineKind({
+    id: "speed",
+    value: { mode: "ratio", canonical: "mps", units: { mps: 1 } },
+    ops: [
+      {
+        op: "/",
+        left: "length",
+        right: "duration",
+        result: "speed",
+        apply: (l, r) => ({
+          kind: "speed",
+          canonical: l.canonical.div(r.canonical),
+          unit: "mps",
+        }),
+      },
+    ],
+  });
+  const r = buildRegistry([number, length, duration, speed]);
+  expect(r.ops.get(opKey("/", "length", "duration"))?.result).toBe("speed");
+});
+
+test("an extendsKind patch may replace an op on its base", () => {
+  const patch = defineKind({
+    id: "mass-ops",
+    extendsKind: "mass",
+    value: { mode: "ratio", canonical: "g", units: {} },
+    ops: [
+      {
+        op: "+",
+        left: "mass",
+        right: "mass",
+        result: "mass",
+        apply: (l) => ({ kind: "mass", canonical: l.canonical, unit: l.unit }),
+      },
+    ],
+  });
+  // The patch is merged into "mass", so the signature has a single owner.
+  expect(() => buildRegistry([number, mass, patch])).not.toThrow();
 });
 
 test("an ambiguous alias yields several entries sorted by kind id", () => {
