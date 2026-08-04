@@ -2,7 +2,12 @@ import { buildRegistry } from "../kind/registry";
 import type { Kind, KindId, Locale } from "../types";
 import { createFacade, type QuantityClass } from "./quantity";
 
-export type { Quantity, QuantityClass, QuantityInput } from "./quantity";
+export type {
+  Quantity,
+  QuantityClass,
+  QuantityInput,
+  QuantitySnapshot,
+} from "./quantity";
 export { createFacade } from "./quantity";
 
 /**

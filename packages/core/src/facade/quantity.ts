@@ -4,7 +4,20 @@ import { fromCanonical, toCanonical } from "../eval/convert";
 import { formatValue } from "../format/format";
 import type { NormalizedKind } from "../kind/define";
 import type { Registry } from "../kind/registry";
+import { createAnalyzerChain } from "../locale/analyze";
+import { numberSymbols, parseNumber } from "../locale/number";
 import type { EvalCtx, KindId, Locale, Value } from "../types";
+
+/**
+ * What `toJSON()` produces and what `from()` accepts back. Plain JSON, so it
+ * survives `JSON.stringify`/`parse` — `value` is the decimal string rather
+ * than a Decimal, and `new Decimal` reads either.
+ */
+export interface QuantitySnapshot {
+  readonly value: string;
+  readonly unit: string;
+  readonly meta?: Readonly<Record<string, unknown>>;
+}
 
 export interface Quantity {
   readonly value: Decimal;
@@ -15,7 +28,7 @@ export interface Quantity {
   as(unit: string): Quantity;
   equals(other: QuantityInput, epsilon?: Decimal | number | string): boolean;
   toString(): string;
-  toJSON(): { value: string; unit: string };
+  toJSON(): QuantitySnapshot;
   /** Ratio kinds only; absent on an affine kind. */
   add?(other: QuantityInput): Quantity;
   sub?(other: QuantityInput): Quantity;
@@ -26,7 +39,7 @@ export interface Quantity {
   withDpi?(dpi: number): Quantity;
 }
 
-export type QuantityInput = Quantity | number | string;
+export type QuantityInput = Quantity | QuantitySnapshot | number | string;
 
 export interface QuantityClass {
   new (
@@ -39,8 +52,6 @@ export interface QuantityClass {
   readonly kindId: KindId;
 }
 
-const PARSE = /^\s*(-?[\d.]+)\s*°?\s*([\p{L}%][\p{L}\d²³%]*)\s*$/u;
-
 export function createFacade(args: {
   kind: NormalizedKind;
   registry: Registry;
@@ -50,12 +61,84 @@ export function createFacade(args: {
   const { kind, registry, locale } = args;
   const deltaFacades = args.deltaFacades ?? new Map<KindId, QuantityClass>();
   const canonicalUnit = kind.spec.mode === "ratio" ? kind.spec.canonical : "";
+  const fold = (s: string) => s.toLocaleLowerCase(locale.id);
 
   const requireUnit = (unit: string): string => {
     if (!kind.units.has(unit)) {
       throw new UnitParseError(unit, kind.id);
     }
     return unit;
+  };
+
+  /**
+   * One vocabulary, not two. `parse` used to match a regex against raw unit
+   * *keys*, ignoring the lexicon sitting right here in the closure — so
+   * `X.parse(x.toString())` threw for mass, length, area, speed and volume:
+   * the facade's own output was not valid input to its own parser.
+   *
+   * The registry's alias index, filtered to this kind, is the engine's
+   * vocabulary. On top of it go the two things `toString` can emit that are
+   * not aliases — the unit's symbol ("m²", "m/s", "°C") and its plural
+   * display forms ("kilograms") — plus the bare unit keys the old regex
+   * accepted, so nothing that parsed before stops parsing. First claim wins,
+   * and the alias index iterates in sorted order, so this is deterministic.
+   */
+  const unitFor = new Map<string, string>();
+  const claim = (token: string | undefined, unit: string): void => {
+    if (token === undefined || token === "") return;
+    const key = fold(token);
+    if (!unitFor.has(key)) unitFor.set(key, unit);
+  };
+  for (const [alias, entries] of registry.aliasIndex) {
+    for (const entry of entries) if (entry.kind === kind.id) claim(alias, entry.unit);
+  }
+  for (const [name, unit] of kind.units) {
+    claim(name, name);
+    claim(unit.lexeme.symbol, name);
+    for (const form of Object.values(unit.lexeme.display ?? {})) claim(form, name);
+  }
+
+  // The locale's own analyzers, the same chain the engine's resolver runs, so
+  // "5 kilometres" resolves here exactly as it does in `evaluate`. Locale
+  // packs are not in scope for a facade, hence the empty list.
+  const analyze = createAnalyzerChain(locale, []);
+
+  const resolveUnit = (token: string): string | undefined => {
+    const direct = unitFor.get(fold(token));
+    if (direct !== undefined) return direct;
+    for (const analyzed of analyze(token)) {
+      const hit = unitFor.get(fold(analyzed.form));
+      if (hit !== undefined) return hit;
+    }
+    return undefined;
+  };
+
+  // Splitting the magnitude off the unit has to know the locale's group and
+  // decimal symbols, or "1,234.5 kilograms" — which `toString` produces —
+  // cannot be read back.
+  const { group, decimal } = numberSymbols(locale);
+  // NBSP and narrow NBSP as escapes, not literals: French ICU groups with
+  // U+202F and both are invisible in source -- the same reasoning parseNumber
+  // records. A plain space is included too, so "1.5 kilograms" splits.
+  const isNumeric = (ch: string): boolean =>
+    (ch >= "0" && ch <= "9") ||
+    ch === group ||
+    ch === decimal ||
+    ch === " " ||
+    ch === "\u00A0" ||
+    ch === "\u202F";
+
+  /**
+   * `new Decimal` throws a raw `DecimalError`, which is not a `SmartputError`,
+   * so a consumer catching `SmartputError` would fall through to a generic
+   * handler on `new Mass("abc", "kg")`.
+   */
+  const toDecimal = (raw: Decimal | number | string, reportAs: string): Decimal => {
+    try {
+      return new Decimal(raw);
+    } catch {
+      throw new UnitParseError(reportAs, kind.id);
+    }
   };
 
   // The unit (if any) whose ratio is context-dependent — currently only
@@ -82,7 +165,7 @@ export function createFacade(args: {
       unit: string,
       meta?: Record<string, unknown>,
     ) {
-      this.value = new Decimal(value);
+      this.value = toDecimal(value, String(value));
       this.unit = requireUnit(unit);
       if (meta !== undefined) this.meta = Object.freeze({ ...meta });
       Object.freeze(this);
@@ -94,18 +177,30 @@ export function createFacade(args: {
       if (input instanceof Q) return input;
       if (typeof input === "number") return new Q(input, canonicalUnit);
       if (typeof input === "string") return Q.parse(input);
-      // A Quantity from another facade of the same kind.
-      const other = input as Quantity;
-      return new Q(other.value, other.unit, other.meta as Record<string, unknown>);
+      // A Quantity from another facade of the same kind, or a `toJSON()`
+      // snapshot: both carry value/unit/meta, and the constructor reads a
+      // Decimal or its decimal string alike, so one branch serves both.
+      return new Q(input.value, input.unit, input.meta as Record<string, unknown>);
     }
 
     static parse(text: string): Quantity {
-      const m = PARSE.exec(text);
-      const digits = m?.[1];
-      const unit = m?.[2];
-      if (digits === undefined || unit === undefined)
-        throw new UnitParseError(text, kind.id);
-      return new Q(digits, unit.toLowerCase());
+      const trimmed = text.trim();
+      let i = 0;
+      if (trimmed[0] === "-" || trimmed[0] === "+") i += 1;
+      while (i < trimmed.length && isNumeric(trimmed[i] as string)) i += 1;
+
+      const digits = trimmed.slice(0, i).trim();
+      const token = trimmed.slice(i).trim();
+      // A bare number is not a quantity — the caller has to say which unit.
+      if (token === "") throw new UnitParseError(text, kind.id);
+
+      const value = parseNumber(digits, locale);
+      if (value === null) throw new UnitParseError(text, kind.id);
+
+      const unit = resolveUnit(token);
+      if (unit === undefined) throw new UnitParseError(text, kind.id);
+
+      return new Q(value, unit);
     }
 
     /** Canonical magnitude, the basis for every conversion and comparison. */
@@ -151,8 +246,15 @@ export function createFacade(args: {
       return formatValue(value, registry, locale);
     }
 
-    toJSON(): { value: string; unit: string } {
-      return { value: this.value.toFixed(), unit: this.unit };
+    toJSON(): QuantitySnapshot {
+      // `meta` is part of the quantity's identity — a measure carrying
+      // `{ dpi: 300 }` converts differently from one that does not — so it has
+      // to survive the round trip, and `from` accepts this shape back.
+      return {
+        value: this.value.toFixed(),
+        unit: this.unit,
+        ...(this.meta ? { meta: this.meta } : {}),
+      };
     }
 
     /**

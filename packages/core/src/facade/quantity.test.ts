@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test";
 import { UnitParseError } from "../errors";
 import { buildRegistry } from "../kind/registry";
-import { BUILTIN_KINDS } from "../kinds/index";
+import { BUILTIN_KINDS, measure } from "../kinds/index";
 import en from "../locale/en";
 import { createFacade, type Quantity, type QuantityClass } from "./quantity";
 
@@ -23,6 +23,20 @@ const Weight = createFacade({
   registry,
   locale: en,
 }) as unknown as RatioClass;
+
+// `measure` is outside BUILTIN_KINDS (mm/cm collide with length), so the
+// round-trip set below builds its own registry over every kind.
+const allKinds = [...BUILTIN_KINDS, measure];
+const fullRegistry = buildRegistry(allKinds, [], "en");
+const facades: Record<string, QuantityClass> = {};
+const deltaFacades = new Map<string, QuantityClass>();
+for (const [id, k] of fullRegistry.kinds) {
+  const f = createFacade({ kind: k, registry: fullRegistry, locale: en, deltaFacades });
+  facades[id] = f;
+  deltaFacades.set(id, f);
+}
+const Measure = facades.measure;
+if (Measure === undefined) throw new Error("measure facade missing");
 
 test("constructs in an authored unit and stores it verbatim", () => {
   const w = new Weight(1.5, "kg");
@@ -71,6 +85,84 @@ test("toString renders in the authored unit", () => {
 test("toJSON round-trips through from", () => {
   const w = new Weight(1.5, "kg");
   expect(w.toJSON()).toEqual({ value: "1.5", unit: "kg" });
+  // The test was named this before it called `from` at all, and `toJSON`'s
+  // shape was not a QuantityInput so it could not have typechecked.
+  const back = Weight.from(w.toJSON());
+  expect(back.value.toString()).toBe("1.5");
+  expect(back.unit).toBe("kg");
+  expect(back.equals(w)).toBe(true);
+});
+
+test("toJSON survives JSON.stringify and carries meta back", () => {
+  const m = new Measure(1, "inch", { dpi: 300 });
+  const snapshot = JSON.parse(JSON.stringify(m)) as ReturnType<Quantity["toJSON"]>;
+  const back = Measure.from(snapshot);
+  // meta is part of the quantity's identity: a measure at 300dpi converts to
+  // px differently from one at the default 96, so dropping it here silently
+  // changed the value.
+  expect(back.meta).toEqual({ dpi: 300 });
+  expect(back.to("px").toString()).toBe("300");
+});
+
+test("parse rejects a malformed number as a SmartputError", () => {
+  // Raw `new Decimal("1.2.3")` throws `Error: [DecimalError] Invalid
+  // argument`, which is not a SmartputError, so a consumer's catch missed it.
+  expect(() => Weight.parse("1.2.3g")).toThrow(UnitParseError);
+  expect(() => new Weight("abc", "kg")).toThrow(UnitParseError);
+});
+
+// The facade's own output was not valid input to its own parser: PARSE matched
+// raw unit *keys*, so it never saw the symbol ("m²", "m/s", "°C") or the plural
+// display form ("kilograms") that toString actually emits.
+test("parse reads back what toString writes", () => {
+  const cases: Array<[string, string, number]> = [
+    ["mass", "kg", 1.5], // display plural: "1.5 kilograms"
+    ["mass", "g", 210],
+    ["mass", "lb", 12.5],
+    ["length", "km", 5],
+    ["length", "m", 1250], // grouped: "1,250m"
+    ["length", "in", 3],
+    ["area", "m2", 1], // symbol "m²"
+    ["area", "hectare", 2],
+    ["speed", "mps", 10], // symbol "m/s"
+    ["speed", "mph", 60],
+    ["volume", "l", 2],
+    ["volume", "m3", 1], // symbol "m³"
+    ["percent", "%", 20],
+    ["temperature", "c", 20], // symbol "°C"
+    ["tempdelta", "k", 5],
+    ["datasize", "mib", 2],
+    ["duration", "h", 3],
+    ["angle", "rad", 2],
+  ];
+
+  for (const [kindId, unit, value] of cases) {
+    const Class = facades[kindId];
+    if (Class === undefined) throw new Error(`no facade for ${kindId}`);
+    const original = new Class(value, unit);
+    const text = original.toString();
+    const parsed = Class.parse(text);
+    expect(parsed.unit, `${kindId} ${unit}: ${text}`).toBe(unit);
+    expect(parsed.value.toString(), `${kindId} ${unit}: ${text}`).toBe(
+      original.value.toString(),
+    );
+  }
+});
+
+test("parse accepts a locale-analyzed plural the engine would accept", () => {
+  const Length = facades.length;
+  if (Length === undefined) throw new Error("no length facade");
+  // "kilometres" is not an alias; the locale's suffix stripper is what turns
+  // it into "kilometre". parse used its own vocabulary and never ran it.
+  expect(Length.parse("5 kilometres").unit).toBe("km");
+  expect(Length.parse("5 kilometres").value.toString()).toBe("5");
+});
+
+test("parse still accepts the bare unit key the old regex matched", () => {
+  expect(Weight.parse("12.5lb").unit).toBe("lb");
+  const Area = facades.area;
+  if (Area === undefined) throw new Error("no area facade");
+  expect(Area.parse("1m2").unit).toBe("m2");
 });
 
 test("instances are frozen", () => {

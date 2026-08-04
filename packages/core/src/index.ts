@@ -2,7 +2,12 @@ export { Decimal } from "./decimal";
 export type { Engine, EngineOptions, EvalOptions, Explanation, Result } from "./engine";
 export { createEngine } from "./engine";
 export * from "./errors";
-export type { Quantity, QuantityClass, QuantityInput } from "./facade/index";
+export type {
+  Quantity,
+  QuantityClass,
+  QuantityInput,
+  QuantitySnapshot,
+} from "./facade/index";
 export { createFacade, createFacades } from "./facade/index";
 export { defineKind } from "./kind/define";
 // Every built-in kind is exported by name, not only as an anonymous member of
