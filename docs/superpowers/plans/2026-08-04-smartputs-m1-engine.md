@@ -41,6 +41,7 @@ All paths relative to `packages/core/`.
 | `src/types.ts` | Every shared type. No logic, no imports except `decimal.js` types. |
 | `src/errors.ts` | The `SmartputError` hierarchy. |
 | `src/decimal.ts` | The configured `Decimal` constructor, re-exported. Single source of precision config. |
+| `src/freeze.ts` | `deepFreeze` — recursive freeze used by every `define*` function. |
 | `src/kind/define.ts` | `defineKind`, and normalization of authoring shorthands into a `NormalizedKind`. |
 | `src/kind/registry.ts` | `buildRegistry` — merges kinds and packs, generates ratio ops, builds the alias index. |
 | `src/kind/ratio-ops.ts` | Generates the `+ - * / in` signatures every ratio kind gets for free. |
@@ -521,10 +522,12 @@ git commit -m "feat(core): add shared types and error hierarchy"
 ## Task 3: defineKind and kind normalization
 
 **Files:**
+- Create: `packages/core/src/freeze.ts`, `packages/core/src/freeze.test.ts`
 - Create: `packages/core/src/kind/define.ts`, `packages/core/src/kind/define.test.ts`
 
 **Interfaces:**
 - Consumes: types and errors from Task 2.
+- Produces: `deepFreeze<T>(value: T): T` — recursively freezes plain objects and arrays. Used by `defineKind` here and by `defineLocale`/`defineLocalePack` in Task 5.
 - Produces:
   - `defineKind(k: Kind): Kind` — freezes and returns.
   - `normalizeKind(k: Kind): NormalizedKind`
@@ -598,7 +601,10 @@ test("a function ratio receives the value's own meta", () => {
     }),
   );
   const self: Value = { kind: "measure", canonical: new Decimal(0), unit: "px", meta: { dpi: 300 } };
-  expect(n.units.get("px")?.ratio({ self, locale: "en" }).toString()).toBe("0.0033333333333333333333333333333");
+  // 28 significant digits, per the Decimal config in Task 1: 28 threes.
+  expect(n.units.get("px")?.ratio({ self, locale: "en" }).toString()).toBe(
+    "0.003333333333333333333333333333",
+  );
 });
 
 test("affine offsets normalize to a Decimal-returning function", () => {
@@ -616,11 +622,34 @@ test("affine offsets normalize to a Decimal-returning function", () => {
   expect(n.units.get("c")?.offset(ctx(val("c"))).toString()).toBe("0");
 });
 
-test("defineKind freezes its descriptor", () => {
-  const k = defineKind({ id: "x", value: { mode: "ratio", canonical: "a", units: { a: 1 } } });
+test("defineKind deep-freezes its descriptor", () => {
+  const k = defineKind({
+    id: "x",
+    value: { mode: "ratio", canonical: "a", units: { a: 1 } },
+    lexicon: { a: ["a", "alpha"] },
+  });
   expect(Object.isFrozen(k)).toBe(true);
+  expect(Object.isFrozen(k.value)).toBe(true);
+  expect(Object.isFrozen((k.value as RatioSpec).units)).toBe(true);
+  expect(Object.isFrozen(k.lexicon)).toBe(true);
+  expect(Object.isFrozen(k.lexicon?.a)).toBe(true);
+});
+
+test("normalizeKind copies ops rather than aliasing the frozen array", () => {
+  const k = defineKind({
+    id: "x",
+    value: { mode: "ratio", canonical: "a", units: { a: 1 } },
+    ops: [],
+  });
+  const n = normalizeKind(k);
+  // The registry pushes generated signatures onto this array; it must not be
+  // the descriptor's frozen one.
+  expect(() => n.ops.push({} as OpSignature)).not.toThrow();
+  expect(k.ops).toHaveLength(0);
 });
 ```
+
+Add `import type { OpSignature, RatioSpec } from "../types";` to the test file's imports.
 
 - [ ] **Step 2: Run test to verify it fails**
 
@@ -629,10 +658,74 @@ Expected: FAIL — `Cannot find module './define'`.
 
 - [ ] **Step 3: Write the implementation**
 
+`packages/core/src/freeze.ts`:
+
+```ts
+import { Decimal } from "./decimal";
+
+/**
+ * Recursively freezes plain objects and arrays.
+ *
+ * Decimal instances are returned untouched — decimal.js mutates instance
+ * internals, so freezing one would break arithmetic. Functions are left alone
+ * too: this guards data, not code.
+ *
+ * Freezing happens before recursion, so a cyclic descriptor terminates on the
+ * isFrozen check rather than overflowing the stack.
+ */
+export function deepFreeze<T>(value: T): T {
+  if (value === null || typeof value !== "object") return value;
+  if (value instanceof Decimal) return value;
+  if (Object.isFrozen(value)) return value;
+
+  Object.freeze(value);
+  for (const key of Object.getOwnPropertyNames(value)) {
+    deepFreeze((value as Record<string, unknown>)[key]);
+  }
+  return value;
+}
+```
+
+`packages/core/src/freeze.test.ts`:
+
+```ts
+import { expect, test } from "bun:test";
+import { Decimal } from "./decimal";
+import { deepFreeze } from "./freeze";
+
+test("freezes nested objects and arrays", () => {
+  const o = deepFreeze({ a: { b: [1, 2] } });
+  expect(Object.isFrozen(o)).toBe(true);
+  expect(Object.isFrozen(o.a)).toBe(true);
+  expect(Object.isFrozen(o.a.b)).toBe(true);
+});
+
+test("returns primitives unchanged", () => {
+  expect(deepFreeze(5)).toBe(5);
+  expect(deepFreeze("x")).toBe("x");
+  expect(deepFreeze(null)).toBe(null);
+});
+
+test("leaves Decimal instances unfrozen so arithmetic still works", () => {
+  const d = new Decimal(3);
+  deepFreeze({ d });
+  expect(Object.isFrozen(d)).toBe(false);
+  expect(d.times(2).toString()).toBe("6");
+});
+
+test("terminates on a cyclic structure", () => {
+  const a: Record<string, unknown> = {};
+  a.self = a;
+  expect(() => deepFreeze(a)).not.toThrow();
+  expect(Object.isFrozen(a)).toBe(true);
+});
+```
+
 `packages/core/src/kind/define.ts`:
 
 ```ts
 import { Decimal } from "../decimal";
+import { deepFreeze } from "../freeze";
 import type {
   EvalCtx,
   FormatCtx,
@@ -664,7 +757,7 @@ export interface NormalizedKind {
 }
 
 export function defineKind(k: Kind): Kind {
-  return Object.freeze(k);
+  return deepFreeze(k);
 }
 
 function toDecimalFn(
@@ -706,7 +799,9 @@ export function normalizeKind(k: Kind): NormalizedKind {
     spec: k.value,
     prior: k.prior ?? 0,
     units,
-    ops: k.ops ?? [],
+    // Copy, never alias: the descriptor's ops array is deep-frozen, and the
+    // registry in Task 4 pushes generated signatures onto this one.
+    ops: [...(k.ops ?? [])],
     ...(k.format ? { format: k.format } : {}),
   };
 }
@@ -749,7 +844,7 @@ git commit -m "feat(core): add defineKind with shorthand normalization"
 ```ts
 import { expect, test } from "bun:test";
 import { defineLocalePack } from "../locale/define";
-import { UnknownKindError } from "../errors";
+import { KindConflictError, UnknownKindError } from "../errors";
 import { defineKind } from "./define";
 import { buildRegistry, opKey } from "./registry";
 
@@ -832,6 +927,36 @@ test("extendsKind merges units and aliases into the base kind", () => {
   expect(r.kinds.get("mass")?.units.has("t")).toBe(true);
   expect(r.aliasIndex.get("t")).toEqual([{ kind: "mass", unit: "t" }]);
   expect(r.kinds.has("mass-extra")).toBe(false);
+});
+
+test("a kind registered twice throws", () => {
+  expect(() => buildRegistry([number, mass, mass])).toThrow(KindConflictError);
+});
+
+test("extending an unknown kind throws", () => {
+  const orphan = defineKind({
+    id: "orphan",
+    extendsKind: "nosuchkind",
+    value: { mode: "ratio", canonical: "g", units: { z: 1 } },
+  });
+  expect(() => buildRegistry([number, mass, orphan])).toThrow(KindConflictError);
+});
+
+test("a patch whose value.mode differs from its base throws", () => {
+  const opaquePatch = defineKind({
+    id: "mass-opaque",
+    extendsKind: "mass",
+    value: { mode: "opaque", parse: () => null, equals: (a, b) => a === b },
+  });
+  expect(() => buildRegistry([number, mass, opaquePatch])).toThrow(KindConflictError);
+});
+
+test("a pack naming an unregistered unit throws", () => {
+  const pack = defineLocalePack({
+    locale: "en",
+    contributes: { mass: { nosuchunit: ["x"] } },
+  });
+  expect(() => buildRegistry([number, mass], [pack], "en")).toThrow(UnknownKindError);
 });
 
 test("an ambiguous alias yields several entries sorted by kind id", () => {
@@ -1195,16 +1320,19 @@ Expected: FAIL — modules not found.
 `packages/core/src/locale/define.ts`:
 
 ```ts
+import { deepFreeze } from "../freeze";
 import type { Locale, LocalePack } from "../types";
 
 export function defineLocale(l: Locale): Locale {
-  return Object.freeze(l);
+  return deepFreeze(l);
 }
 
 export function defineLocalePack(p: LocalePack): LocalePack {
-  return Object.freeze(p);
+  return deepFreeze(p);
 }
 ```
+
+Note `deepFreeze` leaves functions alone, so a locale's `analyze` array is frozen while the analyzer functions inside it stay callable.
 
 - [ ] **Step 4: Write helpers.ts**
 
@@ -1294,10 +1422,29 @@ Expected: PASS, 11 tests.
 
 - [ ] **Step 7: Restore the skipped registry tests**
 
-In `packages/core/src/kind/registry.test.ts`, change the two `test.skip(` back to `test(` for "a locale pack unions aliases into the index" and "a pack for another locale is ignored".
+Task 4 could not use a static import of `../locale/define` — ES modules evaluate
+static imports before any test body runs, so `test.skip` does not prevent the
+module-load crash. It therefore used a dynamic `import()` inside each skipped
+test, suppressed with `@ts-expect-error`. Now that the module exists, undo all
+of that in `packages/core/src/kind/registry.test.ts`:
+
+1. Add the static import at the top: `import { defineLocalePack } from "../locale/define";`
+2. Delete every `@ts-expect-error` comment that suppressed the missing module, and
+   the dynamic `import()` line each one guarded. **`tsc` errors on an unused
+   `@ts-expect-error`, so leaving them breaks the typecheck** — this step is not
+   optional.
+3. Change all **four** `test.skip(` back to `test(`: "a locale pack unions aliases
+   into the index", "a pack for another locale is ignored", "a pack naming an
+   unregistered kind throws at build time", and "a pack naming an unregistered
+   unit throws". Every test constructing a `defineLocalePack` was skipped; all of
+   them come back.
+4. Drop the now-unneeded `async` on those test callbacks.
 
 Run: `bun test packages/core/src/kind/registry.test.ts`
-Expected: PASS, 10 tests, 0 skipped.
+Expected: PASS, 14 tests, 0 skipped.
+
+Run: `bun run check`
+Expected: clean — in particular `tsc` must report no unused-suppression errors.
 
 - [ ] **Step 8: Commit**
 
@@ -1389,6 +1536,13 @@ test("an explicit NumberFormatSpec overrides Intl", () => {
   expect(parseNumber("1 500,25", custom)?.toString()).toBe("1500.25");
 });
 
+test("strips non-breaking and narrow no-break spaces", () => {
+  // Written as escapes on purpose: these characters are invisible in source.
+  // U+00A0 arrives via pasted text; U+202F is French ICU's group separator.
+  expect(parseNumber("1\u00A0500.25", en)?.toString()).toBe("1500.25");
+  expect(parseNumber("1\u202F500.25", en)?.toString()).toBe("1500.25");
+});
+
 test("returns null for non-numeric text", () => {
   expect(parseNumber("kg", en)).toBeNull();
 });
@@ -1435,6 +1589,18 @@ test("keeps grouped numbers as one token", () => {
   const tokens = lex("1,500.25 kg", en);
   expect(tokens[0]).toMatchObject({ type: "number" });
   expect(tokens).toHaveLength(2);
+});
+
+test("backs off a trailing separator that is not part of the number", () => {
+  const tokens = lex("1,500. kg", en);
+  expect(tokens[0]).toMatchObject({ type: "number", text: "1,500", start: 0, end: 5 });
+  expect(tokens.map((t) => t.type)).toEqual(["number", "word"]);
+});
+
+test("skips unrecognized characters instead of throwing", () => {
+  // suggest() must never crash on junk.
+  expect(() => lex("10 kg @@ 5", en)).not.toThrow();
+  expect(lex("10 kg @@ 5", en).map((t) => t.type)).toEqual(["number", "word", "number"]);
 });
 
 test("word runs are split by the locale segmenter when provided", () => {
@@ -1505,7 +1671,10 @@ export function parseNumber(text: string, locale: Locale): Decimal | null {
   const { group, decimal } = numberSymbols(locale);
   let cleaned = "";
   for (const ch of text) {
-    if (ch === group || ch === " " || ch === " ") continue;
+    // Escapes, not literals: NBSP and narrow NBSP are invisible in source and
+    // silently degrade to a plain space when retyped. French ICU uses U+202F as
+    // its group separator, so this is load-bearing, not defensive padding.
+    if (ch === group || ch === "\u00A0" || ch === "\u202F") continue;
     cleaned += ch === decimal ? "." : ch;
   }
   if (cleaned.length === 0 || !/^-?\d*\.?\d+$/.test(cleaned)) return null;
@@ -2099,6 +2268,32 @@ test("an unclosed paren throws UnitParseError", () => {
   expect(() => ast("(1 + 2")).toThrow(UnitParseError);
 });
 
+test("leftover tokens after a complete parse throw UnitParseError", () => {
+  // parseExpr returns after "1"; the second number is neither op nor keyword,
+  // so the loop breaks and the top-level pos check must reject it.
+  expect(() => ast("1 2")).toThrow(UnitParseError);
+});
+
+test("a quantity node preserves every candidate for an ambiguous unit", () => {
+  // Its own registry: adding an "m"-colliding kind to the shared one would
+  // change the single-candidate expectations in the other tests.
+  const duration = defineKind({
+    id: "duration",
+    value: { mode: "ratio", canonical: "s", units: { min: 60 } },
+    lexicon: { min: ["min", "m"] },
+  });
+  const ambiguous = buildRegistry([number, length, duration]);
+  const r = createResolver({ registry: ambiguous, locale: en, packs: [], layers: [] });
+
+  const node = parse(lex("10 m", en), r, "10 m");
+  if (node.type !== "quantity") throw new Error("unreachable");
+  // The parser must never narrow — Task 10's solver needs the whole set.
+  expect(node.candidates.map((c) => `${c.kind}:${c.unit}`)).toEqual([
+    "duration:min",
+    "length:m",
+  ]);
+});
+
 test("nodes carry spans back to the source", () => {
   const node = ast("10 km");
   expect(node.span).toEqual({ start: 0, end: 5 });
@@ -2389,6 +2584,37 @@ test("conversion type-checks and takes the target unit's kind", () => {
   expect(assignments[0]?.kind).toBe("length");
 });
 
+test("the context bonus decides when both assignments type-check", () => {
+  // With only same-kind ops, typeOf prunes the mixed assignment outright, so
+  // the bonus is never compared against anything — every other test here
+  // passes for that stronger reason and would still pass with CONTEXT_BONUS
+  // set to 0. A cross-kind signature keeps both assignments viable, and the
+  // length weight is set high enough that removing the bonus flips the result.
+  const bridge = defineKind({
+    id: "length-bridge",
+    extendsKind: "length",
+    value: { mode: "ratio", canonical: "m", units: {} },
+    ops: [
+      { op: "+", left: "length", right: "duration", result: "length", apply: (l) => l },
+    ],
+  });
+  const bridged = buildRegistry([number, length, duration, bridge]);
+  const resolver = createResolver({
+    registry: bridged,
+    locale: en,
+    packs: [],
+    layers: [{ "length:m": 10 }],
+  });
+  const input = "10 m + 5 h";
+  const node = parse(lex(input, en), resolver, input);
+  const assignments = solve(node, bridged, { maxCandidates: 10_000, input });
+
+  expect(assignments).toHaveLength(2);
+  // duration: 0 weight + 30 context bonus. length: 10 weight, no bonus.
+  expect(assignments[0]?.kind).toBe("duration");
+  expect(assignments[1]?.kind).toBe("length");
+});
+
 test("exceeding maxCandidates throws TooAmbiguousError", () => {
   const resolver = createResolver({ registry, locale: en, packs: [], layers: [] });
   const input = "1 m + 1 m + 1 m + 1 m";
@@ -2608,7 +2834,14 @@ const length = normalizeKind(
 const temp = normalizeKind(
   defineKind({
     id: "temperature",
-    value: { mode: "ratio", canonical: "c", units: { c: 1, f: { ratio: 5 / 9, offset: -32 } } },
+    value: {
+      mode: "ratio",
+      canonical: "c",
+      // new Decimal(5).div(9), NOT 5 / 9: the latter is a JS float before it
+      // ever reaches Decimal, and 212F then lands on 100.000000000000008.
+      // Dividing inside Decimal keeps the affine conversions exact.
+      units: { c: 1, f: { ratio: new Decimal(5).div(9), offset: -32 } },
+    },
   }),
 );
 
@@ -2646,7 +2879,10 @@ test("reverses the affine offset on the way out", () => {
 });
 
 test("a function ratio reads dpi from the value's meta", () => {
-  expect(toCanonical(new Decimal(300), measure, "px", "en", { dpi: 300 }).toString()).toBe("1");
+  // 1/300 does not terminate, so 300px at 300dpi lands within 1e-20 of an inch
+  // rather than exactly on it. 1/96 does terminate, so the default is exact.
+  const at300 = toCanonical(new Decimal(300), measure, "px", "en", { dpi: 300 });
+  expect(at300.minus(1).abs().lessThan("1e-20")).toBe(true);
   expect(toCanonical(new Decimal(96), measure, "px", "en").toString()).toBe("1");
 });
 ```
@@ -2916,7 +3152,11 @@ const mass = defineKind({
   id: "mass",
   value: { mode: "ratio", canonical: "g", units: { g: 1, kg: 1000 } },
   lexicon: {
-    kg: { aliases: ["kg"], symbol: "kg", display: { one: "kilogram", other: "kilograms" } },
+    // No `display` here on purpose: this fixture exercises the symbol path.
+    // Intl.PluralRules("en").select(1.5) is "other", so a display.other entry
+    // would make every test below render "1.5 kilograms" instead of "1.5kg".
+    // The display path gets its own fixture (mass2) in the test that needs it.
+    kg: { aliases: ["kg"], symbol: "kg" },
     g: { aliases: ["g"], symbol: "g" },
   },
 });
@@ -2941,7 +3181,8 @@ test("uses the plural display form when the number selects it", () => {
 });
 
 test("falls back to the symbol when no display form covers the category", () => {
-  expect(formatValue(value("3000", "g"), registry, "en")).toBe("3000g");
+  // Grouped: en renders 3000 as "3,000".
+  expect(formatValue(value("3000", "g"), registry, "en")).toBe("3,000g");
 });
 
 test("formats a plain number without a unit", () => {
@@ -3042,6 +3283,7 @@ git commit -m "feat(core): add value formatting with Intl.PluralRules"
 
 ```ts
 import { expect, test } from "bun:test";
+import { Decimal } from "../decimal";
 import { buildRegistry } from "../kind/registry";
 import en from "../locale/en";
 import { BUILTIN_KINDS } from "./index";
@@ -3061,7 +3303,8 @@ test("m is ambiguous between length and duration", () => {
 
 test("canonical ratios are correct", () => {
   const length = registry.kinds.get("length");
-  expect(length?.units.get("km")?.ratio({ self: { kind: "length", canonical: new (require("../decimal").Decimal)(0), unit: "km" }, locale: "en" }).toString()).toBe("1000");
+  const self = { kind: "length", canonical: new Decimal(0), unit: "km" };
+  expect(length?.units.get("km")?.ratio({ self, locale: "en" }).toString()).toBe("1000");
 });
 
 test("imperial length units are present", () => {
@@ -3239,24 +3482,12 @@ export default defineLocale({
 });
 ```
 
-- [ ] **Step 5: Fix the test's awkward require**
-
-Replace the third test in `kinds.test.ts` with a clean import at the top of the file (`import { Decimal } from "../decimal";`) and this body:
-
-```ts
-test("canonical ratios are correct", () => {
-  const length = registry.kinds.get("length");
-  const self = { kind: "length", canonical: new Decimal(0), unit: "km" };
-  expect(length?.units.get("km")?.ratio({ self, locale: "en" }).toString()).toBe("1000");
-});
-```
-
-- [ ] **Step 6: Run tests**
+- [ ] **Step 5: Run tests**
 
 Run: `bun test packages/core/src/kinds/kinds.test.ts`
 Expected: PASS, 8 tests.
 
-- [ ] **Step 7: Commit**
+- [ ] **Step 6: Commit**
 
 ```bash
 git add packages/core/src/kinds packages/core/src/locale/en.ts
@@ -3289,13 +3520,16 @@ import { AmbiguityError, DimensionMismatchError, NoCandidateError } from "./erro
 import { defineKind } from "./kind/define";
 import { BUILTIN_KINDS } from "./kinds/index";
 import en from "./locale/en";
+import { defineLocale } from "./locale/define";
 
 const engine = createEngine({ locales: [en], kinds: BUILTIN_KINDS });
 
 test("evaluate returns a formatted result for an unambiguous input", () => {
   const r = engine.evaluate("1 kg + 500 g");
   expect(r.kind).toBe("mass");
-  expect(r.formatted).toBe("1.5kg");
+  // The kg lexeme carries display forms, and Intl.PluralRules("en").select(1.5)
+  // is "other" — so this renders the word, not the symbol.
+  expect(r.formatted).toBe("1.5 kilograms");
 });
 
 test("evaluate resolves ambiguity from context", () => {
@@ -3339,6 +3573,36 @@ test("suggest never throws and returns ranked results", () => {
 test("suggest returns an empty array for unparseable input", () => {
   expect(engine.suggest("!!!")).toEqual([]);
   expect(engine.suggest("10 zork")).toEqual([]);
+});
+
+test("suggest re-throws a genuine bug instead of swallowing it", () => {
+  const exploding = defineLocale({
+    id: "en",
+    numberFormat: "intl",
+    analyze: [
+      () => {
+        throw new TypeError("boom");
+      },
+    ],
+    keywords: {},
+  });
+  const e = createEngine({ locales: [exploding], kinds: BUILTIN_KINDS });
+  expect(() => e.suggest("10 kg")).toThrow(TypeError);
+});
+
+test("coerce re-throws a genuine bug instead of reporting no candidate", () => {
+  const exploding = defineLocale({
+    id: "en",
+    numberFormat: "intl",
+    analyze: [
+      () => {
+        throw new TypeError("boom");
+      },
+    ],
+    keywords: {},
+  });
+  const e = createEngine({ locales: [exploding], kinds: BUILTIN_KINDS });
+  expect(() => e.coerce("mass", "10 kg")).toThrow(TypeError);
 });
 
 test("coerce filters candidates to the requested kind", () => {
@@ -3548,8 +3812,12 @@ export function createEngine(opts: EngineOptions): Engine {
       try {
         const { node, assignments } = pipeline(input, call);
         return assignments.map((a) => toResult(node, a, input));
-      } catch {
-        return [];
+      } catch (e) {
+        // Only the library's own errors mean "this input has no interpretation".
+        // A TypeError from a bug in the pipeline must keep its stack rather than
+        // masquerade as an empty result.
+        if (e instanceof SmartputError) return [];
+        throw e;
       }
     },
 
@@ -3563,6 +3831,8 @@ export function createEngine(opts: EngineOptions): Engine {
         node = run.node;
       } catch (e) {
         if (e instanceof NoCandidateError) throw e;
+        // Same rule as suggest: never convert a genuine bug into "no candidate".
+        if (!(e instanceof SmartputError)) throw e;
         throw new NoCandidateError(input, input, []);
       }
       const best = assignments.find((a) => a.kind === kind);
@@ -3673,15 +3943,15 @@ Expected: PASS, 16 tests.
 ```
 # input	kind	canonical	formatted
 10 km	length	10000	10km
-1 kg + 500 g	mass	1500	1.5kg
+1 kg + 500 g	mass	1500	1.5 kilograms
 30 h - 30 min	duration	106200	29.5h
 10 m + 5 h	duration	18600	310min
-10 m + 5 km	length	5010	5010m
-2 km in m	length	2000	2000m
+10 m + 5 km	length	5010	5,010m
+2 km in m	length	2000	2,000m
 10 km * 3	length	30000	30km
 (1 + 2) * 3	number	9	9
 -5 km	length	-5000	-5km
-1,500 g	mass	1500	1500g
+1,500 g	mass	1500	1,500g
 12 inch	length	0.3048	12in
 3 lbs	mass	1360.77711	3lb
 2 wk	duration	1209600	2wk
