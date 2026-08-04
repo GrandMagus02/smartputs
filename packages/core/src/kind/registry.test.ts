@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { UnknownKindError } from "../errors";
+import { KindConflictError, UnknownKindError } from "../errors";
 import { defineKind } from "./define";
 import { buildRegistry, opKey } from "./registry";
 
@@ -97,6 +97,39 @@ test("extendsKind merges units and aliases into the base kind", () => {
   expect(r.kinds.get("mass")?.units.has("t")).toBe(true);
   expect(r.aliasIndex.get("t")).toEqual([{ kind: "mass", unit: "t" }]);
   expect(r.kinds.has("mass-extra")).toBe(false);
+});
+
+test("a kind registered twice throws", () => {
+  expect(() => buildRegistry([number, mass, mass])).toThrow(KindConflictError);
+});
+
+test("extending an unknown kind throws", () => {
+  const orphan = defineKind({
+    id: "orphan",
+    extendsKind: "nosuchkind",
+    value: { mode: "ratio", canonical: "g", units: { z: 1 } },
+  });
+  expect(() => buildRegistry([number, mass, orphan])).toThrow(KindConflictError);
+});
+
+test("a patch whose value.mode differs from its base throws", () => {
+  const opaquePatch = defineKind({
+    id: "mass-opaque",
+    extendsKind: "mass",
+    value: { mode: "opaque", parse: () => null, equals: (a, b) => a === b },
+  });
+  expect(() => buildRegistry([number, mass, opaquePatch])).toThrow(KindConflictError);
+});
+
+// Un-skipped in Task 5 once ../locale/define exists.
+test.skip("a pack naming an unregistered unit throws", async () => {
+  // @ts-expect-error Cannot find module '../locale/define' — that file arrives in Task 5.
+  const { defineLocalePack } = await import("../locale/define");
+  const pack = defineLocalePack({
+    locale: "en",
+    contributes: { mass: { nosuchunit: ["x"] } },
+  });
+  expect(() => buildRegistry([number, mass], [pack], "en")).toThrow(UnknownKindError);
 });
 
 test("an ambiguous alias yields several entries sorted by kind id", () => {
