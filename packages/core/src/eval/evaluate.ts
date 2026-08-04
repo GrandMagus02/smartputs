@@ -20,7 +20,7 @@ export function evaluateNode(
   kindMeta: Readonly<Record<string, Readonly<Record<string, unknown>>>> = {},
 ): EvalResult {
   const assumptions: string[] = [];
-  const ctxFor = (self: Value): EvalCtx => ({ self, locale });
+  const ctxFor = (self: Value): EvalCtx => ({ self, locale, input });
 
   const note = (sig: OpSignature): void => {
     if (sig.assumption !== undefined && !assumptions.includes(sig.assumption)) {

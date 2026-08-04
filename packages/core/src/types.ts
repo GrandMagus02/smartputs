@@ -56,6 +56,12 @@ export type Lexicon = Record<string, UnitLexeme | string[]>;
 export interface EvalCtx {
   readonly self: Value;
   readonly locale: string;
+  /**
+   * The source expression being evaluated. Present while evaluating a parsed
+   * expression; absent during a standalone conversion (`toCanonical`/`fromCanonical`),
+   * which has no expression of its own to report.
+   */
+  readonly input?: string;
 }
 
 export interface FormatCtx {
