@@ -97,6 +97,21 @@ export function parse(tokens: Token[], resolver: Resolver, input: string): Node 
         continue;
       }
 
+      if (token.type === "keyword" && token.keyword === "of") {
+        const binding = BINDING.of;
+        if (binding < minBinding) break;
+        pos += 1;
+        const right = parseExpr(binding + 1);
+        left = {
+          type: "binary",
+          op: "of",
+          left,
+          right,
+          span: span(left.span, right.span),
+        };
+        continue;
+      }
+
       if (token.type !== "op") break;
       const binding = BINDING[token.op as Exclude<OpSymbol, "in">];
       if (binding === undefined || binding < minBinding) break;

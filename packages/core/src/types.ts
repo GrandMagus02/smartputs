@@ -86,6 +86,13 @@ export interface OpSignature {
   left: KindId;
   right: KindId;
   result: KindId;
+  /**
+   * Recorded on the Result whenever this signature is applied. For operations
+   * that are defensible but not the only reading of the input — "20C + 5C"
+   * treats the right operand as a difference, because the alternative is
+   * meaningless rather than because the user said so.
+   */
+  assumption?: string;
   apply: (l: Value, r: Value, ctx: EvalCtx) => Value;
 }
 

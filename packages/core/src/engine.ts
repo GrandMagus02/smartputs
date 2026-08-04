@@ -33,6 +33,11 @@ export interface EngineOptions {
   tiebreak?: "error" | "first";
   ambiguityEpsilon?: number;
   maxCandidates?: number;
+  /**
+   * Default `Value.meta` per kind, attached to every quantity of that kind.
+   * The `measure` kind reads `{ dpi }` from here; nothing else uses it yet.
+   */
+  kindMeta?: Readonly<Record<KindId, Readonly<Record<string, unknown>>>>;
 }
 
 export interface EvalOptions {
@@ -79,6 +84,7 @@ export function createEngine(opts: EngineOptions): Engine {
   const maxCandidates = opts.maxCandidates ?? 10_000;
   const epsilon = opts.ambiguityEpsilon ?? 0.05;
   const tiebreak = opts.tiebreak ?? "error";
+  const kindMeta = opts.kindMeta ?? {};
 
   const layersFor = (call?: Weights) => [locale.weights, opts.weights, call];
 
@@ -106,14 +112,21 @@ export function createEngine(opts: EngineOptions): Engine {
     assignment: Assignment,
     input: string,
   ): Result {
-    const value = evaluateNode(node, assignment, registry, (locale as Locale).id, input);
+    const { value, assumptions } = evaluateNode(
+      node,
+      assignment,
+      registry,
+      (locale as Locale).id,
+      input,
+      kindMeta,
+    );
     return {
       value,
       formatted: formatValue(value, registry, locale as Locale),
       kind: value.kind,
       confidence: assignment.confidence,
       spans: [node.span],
-      meta: { assumptions: [] },
+      meta: { assumptions },
     };
   }
 
@@ -168,7 +181,7 @@ export function createEngine(opts: EngineOptions): Engine {
       }
       const best = assignments.find((a) => a.kind === kind);
       if (best === undefined) throw new NoCandidateError(input, input, []);
-      return evaluateNode(node, best, registry, locale.id, input);
+      return evaluateNode(node, best, registry, locale.id, input).value;
     },
 
     explain(input, call) {
