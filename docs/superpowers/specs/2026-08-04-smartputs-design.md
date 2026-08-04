@@ -58,7 +58,9 @@ about them.
 | D4 | All kinds ship in v1 | Marginal cost per numeric kind is ~30 lines of table once the engine exists. |
 | D5 | Scored candidates with a strict/loose split | `10 m` is genuinely ambiguous; context (`10 m + 5 min`) must be able to resolve it. |
 | D6 | Sync core with injected `RateSnapshot`; separate async facade | Keystroke-rate parsing and deterministic tests require a pure sync core. |
-| D7 | Hand-authored parsing lexicons; runtime `Intl` for formatting and number grammar | `Intl` provides canonical display forms, not the input variants people type. |
+| D7 | Recognition via a per-locale analyzer pipeline over hand-authored lexemes; generation via `Intl.PluralRules` | `Intl` gives canonical display forms, not the inflected variants people type. Enumerating every inflected form is impossible for Slavic, Turkic or Finno-Ugric languages, so surface forms are normalized to lemmas before lookup. |
+| D11 | Kind vocabulary ships inside the package defining the kind, under `./locale/<id>` | Translations cannot drift from the kind they describe, and adding a kind adds its translations in the same release. |
+| D12 | Third-party translations are publishable `LocalePack`s | Extending a language must never require a pull request against this repo. |
 | D8 | Medium package split, drawn along dependency lines | Dependency-free ratio kinds stay in core; kinds that pull weight (datetime, money, color) get their own package. Splitting per-kind beyond that costs churn for no bundle win. |
 | D9 | Layered additive weights with softmax-normalized confidence | A plugin author must be able to outrank a built-in, and the integrator must be able to override the plugin. A single 0..1 `prior` allows neither. Addition keeps four independent layers composable without a precedence table. |
 | D10 | `@smartput/core` has one runtime dependency; datetime is a separate package | Temporal and chrono outweigh the engine. A consumer who wants units and money should not download a date parser. |
@@ -79,10 +81,14 @@ input string
   │
   1. Normalize      NFKC, case-fold, strip zero-width, unify − – — → -, ° optional
   │
-  2. Lex            locale-aware. NUMBER | WORD | SYMBOL | OP | KEYWORD | PAREN
-  │                 numbers read via locale numberFormat (1.000,50 vs 1,000.50)
+  2. Lex            locale segmenter (Intl.Segmenter, or custom for CJK/Thai) →
+  │                 NUMBER | WORD | SYMBOL | OP | KEYWORD | PAREN. Numbers read via
+  │                 locale numberFormat (1.000,50 vs 1,000.50) and `numerals`
   │
-  3. Candidates     each WORD/SYMBOL → Set<{kind, unit, weight}> from merged lexicons
+  2b. Analyze       each WORD → lemma candidates via the locale's analyzer chain
+  │                 "кілограмів" → [кілограмів(0), кілограм(-2)]           (§4.6)
+  │
+  3. Candidates     each analyzed form → Set<{kind, unit, weight}> from merged lexicons
   │                 "m" → [{length,m,.55}, {duration,min,.52}]   ← both kept
   │
   4. Parse          Pratt parser → AST. Nodes carry candidate SETS, not choices.
@@ -217,8 +223,8 @@ type UnitDef = {
   aliases?: string[];
 };
 
-// a Kind's own lexicon is the default (en) layer; Locale packs add to it
-type Lexicon = Record<string /* unit */, string[] /* aliases */>;
+// a Kind's own lexicon is the default (en) layer; locale packs add to it (§4.6)
+type Lexicon = Record<string /* unit */, UnitLexeme | string[] /* aliases shorthand */>;
 ```
 
 Plain numbers in `ratio` and `offset` are widened to `Decimal` at registration.
@@ -399,36 +405,159 @@ token "m" → duration:min
   raw               20    confidence 0.71
 ```
 
-### Locales
+### 4.6 Localization
 
-Data only, no logic:
+A flat list of alias strings is not a localization model. It works for English
+and fails for most of the world:
+
+| Language | Why string lists fail |
+| --- | --- |
+| Ukrainian, Polish, Russian | `кілограм / кілограма / кілограмів / кілограмам` — seven cases × two numbers. Enumerating every form for every unit is unmaintainable and still incomplete. |
+| German | compounds: `Kilogramm`, `Zentimeter`, and unit words fused into neighbours. |
+| Turkish, Finnish | agglutinative: suffixes stack, so the surface form set is effectively unbounded. |
+| Japanese, Chinese, Thai | no whitespace — token boundaries must be found before any lookup happens. |
+| Arabic, Hindi | non-ASCII digit systems (`٢٠`, `२०`) and different plural categories. |
+
+Two capabilities are therefore separated, because they are not inverses of each
+other: **recognition** is many-to-one (every inflected form must reach one
+lemma), while **generation** is one-to-one per plural category.
+
+#### Recognition: an analyzer pipeline
 
 ```ts
 export type Locale = {
-  id: string;                    // BCP-47
+  id: string;                                  // BCP-47
   numberFormat: "intl" | NumberFormatSpec;
-  lexicon: Record<KindId, Record<string /* unit */, string[] /* aliases */>>;
+
+  segment?: Segmenter;                         // default: Intl.Segmenter(id, {granularity:"word"})
+  analyze?: Analyzer[];                        // ordered chain, surface → lemma candidates
+  numerals?: NumeralParser;                    // "twenty", "двадцять", 二十, ٢٠
+
   keywords: Partial<Record<Keyword, string[]>>;   // in/to/as/plus/minus/of/ago/next…
   weights?: Weights;                              // locale conventions, see §4.5
 };
+
+type Analyzer = (surface: string, ctx: AnalyzeCtx) => AnalyzedForm[];
+type AnalyzedForm = { form: string; weight?: number; tags?: string[] };
 ```
 
+**Analyzers return several candidates, not one.** Morphological ambiguity is
+resolved by the machinery that already exists: each analyzed form enters the
+solver as a scored candidate (§4.5), with `weight` expressing the analyzer's own
+confidence. Stripping a suffix scores slightly below an exact surface match, so
+an unmodified word always wins over a guessed stem. No new concept, no new
+resolution rules.
+
 ```ts
-// @smartput/locale-uk
+// @smartput/core/locale/uk
 export default defineLocale({
   id: "uk",
   numberFormat: "intl",
-  lexicon: {
-    mass:  { kg: ["кг", "кіло", "кілограм", "кілограми"] },
-    color: { "#ff0000": ["червоний", "червона"] },
-  },
-  keywords: { in: ["в", "до"], plus: ["плюс"] },
+  analyze: [
+    identity(),                                 // exact surface always retained, weight 0
+    suffixStripper({                            // Ukrainian noun declension
+      suffixes: ["а","и","у","ю","ів","ам","ами","ах","ом","е"],
+      minStem: 3,
+      weight: -2,                               // ranks below an exact match
+    }),
+    tableAnalyzer({ "кіло": "кілограм" }),      // irregulars and colloquialisms
+  ],
+  numerals: slavicNumerals(),                   // "двадцять п'ять" → 25
+  keywords: { in: ["в","до","у"], plus: ["плюс"], minus: ["мінус"] },
 });
 ```
 
-`defineKind` and `defineLocale` are pure functions returning frozen descriptors.
-`createEngine({ kinds, locales, rates })` composes them. Engines with different
-locales coexist in one process.
+Shipped helpers so a locale author never starts from zero: `identity()`,
+`suffixStripper()` (covers most Indo-European inflection), `tableAnalyzer()`,
+`compoundSplitter()` (German), `casefold()` and NFKC, which are applied
+universally before any analyzer runs. Anything else is an ordinary function —
+the escape hatch is the type itself, so a locale needing a real finite-state
+morphology can call one.
+
+Analyzer output is memoized per `(locale, surface)` in a `Map`, so repeated
+keystroke parsing does not re-run the chain.
+
+#### Generation: `Intl.PluralRules`
+
+Plural forms are not hand-rolled. `Intl.PluralRules` is native, covers every CLDR
+locale, and already knows that Ukrainian has `one/few/many/other`, Arabic has six
+categories and Japanese has one.
+
+```ts
+type UnitLexeme = {
+  aliases: string[];                                       // recognition
+  symbol?: string;                                         // "кг" — default formatter
+  display?: Partial<Record<Intl.LDMLPluralRule, string>>;   // generation
+};
+
+// uk mass:kg
+{
+  aliases: ["кг", "кіло", "кілограм"],       // inflections handled by analyzers
+  symbol: "кг",
+  display: { one: "кілограм", few: "кілограми", many: "кілограмів", other: "кілограма" },
+}
+```
+
+`format()` calls `new Intl.PluralRules(locale).select(n)` and looks the category
+up. A locale that omits `display` falls back to `symbol`, which is correct for
+abbreviations in every language.
+
+#### Vocabulary lives with the kind, not with the locale
+
+There is no `@smartput/locale-en` package. Kind vocabulary ships inside the
+package that defines the kind, under a `./locale/<id>` subpath export:
+
+```
+@smartput/core/locale/uk       Ukrainian language mechanics + core kinds' vocabulary
+@smartput/color/locale/uk      Ukrainian colour names
+@smartput/datetime/locale/uk   Ukrainian month and weekday vocabulary
+```
+
+Language *mechanics* (segmentation, analyzers, numerals, keywords) are
+kind-independent and live in `@smartput/core/locale/<id>`. Kind *vocabulary* lives
+with its kind. A package that adds a kind adds its translations in the same
+release, and neither can drift from the other.
+
+#### Third-party translation packs
+
+A translation is a publishable package, never a pull request:
+
+```ts
+// smartput-locale-uk-crypto  (published by anyone)
+import { defineLocalePack } from "@smartput/core";
+
+export default defineLocalePack({
+  locale: "uk",
+  contributes: {
+    "crypto-ticker": {
+      btc: { aliases: ["біткоїн", "біткойн"], symbol: "BTC" },
+    },
+  },
+  analyze: [tableAnalyzer({ "битok": "біткоїн" })],   // optional: extend the chain
+});
+```
+
+```ts
+const engine = createEngine({
+  locales: [uk, en],
+  kinds: [cryptoTicker],
+  packs: [ukCrypto],
+});
+```
+
+Merge rules, chosen so a pack can never silently break a built-in:
+
+- `aliases` — union across packs. Collisions become competing candidates and are
+  resolved by weights, not by one pack overwriting another.
+- `display` and `symbol` — last pack wins, and the override is reported by
+  `explain()`.
+- `analyze` — appended to the locale's chain in pack registration order.
+- A pack naming an unregistered kind throws `UnknownKindError` at
+  `createEngine()`, never silently no-ops.
+
+`defineKind`, `defineLocale` and `defineLocalePack` are pure functions returning
+frozen descriptors. `createEngine({ kinds, locales, packs, rates })` composes
+them. Engines with different locales coexist in one process.
 
 ## 5. Packages
 
@@ -437,20 +566,26 @@ smartputs/                      Bun workspace, Biome, tsc for .d.ts only
 ├─ packages/
 │  ├─ core/          @smartput/core      registry, lexer, parser, solver, evaluator,
 │  │                                     ratio kinds, facade classes, errors
-│  ├─ locale-en/     @smartput/locale-en
-│  ├─ locale-uk/     @smartput/locale-uk
-│  ├─ datetime/      @smartput/datetime  datetime + duration kinds, chrono bridge
+│  │                 └ ./locale/{en,uk}     language mechanics + core kind vocabulary
+│  ├─ datetime/      @smartput/datetime  datetime kind, chrono bridge
+│  │                 └ ./locale/{en,uk}
 │  ├─ rates/         @smartput/rates     money kind, RateSnapshot, providers, async facade
+│  │                 └ ./locale/{en,uk}     currency names
 │  ├─ color/         @smartput/color     @urcolor adapter → color kind
+│  │                 └ ./locale/{en,uk}     colour names
 │  ├─ http/          @smartput/http      Hono on Bun, REST + OpenAPI
-│  └─ smartputs/     smartputs           meta: core + locale-en + datetime + rates
+│  └─ smartputs/     smartputs           meta: core + datetime + rates, en preloaded
 └─ docs/superpowers/specs/
 ```
+
+Every package that defines a kind ships that kind's translations beside it under
+`./locale/<id>`, so vocabulary can never drift from the kind it describes (§4.6).
+Locale subpaths are separate entry points and are only pulled in when imported.
 
 | Package | Runtime dependencies |
 | --- | --- |
 | `core` | `decimal.js` — and nothing else |
-| `locale-*` | none — data only; peer-dep on core for types |
+| `*/locale/*` | none — descriptors only, no dependency of their own |
 | `datetime` | `temporal-polyfill`, `chrono-node` |
 | `rates` | none in the interface; provider adapters use `fetch` only |
 | `color` | `@urcolor/core`, `@urcolor/i18n` (peer) |
@@ -470,10 +605,17 @@ evidence that the extension seam is real.
 
 ```ts
 import { createEngine } from "@smartput/core";
-import { datetime, duration } from "@smartput/datetime";
+import uk from "@smartput/core/locale/uk";
+import { datetime } from "@smartput/datetime";
+import ukDates from "@smartput/datetime/locale/uk";
 import { money } from "@smartput/rates";
+import ukMoney from "@smartput/rates/locale/uk";
 
-const engine = createEngine({ locales: [en], kinds: [datetime, duration, money] });
+const engine = createEngine({
+  locales: [uk],
+  kinds: [datetime, money],
+  packs: [ukDates, ukMoney],
+});
 ```
 
 ## 6. Public API
@@ -483,6 +625,7 @@ const engine = createEngine({ locales: [en], kinds: [datetime, duration, money] 
 export function createEngine(opts: EngineOptions): Engine;
 export function defineKind(k: Kind): Kind;
 export function defineLocale(l: Locale): Locale;
+export function defineLocalePack(p: LocalePack): LocalePack;
 
 export interface Engine {
   evaluate(input: string, opts?: EvalOptions): Result;           // strict, throws
@@ -494,6 +637,7 @@ export interface Engine {
 export type EngineOptions = {
   locales: Locale[];                     // first is primary, rest are fallbacks
   kinds?: Kind[];                        // appended to built-ins
+  packs?: LocalePack[];                  // vocabulary contributions, see §4.6
   rates?: RateSnapshot;
   now?: () => Temporal.ZonedDateTime;    // injectable clock
   timeZone?: string;
@@ -600,6 +744,7 @@ the offending token.
 | `MissingRateError` | FX pair absent from the snapshot | `from`, `to`, `asOf` |
 | `TooAmbiguousError` | assignment search exceeds `maxCandidates` | `count` |
 | `KindConflictError` | registration time: two kinds claim the same id or signature | both source ids |
+| `UnknownKindError` | registration time: a `LocalePack` contributes vocabulary for an unregistered kind | `pack`, `kind` |
 | `DivideByZeroError` | explicit; wraps the Decimal throw | — |
 
 `suggest()` never throws on parse problems; it returns `[]` and the failure is
@@ -670,11 +815,19 @@ Test-driven: a corpus row first, then the code that satisfies it.
    `evaluate()` still throws. Weights get their own matrix: all four layers
    (§4.5) sum, all matching selectors sum, and `tiebreak` produces the same
    ordering across repeated runs and shuffled registration order.
-4. **Plugin contract tests.** A shared `assertKindContract(kind)` suite exported
-   from `@smartput/core/testing`, run by every built-in kind and available to
-   third-party kinds. This is what proves the extension seam is genuinely
-   dogfooded.
-5. **Error snapshots.** Error messages are user-facing; they are asserted
+4. **Plugin contract tests.** Shared `assertKindContract(kind)` and
+   `assertLocaleContract(locale)` suites exported from `@smartput/core/testing`,
+   run by every built-in kind and locale and available to third parties. The
+   locale suite asserts what a language must satisfy to be usable at all: every
+   lexeme's inflected forms reach their lemma, every plural category named by
+   `Intl.PluralRules` for that locale has a `display` entry or a `symbol`
+   fallback, and the analyzer chain is idempotent on already-lemmatized input.
+   This is what proves the extension seam is genuinely dogfooded.
+5. **Morphology fixtures.** Per locale, a table of inflected surface forms mapped
+   to their expected lemma — `кілограмів → кілограм`, `Zentimeter → meter`,
+   `kilogramlarımızdan → kilogram`. These are the tests a translator writes; they
+   require no knowledge of the solver.
+6. **Error snapshots.** Error messages are user-facing; they are asserted
    verbatim.
 
 Every test uses a fixed clock
@@ -692,7 +845,7 @@ Each is independently shippable and gets its own implementation plan.
 | **M2** | Temperature (affine), Measure (dpi via `Value.meta`), angle, datasize, and speed/area/volume as explicit op signatures. Facade class generator. | The Kind contract under every numeric shape. |
 | **M3** | Money kind, `@smartput/rates`, ECB provider, `createLiveEngine`. | `30 usd - 10 eur`. The `ratio: (ctx)` escape hatch. |
 | **M4** | `@smartput/datetime`: datetime kind, chrono bridge, Temporal ops, timezones. `"today"`, `"next week monday"`. | Opaque kinds and cross-kind op signatures — and that a major kind can live outside core. |
-| **M5** | `@smartput/color` (@urcolor adapter), `@smartput/locale-uk`, `defineLocale` docs. | i18n and non-numeric kinds. `червоний` → Color. |
+| **M5** | `@smartput/color` (@urcolor adapter), Ukrainian locale across every package's `./locale/uk`, `defineLocalePack`, analyzer helpers, `assertLocaleContract`. | i18n and non-numeric kinds. `червоних кілограмів` reaches its lemma; `червоний` → Color; a third-party pack adds vocabulary without touching this repo. |
 | **M6** | `@smartput/http`, meta-package, docs site, npm release. | Ship. |
 
 M1 carries the only real invention risk. M2–M5 are largely descriptor tables once
@@ -726,6 +879,9 @@ mechanisms were considered and deliberately rejected:
 | `engine.with(patch)` | Call `createEngine` again | Composing frozen descriptors is already cheap. |
 | `unify` hook on Kind | `OpSignature` | Two mechanisms for one job. |
 | `StaleRatesError` / `maxRateAge` | `Result.meta.ratesAsOf` | The caller can compare a timestamp. |
+| A bundled morphological analyzer or FST engine | `suffixStripper` / `tableAnalyzer` helpers, and `Analyzer` being a plain function | Full morphology is a research project per language and would dwarf the engine. Suffix rules plus a lemma table cover unit and colour vocabulary, which is a closed set; anything harder can call a real analyzer through the same one-line interface. |
+| Hand-written plural rules | `Intl.PluralRules` | Native, complete for every CLDR locale, zero shipped data. |
+| Per-language locale packages | `./locale/<id>` subpaths on each kind's package | Vocabulary belongs with the kind that defines it; a central locale package makes every new kind a cross-package change. |
 
 Two consequences worth stating as targets rather than hopes:
 
