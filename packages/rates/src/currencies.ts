@@ -3,6 +3,21 @@ export interface CurrencyDef {
   minorUnits: number;
   symbol: string;
   aliases: string[];
+  /**
+   * Plural forms, the same shape every core kind's lexicon carries. Money
+   * renders through its own format hook, so these are not what `$30.00` is
+   * made of — they are what `complete()` inserts ("30 dollars") and what the
+   * facade's parser accepts back.
+   */
+  display: Partial<Record<Intl.LDMLPluralRule, string>>;
+  /**
+   * The magnitude band people actually type this currency in, read by
+   * completion's `scaleFit`. Without it every currency ties at zero and
+   * `complete("30 u")` ranks `uah` above `usd` on alphabetical order alone.
+   * Bands are per currency because the unit of account is: 30 of something is
+   * an ordinary dollar amount and an implausibly small yen one.
+   */
+  typical: [number, number];
 }
 
 /**
@@ -11,16 +26,88 @@ export interface CurrencyDef {
  * only ever raise MissingRateError, so listing it would promise nothing.
  */
 export const CURRENCIES: Record<string, CurrencyDef> = {
-  eur: { minorUnits: 2, symbol: "€", aliases: ["eur", "euro", "euros"] },
-  usd: { minorUnits: 2, symbol: "$", aliases: ["usd", "dollar", "dollars"] },
-  gbp: { minorUnits: 2, symbol: "£", aliases: ["gbp", "pound", "pounds"] },
-  jpy: { minorUnits: 0, symbol: "¥", aliases: ["jpy", "yen"] },
-  chf: { minorUnits: 2, symbol: "CHF", aliases: ["chf", "franc", "francs"] },
-  pln: { minorUnits: 2, symbol: "zł", aliases: ["pln", "zloty"] },
-  uah: { minorUnits: 2, symbol: "₴", aliases: ["uah", "hryvnia"] },
-  cad: { minorUnits: 2, symbol: "CA$", aliases: ["cad"] },
-  aud: { minorUnits: 2, symbol: "A$", aliases: ["aud"] },
-  sek: { minorUnits: 2, symbol: "kr", aliases: ["sek"] },
-  nok: { minorUnits: 2, symbol: "NOK", aliases: ["nok"] },
-  czk: { minorUnits: 2, symbol: "Kč", aliases: ["czk"] },
+  eur: {
+    minorUnits: 2,
+    symbol: "€",
+    aliases: ["eur", "euro", "euros"],
+    display: { one: "euro", other: "euros" },
+    typical: [1, 10000],
+  },
+  usd: {
+    minorUnits: 2,
+    symbol: "$",
+    aliases: ["usd", "dollar", "dollars"],
+    display: { one: "dollar", other: "dollars" },
+    typical: [1, 10000],
+  },
+  gbp: {
+    minorUnits: 2,
+    symbol: "£",
+    aliases: ["gbp", "pound", "pounds"],
+    display: { one: "pound", other: "pounds" },
+    typical: [1, 10000],
+  },
+  jpy: {
+    minorUnits: 0,
+    symbol: "¥",
+    aliases: ["jpy", "yen"],
+    display: { one: "yen", other: "yen" },
+    typical: [100, 1000000],
+  },
+  chf: {
+    minorUnits: 2,
+    symbol: "CHF",
+    aliases: ["chf", "franc", "francs"],
+    display: { one: "franc", other: "francs" },
+    typical: [1, 10000],
+  },
+  pln: {
+    minorUnits: 2,
+    symbol: "zł",
+    aliases: ["pln", "zloty"],
+    display: { one: "zloty", other: "zlotys" },
+    typical: [5, 50000],
+  },
+  uah: {
+    minorUnits: 2,
+    symbol: "₴",
+    aliases: ["uah", "hryvnia"],
+    display: { one: "hryvnia", other: "hryvnias" },
+    typical: [50, 500000],
+  },
+  cad: {
+    minorUnits: 2,
+    symbol: "CA$",
+    aliases: ["cad"],
+    display: { one: "Canadian dollar", other: "Canadian dollars" },
+    typical: [1, 10000],
+  },
+  aud: {
+    minorUnits: 2,
+    symbol: "A$",
+    aliases: ["aud"],
+    display: { one: "Australian dollar", other: "Australian dollars" },
+    typical: [1, 10000],
+  },
+  sek: {
+    minorUnits: 2,
+    symbol: "kr",
+    aliases: ["sek"],
+    display: { one: "krona", other: "kronor" },
+    typical: [10, 100000],
+  },
+  nok: {
+    minorUnits: 2,
+    symbol: "NOK",
+    aliases: ["nok"],
+    display: { one: "krone", other: "kroner" },
+    typical: [10, 100000],
+  },
+  czk: {
+    minorUnits: 2,
+    symbol: "Kč",
+    aliases: ["czk"],
+    display: { one: "koruna", other: "korunas" },
+    typical: [20, 200000],
+  },
 };

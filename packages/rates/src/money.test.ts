@@ -154,6 +154,26 @@ test("a money facade converts, using the same rates the engine does", () => {
   expect(converted.toString()).toBe(fromEngine.toString());
 });
 
+test("completion ranks a currency by the magnitude typed", () => {
+  // Every currency carried `aliases` + `symbol` only, so all of them tied at 0
+  // on scaleFit and "30 u" ranked `uah` first on alphabetical order alone.
+  // 30 is an ordinary dollar amount and an implausible hryvnia one.
+  const suggestions = engine.complete("30 u");
+  expect(suggestions[0]?.unit).toBe("usd");
+  expect(suggestions.map((s) => s.unit)).toContain("uah");
+  // ...and the bands are per currency rather than a blanket "usd first": at
+  // 50,000 the dollar band is the one that no longer fits, so the order flips
+  // on the band and not on the alphabetical tie-break.
+  const large = engine.complete("50000 u");
+  expect(large[0]?.unit).toBe("uah");
+  expect(large[0]?.score).toBeGreaterThan(large[1]?.score ?? 0);
+});
+
+test("completion inserts a currency's display form, not its ISO code", () => {
+  expect(engine.complete("30 u")[0]?.text).toBe("30 dollars");
+  expect(engine.complete("1 doll")[0]?.text).toBe("1 dollar");
+});
+
 test("a money facade has no dpi surface", () => {
   // The facade used to decide "this kind is dpi-aware" by finding the first
   // unit with a function ratio — true of `measure`'s px, and of all eleven

@@ -65,7 +65,15 @@ const units: Record<string, UnitDef | number> = { [CANONICAL]: 1 };
 const lexicon: Lexicon = {};
 for (const [code, def] of Object.entries(CURRENCIES)) {
   if (code !== CANONICAL) units[code] = rateRatio(code);
-  lexicon[code] = { aliases: def.aliases, symbol: def.symbol };
+  // The full lexeme shape core's own kinds carry (mass.ts is the reference):
+  // aliases and symbol alone leave `display` — what completion inserts — and
+  // `typical` — what its scaleFit scores — empty for every currency.
+  lexicon[code] = {
+    aliases: def.aliases,
+    symbol: def.symbol,
+    display: def.display,
+    typical: def.typical,
+  };
 }
 
 /**
