@@ -118,6 +118,12 @@ export interface FormatOptions {
   readonly rounding?: Decimal.Rounding;
   /** FX rates, threaded through so a money value can format back into its authored currency. */
   readonly rates?: RateLookup;
+  /**
+   * Pad the fraction to at least this many digits. A Decimal has no notion of
+   * a trailing zero, so significant-digit formatting alone cannot express a
+   * fixed scale: money needs "30.00", not "30".
+   */
+  readonly minFractionDigits?: number;
 }
 
 export interface FormatCtx extends FormatOptions {

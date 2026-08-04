@@ -45,8 +45,21 @@ export function formatNumber(
   const body = negative ? text.slice(1) : text;
   const [intPart = "0", fracPart] = body.split(".");
 
+  // A Decimal has no notion of a trailing zero — `shown` above already lost
+  // any "30.00" down to "30" — so a fixed scale (money's minor units) has to
+  // be restored here, as padding on the digit string, using the same
+  // `decimal` symbol the grouping below uses. `padEnd` never truncates, so a
+  // fraction already longer than requested is left alone.
+  const paddedFrac =
+    opts.minFractionDigits === undefined
+      ? fracPart
+      : (fracPart ?? "").padEnd(opts.minFractionDigits, "0");
+
   const grouped = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, group);
-  const joined = fracPart === undefined ? grouped : `${grouped}${decimal}${fracPart}`;
+  const joined =
+    paddedFrac === undefined || paddedFrac === ""
+      ? grouped
+      : `${grouped}${decimal}${paddedFrac}`;
   return negative ? `-${joined}` : joined;
 }
 

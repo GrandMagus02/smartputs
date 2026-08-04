@@ -158,3 +158,31 @@ test("grouping still applies after rounding", () => {
     "1,234,567.9",
   );
 });
+
+test("minFractionDigits pads a value with no fraction at all", () => {
+  // A Decimal has no notion of a trailing zero — 30 and 30.00 are the same
+  // Decimal — so this is the one lever that can produce "30.00" from it.
+  expect(formatNumber(new Decimal("30"), en, { minFractionDigits: 2 })).toBe("30.00");
+});
+
+test("minFractionDigits pads a fraction shorter than requested", () => {
+  expect(formatNumber(new Decimal("1.5"), en, { minFractionDigits: 2 })).toBe("1.50");
+});
+
+test("minFractionDigits leaves a longer fraction alone", () => {
+  expect(formatNumber(new Decimal("1.234"), en, { minFractionDigits: 2 })).toBe("1.234");
+});
+
+test("minFractionDigits pads a negative value without moving the sign", () => {
+  expect(formatNumber(new Decimal("-30"), en, { minFractionDigits: 2 })).toBe("-30.00");
+});
+
+test("minFractionDigits pads after grouping, not instead of it", () => {
+  expect(formatNumber(new Decimal("1234"), en, { minFractionDigits: 2 })).toBe(
+    "1,234.00",
+  );
+});
+
+test("minFractionDigits of 0 adds no separator", () => {
+  expect(formatNumber(new Decimal("5000"), en, { minFractionDigits: 0 })).toBe("5,000");
+});

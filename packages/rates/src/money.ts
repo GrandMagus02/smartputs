@@ -1,7 +1,6 @@
 import {
   Decimal,
   defineKind,
-  type FormatCtx,
   type Kind,
   type Lexicon,
   MissingRateError,
@@ -38,18 +37,6 @@ const lexicon: Lexicon = {};
 for (const [code, def] of Object.entries(CURRENCIES)) {
   if (code !== CANONICAL) units[code] = rateRatio(code);
   lexicon[code] = { aliases: def.aliases, symbol: def.symbol };
-}
-
-/**
- * The locale's own decimal separator, asked of `formatNumber` rather than
- * hardcoded — a per-kind hook that assumed "." is exactly what M2 rejected.
- * "1.5" is a probe value guaranteed to survive `formatNumber`'s significant-
- * digit rounding (its fractional digit is non-zero, so it is never dropped as
- * a Decimal is reconstructed), so the character between its two digits is
- * whatever this locale uses to separate them.
- */
-function decimalSeparator(ctx: FormatCtx): string {
-  return ctx.formatNumber(new Decimal("1.5")).slice(1, -1);
 }
 
 /**
@@ -98,26 +85,15 @@ export const money: Kind = defineKind({
     const def = CURRENCIES[value.unit];
     const minorUnits = def?.minorUnits ?? 2;
     const rounding = ctx.rounding ?? Decimal.ROUND_HALF_EVEN;
-    // ctx.authored is already in this currency; the only job left is to round
-    // to its minor units and render through the locale-aware formatter.
-    //
-    // `toFixed(minorUnits, …)`, not `formatNumber`'s `precision` option, is
-    // what supplies the padded fractional digits: a Decimal has no notion of
-    // a "trailing zero" once constructed (`new Decimal("30.00")` is just 30),
-    // so routing a rounded-to-zero-cents amount back through formatNumber's
-    // significant-digit machinery silently loses the ".00" — $30.00 comes
-    // back as "$30". Only the integer part is safe to reconstruct as a
-    // Decimal and hand to formatNumber, for its locale-aware grouping; the
-    // fractional digits are taken verbatim from the fixed-point string.
-    const fixed = ctx.authored.toFixed(minorUnits, rounding);
-    const negative = fixed.startsWith("-");
-    const body = negative ? fixed.slice(1) : fixed;
-    const dot = body.indexOf(".");
-    const intPart = dot === -1 ? body : body.slice(0, dot);
-    const fracPart = dot === -1 ? "" : body.slice(dot + 1);
-    const groupedInt = ctx.formatNumber(new Decimal(intPart), { precision: 34 });
-    const sep = fracPart === "" ? "" : decimalSeparator(ctx);
+    // Two steps, each doing a job the other can't: `toFixed(minorUnits, …)`
+    // applies the rounding mode at the minor-unit scale (cents, not guard
+    // digits), but a Decimal has no notion of a trailing zero, so
+    // `new Decimal("30.00")` is just 30 again — the ".00" is gone the moment
+    // it's reconstructed. `minFractionDigits` on the formatNumber call below
+    // is what restores it, padding back up to the minor-unit scale, using the
+    // locale's own decimal symbol rather than a hand-rolled one.
+    const rounded = new Decimal(ctx.authored.toFixed(minorUnits, rounding));
     const symbol = def?.symbol ?? value.unit.toUpperCase();
-    return `${symbol}${negative ? "-" : ""}${groupedInt}${sep}${fracPart}`;
+    return `${symbol}${ctx.formatNumber(rounded, { precision: 34, minFractionDigits: minorUnits })}`;
   },
 });
