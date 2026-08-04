@@ -1,5 +1,6 @@
 import { expect, test } from "bun:test";
 import { KindConflictError, UnknownKindError } from "../errors";
+import { defineLocalePack } from "../locale/define";
 import { defineKind } from "./define";
 import { buildRegistry, opKey } from "./registry";
 
@@ -45,16 +46,7 @@ test("the alias index is case-folded", () => {
   expect(r.aliasIndex.has("KG")).toBe(false);
 });
 
-// Un-skipped in Task 5 once ../locale/define exists.
-// The body dynamic-imports "../locale/define" instead of a static top-level
-// import: a static import is evaluated eagerly by Bun even when the test
-// that uses it is skipped, which would crash module load before any test
-// runs. A dynamic import inside the (never-invoked) skipped callback is
-// never evaluated at runtime, and @ts-expect-error suppresses the expected
-// "cannot find module" diagnostic until Task 5 creates the file.
-test.skip("a locale pack unions aliases into the index", async () => {
-  // @ts-expect-error Cannot find module '../locale/define' — that file arrives in Task 5.
-  const { defineLocalePack } = await import("../locale/define");
+test("a locale pack unions aliases into the index", () => {
   const pack = defineLocalePack({
     locale: "uk",
     contributes: { mass: { kg: { aliases: ["кг", "кілограм"] } } },
@@ -64,10 +56,7 @@ test.skip("a locale pack unions aliases into the index", async () => {
   expect(r.aliasIndex.get("kg")).toEqual([{ kind: "mass", unit: "kg" }]);
 });
 
-// Un-skipped in Task 5 once ../locale/define exists.
-test.skip("a pack for another locale is ignored", async () => {
-  // @ts-expect-error Cannot find module '../locale/define' — that file arrives in Task 5.
-  const { defineLocalePack } = await import("../locale/define");
+test("a pack for another locale is ignored", () => {
   const pack = defineLocalePack({
     locale: "uk",
     contributes: { mass: { kg: { aliases: ["кг"] } } },
@@ -76,10 +65,7 @@ test.skip("a pack for another locale is ignored", async () => {
   expect(r.aliasIndex.has("кг")).toBe(false);
 });
 
-// Un-skipped in Task 5 once ../locale/define exists.
-test.skip("a pack naming an unregistered kind throws at build time", async () => {
-  // @ts-expect-error Cannot find module '../locale/define' — that file arrives in Task 5.
-  const { defineLocalePack } = await import("../locale/define");
+test("a pack naming an unregistered kind throws at build time", () => {
   const pack = defineLocalePack({
     locale: "en",
     contributes: { nosuchkind: { x: ["x"] } },
@@ -121,10 +107,7 @@ test("a patch whose value.mode differs from its base throws", () => {
   expect(() => buildRegistry([number, mass, opaquePatch])).toThrow(KindConflictError);
 });
 
-// Un-skipped in Task 5 once ../locale/define exists.
-test.skip("a pack naming an unregistered unit throws", async () => {
-  // @ts-expect-error Cannot find module '../locale/define' — that file arrives in Task 5.
-  const { defineLocalePack } = await import("../locale/define");
+test("a pack naming an unregistered unit throws", () => {
   const pack = defineLocalePack({
     locale: "en",
     contributes: { mass: { nosuchunit: ["x"] } },
