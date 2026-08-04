@@ -180,7 +180,7 @@ test("explain lists the analyzer's own weight", () => {
 
 test("conversion keywords match regardless of case", () => {
   const expected = engine.evaluate("2 km in m").formatted;
-  expect(expected).toBe("2,000m");
+  expect(expected).toBe("2,000 metres");
   for (const input of ["2 km IN m", "2 km In m", "2 KM in M", "2 KM IN M"]) {
     expect(engine.evaluate(input).formatted).toBe(expected);
   }
@@ -233,4 +233,25 @@ test("engines with different locales coexist", () => {
   });
   expect(() => a.evaluate("10 m")).toThrow(AmbiguityError);
   expect(b.evaluate("10 m").kind).toBe("length");
+});
+
+test("engine.complete completes a partial unit", () => {
+  const rows = engine.complete("30 ho");
+  expect(rows[0]?.text).toBe("30 hours");
+  expect(rows[0]?.kind).toBe("duration");
+});
+
+test("engine.complete honours engine-level weights", () => {
+  const biased = createEngine({
+    locales: [en],
+    kinds: BUILTIN_KINDS,
+    weights: { duration: 20 },
+  });
+  expect(biased.complete("1 mi")[0]?.kind).toBe("duration");
+});
+
+test("engine.complete never throws on half-typed input", () => {
+  for (const input of ["", " ", "10 kg +", "(((", "10 zzz", "30"]) {
+    expect(Array.isArray(engine.complete(input))).toBe(true);
+  }
 });

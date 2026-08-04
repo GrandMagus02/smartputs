@@ -31,11 +31,41 @@ export const measure = defineKind({
     },
   },
   lexicon: {
-    inch: { aliases: ["inch"], symbol: "inch" },
-    mm: { aliases: ["mm", "millimetre", "millimeter"], symbol: "mm" },
-    cm: { aliases: ["cm", "centimetre", "centimeter"], symbol: "cm" },
-    pt: { aliases: ["pt", "point"], symbol: "pt" },
-    pc: { aliases: ["pc", "pica"], symbol: "pc" },
-    px: { aliases: ["px", "pixel"], symbol: "px" },
+    inch: {
+      aliases: ["inch"],
+      symbol: "inch",
+      display: { one: "inch", other: "inches" },
+      typical: [1, 120],
+    },
+    mm: {
+      aliases: ["mm", "millimetre", "millimeter"],
+      symbol: "mm",
+      display: { one: "millimetre", other: "millimetres" },
+      typical: [1, 1000],
+    },
+    cm: {
+      aliases: ["cm", "centimetre", "centimeter"],
+      symbol: "cm",
+      display: { one: "centimetre", other: "centimetres" },
+      typical: [1, 300],
+    },
+    pt: {
+      aliases: ["pt", "point"],
+      symbol: "pt",
+      display: { one: "point", other: "points" },
+      typical: [1, 1000],
+    },
+    pc: {
+      aliases: ["pc", "pica"],
+      symbol: "pc",
+      display: { one: "pica", other: "picas" },
+      typical: [1, 100],
+    },
+    px: {
+      aliases: ["px", "pixel"],
+      symbol: "px",
+      display: { one: "pixel", other: "pixels" },
+      typical: [1, 4000],
+    },
   },
 });

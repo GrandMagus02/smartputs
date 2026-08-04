@@ -1,3 +1,6 @@
+export type { CompleteOptions, Completion } from "./complete/complete";
+export { complete } from "./complete/complete";
+export { EXACT_BONUS, LENGTH_PENALTY, SCALE_BONUS } from "./complete/score";
 export { Decimal } from "./decimal";
 export type { Engine, EngineOptions, EvalOptions, Explanation, Result } from "./engine";
 export { createEngine } from "./engine";

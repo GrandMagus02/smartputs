@@ -57,8 +57,8 @@ unparseable input is an empty array, and the failure is visible through
 
 ```ts
 engine.suggest("10 m");
-// [ { kind: "duration", formatted: "10min", confidence: 0.5 },
-//   { kind: "length",   formatted: "10m",   confidence: 0.5 } ]
+// [ { kind: "duration", formatted: "10 minutes", confidence: 0.5 },
+//   { kind: "length",   formatted: "10 metres",  confidence: 0.5 } ]
 
 engine.suggest("nonsense"); // []
 ```

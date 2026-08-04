@@ -77,18 +77,18 @@ report.
 
 | input | kind | canonical | formatted |
 | --- | --- | --- | --- |
-| `10 km` | length | 10000 | `10km` |
+| `10 km` | length | 10000 | `10 kilometres` |
 | `1 kg + 500 g` | mass | 1500 | `1.5 kilograms` |
-| `30 h - 30 min` | duration | 106200 | `29.5h` |
-| `10 m + 5 h` | duration | 18600 | `310min` |
-| `10 m + 5 km` | length | 5010 | `5,010m` |
-| `2 km in m` | length | 2000 | `2,000m` |
-| `10 km * 3` | length | 30000 | `30km` |
+| `30 h - 30 min` | duration | 106200 | `29.5 hours` |
+| `10 m + 5 h` | duration | 18600 | `310 minutes` |
+| `10 m + 5 km` | length | 5010 | `5,010 metres` |
+| `2 km in m` | length | 2000 | `2,000 metres` |
+| `10 km * 3` | length | 30000 | `30 kilometres` |
 | `(1 + 2) * 3` | number | 9 | `9` |
-| `-5 km` | length | -5000 | `-5km` |
-| `1,500 g` | mass | 1500 | `1,500g` |
-| `12 inch` | length | 0.3048 | `12in` |
-| `3 lbs` | mass | 1360.77711 | `3lb` |
-| `2 wk` | duration | 1209600 | `2wk` |
+| `-5 km` | length | -5000 | `-5 kilometres` |
+| `1,500 g` | mass | 1500 | `1,500 grams` |
+| `12 inch` | length | 0.3048 | `12 inches` |
+| `3 lbs` | mass | 1360.77711 | `3 pounds` |
+| `2 wk` | duration | 1209600 | `2 weeks` |
 | `1.5 kilograms` | mass | 1500 | `1.5 kilograms` |
-| `1234567890123456789.0625 km` | length | 1234567890123456789062.5 | `1,234,567,890,123,456,789.0625km` |
+| `1234567890123456789.0625 km` | length | 1234567890123456789062.5 | `1,234,567,890,123,456,789.0625 kilometres` |

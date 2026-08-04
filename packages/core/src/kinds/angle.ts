@@ -19,9 +19,31 @@ export const angle = defineKind({
     },
   },
   lexicon: {
-    rad: { aliases: ["rad", "radian"], symbol: "rad" },
-    deg: { aliases: ["deg", "degree"], symbol: "deg" },
-    grad: { aliases: ["grad", "gradian", "gon"], symbol: "grad" },
-    turn: { aliases: ["turn", "rev", "revolution"], symbol: "turn" },
+    rad: {
+      aliases: ["rad", "radian"],
+      symbol: "rad",
+      display: { one: "radian", other: "radians" },
+      // A full circle is 2pi, and nobody writes an angle in radians much past
+      // one revolution.
+      typical: [0.1, 7],
+    },
+    deg: {
+      aliases: ["deg", "degree"],
+      symbol: "deg",
+      display: { one: "degree", other: "degrees" },
+      typical: [1, 360],
+    },
+    grad: {
+      aliases: ["grad", "gradian", "gon"],
+      symbol: "grad",
+      display: { one: "gradian", other: "gradians" },
+      typical: [1, 400],
+    },
+    turn: {
+      aliases: ["turn", "rev", "revolution"],
+      symbol: "turn",
+      display: { one: "turn", other: "turns" },
+      typical: [0.1, 10],
+    },
   },
 });

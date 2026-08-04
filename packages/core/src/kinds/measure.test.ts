@@ -12,7 +12,7 @@ const at = (dpi?: number) =>
   });
 
 test("pixels default to 96dpi", () => {
-  expect(at().evaluate("96 px in inch").formatted).toBe("1inch");
+  expect(at().evaluate("96 px in inch").formatted).toBe("1 inch");
 });
 
 test("the engine's kindMeta overrides the default dpi", () => {
@@ -27,8 +27,10 @@ test("A4 width in points", () => {
   // conversion never terminates in decimal. formatValue renders the exact
   // authored value, not a display-rounded one (see angle.test.ts for the
   // same phenomenon with pi-based ratios) — so this is 28 significant
-  // digits, not "595.276pt".
-  expect(at().evaluate("210 mm in pt").formatted).toBe("595.2755905511811023622047243pt");
+  // digits, not "595.276 points".
+  expect(at().evaluate("210 mm in pt").formatted).toBe(
+    "595.2755905511811023622047243 points",
+  );
 });
 
 test("physical units are unaffected by dpi", () => {
@@ -40,7 +42,7 @@ test("physical units are unaffected by dpi", () => {
   // measure's own inch/mm ratio rather than erroring or silently falling
   // through to `length`.
   expect(at(300).evaluate("1 inch in mm", { kinds: ["measure"] }).formatted).toBe(
-    "25.4mm",
+    "25.4 millimetres",
   );
 });
 

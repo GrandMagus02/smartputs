@@ -30,7 +30,17 @@ export const percent = defineKind({
   // only unit, even though the internal Value.canonical storage is the plain
   // 0-1 ratio described above.
   value: { mode: "ratio", canonical: "%", units: { "%": 0.01 } },
-  lexicon: { "%": { aliases: ["%", "percent", "pct"], symbol: "%" } },
+  // No `display`: the written form of this unit is the symbol. "20 percent"
+  // does parse, but rendering it that way would make every percentage in every
+  // result read as a word, and completion falling back to the bare alias "%"
+  // is already the form a user wants to type.
+  lexicon: {
+    "%": {
+      aliases: ["%", "percent", "pct"],
+      symbol: "%",
+      typical: [1, 100],
+    },
+  },
   ops: [
     {
       op: "of",

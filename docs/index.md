@@ -90,7 +90,7 @@ import en from "@smartput/core/locale/en";
 const engine = createEngine({ locales: [en], kinds: BUILTIN_KINDS });
 
 engine.evaluate("1 kg + 500 g").formatted; // "1.5 kilograms"
-engine.evaluate("10 m + 5 h").formatted; // "310min"
+engine.evaluate("10 m + 5 h").formatted; // "310 minutes"
 engine.suggest("10 m"); // both readings, ranked
 ```
 

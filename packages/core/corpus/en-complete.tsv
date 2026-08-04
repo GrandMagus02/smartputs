@@ -1,0 +1,56 @@
+# input	kind	unit	text
+30 ho	duration	h	30 hours
+1 ho	duration	h	1 hour
+0.5 ho	duration	h	0.5 hours
+45 sec	duration	s	45 seconds
+90 minu	duration	min	90 minutes
+250 millis	duration	ms	250 milliseconds
+2 wee	duration	wk	2 weeks
+3 da	duration	d	3 days
+10 mil	length	mi	10 miles
+1 mi	length	mi	1 mile
+600 mi	length	mi	600 miles
+12 inc	length	in	12 inches
+1 inc	length	in	1 inch
+6 fo	length	ft	6 feet
+1 fo	length	ft	1 foot
+10 kilom	length	km	10 kilometres
+250 millim	length	mm	250 millimetres
+50 centi	length	cm	50 centimetres
+12 yar	length	yd	12 yards
+5 kilog	mass	kg	5 kilograms
+1 kilog	mass	kg	1 kilogram
+3 poun	mass	lb	3 pounds
+2 ton	mass	t	2 tonnes
+3 oun	mass	oz	3 ounces
+250 milligr	mass	mg	250 milligrams
+1,500 gram	mass	g	1,500 grams
+512 by	datasize	b	512 bytes
+2 kilob	datasize	kb	2 kilobytes
+5 megab	datasize	mb	5 megabytes
+1 gigab	datasize	gb	1 gigabyte
+3 terab	datasize	tb	3 terabytes
+2 kib	datasize	kib	2 kibibytes
+4 mebib	datasize	mib	4 mebibytes
+90 deg	angle	deg	90 degrees
+1 rad	angle	rad	1 radian
+2 turn	angle	turn	2 turns
+100 grad	angle	grad	100 gradians
+5 lit	volume	l	5 litres
+500 millil	volume	ml	500 millilitres
+2 gal	volume	gal	2 gallons
+1 pin	volume	pint	1 pint
+3 hect	area	hectare	3 hectares
+2 acr	area	acre	2 acres
+10 kno	speed	knot	10 knots
+# temperature declares no display forms on purpose -- see kinds/temperature.ts --
+# so completion falls back to the alias, which is already what a user types.
+20 cel	temperature	c	20 celsius
+300 kel	temperature	k	300 kelvin
+# An expression completes only its trailing token. The count that drives
+# pluralization is the one next to the fragment, not the one at the front.
+10 kg + 5 gram	mass	g	10 kg + 5 grams
+10 mm + 5 centi	length	cm	10 mm + 5 centimetres
+# No leading count at all: the fragment follows a keyword, so the count scan
+# finds nothing and select(1) renders the singular. "2 km in mile" evaluates.
+2 km in mil	length	mi	2 km in mile

@@ -82,8 +82,8 @@ engine.evaluate("10 m");
 // AmbiguityError: "10 m" is ambiguous between duration:min, length:m
 
 engine.suggest("10 m");
-// [ { kind: "duration", formatted: "10min", confidence: 0.5 },
-//   { kind: "length",   formatted: "10m",   confidence: 0.5 } ]
+// [ { kind: "duration", formatted: "10 minutes", confidence: 0.5 },
+//   { kind: "length",   formatted: "10 metres",  confidence: 0.5 } ]
 
 engine.coerce("mass", "1 kg");
 // { kind: "mass", canonical: Decimal(1000), unit: "kg" }
@@ -103,7 +103,7 @@ const engine = createEngine({
   weights: { "duration:min": -20 }, // "m" never means minutes here
 });
 
-engine.evaluate("10 m").formatted; // "10m"
+engine.evaluate("10 m").formatted; // "10 metres"
 ```
 
 <SpWeights />

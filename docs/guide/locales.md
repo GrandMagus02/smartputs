@@ -120,9 +120,12 @@ interface UnitLexeme {
 ```
 
 `format()` calls `new Intl.PluralRules(locale).select(n)` and looks the category
-up. A locale that omits `display` falls back to `symbol`, which is correct for
-abbreviations in every language — which is why `2 km in m` formats as `2,000m`
-while `1 kg + 500 g` formats as `1.5 kilograms`.
+up. A lexeme that omits `display` falls back to `symbol`, which is correct for
+abbreviations in every language — which is why `212 F in C` formats as `100°C`
+while `1 kg + 500 g` formats as `1.5 kilograms`. Every built-in unit whose
+written-out form parses back declares `display`, so `2 km in m` formats as
+`2,000 metres`; the ones that do not — `m²`, `m/s`, `°C` — keep their symbol,
+because a display form the parser rejects is a dead end for completion.
 
 ## Number grammar
 

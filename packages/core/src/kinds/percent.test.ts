@@ -20,7 +20,7 @@ test("percent of a number", () => {
 test("percent of a quantity keeps the quantity's kind and unit", () => {
   const r = engine.evaluate("10% of 2 km");
   expect(r.kind).toBe("length");
-  expect(r.formatted).toBe("0.2km");
+  expect(r.formatted).toBe("0.2 kilometres");
 });
 
 test("adding a percentage is relative to the left operand", () => {

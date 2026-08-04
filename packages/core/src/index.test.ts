@@ -74,5 +74,5 @@ test("measure is usable via createEngine using only package-root imports", () =>
   // unreachable without a named export, because measure cannot be opted into
   // through BUILTIN_KINDS.
   const engine = createEngine({ locales: [en], kinds: [...BUILTIN_KINDS, measure] });
-  expect(engine.evaluate("96 px in inch").formatted).toBe("1inch");
+  expect(engine.evaluate("96 px in inch").formatted).toBe("1 inch");
 });

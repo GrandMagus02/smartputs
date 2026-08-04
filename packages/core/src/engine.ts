@@ -1,3 +1,4 @@
+import { type CompleteOptions, type Completion, complete } from "./complete/complete";
 import {
   AmbiguityError,
   NoCandidateError,
@@ -72,6 +73,7 @@ export interface Engine {
   suggest(input: string, opts?: EvalOptions): Result[];
   coerce(kind: KindId, input: string, opts?: EvalOptions): Value;
   explain(input: string, opts?: EvalOptions): Explanation;
+  complete(input: string, opts?: CompleteOptions): Completion[];
 }
 
 export function createEngine(opts: EngineOptions): Engine {
@@ -229,6 +231,16 @@ export function createEngine(opts: EngineOptions): Engine {
           };
         }),
       };
+    },
+
+    complete(input, call) {
+      return complete({
+        registry,
+        locale: locale as Locale,
+        layers: layersFor(call?.weights),
+        input,
+        ...(call ? { opts: call } : {}),
+      });
     },
   };
 }

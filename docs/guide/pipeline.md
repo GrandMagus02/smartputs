@@ -141,5 +141,6 @@ it — correct for abbreviations in every language.
 
 ```
 1 kg + 500 g  →  "1.5 kilograms"    // mass:kg declares display forms
-2 km in m     →  "2,000m"           // length:m declares only a symbol
+2 km in m     →  "2,000 metres"     // length:m declares display forms
+3 m * 4 m     →  "12m²"             // area:m2 declares only a symbol
 ```
