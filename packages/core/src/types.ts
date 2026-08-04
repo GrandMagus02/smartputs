@@ -2,7 +2,13 @@ import type { Decimal } from "./decimal";
 
 export type KindId = string;
 export type OpSymbol = "+" | "-" | "*" | "/" | "in" | "of";
-export type Keyword = "in" | "to" | "as" | "plus" | "minus" | "of";
+/**
+ * The keys of `Locale.keywords`, not the surface words. A locale lists every
+ * word that means conversion under `in` (English: "in", "to", "as"), and
+ * `keywordFor` returns the key — so "to" and "as" are values, never keys, and
+ * a `Keyword` of "to" is unreachable by construction.
+ */
+export type Keyword = "in" | "of";
 
 export interface Span {
   start: number;

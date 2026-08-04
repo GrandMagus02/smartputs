@@ -7,11 +7,9 @@ import type { Token } from "./lex";
 const BINDING: Record<Exclude<OpSymbol, "in">, number> = {
   "+": 10,
   "-": 10,
-  // Between + and *: "50 + 20% of 100" is 50 + (20% of 100). The lexer does
-  // not yet produce an "of" op token (that lands with the parser support in
-  // a later task) — this entry exists so OpSymbol's exhaustiveness check
-  // here is satisfied now that Task 1's percent generation needs "of" on
-  // OpSymbol.
+  // Between + and *: "50 + 20% of 100" is 50 + (20% of 100). "of" arrives as
+  // a *keyword* token, not an op token, so parseExpr reads this binding from
+  // its own branch below rather than from the `token.op` lookup.
   of: 15,
   "*": 20,
   "/": 20,
@@ -78,10 +76,9 @@ export function parse(tokens: Token[], resolver: Resolver, input: string): Node 
       const token = peek();
       if (token === undefined) break;
 
-      if (
-        token.type === "keyword" &&
-        (token.keyword === "in" || token.keyword === "to" || token.keyword === "as")
-      ) {
+      // "to" and "as" arrive here as `in` too: a locale lists them as aliases
+      // under its `in` key, and keywordFor returns the key, never the alias.
+      if (token.type === "keyword" && token.keyword === "in") {
         if (CONVERT_BINDING < minBinding) break;
         pos += 1;
         const unit = peek();

@@ -193,23 +193,25 @@ test("results carry spans and confidence", () => {
 });
 
 test("a custom five-line kind works end to end", () => {
-  // BUILTIN_KINDS now includes a real `datasize` kind (M2) with the same id
-  // and the same b/kb/kib/mib aliases this local kind auto-derives, so
-  // spreading both would throw KindConflictError("registered twice") before
-  // the engine ever evaluated anything. The point of this test is that a
-  // minimal, standalone kind definition works end to end — it never needed
-  // BUILTIN_KINDS's other kinds for "2 mib + 500 kb in kb" — so it now
-  // registers only itself.
-  const datasize = defineKind({
-    id: "datasize",
+  // The point of this test is a five-line kind definition working end to end
+  // *alongside the full built-in roster* — that is what a third party
+  // actually does. BUILTIN_KINDS now ships a real `datasize`, so the local
+  // kind takes a distinct id; its units auto-derive their own aliases, which
+  // therefore collide with the built-in datasize's b/kb/kib/mib. The
+  // `{ kinds: [...] }` scope is how a caller breaks exactly that kind of tie
+  // (measure.test.ts does the same with inch/mm against length).
+  const datasize2 = defineKind({
+    id: "datasize2",
     value: {
       mode: "ratio",
       canonical: "b",
       units: { b: 1, kb: 1e3, kib: 1024, mib: 1024 ** 2 },
     },
   });
-  const e = createEngine({ locales: [en], kinds: [datasize] });
-  expect(e.evaluate("2 mib + 500 kb in kb").formatted).toBe("2,597.152kb");
+  const e = createEngine({ locales: [en], kinds: [...BUILTIN_KINDS, datasize2] });
+  const r = e.evaluate("2 mib + 500 kb in kb", { kinds: ["datasize2"] });
+  expect(r.kind).toBe("datasize2");
+  expect(r.formatted).toBe("2,597.152kb");
 });
 
 test("kindMeta configured on the engine reaches Value.meta via evaluate and coerce", () => {
