@@ -39,6 +39,7 @@ export function createResolver(args: {
   return {
     resolve(surface) {
       const found = new Map<string, Candidate>();
+      const foldedSurface = fold(surface);
 
       for (const analyzed of analyze(surface)) {
         const entries = args.registry.aliasIndex.get(fold(analyzed.form));
@@ -48,14 +49,17 @@ export function createResolver(args: {
           const kind = args.registry.kinds.get(entry.kind);
           if (kind === undefined) continue;
 
+          // Additive, not substitutive: the analyzer's penalty/boost sums with
+          // the prior and every matching weight layer.
+          const analyzerWeight = analyzed.weight ?? 0;
           const weight =
             resolveWeight({
               kind: entry.kind,
               unit: entry.unit,
-              surface: fold(surface),
+              surface: foldedSurface,
               prior: kind.prior,
               layers: args.layers,
-            }) + (analyzed.weight ?? 0);
+            }) + analyzerWeight;
 
           const key = `${entry.kind}:${entry.unit}`;
           const existing = found.get(key);
@@ -65,7 +69,9 @@ export function createResolver(args: {
               unit: entry.unit,
               weight,
               surface,
+              foldedSurface,
               form: analyzed.form,
+              analyzerWeight,
             });
           }
         }

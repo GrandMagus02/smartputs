@@ -109,7 +109,7 @@ export function createEngine(opts: EngineOptions): Engine {
     const value = evaluateNode(node, assignment, registry, (locale as Locale).id, input);
     return {
       value,
-      formatted: formatValue(value, registry, (locale as Locale).id),
+      formatted: formatValue(value, registry, locale as Locale),
       kind: value.kind,
       confidence: assignment.confidence,
       spans: [node.span],
@@ -197,15 +197,22 @@ export function createEngine(opts: EngineOptions): Engine {
             score: a.score,
             confidence: a.confidence,
             units: chosen.map((c) => c.unit),
-            contributions: chosen.flatMap((c) =>
-              weightBreakdown({
-                kind: c.kind,
-                unit: c.unit,
-                surface: c.surface,
-                prior: registry.kinds.get(c.kind)?.prior ?? 0,
-                layers: layersFor(call?.weights),
-              }),
-            ),
+            // Every summand of `score` gets a row, so Σcontributions === score.
+            contributions: [
+              ...chosen.flatMap((c) => [
+                ...weightBreakdown({
+                  kind: c.kind,
+                  unit: c.unit,
+                  // The folded surface is what `token:` selectors matched during
+                  // scoring; passing the raw one would drop rows silently.
+                  surface: c.foldedSurface,
+                  prior: registry.kinds.get(c.kind)?.prior ?? 0,
+                  layers: layersFor(call?.weights),
+                }),
+                { selector: "analyzer", value: c.analyzerWeight, layer: 0 },
+              ]),
+              { selector: "contextBonus", value: a.contextBonus, layer: 0 },
+            ],
           };
         }),
       };

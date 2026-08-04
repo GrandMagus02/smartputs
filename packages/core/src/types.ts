@@ -20,8 +20,14 @@ export interface Candidate {
   readonly kind: KindId;
   readonly unit: string;
   readonly weight: number;
+  /** The surface form exactly as typed. */
   readonly surface: string;
+  /** Case-folded `surface`. This, not `surface`, is what `token:` selectors match. */
+  readonly foldedSurface: string;
+  /** Lemma the analyzer chain produced for `surface`. */
   readonly form: string;
+  /** Weight the analyzer chain attached to `form`; a summand of `weight`. */
+  readonly analyzerWeight: number;
 }
 
 export interface AnalyzedForm {

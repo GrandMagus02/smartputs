@@ -10,6 +10,8 @@ export interface Assignment {
   choices: Map<Node, Candidate>;
   kind: KindId;
   score: number;
+  /** The part of `score` that came from context agreement, so explain() can list it. */
+  contextBonus: number;
   confidence: number;
 }
 
@@ -55,7 +57,10 @@ function typeOf(
       const operand = typeOf(node.operand, choices, registry);
       const target = choices.get(node);
       if (operand === null || target === undefined) return null;
-      return registry.ops.has(opKey("in", operand, target.kind)) ? target.kind : null;
+      // Take the result from the signature rather than assuming it is the
+      // target's own kind: the signature is already in hand, and a declared
+      // cross-kind `in` need not be an identity on kind.
+      return registry.ops.get(opKey("in", operand, target.kind))?.result ?? null;
     }
     case "binary": {
       const left = typeOf(node.left, choices, registry);
@@ -101,8 +106,12 @@ export function solve(
     throw new TooAmbiguousError(opts.input, space, opts.maxCandidates);
   }
 
-  const viable: Array<{ choices: Map<Node, Candidate>; kind: KindId; score: number }> =
-    [];
+  const viable: Array<{
+    choices: Map<Node, Candidate>;
+    kind: KindId;
+    score: number;
+    contextBonus: number;
+  }> = [];
 
   const enumerate = (
     index: number,
@@ -112,10 +121,12 @@ export function solve(
     if (index === slots.length) {
       const kind = typeOf(root, choices, registry);
       if (kind === null) return;
+      const bonus = contextBonus(root, choices, registry);
       viable.push({
         choices: new Map(choices),
         kind,
-        score: weight + contextBonus(root, choices, registry),
+        score: weight + bonus,
+        contextBonus: bonus,
       });
       return;
     }

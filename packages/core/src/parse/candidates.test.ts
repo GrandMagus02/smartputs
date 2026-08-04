@@ -27,7 +27,15 @@ const resolver = (layers: Parameters<typeof createResolver>[0]["layers"] = []) =
 
 test("an unambiguous alias yields one candidate", () => {
   expect(resolver().resolve("km")).toEqual([
-    { kind: "length", unit: "km", weight: 0, surface: "km", form: "km" },
+    {
+      kind: "length",
+      unit: "km",
+      weight: 0,
+      surface: "km",
+      foldedSurface: "km",
+      form: "km",
+      analyzerWeight: 0,
+    },
   ]);
 });
 
@@ -87,4 +95,46 @@ test("case is folded before lookup", () => {
       .resolve("KM")
       .map((c) => c.unit),
   ).toEqual(["km"]);
+});
+
+test("the folded surface is kept alongside the surface as typed", () => {
+  const [c] = resolver().resolve("KM");
+  expect(c?.surface).toBe("KM");
+  expect(c?.foldedSurface).toBe("km");
+});
+
+test("an analyzer weight adds to a prior and to layer weights, it does not replace them", () => {
+  // The one combination that tells additive weighting apart from substitution:
+  // a nonzero analyzer penalty on a candidate that also carries a prior and a
+  // matching layer selector. Substitution would give -2, 7 or 3; only addition
+  // gives 8.
+  const priored = defineKind({
+    id: "length",
+    value: { mode: "ratio", canonical: "m", units: { m: 1, km: 1000 } },
+    prior: 7,
+    lexicon: { m: ["m", "metre"], km: ["km"] },
+  });
+  const reg = buildRegistry([number, priored]);
+  const uk = defineLocale({
+    id: "uk",
+    numberFormat: "intl",
+    analyze: [identity(), suffixStripper({ suffixes: ["s"], minStem: 3, weight: -2 })],
+    keywords: {},
+  });
+  const r = createResolver({
+    registry: reg,
+    locale: uk,
+    packs: [],
+    layers: [{ length: 1 }, { "length:m": 2 }],
+  });
+
+  // "metres" only reaches the "metre" alias via the -2 stemmer.
+  const [stemmed] = r.resolve("metres");
+  expect(stemmed?.analyzerWeight).toBe(-2);
+  expect(stemmed?.weight).toBe(7 + 1 + 2 - 2);
+
+  // Same candidate reached exactly: identical layers, no analyzer penalty.
+  const [exact] = r.resolve("metre");
+  expect(exact?.analyzerWeight).toBe(0);
+  expect(exact?.weight).toBe(7 + 1 + 2);
 });

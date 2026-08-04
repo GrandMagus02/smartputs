@@ -125,6 +125,67 @@ test("explain exposes tokens, candidates and weight contributions", () => {
   expect(x.assignments[0]?.contributions.length).toBeGreaterThan(0);
 });
 
+test("explain contributions sum to the score for every assignment", () => {
+  // The one invariant that makes explain() trustworthy: every summand of the
+  // solver's score has a row. Each case below broke it in a different place —
+  // a token: selector on non-lowercase input, contextBonus, analyzer weight.
+  const cases: Array<[string, Record<string, number> | undefined]> = [
+    ["10 m", undefined],
+    ["10 KG", { "token:kg": 7 }],
+    ["10 Kg", { "token:kg": 7, mass: 3 }],
+    ["10 m + 5 km", undefined],
+    ["10 m + 5 h", undefined],
+    ["1.5 kilograms", undefined],
+    ["1.5 kilograms", { "token:kilograms": 4, "mass:kg": 1 }],
+    ["2 km in m", undefined],
+    ["1 kg + 500 g in kg", { "mass:kg": 2, length: -1 }],
+  ];
+
+  for (const [input, weights] of cases) {
+    const e = weights
+      ? createEngine({ locales: [en], kinds: BUILTIN_KINDS, weights })
+      : engine;
+    const x = e.explain(input);
+    expect(x.assignments.length).toBeGreaterThan(0);
+    for (const a of x.assignments) {
+      const sum = a.contributions.reduce((s, c) => s + c.value, 0);
+      expect(`${input} [${a.kind}] ${sum}`).toBe(`${input} [${a.kind}] ${a.score}`);
+    }
+  }
+});
+
+test("explain lists a token selector matched against non-lowercase input", () => {
+  const e = createEngine({
+    locales: [en],
+    kinds: BUILTIN_KINDS,
+    weights: { "token:kg": 7 },
+  });
+  const rows = e.explain("10 KG").assignments[0]?.contributions ?? [];
+  // layer 2 is the engine layer: layers are [locale, engine, per-call].
+  expect(rows).toContainEqual({ selector: "token:kg", value: 7, layer: 2 });
+});
+
+test("explain lists contextBonus as its own row", () => {
+  const rows = engine.explain("10 m + 5 km").assignments[0]?.contributions ?? [];
+  expect(rows.filter((c) => c.selector === "contextBonus")).toEqual([
+    { selector: "contextBonus", value: 30, layer: 0 },
+  ]);
+});
+
+test("explain lists the analyzer's own weight", () => {
+  const rows = engine.explain("1.5 kilograms").assignments[0]?.contributions ?? [];
+  // en's suffixStripper penalises the plural stem by -2.
+  expect(rows).toContainEqual({ selector: "analyzer", value: -2, layer: 0 });
+});
+
+test("conversion keywords match regardless of case", () => {
+  const expected = engine.evaluate("2 km in m").formatted;
+  expect(expected).toBe("2,000m");
+  for (const input of ["2 km IN m", "2 km In m", "2 KM in M", "2 KM IN M"]) {
+    expect(engine.evaluate(input).formatted).toBe(expected);
+  }
+});
+
 test("results carry spans and confidence", () => {
   const r = engine.evaluate("1 kg + 500 g");
   expect(r.spans.length).toBeGreaterThan(0);

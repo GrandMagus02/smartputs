@@ -81,6 +81,41 @@ test("conversion type-checks and takes the target unit's kind", () => {
   expect(assignments[0]?.kind).toBe("length");
 });
 
+test("a convert takes its result kind from the signature, not from the target", () => {
+  // Generated `in` is always same-kind, so target.kind and signature.result
+  // coincide for every built-in. A declared cross-kind `in` separates them,
+  // and the solver must believe the signature.
+  const paces = defineKind({
+    id: "pace",
+    value: { mode: "ratio", canonical: "spm", units: { spm: 1 } },
+    lexicon: { spm: ["spm"] },
+    ops: [
+      {
+        op: "in",
+        left: "length",
+        right: "duration",
+        result: "pace",
+        apply: (l) => ({ kind: "pace", canonical: l.canonical, unit: "spm" }),
+      },
+    ],
+  });
+  const reg = buildRegistry([number, length, duration, paces]);
+  const resolver = createResolver({ registry: reg, locale: en, packs: [], layers: [] });
+  const input = "10 km in h";
+  const node = parse(lex(input, en), resolver, input);
+  const assignments = solve(node, reg, { maxCandidates: 10_000, input });
+  expect(assignments[0]?.kind).toBe("pace");
+});
+
+test("assignments report the context bonus that went into their score", () => {
+  const plain = run("10 km").assignments[0];
+  expect(plain?.contextBonus).toBe(0);
+
+  const contextual = run("10 m + 5 h").assignments[0];
+  expect(contextual?.contextBonus).toBe(30);
+  expect(contextual?.score).toBe(30);
+});
+
 test("the context bonus decides when both assignments type-check", () => {
   // With only same-kind ops, typeOf prunes the mixed assignment outright, so
   // the bonus is never compared against anything — every other test here
