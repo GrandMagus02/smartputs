@@ -91,6 +91,24 @@ export interface EvalCtx {
   readonly input?: string;
   /** The engine's injected rate table, when one was supplied. */
   readonly rates?: RateLookup;
+  /**
+   * Records an assumption made while converting. Supplied by the evaluator;
+   * absent during a standalone conversion, which has no Result to attach to.
+   */
+  readonly note?: (a: Assumption) => void;
+}
+
+/**
+ * A defensible-but-not-unique reading of the input, surfaced on the Result.
+ *
+ * `code` is stable and machine-readable — a UI branches on it, a test asserts
+ * it. `message` is human-facing and may be reworded freely. `detail` carries
+ * the specifics: which currencies, which pivot.
+ */
+export interface Assumption {
+  readonly code: string;
+  readonly message: string;
+  readonly detail?: Readonly<Record<string, string>>;
 }
 
 export interface FormatOptions {
@@ -150,7 +168,7 @@ export interface OpSignature {
    * treats the right operand as a difference, because the alternative is
    * meaningless rather than because the user said so.
    */
-  assumption?: string;
+  assumption?: Assumption;
   apply: (l: Value, r: Value, ctx: EvalCtx) => Value;
 }
 

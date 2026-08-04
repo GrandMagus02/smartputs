@@ -16,6 +16,7 @@ import { parse } from "./parse/pratt";
 import { type Assignment, solve } from "./solve/solver";
 import { weightBreakdown } from "./solve/weights";
 import type {
+  Assumption,
   Candidate,
   Kind,
   KindId,
@@ -67,7 +68,7 @@ export interface Result {
   kind: KindId;
   confidence: number;
   spans: Span[];
-  meta: { ratesAsOf?: string; assumptions: string[] };
+  meta: { ratesAsOf?: string; assumptions: Assumption[] };
 }
 
 export interface Explanation {

@@ -26,6 +26,11 @@ test("adding two readings treats the right one as a difference", () => {
   expect(r.meta.assumptions.length).toBeGreaterThan(0);
 });
 
+test("the temperature-delta assumption carries a stable code", () => {
+  const r = engine.evaluate("20 C + 5 C");
+  expect(r.meta.assumptions[0]?.code).toBe("temperature-delta");
+});
+
 test("a Fahrenheit difference is converted as a difference, not a reading", () => {
   // 5F as a reading is -15C; as a difference it is 5 * 5/9 = 2.7777...C.
   const r = engine.evaluate("20 C + 5 F");

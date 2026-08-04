@@ -47,7 +47,10 @@ export const temperature = defineKind({
       left: "temperature",
       right: "tempdelta",
       result: "temperature",
-      assumption: "the second operand was read as a temperature difference",
+      assumption: {
+        code: "temperature-delta",
+        message: "the second operand was read as a temperature difference",
+      },
       apply: (l, r) => deriveValue(l, l.canonical.plus(r.canonical)),
     },
     {
@@ -55,7 +58,10 @@ export const temperature = defineKind({
       left: "temperature",
       right: "tempdelta",
       result: "temperature",
-      assumption: "the second operand was read as a temperature difference",
+      assumption: {
+        code: "temperature-delta",
+        message: "the second operand was read as a temperature difference",
+      },
       apply: (l, r) => deriveValue(l, l.canonical.minus(r.canonical)),
     },
   ],

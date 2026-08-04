@@ -53,7 +53,7 @@ const confidencePercent = computed(() =>
 
     <p v-if="outcome.result.meta.assumptions.length" class="sp-result__assumptions">
       <span class="i-lucide-triangle-alert" aria-hidden="true" />
-      {{ outcome.result.meta.assumptions.join('; ') }}
+      {{ outcome.result.meta.assumptions.map((a) => a.message).join('; ') }}
     </p>
   </div>
 </template>

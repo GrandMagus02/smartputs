@@ -164,7 +164,7 @@ interface Result {
   kind: KindId;
   confidence: number;
   spans: Span[];
-  meta: { assumptions: string[] };
+  meta: { assumptions: Assumption[] };
 }
 
 interface Engine {
