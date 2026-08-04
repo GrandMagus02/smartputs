@@ -6,7 +6,7 @@ import type { NormalizedKind } from "../kind/define";
 import type { Registry } from "../kind/registry";
 import { createAnalyzerChain } from "../locale/analyze";
 import { numberSymbols, parseNumber } from "../locale/number";
-import type { EvalCtx, KindId, Locale, Value } from "../types";
+import type { EvalCtx, KindId, Locale, RateLookup, Value } from "../types";
 
 /**
  * What `toJSON()` produces and what `from()` accepts back. Plain JSON, so it
@@ -57,8 +57,16 @@ export function createFacade(args: {
   registry: Registry;
   locale: Locale;
   deltaFacades?: Map<KindId, QuantityClass>;
+  /**
+   * FX rates for a `money`-shaped kind, whose unit ratios are functions that
+   * read `ctx.rates` rather than constants. Without this, a money facade
+   * builds fine but every operation that has to convert — `to`, `as`,
+   * `equals`, `add`/`sub`, `toString` — throws `MissingRateError` the moment
+   * it reaches a non-canonical currency's `ratio`.
+   */
+  rates?: RateLookup;
 }): QuantityClass {
-  const { kind, registry, locale } = args;
+  const { kind, registry, locale, rates } = args;
   const deltaFacades = args.deltaFacades ?? new Map<KindId, QuantityClass>();
   const canonicalUnit = kind.spec.mode === "ratio" ? kind.spec.canonical : "";
   const fold = (s: string) => s.toLocaleLowerCase(locale.id);
@@ -208,6 +216,7 @@ export function createFacade(args: {
       return toCanonical(this.value, kind, this.unit, {
         locale: locale.id,
         ...(this.meta ? { meta: this.meta as Record<string, unknown> } : {}),
+        ...(rates ? { rates } : {}),
       });
     }
 
@@ -215,6 +224,7 @@ export function createFacade(args: {
       return fromCanonical(this.canonical(), kind, requireUnit(unit), {
         locale: locale.id,
         ...(this.meta ? { meta: this.meta as Record<string, unknown> } : {}),
+        ...(rates ? { rates } : {}),
       });
     }
 
@@ -237,7 +247,7 @@ export function createFacade(args: {
         unit: this.unit,
         ...(this.meta ? { meta: this.meta } : {}),
       });
-      return formatValue(value, registry, locale);
+      return formatValue(value, registry, locale, rates ? { rates } : {});
     }
 
     toJSON(): QuantitySnapshot {
@@ -268,6 +278,7 @@ export function createFacade(args: {
         fromCanonical(total, kind, this.unit, {
           locale: locale.id,
           ...(this.meta ? { meta: this.meta as Record<string, unknown> } : {}),
+          ...(rates ? { rates } : {}),
         }),
         this.unit,
         this.meta as Record<string, unknown>,
