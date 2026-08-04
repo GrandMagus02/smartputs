@@ -1,0 +1,63 @@
+import { fileURLToPath, URL } from "node:url";
+import UnoCSS from "unocss/vite";
+import { defineConfig } from "vitepress";
+import llmstxt from "vitepress-plugin-llms";
+import en from "./locales/en";
+
+const repoRoot = fileURLToPath(new URL("../..", import.meta.url));
+
+export default defineConfig({
+  title: "smartputs",
+  // `srcDir` is the docs folder itself; the planning documents that live
+  // alongside it are not part of the site.
+  srcExclude: ["superpowers/**", "**/README.md"],
+  cleanUrls: true,
+  lastUpdated: true,
+  metaChunk: true,
+
+  // English is the root locale (`/`), not `/en/`. A second language is added
+  // as `locales.uk = { link: "/uk/", ... }` with its pages under `docs/uk/`;
+  // no English URL changes when that happens.
+  locales: {
+    root: en,
+  },
+
+  head: [
+    ["link", { rel: "icon", href: "/favicon.svg", type: "image/svg+xml" }],
+    ["meta", { name: "theme-color", content: "#3c9c6d" }],
+  ],
+
+  themeConfig: {
+    logo: "/favicon.svg",
+    siteTitle: "smartputs",
+    socialLinks: [{ icon: "github", link: "https://github.com/GrandMagus/smartputs" }],
+    search: { provider: "local" },
+  },
+
+  vite: {
+    plugins: [
+      UnoCSS(),
+      llmstxt({
+        // Planning documents are not part of the published corpus either.
+        ignoreFiles: ["superpowers/**"],
+        generateLLMsTxt: true,
+        generateLLMsFullTxt: true,
+        // Emits `<route>.md` next to every `<route>.html`. The page actions
+        // in the header fetch exactly those files.
+        generateLLMFriendlyDocsForEachPage: true,
+      }),
+    ],
+    resolve: {
+      alias: {
+        // The workspace package exports TypeScript source, so the demos run
+        // the same code the tests do — no build step between them.
+        "@smartput/core": `${repoRoot}packages/core/src/index.ts`,
+        "@smartput/core/locale/en": `${repoRoot}packages/core/src/locale/en.ts`,
+      },
+    },
+    // Vite must transform that TypeScript for the SSR pass as well; Node
+    // cannot load it directly.
+    ssr: { noExternal: ["@smartput/core"] },
+    optimizeDeps: { exclude: ["@smartput/core"] },
+  },
+});

@@ -7,27 +7,30 @@ triaged, and deliberately deferred — none of it blocks M1.
 The M1 plan is `plans/2026-08-04-smartputs-m1-engine.md`; the spec it implements
 is `specs/2026-08-04-smartputs-design.md`.
 
-## Needs a ruling before M2 builds on it
+## Both open rulings are now decided
 
-**The analyzer chain is case-sensitive.** `10 KG` works and `1.5 kilograms`
-works, but `1.5 KILOGRAMS` throws `NoCandidateError`. `KILOGRAMS` is only
-reachable through the English `suffixStripper`, analyzers receive the raw
-surface, and `parse/candidates.ts` folds only *after* analysis.
+**Analyzer case-sensitivity — deferred to M5, deliberately.** `10 KG` works and
+`1.5 kilograms` works, but `1.5 KILOGRAMS` throws `NoCandidateError`:
+`KILOGRAMS` is only reachable through the English `suffixStripper`, analyzers
+receive the raw surface, and `parse/candidates.ts` folds only *after* analysis.
 
-This is the structural sibling of the keyword-folding defect fixed in the final
-wave, but it is not a one-liner: whether `Analyzer` receives folded or raw input
-is a contract decision. Some morphologies are case-informative — German nouns
-capitalise, Turkish has dotted/dotless I — so folding before analysis is not
-obviously right. Decide this when `@smartput/locale-uk` lands (spec §4.6, M5),
-and put the answer in `assertLocaleContract`.
+The structural sibling of the keyword-folding defect fixed at the end of M1, but
+not a one-liner — whether `Analyzer` receives folded or raw input is a contract
+decision, and some morphologies are case-informative (German capitalises nouns,
+Turkish has dotted/dotless I). Ruled: decide it when `@smartput/locale-uk` lands
+and there is a real case-informative morphology to design against, then encode
+the answer in `assertLocaleContract`. **All-caps unit words stay broken through
+M2–M4.** That is an accepted, known gap, not an oversight.
 
-**`createEngine({ locales: [en] })` registers no kinds.** `evaluate("10 kg")`
-throws `NoCandidateError` unless the caller passes `kinds: BUILTIN_KINDS`
-explicitly. Spec §6 annotates `kinds?: Kind[]` as "appended to built-ins", which
-reads as auto-registration; the plan mandated the explicit form everywhere and
-the implementation followed it. Spec and plan diverge — pick one. This is also
-the first thing a new user will hit, and a consumer who omits the `number` kind
-silently loses digit grouping.
+**Registration stays explicit — spec amended.** `createEngine({ locales: [en] })`
+registers no kinds, and `evaluate("10 kg")` against it raises
+`NoCandidateError`; callers pass `BUILTIN_KINDS` for the standard set. Spec §6
+previously annotated `kinds?: Kind[]` as "appended to built-ins", implying
+auto-registration the implementation never did. Ruled in favour of the
+implementation: the annotation now reads "the ENTIRE registry — nothing is
+implicit", with a paragraph stating the trade-off (a launcher can register two
+kinds and tree-shake the rest; the cost is that omitting `number` silently
+disables digit grouping).
 
 ## Correctness, deferred
 

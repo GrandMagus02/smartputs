@@ -636,7 +636,7 @@ export interface Engine {
 
 export type EngineOptions = {
   locales: Locale[];                     // first is primary, rest are fallbacks
-  kinds?: Kind[];                        // appended to built-ins
+  kinds?: Kind[];                        // the ENTIRE registry — nothing is implicit
   packs?: LocalePack[];                  // vocabulary contributions, see §4.6
   rates?: RateSnapshot;
   now?: () => Temporal.ZonedDateTime;    // injectable clock
@@ -663,6 +663,14 @@ export type Result = {
   meta: { ratesAsOf?: string; assumptions: Assumption[] };
 };
 ```
+
+**Registration is explicit.** `kinds` is the whole registry, not an addition to
+a hidden default set — `createEngine({ locales: [en] })` resolves nothing, and
+`evaluate("10 kg")` against it raises `NoCandidateError`. Callers wanting the
+standard set pass `BUILTIN_KINDS`. The cost is a footgun (omit the `number` kind
+and digit grouping silently stops working); the benefit is that a launcher can
+register two kinds and tree-shake the rest, and nothing is ever in the registry
+that the caller did not put there.
 
 `explain()` is required, not a nicety: a scored solver is unusable without a way
 to inspect why it chose. It is also the debugging surface for plugin authors.
