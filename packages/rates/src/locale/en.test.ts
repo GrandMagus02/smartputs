@@ -1,9 +1,12 @@
 import { expect, test } from "bun:test";
 import { createEngine, number } from "@smartput/core";
 import en from "@smartput/core/locale/en";
+// Through the package path, not "./en": the exports map is the only route a
+// consumer has, and importing by relative path is exactly what hid the fact
+// that `./locale/en` was missing from it.
+import enMoney from "@smartput/rates/locale/en";
 import { money } from "../money";
 import { snapshot } from "../snapshot";
-import enMoney from "./en";
 
 const rates = snapshot("EUR", "2026-08-04", { USD: 1.1, GBP: 0.8412 });
 const engine = createEngine({
