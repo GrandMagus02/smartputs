@@ -598,7 +598,10 @@ test("a function ratio receives the value's own meta", () => {
     }),
   );
   const self: Value = { kind: "measure", canonical: new Decimal(0), unit: "px", meta: { dpi: 300 } };
-  expect(n.units.get("px")?.ratio({ self, locale: "en" }).toString()).toBe("0.0033333333333333333333333333333");
+  // 28 significant digits, per the Decimal config in Task 1: 28 threes.
+  expect(n.units.get("px")?.ratio({ self, locale: "en" }).toString()).toBe(
+    "0.003333333333333333333333333333",
+  );
 });
 
 test("affine offsets normalize to a Decimal-returning function", () => {
