@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { number } from "@smartput/core";
+import { number, RatesNotReadyError } from "@smartput/core";
 import en from "@smartput/core/locale/en";
 import { createLiveEngine } from "./live";
 import { money } from "./money";
@@ -103,7 +103,9 @@ test("sync throws before the first refresh and works after", async () => {
     kinds: [number, money],
     provider,
   });
-  expect(() => live.sync).toThrow();
+  // A SmartputError, not a bare one: `instanceof SmartputError` is the
+  // discriminator core itself branches on.
+  expect(() => live.sync).toThrow(RatesNotReadyError);
   await live.refresh();
   expect(live.sync.evaluate("11 usd").meta.ratesAsOf).toBe("2026-08-01");
   expect(live.ratesAsOf).toBe("2026-08-01");

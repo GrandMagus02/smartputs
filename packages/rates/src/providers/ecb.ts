@@ -1,3 +1,4 @@
+import { RateProviderError } from "@smartput/core";
 import { type RateSnapshot, snapshot } from "../snapshot";
 
 export interface RateProvider {
@@ -35,13 +36,16 @@ export function ecb(opts: EcbOptions = {}): RateProvider {
     async fetch(): Promise<RateSnapshot> {
       const res = await doFetch(url);
       if (!res.ok) {
-        throw new Error(`ECB rates request failed: ${res.status} ${res.statusText}`);
+        throw new RateProviderError(
+          "ecb",
+          `request failed: ${res.status} ${res.statusText}`,
+        );
       }
       const xml = await res.text();
 
       const date = DATE.exec(xml)?.[1];
       if (date === undefined) {
-        throw new Error("ECB rates response carried no <Cube time='...'> date");
+        throw new RateProviderError("ecb", "response carried no <Cube time='...'> date");
       }
 
       const table: Record<string, string> = {};
@@ -56,7 +60,7 @@ export function ecb(opts: EcbOptions = {}): RateProvider {
         m = QUOTE.exec(xml);
       }
       if (Object.keys(table).length === 0) {
-        throw new Error("ECB rates response carried no currency quotes");
+        throw new RateProviderError("ecb", "response carried no currency quotes");
       }
 
       return snapshot("EUR", date, table);

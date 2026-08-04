@@ -3,6 +3,8 @@ import {
   type Engine,
   type EngineOptions,
   type EvalOptions,
+  RateProviderError,
+  RatesNotReadyError,
   type Result,
 } from "@smartput/core";
 import type { RateProvider } from "./providers/ecb";
@@ -65,7 +67,9 @@ export function createLiveEngine(opts: LiveEngineOptions): LiveEngine {
 
   const ready = async (): Promise<Engine> => {
     if (engine === undefined || now() - fetchedAt >= ttlMs) await refresh();
-    if (engine === undefined) throw new Error("rate provider returned no snapshot");
+    if (engine === undefined) {
+      throw new RateProviderError(provider.id, "returned no snapshot");
+    }
     return engine;
   };
 
@@ -79,7 +83,7 @@ export function createLiveEngine(opts: LiveEngineOptions): LiveEngine {
     refresh,
     get sync(): Engine {
       if (engine === undefined) {
-        throw new Error("no rates yet — await refresh() or an evaluate() first");
+        throw new RatesNotReadyError("await refresh() or an evaluate() first");
       }
       return engine;
     },

@@ -1,4 +1,5 @@
 import { expect, test } from "bun:test";
+import { RateProviderError, SmartputError } from "@smartput/core";
 import { snapshot } from "../snapshot";
 import { custom, ecb } from "./ecb";
 
@@ -33,6 +34,10 @@ test("a non-200 response is an error naming the status", async () => {
   const failing = (async () =>
     new Response("nope", { status: 503 })) as unknown as typeof globalThis.fetch;
   await expect(ecb({ fetch: failing }).fetch()).rejects.toThrow("503");
+  // Spec §7: every error in this codebase extends SmartputError, which is what
+  // engine.ts branches on. A bare Error here is invisible to a consumer that
+  // follows that convention.
+  await expect(ecb({ fetch: failing }).fetch()).rejects.toBeInstanceOf(RateProviderError);
 });
 
 test("a response missing the date is an error, not a silent empty table", async () => {
@@ -41,6 +46,7 @@ test("a response missing the date is an error, not a silent empty table", async 
       status: 200,
     })) as unknown as typeof globalThis.fetch;
   await expect(ecb({ fetch: garbage }).fetch()).rejects.toThrow();
+  await expect(ecb({ fetch: garbage }).fetch()).rejects.toBeInstanceOf(SmartputError);
 });
 
 test("a response with a valid date but no currency quotes is an error, not a silent empty snapshot", async () => {
@@ -50,6 +56,7 @@ test("a response with a valid date but no currency quotes is an error, not a sil
       { status: 200 },
     )) as unknown as typeof globalThis.fetch;
   await expect(ecb({ fetch: dateOnly }).fetch()).rejects.toThrow("no currency quotes");
+  await expect(ecb({ fetch: dateOnly }).fetch()).rejects.toBeInstanceOf(SmartputError);
 });
 
 test("the provider is identified", () => {
