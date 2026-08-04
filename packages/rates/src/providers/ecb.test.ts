@@ -1,5 +1,6 @@
 import { expect, test } from "bun:test";
-import { ecb } from "./ecb";
+import { snapshot } from "../snapshot";
+import { custom, ecb } from "./ecb";
 
 const xml = await Bun.file(new URL("./ecb-daily.fixture.xml", import.meta.url)).text();
 
@@ -42,6 +43,22 @@ test("a response missing the date is an error, not a silent empty table", async 
   await expect(ecb({ fetch: garbage }).fetch()).rejects.toThrow();
 });
 
+test("a response with a valid date but no currency quotes is an error, not a silent empty snapshot", async () => {
+  const dateOnly = (async () =>
+    new Response(
+      "<gesmes:Envelope xmlns:gesmes='http://www.gesmes.org/xml/2002-08-01' xmlns='http://www.ecb.int/vocabulary/2002-08-01/eurofxref'><Cube><Cube time='2026-08-04'></Cube></Cube></gesmes:Envelope>",
+      { status: 200 },
+    )) as unknown as typeof globalThis.fetch;
+  await expect(ecb({ fetch: dateOnly }).fetch()).rejects.toThrow("no currency quotes");
+});
+
 test("the provider is identified", () => {
   expect(ecb().id).toBe("ecb");
+});
+
+test("custom wraps any async source in the provider shape", async () => {
+  const rates = snapshot("EUR", "2026-08-04", { USD: 1.1 });
+  const provider = custom(async () => rates);
+  expect(provider.id).toBe("custom");
+  expect(await provider.fetch()).toBe(rates);
 });

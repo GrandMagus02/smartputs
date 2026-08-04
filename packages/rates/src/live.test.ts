@@ -47,6 +47,27 @@ test("a second call inside the TTL reuses the snapshot", async () => {
   expect(provider.calls).toBe(1);
 });
 
+test("a call at exactly the TTL boundary refetches", async () => {
+  // The implementation refetches at `now() - fetchedAt >= ttlMs`, so 1000ms
+  // against a 1000ms TTL must be treated as stale, not fresh. This pins the
+  // seam a `>=` -> `>` regression would slip through, between the 999ms
+  // (fresh) and 1001ms (stale) cases already covered above.
+  const provider = countingProvider();
+  let clock = 0;
+  const live = createLiveEngine({
+    locales: [en],
+    kinds: [number, money],
+    provider,
+    ttlMs: 1000,
+    now: () => clock,
+  });
+  await live.evaluate("11 usd");
+  clock = 1000;
+  const r = await live.evaluate("11 usd");
+  expect(provider.calls).toBe(2);
+  expect(r.meta.ratesAsOf).toBe("2026-08-02");
+});
+
 test("a call past the TTL refetches", async () => {
   const provider = countingProvider();
   let clock = 0;
