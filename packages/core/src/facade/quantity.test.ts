@@ -3,12 +3,26 @@ import { UnitParseError } from "../errors";
 import { buildRegistry } from "../kind/registry";
 import { BUILTIN_KINDS } from "../kinds/index";
 import en from "../locale/en";
-import { createFacade } from "./quantity";
+import { createFacade, type Quantity, type QuantityClass } from "./quantity";
 
 const registry = buildRegistry(BUILTIN_KINDS, [], "en");
 const massKind = registry.kinds.get("mass");
 if (massKind === undefined) throw new Error("mass kind missing");
-const Weight = createFacade({ kind: massKind, registry, locale: en });
+
+// `add`/`sub`/`scale`/`negate` are optional on `Quantity` because an affine
+// facade doesn't have them; `mass` is a ratio kind, so it always does. Narrow
+// once here instead of asserting non-null at every call site below.
+type RatioClass = {
+  new (
+    ...args: ConstructorParameters<QuantityClass>
+  ): Quantity & Required<Pick<Quantity, "add" | "sub" | "scale" | "negate">>;
+} & Pick<QuantityClass, "from" | "parse" | "kindId">;
+
+const Weight = createFacade({
+  kind: massKind,
+  registry,
+  locale: en,
+}) as unknown as RatioClass;
 
 test("constructs in an authored unit and stores it verbatim", () => {
   const w = new Weight(1.5, "kg");
@@ -65,4 +79,24 @@ test("instances are frozen", () => {
 
 test("an unknown unit throws", () => {
   expect(() => new Weight(1, "furlong")).toThrow(UnitParseError);
+});
+
+test("add keeps the left operand's unit", () => {
+  expect(new Weight(1, "kg").add(new Weight(500, "g")).toString()).toBe("1.5 kilograms");
+});
+
+test("add accepts a parseable string", () => {
+  expect(new Weight(1, "kg").add("500g").to("g").toString()).toBe("1500");
+});
+
+test("sub, scale and negate", () => {
+  expect(new Weight(1, "kg").sub("200g").to("g").toString()).toBe("800");
+  expect(new Weight(1, "kg").scale(3).to("kg").toString()).toBe("3");
+  expect(new Weight(1, "kg").negate().to("g").toString()).toBe("-1000");
+});
+
+test("the original is never mutated", () => {
+  const w = new Weight(1, "kg");
+  w.add("500g");
+  expect(w.value.toString()).toBe("1");
 });
