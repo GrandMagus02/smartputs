@@ -78,6 +78,7 @@ export class KindConflictError extends SmartputError {
   readonly kind: KindId;
   constructor(id: string, detail: string) {
     super(`Kind ${JSON.stringify(id)} conflicts: ${detail}`, id);
+    this.name = "KindConflictError";
     this.kind = id;
   }
 }
@@ -92,6 +93,7 @@ export class UnknownKindError extends SmartputError {
       `Locale pack ${JSON.stringify(pack)} contributes to unregistered kind ${JSON.stringify(kind)}${where}`,
       pack,
     );
+    this.name = "UnknownKindError";
     this.pack = pack;
     this.kind = kind;
     this.unit = unit;
