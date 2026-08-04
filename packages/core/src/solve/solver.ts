@@ -20,6 +20,17 @@ interface Slot {
   candidates: Candidate[];
 }
 
+/**
+ * Where a slot's candidates actually come from in the source text. For a
+ * quantity, that's the quantity itself; for a convert, the reported
+ * candidates are the *target* unit's, so the target token's own span is what
+ * source order means here, not the span of the whole conversion expression
+ * (which starts at the operand, before the target).
+ */
+function slotSourceStart(slot: Slot): number {
+  return slot.node.type === "convert" ? slot.node.targetSpan.start : slot.node.span.start;
+}
+
 function collectSlots(root: Node, kinds: KindId[] | undefined): Slot[] {
   const slots: Slot[] = [];
   walk(root, (node) => {
@@ -142,7 +153,7 @@ export function solve(
   enumerate(0, new Map(), 0);
 
   if (viable.length === 0) {
-    const bySource = [...slots].sort((a, b) => a.node.span.start - b.node.span.start);
+    const bySource = [...slots].sort((a, b) => slotSourceStart(a) - slotSourceStart(b));
     const first = bySource[0]?.candidates[0]?.kind ?? "unknown";
     const second = bySource[1]?.candidates[0]?.kind ?? "unknown";
     throw new DimensionMismatchError(opts.input, "operation", first, second);

@@ -93,7 +93,13 @@ export function parse(tokens: Token[], resolver: Resolver, input: string): Node 
           ]);
         }
         pos += 1;
-        left = { type: "convert", operand: left, target, span: span(left.span, unit) };
+        left = {
+          type: "convert",
+          operand: left,
+          target,
+          span: span(left.span, unit),
+          targetSpan: { start: unit.start, end: unit.end },
+        };
         continue;
       }
 

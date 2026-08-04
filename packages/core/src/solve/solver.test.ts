@@ -69,6 +69,22 @@ test("a dimension mismatch names the operands in source order", () => {
   }
 });
 
+test("a dimension mismatch on a convert names the operand before the target", () => {
+  // Unlike the binary case above, walk() visits the convert node (whose
+  // reported candidates are the *target* unit's) before it visits the
+  // operand — so this exercises the case the naive span.start sort does not
+  // fix (the convert node's own span starts at its operand's span, tying
+  // them), and only the targetSpan-aware sort gets right.
+  try {
+    run("5 h in km");
+    throw new Error("should have thrown");
+  } catch (e) {
+    const err = e as DimensionMismatchError;
+    expect(err.left).toBe("duration");
+    expect(err.right).toBe("length");
+  }
+});
+
 test("weights flip an ambiguous result", () => {
   const { assignments } = run("10 m", [{ "duration:min": 999 }]);
   expect(assignments[0]?.kind).toBe("duration");

@@ -34,6 +34,8 @@ export interface ConvertNode {
   operand: Node;
   target: Candidate[];
   span: Span;
+  /** The span of the target unit token alone, distinct from `span`, which covers the whole conversion expression. */
+  targetSpan: Span;
 }
 
 export type Node = NumberNode | QuantityNode | BinaryNode | UnaryNode | ConvertNode;
