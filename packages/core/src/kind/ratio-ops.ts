@@ -43,45 +43,24 @@ export function generateRatioOps(kind: NormalizedKind): OpSignature[] {
     return ops;
   }
 
-  if (id === NUMBER_KIND) {
-    ops.push(
-      {
-        op: "+",
-        left: id,
-        right: id,
-        result: id,
-        apply: (l, r) => wrap(l, l.canonical.plus(r.canonical)),
-      },
-      {
-        op: "-",
-        left: id,
-        right: id,
-        result: id,
-        apply: (l, r) => wrap(l, l.canonical.minus(r.canonical)),
-      },
-      {
-        op: "*",
-        left: id,
-        right: id,
-        result: id,
-        apply: (l, r) => wrap(l, l.canonical.times(r.canonical)),
-      },
-      {
-        op: "/",
-        left: id,
-        right: id,
-        result: id,
-        apply: (l, r) => wrap(l, l.canonical.div(r.canonical)),
-      },
-    );
-    return ops;
-  }
+  ops.push(
+    {
+      op: "+",
+      left: id,
+      right: id,
+      result: id,
+      apply: (l, r) => wrap(l, l.canonical.plus(r.canonical)),
+    },
+    {
+      op: "-",
+      left: id,
+      right: id,
+      result: id,
+      apply: (l, r) => wrap(l, l.canonical.minus(r.canonical)),
+    },
+  );
 
-  if (id === PERCENT_KIND) {
-    // Percent has no sum with itself — spec §8's three behaviours are all
-    // relative to some other kind K (`+|K|percent`, `-|K|percent`,
-    // `of|percent|K`), never percent-to-percent. Multiplication/division
-    // still make sense for a bare ratio, so those stay.
+  if (id === NUMBER_KIND || id === PERCENT_KIND) {
     ops.push(
       {
         op: "*",
@@ -102,20 +81,6 @@ export function generateRatioOps(kind: NormalizedKind): OpSignature[] {
   }
 
   ops.push(
-    {
-      op: "+",
-      left: id,
-      right: id,
-      result: id,
-      apply: (l, r) => wrap(l, l.canonical.plus(r.canonical)),
-    },
-    {
-      op: "-",
-      left: id,
-      right: id,
-      result: id,
-      apply: (l, r) => wrap(l, l.canonical.minus(r.canonical)),
-    },
     {
       op: "*",
       left: id,

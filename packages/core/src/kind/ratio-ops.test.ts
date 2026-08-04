@@ -67,5 +67,5 @@ test("number and percent do not generate percent arithmetic for themselves", () 
     }),
   );
   expect(keys(number)).not.toContain("+|number|percent");
-  expect(keys(percent)).not.toContain("+|percent|percent");
+  expect(keys(percent)).not.toContain("of|percent|percent");
 });
