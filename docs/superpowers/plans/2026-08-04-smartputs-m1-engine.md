@@ -41,6 +41,7 @@ All paths relative to `packages/core/`.
 | `src/types.ts` | Every shared type. No logic, no imports except `decimal.js` types. |
 | `src/errors.ts` | The `SmartputError` hierarchy. |
 | `src/decimal.ts` | The configured `Decimal` constructor, re-exported. Single source of precision config. |
+| `src/freeze.ts` | `deepFreeze` — recursive freeze used by every `define*` function. |
 | `src/kind/define.ts` | `defineKind`, and normalization of authoring shorthands into a `NormalizedKind`. |
 | `src/kind/registry.ts` | `buildRegistry` — merges kinds and packs, generates ratio ops, builds the alias index. |
 | `src/kind/ratio-ops.ts` | Generates the `+ - * / in` signatures every ratio kind gets for free. |
@@ -521,10 +522,12 @@ git commit -m "feat(core): add shared types and error hierarchy"
 ## Task 3: defineKind and kind normalization
 
 **Files:**
+- Create: `packages/core/src/freeze.ts`, `packages/core/src/freeze.test.ts`
 - Create: `packages/core/src/kind/define.ts`, `packages/core/src/kind/define.test.ts`
 
 **Interfaces:**
 - Consumes: types and errors from Task 2.
+- Produces: `deepFreeze<T>(value: T): T` — recursively freezes plain objects and arrays. Used by `defineKind` here and by `defineLocale`/`defineLocalePack` in Task 5.
 - Produces:
   - `defineKind(k: Kind): Kind` — freezes and returns.
   - `normalizeKind(k: Kind): NormalizedKind`
@@ -619,11 +622,34 @@ test("affine offsets normalize to a Decimal-returning function", () => {
   expect(n.units.get("c")?.offset(ctx(val("c"))).toString()).toBe("0");
 });
 
-test("defineKind freezes its descriptor", () => {
-  const k = defineKind({ id: "x", value: { mode: "ratio", canonical: "a", units: { a: 1 } } });
+test("defineKind deep-freezes its descriptor", () => {
+  const k = defineKind({
+    id: "x",
+    value: { mode: "ratio", canonical: "a", units: { a: 1 } },
+    lexicon: { a: ["a", "alpha"] },
+  });
   expect(Object.isFrozen(k)).toBe(true);
+  expect(Object.isFrozen(k.value)).toBe(true);
+  expect(Object.isFrozen((k.value as RatioSpec).units)).toBe(true);
+  expect(Object.isFrozen(k.lexicon)).toBe(true);
+  expect(Object.isFrozen(k.lexicon?.a)).toBe(true);
+});
+
+test("normalizeKind copies ops rather than aliasing the frozen array", () => {
+  const k = defineKind({
+    id: "x",
+    value: { mode: "ratio", canonical: "a", units: { a: 1 } },
+    ops: [],
+  });
+  const n = normalizeKind(k);
+  // The registry pushes generated signatures onto this array; it must not be
+  // the descriptor's frozen one.
+  expect(() => n.ops.push({} as OpSignature)).not.toThrow();
+  expect(k.ops).toHaveLength(0);
 });
 ```
+
+Add `import type { OpSignature, RatioSpec } from "../types";` to the test file's imports.
 
 - [ ] **Step 2: Run test to verify it fails**
 
@@ -632,10 +658,74 @@ Expected: FAIL — `Cannot find module './define'`.
 
 - [ ] **Step 3: Write the implementation**
 
+`packages/core/src/freeze.ts`:
+
+```ts
+import { Decimal } from "./decimal";
+
+/**
+ * Recursively freezes plain objects and arrays.
+ *
+ * Decimal instances are returned untouched — decimal.js mutates instance
+ * internals, so freezing one would break arithmetic. Functions are left alone
+ * too: this guards data, not code.
+ *
+ * Freezing happens before recursion, so a cyclic descriptor terminates on the
+ * isFrozen check rather than overflowing the stack.
+ */
+export function deepFreeze<T>(value: T): T {
+  if (value === null || typeof value !== "object") return value;
+  if (value instanceof Decimal) return value;
+  if (Object.isFrozen(value)) return value;
+
+  Object.freeze(value);
+  for (const key of Object.getOwnPropertyNames(value)) {
+    deepFreeze((value as Record<string, unknown>)[key]);
+  }
+  return value;
+}
+```
+
+`packages/core/src/freeze.test.ts`:
+
+```ts
+import { expect, test } from "bun:test";
+import { Decimal } from "./decimal";
+import { deepFreeze } from "./freeze";
+
+test("freezes nested objects and arrays", () => {
+  const o = deepFreeze({ a: { b: [1, 2] } });
+  expect(Object.isFrozen(o)).toBe(true);
+  expect(Object.isFrozen(o.a)).toBe(true);
+  expect(Object.isFrozen(o.a.b)).toBe(true);
+});
+
+test("returns primitives unchanged", () => {
+  expect(deepFreeze(5)).toBe(5);
+  expect(deepFreeze("x")).toBe("x");
+  expect(deepFreeze(null)).toBe(null);
+});
+
+test("leaves Decimal instances unfrozen so arithmetic still works", () => {
+  const d = new Decimal(3);
+  deepFreeze({ d });
+  expect(Object.isFrozen(d)).toBe(false);
+  expect(d.times(2).toString()).toBe("6");
+});
+
+test("terminates on a cyclic structure", () => {
+  const a: Record<string, unknown> = {};
+  a.self = a;
+  expect(() => deepFreeze(a)).not.toThrow();
+  expect(Object.isFrozen(a)).toBe(true);
+});
+```
+
 `packages/core/src/kind/define.ts`:
 
 ```ts
 import { Decimal } from "../decimal";
+import { deepFreeze } from "../freeze";
 import type {
   EvalCtx,
   FormatCtx,
@@ -667,7 +757,7 @@ export interface NormalizedKind {
 }
 
 export function defineKind(k: Kind): Kind {
-  return Object.freeze(k);
+  return deepFreeze(k);
 }
 
 function toDecimalFn(
@@ -709,7 +799,9 @@ export function normalizeKind(k: Kind): NormalizedKind {
     spec: k.value,
     prior: k.prior ?? 0,
     units,
-    ops: k.ops ?? [],
+    // Copy, never alias: the descriptor's ops array is deep-frozen, and the
+    // registry in Task 4 pushes generated signatures onto this one.
+    ops: [...(k.ops ?? [])],
     ...(k.format ? { format: k.format } : {}),
   };
 }
@@ -1198,16 +1290,19 @@ Expected: FAIL — modules not found.
 `packages/core/src/locale/define.ts`:
 
 ```ts
+import { deepFreeze } from "../freeze";
 import type { Locale, LocalePack } from "../types";
 
 export function defineLocale(l: Locale): Locale {
-  return Object.freeze(l);
+  return deepFreeze(l);
 }
 
 export function defineLocalePack(p: LocalePack): LocalePack {
-  return Object.freeze(p);
+  return deepFreeze(p);
 }
 ```
+
+Note `deepFreeze` leaves functions alone, so a locale's `analyze` array is frozen while the analyzer functions inside it stay callable.
 
 - [ ] **Step 4: Write helpers.ts**
 
