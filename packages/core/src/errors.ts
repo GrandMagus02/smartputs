@@ -6,7 +6,9 @@ export class SmartputError extends Error {
 
   constructor(message: string, input: string, spans: Span[] = []) {
     super(message);
-    this.name = new.target.name;
+    // Literal, never `new.target.name`: a minifier renames the class, and
+    // `error.name` is a string consumers display and branch on.
+    this.name = "SmartputError";
     this.input = input;
     this.spans = spans;
   }
@@ -16,6 +18,7 @@ export class UnitParseError extends SmartputError {
   readonly kind: KindId | undefined;
   constructor(input: string, kind?: KindId) {
     super(`Cannot parse ${JSON.stringify(input)} as a quantity`, input);
+    this.name = "UnitParseError";
     this.kind = kind;
   }
 }
@@ -25,6 +28,7 @@ export class AmbiguityError extends SmartputError {
   constructor(input: string, candidates: ResultCandidate[], spans: Span[] = []) {
     const list = candidates.map((c) => `${c.kind}:${c.unit}`).join(", ");
     super(`${JSON.stringify(input)} is ambiguous between ${list}`, input, spans);
+    this.name = "AmbiguityError";
     this.candidates = candidates;
   }
 }
@@ -35,6 +39,7 @@ export class NoCandidateError extends SmartputError {
   constructor(input: string, token: string, nearest: string[], spans: Span[] = []) {
     const hint = nearest.length > 0 ? `. Did you mean: ${nearest.join(", ")}?` : "";
     super(`Unknown unit ${JSON.stringify(token)}${hint}`, input, spans);
+    this.name = "NoCandidateError";
     this.token = token;
     this.nearest = nearest;
   }
@@ -46,6 +51,7 @@ export class DimensionMismatchError extends SmartputError {
   readonly op: string;
   constructor(input: string, op: string, left: KindId, right: KindId) {
     super(`Cannot apply ${op} to ${left} and ${right}`, input);
+    this.name = "DimensionMismatchError";
     this.left = left;
     this.right = right;
     this.op = op;
@@ -56,6 +62,7 @@ export class TooAmbiguousError extends SmartputError {
   readonly count: number;
   constructor(input: string, count: number, max: number) {
     super(`Too many interpretations (${count} > ${max})`, input);
+    this.name = "TooAmbiguousError";
     this.count = count;
   }
 }
@@ -83,5 +90,6 @@ export class UnknownKindError extends Error {
 export class DivideByZeroError extends SmartputError {
   constructor(input: string) {
     super("Division by zero", input);
+    this.name = "DivideByZeroError";
   }
 }
