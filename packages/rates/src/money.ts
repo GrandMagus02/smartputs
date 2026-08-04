@@ -71,7 +71,7 @@ for (const [code, def] of Object.entries(CURRENCIES)) {
   lexicon[code] = {
     aliases: def.aliases,
     symbol: def.symbol,
-    display: def.display,
+    ...(def.display ? { display: def.display } : {}),
     typical: def.typical,
   };
 }
@@ -169,9 +169,7 @@ export const money: Kind = defineKind({
     // another. Trimming to the display precision first (the same two guard
     // digits `formatNumber` uses) restores the tie, so the rounding mode
     // decides it.
-    const guarded = new Decimal(
-      ctx.authored.toPrecision(ctx.precision ?? DISPLAY_PRECISION),
-    );
+    const guarded = new Decimal(ctx.authored.toPrecision(DISPLAY_PRECISION));
     const rounded = new Decimal(guarded.toFixed(minorUnits, rounding));
     const symbol = def?.symbol ?? value.unit.toUpperCase();
     // Sign outside the symbol: every locale convention writes "-$10.00", never

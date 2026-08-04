@@ -8,8 +8,16 @@ export interface CurrencyDef {
    * renders through its own format hook, so these are not what `$30.00` is
    * made of — they are what `complete()` inserts ("30 dollars") and what the
    * facade's parser accepts back.
+   *
+   * Every word here MUST be a single token that resolves back to this
+   * currency, i.e. an alias or something the locale's analyzer stems to one:
+   * completion's insert text is meant to be handed straight back to
+   * `evaluate`. That rules out "Canadian dollar" — the lexer cannot take a
+   * two-word unit token — so CAD and AUD declare no display forms and their
+   * completions insert the ISO code, which parses. Omission is the honest
+   * answer; a word the engine then rejects is not.
    */
-  display: Partial<Record<Intl.LDMLPluralRule, string>>;
+  display?: Partial<Record<Intl.LDMLPluralRule, string>>;
   /**
    * The magnitude band people actually type this currency in, read by
    * completion's `scaleFit`. Without it every currency ties at zero and
@@ -79,34 +87,34 @@ export const CURRENCIES: Record<string, CurrencyDef> = {
     minorUnits: 2,
     symbol: "CA$",
     aliases: ["cad"],
-    display: { one: "Canadian dollar", other: "Canadian dollars" },
     typical: [1, 10000],
   },
   aud: {
     minorUnits: 2,
     symbol: "A$",
     aliases: ["aud"],
-    display: { one: "Australian dollar", other: "Australian dollars" },
     typical: [1, 10000],
   },
   sek: {
     minorUnits: 2,
     symbol: "kr",
-    aliases: ["sek"],
+    // The display words are aliases too, or completion would insert a token
+    // the engine cannot read back.
+    aliases: ["sek", "krona", "kronor"],
     display: { one: "krona", other: "kronor" },
     typical: [10, 100000],
   },
   nok: {
     minorUnits: 2,
     symbol: "NOK",
-    aliases: ["nok"],
+    aliases: ["nok", "krone", "kroner"],
     display: { one: "krone", other: "kroner" },
     typical: [10, 100000],
   },
   czk: {
     minorUnits: 2,
     symbol: "Kč",
-    aliases: ["czk"],
+    aliases: ["czk", "koruna", "korunas"],
     display: { one: "koruna", other: "korunas" },
     typical: [20, 200000],
   },

@@ -111,6 +111,42 @@ test("every currency formats with its own symbol and minor units", () => {
   }
 });
 
+test("every currency's completion inserts text the engine can evaluate", () => {
+  // complete() -> evaluate() is a contract: the insert text is meant to go
+  // straight back into the box. `display` is that insert text, so a display
+  // word that is neither an alias nor stemmable to one silently breaks it —
+  // which is exactly what five currencies shipped with ("30 kronor",
+  // "30 Canadian dollars"). A per-currency loop, in both plural categories,
+  // because a spot check on `usd` is what let them through.
+  for (const [code, def] of Object.entries(CURRENCIES)) {
+    const alias = def.aliases[0];
+    if (alias === undefined) throw new Error(`${code} declares no alias`);
+    for (const count of ["30", "1"]) {
+      const suggestion = engine
+        .complete(`${count} ${alias}`)
+        .find((c) => c.unit === code);
+      if (suggestion === undefined) throw new Error(`no completion for ${code}`);
+      const r = engine.evaluate(suggestion.text);
+      expect(`${suggestion.text} -> ${r.kind}:${r.value.unit}`).toBe(
+        `${suggestion.text} -> money:${code}`,
+      );
+    }
+  }
+});
+
+test("every display form a currency declares resolves back to that currency", () => {
+  // The invariant behind the test above, stated directly: CurrencyDef.display
+  // is documented as single tokens that resolve to their own currency.
+  for (const [code, def] of Object.entries(CURRENCIES)) {
+    for (const word of Object.values(def.display ?? {})) {
+      if (word === undefined) continue;
+      expect(word).not.toContain(" ");
+      const r = engine.evaluate(`30 ${word}`);
+      expect(`${word} -> ${r.kind}:${r.value.unit}`).toBe(`${word} -> money:${code}`);
+    }
+  }
+});
+
 test("KNOWN FAILURE: a money string does not parse back (spec §10 property 2)", () => {
   // Pinned, not skipped. Core's lexer allowlist contains only `%`, so a leading
   // currency symbol is *skipped* rather than rejected: `$30.00` evaluates to

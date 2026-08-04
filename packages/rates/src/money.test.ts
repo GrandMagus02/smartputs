@@ -85,6 +85,22 @@ test("a half-cent amount rounds the same way in every currency", () => {
   expect(engine.evaluate("0.005 uah").formatted).toBe("₴0.00");
 });
 
+test("a caller's formatPrecision does not reinstate the rounding divergence", () => {
+  // The guard absorbs the *rate round trip's* ulp noise, which has nothing to
+  // do with how many significant digits a caller asked to display. Tying it to
+  // ctx.precision brought the original symptom straight back at
+  // formatPrecision: 28 — $0.01 for usd against €0.00 for euro.
+  const wide = createEngine({
+    locales: [en],
+    kinds: [number, money],
+    rates,
+    formatPrecision: 28,
+  });
+  expect(wide.evaluate("0.005 usd").formatted).toBe("$0.00");
+  expect(wide.evaluate("0.005 eur").formatted).toBe("€0.00");
+  expect(wide.evaluate("0.005 uah").formatted).toBe("₴0.00");
+});
+
 test("a genuine half-cent tie rounds to even, canonical currency or not", () => {
   // 1.5 cents -> 2 (even), 2.5 cents -> 2 (even). ROUND_HALF_EVEN, unchanged
   // by the guard: the guard only removes noise that was never in the value.
