@@ -16,7 +16,10 @@ const temp = normalizeKind(
     value: {
       mode: "ratio",
       canonical: "c",
-      units: { c: 1, f: { ratio: 5 / 9, offset: -32 } },
+      // new Decimal(5).div(9), NOT 5 / 9: the latter is a JS float before it
+      // ever reaches Decimal, and 212F then lands on 100.000000000000008.
+      // Dividing inside Decimal keeps the affine conversions exact.
+      units: { c: 1, f: { ratio: new Decimal(5).div(9), offset: -32 } },
     },
   }),
 );
@@ -58,8 +61,9 @@ test("reverses the affine offset on the way out", () => {
 });
 
 test("a function ratio reads dpi from the value's meta", () => {
-  expect(
-    toCanonical(new Decimal(300), measure, "px", "en", { dpi: 300 }).toString(),
-  ).toBe("1");
+  // 1/300 does not terminate, so 300px at 300dpi lands within 1e-20 of an inch
+  // rather than exactly on it. 1/96 does terminate, so the default is exact.
+  const at300 = toCanonical(new Decimal(300), measure, "px", "en", { dpi: 300 });
+  expect(at300.minus(1).abs().lessThan("1e-20")).toBe(true);
   expect(toCanonical(new Decimal(96), measure, "px", "en").toString()).toBe("1");
 });
