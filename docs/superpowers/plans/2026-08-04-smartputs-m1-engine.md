@@ -1433,9 +1433,11 @@ of that in `packages/core/src/kind/registry.test.ts`:
    the dynamic `import()` line each one guarded. **`tsc` errors on an unused
    `@ts-expect-error`, so leaving them breaks the typecheck** — this step is not
    optional.
-3. Change all **three** `test.skip(` back to `test(`: "a locale pack unions aliases
-   into the index", "a pack for another locale is ignored", and "a pack naming an
-   unregistered kind throws at build time".
+3. Change all **four** `test.skip(` back to `test(`: "a locale pack unions aliases
+   into the index", "a pack for another locale is ignored", "a pack naming an
+   unregistered kind throws at build time", and "a pack naming an unregistered
+   unit throws". Every test constructing a `defineLocalePack` was skipped; all of
+   them come back.
 4. Drop the now-unneeded `async` on those test callbacks.
 
 Run: `bun test packages/core/src/kind/registry.test.ts`
