@@ -2,9 +2,12 @@ import { type CompleteOptions, type Completion, complete } from "./complete/comp
 import type { Decimal } from "./decimal";
 import {
   AmbiguityError,
+  KindConflictError,
+  MissingRateError,
   NoCandidateError,
   SmartputError,
   UnitParseError,
+  UnknownKindError,
 } from "./errors";
 import { evaluateNode } from "./eval/evaluate";
 import { formatValue } from "./format/format";
@@ -28,6 +31,20 @@ import type {
   Value,
   Weights,
 } from "./types";
+
+/**
+ * SmartputErrors that never mean "this input has no interpretation", so
+ * `suggest` re-throws them rather than answering with an empty list.
+ *
+ * Spec §7 promises `suggest()` does not throw on *parse* problems. A missing
+ * rate is a data problem: `suggest("30 jpy")` against a snapshot without JPY
+ * used to return `[]` while `evaluate` on the same input threw, and
+ * `LiveEngine.suggest` is the keystroke-rate API, so the user saw "no results"
+ * where the truth was "no rate for JPY". The other two are registration errors
+ * — a kind registered twice, a locale pack contributing to a kind that does not
+ * exist — which describe the caller's wiring, never the caller's input.
+ */
+const NEVER_SWALLOWED = [MissingRateError, KindConflictError, UnknownKindError];
 
 export interface EngineOptions {
   locales: Locale[];
@@ -186,10 +203,13 @@ export function createEngine(opts: EngineOptions): Engine {
         const { node, assignments } = pipeline(input, call);
         return assignments.map((a) => toResult(node, a, input));
       } catch (e) {
-        // Only the library's own errors mean "this input has no interpretation".
-        // A TypeError from a bug in the pipeline must keep its stack rather than
-        // masquerade as an empty result.
-        if (e instanceof SmartputError) return [];
+        // Only the library's own errors mean "this input has no interpretation",
+        // and not even all of those — see NEVER_SWALLOWED. A TypeError from a
+        // bug in the pipeline must keep its stack rather than masquerade as an
+        // empty result.
+        if (e instanceof SmartputError && !NEVER_SWALLOWED.some((C) => e instanceof C)) {
+          return [];
+        }
         throw e;
       }
     },

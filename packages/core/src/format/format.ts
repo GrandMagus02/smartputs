@@ -90,7 +90,15 @@ export function formatValue(
     });
   }
 
-  const numberText = formatNumber(authored, locale, opts);
+  // `rounding` belongs to the kind's own format hook, which received it on
+  // `ctx` above — EngineOptions documents it as money formatting, and money is
+  // the one place where a rounding mode decides something a user can see (the
+  // cent). Handing it to the default path instead perturbs the 26th
+  // significant digit of every kind: `1 km / 3` renders
+  // 0.33333333333333333333333333 by default and ...334 under ROUND_UP, which
+  // is guard-digit noise being promoted to a policy.
+  const { rounding: _hookOnly, ...trim } = opts;
+  const numberText = formatNumber(authored, locale, trim);
   if (value.kind === NUMBER_KIND) return numberText;
 
   const unit = kind.units.get(value.unit);

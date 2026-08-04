@@ -338,6 +338,23 @@ test("without rates, a rate-dependent unit raises MissingRateError", () => {
   expect(() => e.evaluate("10 fln")).toThrow(MissingRateError);
 });
 
+test("rounding does not perturb an ordinary kind's formatted output", () => {
+  // EngineOptions.rounding is documented as money formatting, and money reads
+  // it from its format hook's ctx. Reaching the guard-digit trim as well would
+  // let it decide the 26th significant digit of every kind — this same input
+  // rendered ...334 under ROUND_UP before the scoping, purely by promoting
+  // round-trip noise to a policy.
+  const plain = createEngine({ locales: [en], kinds: BUILTIN_KINDS });
+  const up = createEngine({
+    locales: [en],
+    kinds: BUILTIN_KINDS,
+    rounding: Decimal.ROUND_UP,
+  });
+  const expected = "0.33333333333333333333333333 kilometres";
+  expect(plain.evaluate("1 km / 3").formatted).toBe(expected);
+  expect(up.evaluate("1 km / 3").formatted).toBe(expected);
+});
+
 test("a result carries no ratesAsOf when no rates were supplied", () => {
   const e = createEngine({ locales: [en], kinds: BUILTIN_KINDS });
   expect(e.evaluate("1 km").meta.ratesAsOf).toBeUndefined();

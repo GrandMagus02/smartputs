@@ -1,5 +1,11 @@
 import { expect, test } from "bun:test";
-import { createEngine, createFacades, MissingRateError, number } from "@smartput/core";
+import {
+  createEngine,
+  createFacades,
+  Decimal,
+  MissingRateError,
+  number,
+} from "@smartput/core";
 import en from "@smartput/core/locale/en";
 import { money } from "./money";
 import { snapshot } from "./snapshot";
@@ -97,6 +103,27 @@ test("a negative amount puts the sign outside the symbol", () => {
 
 test("a currency absent from the snapshot raises MissingRateError", () => {
   expect(() => engine.evaluate("30 jpy")).toThrow(MissingRateError);
+});
+
+test("suggest raises MissingRateError rather than answering with nothing", () => {
+  // Spec §7's "suggest() never throws" is about parse problems. A missing rate
+  // is a data problem, and suggest is the keystroke-rate API — returning []
+  // shows the user "no results" where the truth is "no rate for JPY".
+  expect(() => engine.suggest("30 jpy")).toThrow(MissingRateError);
+  // Unchanged for input that genuinely has no interpretation.
+  expect(engine.suggest("30 zork")).toEqual([]);
+});
+
+test("EngineOptions.rounding reaches money's format hook", () => {
+  const up = createEngine({
+    locales: [en],
+    kinds: [number, money],
+    rates,
+    rounding: Decimal.ROUND_UP,
+  });
+  expect(engine.evaluate("0.001 usd").formatted).toBe("$0.00");
+  expect(up.evaluate("0.001 usd").formatted).toBe("$0.01");
+  expect(up.evaluate("0.001 eur").formatted).toBe("€0.01");
 });
 
 test("a zero-minor-unit currency formats without decimals", () => {
