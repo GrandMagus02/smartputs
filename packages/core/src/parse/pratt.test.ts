@@ -90,6 +90,32 @@ test("an unclosed paren throws UnitParseError", () => {
   expect(() => ast("(1 + 2")).toThrow(UnitParseError);
 });
 
+test("leftover tokens after a complete parse throw UnitParseError", () => {
+  // parseExpr returns after "1"; the second number is neither op nor keyword,
+  // so the loop breaks and the top-level pos check must reject it.
+  expect(() => ast("1 2")).toThrow(UnitParseError);
+});
+
+test("a quantity node preserves every candidate for an ambiguous unit", () => {
+  // Its own registry: adding an "m"-colliding kind to the shared one would
+  // change the single-candidate expectations in the other tests.
+  const duration = defineKind({
+    id: "duration",
+    value: { mode: "ratio", canonical: "s", units: { min: 60 } },
+    lexicon: { min: ["min", "m"] },
+  });
+  const ambiguous = buildRegistry([number, length, duration]);
+  const r = createResolver({ registry: ambiguous, locale: en, packs: [], layers: [] });
+
+  const node = parse(lex("10 m", en), r, "10 m");
+  if (node.type !== "quantity") throw new Error("unreachable");
+  // The parser must never narrow — Task 10's solver needs the whole set.
+  expect(node.candidates.map((c) => `${c.kind}:${c.unit}`)).toEqual([
+    "duration:min",
+    "length:m",
+  ]);
+});
+
 test("nodes carry spans back to the source", () => {
   const node = ast("10 km");
   expect(node.span).toEqual({ start: 0, end: 5 });
