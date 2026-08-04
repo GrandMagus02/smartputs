@@ -58,7 +58,8 @@ export function normalizeKind(k: Kind): NormalizedKind {
 
   if (k.value.mode === "ratio") {
     for (const [unit, raw] of Object.entries(k.value.units)) {
-      const def: UnitDef = typeof raw === "number" ? { ratio: raw } : raw;
+      const def: UnitDef =
+        typeof raw === "number" || raw instanceof Decimal ? { ratio: raw } : raw;
       units.set(unit, {
         unit,
         ratio: toDecimalFn(def.ratio, 1),

@@ -71,7 +71,7 @@ export interface UnitDef {
 export interface RatioSpec {
   mode: "ratio";
   canonical: string;
-  units: Record<string, UnitDef | number>;
+  units: Record<string, UnitDef | number | Decimal>;
   affine?: { deltaKind: KindId };
 }
 

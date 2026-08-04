@@ -141,6 +141,32 @@ test("affine offsets normalize to a Decimal-returning function", () => {
   ).toBe("0");
 });
 
+test("a bare Decimal ratio converts using that ratio, not a default of 1", () => {
+  const n = normalizeKind(
+    defineKind({
+      id: "tempdelta",
+      value: {
+        mode: "ratio",
+        canonical: "c",
+        // `f` is a bare Decimal, not wrapped in `{ ratio }`. Before this fix,
+        // normalizeKind's `typeof raw === "number"` check missed Decimal
+        // instances (typeof is "object"), fell through to treating the
+        // Decimal itself as a UnitDef, found no `.ratio` property, and
+        // silently defaulted to a ratio of 1 — a wrong-answer trap for any
+        // kind (in this codebase or a third party's) that writes a bare
+        // Decimal the way `new Decimal(5).div(9)` is written elsewhere.
+        units: { c: 1, f: new Decimal(5).div(9) },
+      },
+    }),
+  );
+  expect(
+    n.units
+      .get("f")
+      ?.ratio(ctx(val("f")))
+      .toString(),
+  ).toBe("0.5555555555555555555555555556");
+});
+
 test("defineKind deep-freezes its descriptor", () => {
   const k = defineKind({
     id: "x",
