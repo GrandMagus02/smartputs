@@ -5,7 +5,26 @@ export * from "./errors";
 export type { Quantity, QuantityClass, QuantityInput } from "./facade/index";
 export { createFacade, createFacades } from "./facade/index";
 export { defineKind } from "./kind/define";
-export { BUILTIN_KINDS, duration, length, mass, number } from "./kinds/index";
+// Every built-in kind is exported by name, not only as an anonymous member of
+// BUILTIN_KINDS. `measure` in particular has no other route: it is deliberately
+// left out of BUILTIN_KINDS (its mm/cm aliases collide with `length`), so
+// opting in by name is the only way to use it at all.
+export {
+  angle,
+  area,
+  BUILTIN_KINDS,
+  datasize,
+  duration,
+  length,
+  mass,
+  measure,
+  number,
+  percent,
+  speed,
+  tempdelta,
+  temperature,
+  volume,
+} from "./kinds/index";
 export { createAnalyzerChain } from "./locale/analyze";
 export { defineLocale, defineLocalePack } from "./locale/define";
 export { identity, suffixStripper, tableAnalyzer } from "./locale/helpers";
