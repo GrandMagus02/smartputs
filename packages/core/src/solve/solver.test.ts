@@ -85,6 +85,34 @@ test("a dimension mismatch on a convert names the operand before the target", ()
   }
 });
 
+test("a bare numeric literal operand is reported as number, not unknown", () => {
+  // `2 / 10 km` has no signature (`/|number|length` is never generated) and
+  // no slot for the literal, so the report used to name the one operand it
+  // could see and invent the other: "length and unknown" — the wrong kind for
+  // the left operand and the wrong order too.
+  try {
+    run("2 / 10 km");
+    throw new Error("should have thrown");
+  } catch (e) {
+    const err = e as DimensionMismatchError;
+    expect(err.left).toBe("number");
+    expect(err.right).toBe("length");
+    expect(err.message).not.toContain("unknown");
+  }
+});
+
+test("a literal on the right is reported in source order too", () => {
+  // `+|length|number` is never generated either, so this is the mirror case.
+  try {
+    run("10 km + 2");
+    throw new Error("should have thrown");
+  } catch (e) {
+    const err = e as DimensionMismatchError;
+    expect(err.left).toBe("length");
+    expect(err.right).toBe("number");
+  }
+});
+
 test("weights flip an ambiguous result", () => {
   const { assignments } = run("10 m", [{ "duration:min": 999 }]);
   expect(assignments[0]?.kind).toBe("duration");
