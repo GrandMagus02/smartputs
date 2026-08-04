@@ -1,0 +1,13 @@
+{
+  "name": "@smartput/core",
+  "version": "0.0.0",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./locale/en": "./src/locale/en.ts",
+    "./testing": "./src/testing/index.ts"
+  },
+  "dependencies": {
+    "decimal.js": "^10.6.0"
+  }
+}

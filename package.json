@@ -1,0 +1,20 @@
+{
+  "name": "smartputs-monorepo",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "test": "bun test",
+    "lint": "biome check .",
+    "format": "biome format --write .",
+    "typecheck": "tsc -p packages/core/tsconfig.json --noEmit",
+    "check-deps": "bun run scripts/check-deps.ts",
+    "check": "bun run lint && bun run typecheck && bun run check-deps && bun test"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.0.0",
+    "typescript": "^5.7.0"
+  }
+}
