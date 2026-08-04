@@ -181,7 +181,7 @@ export function createEngine(opts: EngineOptions): Engine {
       }
       const best = assignments.find((a) => a.kind === kind);
       if (best === undefined) throw new NoCandidateError(input, input, []);
-      return evaluateNode(node, best, registry, locale.id, input).value;
+      return evaluateNode(node, best, registry, locale.id, input, kindMeta).value;
     },
 
     explain(input, call) {

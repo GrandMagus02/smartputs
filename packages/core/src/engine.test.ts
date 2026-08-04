@@ -205,6 +205,16 @@ test("a custom five-line kind works end to end", () => {
   expect(e.evaluate("2 mib + 500 kb in kb").formatted).toBe("2,597.152kb");
 });
 
+test("kindMeta configured on the engine reaches Value.meta via evaluate and coerce", () => {
+  const withMeta = createEngine({
+    locales: [en],
+    kinds: BUILTIN_KINDS,
+    kindMeta: { length: { source: "engine-default" } },
+  });
+  expect(withMeta.evaluate("10 km").value.meta).toEqual({ source: "engine-default" });
+  expect(withMeta.coerce("length", "10 km").meta).toEqual({ source: "engine-default" });
+});
+
 test("engines with different locales coexist", () => {
   const a = createEngine({ locales: [en], kinds: BUILTIN_KINDS });
   const b = createEngine({
