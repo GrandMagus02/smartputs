@@ -1,0 +1,104 @@
+[
+  {
+    "label": "docs:dev",
+    "command": "bun",
+    "args": ["run", "docs:dev"],
+    "cwd": "$ZED_WORKTREE_ROOT",
+    "use_new_terminal": false,
+    "allow_concurrent_runs": false,
+    "reveal": "always",
+    "tags": ["docs"]
+  },
+  {
+    "label": "docs:build",
+    "command": "bun",
+    "args": ["run", "docs:build"],
+    "cwd": "$ZED_WORKTREE_ROOT",
+    "use_new_terminal": false,
+    "allow_concurrent_runs": false,
+    "reveal": "always",
+    "tags": ["docs"]
+  },
+  {
+    "label": "docs:preview",
+    "command": "bun",
+    "args": ["run", "docs:preview"],
+    "cwd": "$ZED_WORKTREE_ROOT",
+    "use_new_terminal": false,
+    "allow_concurrent_runs": false,
+    "reveal": "always",
+    "tags": ["docs"]
+  },
+  {
+    "label": "test",
+    "command": "bun",
+    "args": ["run", "test"],
+    "cwd": "$ZED_WORKTREE_ROOT",
+    "use_new_terminal": false,
+    "allow_concurrent_runs": false,
+    "reveal": "always"
+  },
+  {
+    "label": "test (watch)",
+    "command": "bun",
+    "args": ["test", "--watch"],
+    "cwd": "$ZED_WORKTREE_ROOT",
+    "use_new_terminal": false,
+    "allow_concurrent_runs": false,
+    "reveal": "always"
+  },
+  {
+    "label": "test: current file",
+    "command": "bun",
+    "args": ["test", "$ZED_FILE"],
+    "cwd": "$ZED_WORKTREE_ROOT",
+    "use_new_terminal": false,
+    "allow_concurrent_runs": true,
+    "reveal": "always"
+  },
+  {
+    "label": "lint",
+    "command": "bun",
+    "args": ["run", "lint"],
+    "cwd": "$ZED_WORKTREE_ROOT",
+    "use_new_terminal": false,
+    "allow_concurrent_runs": false,
+    "reveal": "always"
+  },
+  {
+    "label": "format",
+    "command": "bun",
+    "args": ["run", "format"],
+    "cwd": "$ZED_WORKTREE_ROOT",
+    "use_new_terminal": false,
+    "allow_concurrent_runs": false,
+    "reveal": "always"
+  },
+  {
+    "label": "typecheck",
+    "command": "bun",
+    "args": ["run", "typecheck"],
+    "cwd": "$ZED_WORKTREE_ROOT",
+    "use_new_terminal": false,
+    "allow_concurrent_runs": false,
+    "reveal": "always"
+  },
+  {
+    "label": "check-deps",
+    "command": "bun",
+    "args": ["run", "check-deps"],
+    "cwd": "$ZED_WORKTREE_ROOT",
+    "use_new_terminal": false,
+    "allow_concurrent_runs": false,
+    "reveal": "always"
+  },
+  {
+    "label": "check (lint + types + deps + tests)",
+    "command": "bun",
+    "args": ["run", "check"],
+    "cwd": "$ZED_WORKTREE_ROOT",
+    "use_new_terminal": false,
+    "allow_concurrent_runs": false,
+    "reveal": "always"
+  }
+]

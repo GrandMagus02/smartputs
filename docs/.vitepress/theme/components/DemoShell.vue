@@ -1,9 +1,9 @@
 <script setup lang="ts">
 defineProps<{
-  title: string
-  icon?: string
-  hint?: string
-}>()
+  title: string;
+  icon?: string;
+  hint?: string;
+}>();
 </script>
 
 <template>
@@ -76,10 +76,17 @@ defineProps<{
   padding: 10px 16px;
   border-top: 1px solid var(--vp-c-divider);
   font-size: 13px;
-  line-height: 1.6;
+  line-height: 1.7;
   color: var(--vp-c-text-2);
-  display: flex;
-  gap: 8px;
-  align-items: baseline;
+}
+
+/* The hint is prose with inline `code` in it, so it must stay a normal text
+   flow — a flex container would make every inline child its own column. */
+.sp-demo__hint > .i-lucide-message-square-quote {
+  margin-right: 6px;
+}
+
+.sp-demo__hint code {
+  font-size: 12px;
 }
 </style>

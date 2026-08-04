@@ -44,12 +44,14 @@ export function evaluateSafely(engine: Engine, input: string): EvalOutcome {
   try {
     return { status: "ok", result: engine.evaluate(input) };
   } catch (error) {
+    // `error.name` and not `constructor.name`: the client bundle is minified,
+    // so the class name is mangled while `name` is a literal the library sets.
     if (error instanceof SmartputError) {
-      return { status: "error", name: error.constructor.name, message: error.message };
+      return { status: "error", name: error.name, message: error.message };
     }
     return {
       status: "error",
-      name: "Error",
+      name: error instanceof Error ? error.name : "Error",
       message: error instanceof Error ? error.message : String(error),
     };
   }

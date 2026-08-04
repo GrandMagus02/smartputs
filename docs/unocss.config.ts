@@ -31,6 +31,9 @@ export default defineConfig({
     "i-lucide-weight",
     "i-lucide-timer",
     "i-lucide-hash",
+    // Fallback icon for a kind with no entry in KIND_ICONS — the custom-kind
+    // demo registers kinds that cannot be known at build time.
+    "i-lucide-shapes",
     "i-lucide-circle-check",
     "i-lucide-circle-x",
     "i-lucide-copy",

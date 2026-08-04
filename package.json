@@ -3,10 +3,14 @@
   "private": true,
   "type": "module",
   "workspaces": [
-    "packages/*"
+    "packages/*",
+    "docs"
   ],
   "scripts": {
     "test": "bun test",
+    "docs:dev": "bun run --cwd docs dev",
+    "docs:build": "bun run --cwd docs build",
+    "docs:preview": "bun run --cwd docs preview",
     "lint": "biome check .",
     "format": "biome format --write .",
     "typecheck": "tsc -p packages/core/tsconfig.json --noEmit",

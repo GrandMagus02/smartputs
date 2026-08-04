@@ -1,0 +1,156 @@
+<script setup lang="ts">
+import { computed } from "vue";
+import { type EvalOutcome, kindIcon } from "../engine";
+
+const props = defineProps<{
+  outcome: EvalOutcome;
+  /** Hide the canonical/unit/confidence grid for compact demos. */
+  compact?: boolean;
+}>();
+
+const confidencePercent = computed(() =>
+  props.outcome.status === "ok"
+    ? `${Math.round(props.outcome.result.confidence * 100)}%`
+    : "",
+);
+</script>
+
+<template>
+  <div v-if="outcome.status === 'empty'" class="sp-result sp-result--idle">
+    <span class="i-lucide-terminal" aria-hidden="true" />
+    <span>Type an expression to evaluate it.</span>
+  </div>
+
+  <div v-else-if="outcome.status === 'error'" class="sp-result sp-result--error">
+    <div class="sp-result__line">
+      <span class="i-lucide-circle-x" aria-hidden="true" />
+      <code class="sp-result__errname">{{ outcome.name }}</code>
+    </div>
+    <p class="sp-result__msg">{{ outcome.message }}</p>
+  </div>
+
+  <div v-else class="sp-result sp-result--ok">
+    <div class="sp-result__line">
+      <span :class="kindIcon(outcome.result.kind)" aria-hidden="true" />
+      <strong class="sp-result__formatted">{{ outcome.result.formatted }}</strong>
+      <span class="sp-result__kind">{{ outcome.result.kind }}</span>
+    </div>
+
+    <dl v-if="!compact" class="sp-result__grid">
+      <div>
+        <dt>canonical</dt>
+        <dd><code>{{ outcome.result.value.canonical.toString() }}</code></dd>
+      </div>
+      <div>
+        <dt>unit</dt>
+        <dd><code>{{ outcome.result.value.unit }}</code></dd>
+      </div>
+      <div>
+        <dt>confidence</dt>
+        <dd><code>{{ confidencePercent }}</code></dd>
+      </div>
+    </dl>
+
+    <p v-if="outcome.result.meta.assumptions.length" class="sp-result__assumptions">
+      <span class="i-lucide-triangle-alert" aria-hidden="true" />
+      {{ outcome.result.meta.assumptions.join('; ') }}
+    </p>
+  </div>
+</template>
+
+<style scoped>
+.sp-result {
+  border-radius: 8px;
+  padding: 12px 14px;
+  font-size: 14px;
+  border: 1px solid var(--vp-c-divider);
+  background: var(--vp-c-bg);
+}
+
+.sp-result--idle {
+  color: var(--vp-c-text-3);
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.sp-result--error {
+  border-color: var(--vp-c-danger-1);
+  background: var(--vp-c-danger-soft);
+}
+
+.sp-result--ok {
+  border-color: var(--vp-c-brand-1);
+}
+
+.sp-result__line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sp-result--error .sp-result__line {
+  color: var(--vp-c-danger-1);
+}
+
+.sp-result--ok .sp-result__line {
+  color: var(--vp-c-brand-1);
+}
+
+.sp-result__formatted {
+  font-family: var(--vp-font-family-mono);
+  font-size: 18px;
+  color: var(--vp-c-text-1);
+  word-break: break-all;
+}
+
+.sp-result__kind {
+  margin-left: auto;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--vp-c-text-2);
+}
+
+.sp-result__errname {
+  font-size: 13px;
+}
+
+.sp-result__msg {
+  margin: 6px 0 0;
+  color: var(--vp-c-text-1);
+  line-height: 1.6;
+}
+
+.sp-result__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 10px;
+  margin: 12px 0 0;
+}
+
+.sp-result__grid dt {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--vp-c-text-3);
+}
+
+.sp-result__grid dd {
+  margin: 2px 0 0;
+}
+
+.sp-result__grid code {
+  font-size: 12px;
+  word-break: break-all;
+}
+
+.sp-result__assumptions {
+  margin: 10px 0 0;
+  font-size: 13px;
+  color: var(--vp-c-text-2);
+  display: flex;
+  gap: 6px;
+  align-items: baseline;
+}
+</style>

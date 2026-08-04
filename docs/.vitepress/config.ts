@@ -7,7 +7,7 @@ import en from "./locales/en";
 const repoRoot = fileURLToPath(new URL("../..", import.meta.url));
 
 export default defineConfig({
-  title: "smartputs",
+  title: "Smartputs",
   // `srcDir` is the docs folder itself; the planning documents that live
   // alongside it are not part of the site.
   srcExclude: ["superpowers/**", "**/README.md"],
@@ -29,7 +29,7 @@ export default defineConfig({
 
   themeConfig: {
     logo: "/favicon.svg",
-    siteTitle: "smartputs",
+    siteTitle: "Smartputs",
     socialLinks: [{ icon: "github", link: "https://github.com/GrandMagus/smartputs" }],
     search: { provider: "local" },
   },
@@ -47,17 +47,12 @@ export default defineConfig({
         generateLLMFriendlyDocsForEachPage: true,
       }),
     ],
-    resolve: {
-      alias: {
-        // The workspace package exports TypeScript source, so the demos run
-        // the same code the tests do — no build step between them.
-        "@smartput/core": `${repoRoot}packages/core/src/index.ts`,
-        "@smartput/core/locale/en": `${repoRoot}packages/core/src/locale/en.ts`,
-      },
-    },
-    // Vite must transform that TypeScript for the SSR pass as well; Node
-    // cannot load it directly.
+    // `@smartput/core` is a workspace symlink whose exports point at
+    // TypeScript source, so the demos run the same code the tests do — no
+    // build step in between. Vite must transform it for the SSR pass too,
+    // and the dev server has to be allowed to read outside `docs/`.
     ssr: { noExternal: ["@smartput/core"] },
     optimizeDeps: { exclude: ["@smartput/core"] },
+    server: { fs: { allow: [repoRoot] } },
   },
 });

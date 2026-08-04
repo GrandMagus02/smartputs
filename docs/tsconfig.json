@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "target": "ES2023",
+    "module": "Preserve",
+    "moduleResolution": "bundler",
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "strict": true,
+    "noEmit": true,
+    "jsx": "preserve",
+    "skipLibCheck": true,
+    "allowImportingTsExtensions": true,
+    "types": ["vite/client"],
+    "paths": {
+      "@smartput/core": ["../packages/core/src/index.ts"],
+      "@smartput/core/locale/en": ["../packages/core/src/locale/en.ts"]
+    }
+  },
+  "include": [".vitepress/**/*.ts", ".vitepress/**/*.vue", "unocss.config.ts"]
+}

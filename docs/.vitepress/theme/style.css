@@ -1,0 +1,154 @@
+/**
+ * Brand palette and the shared form controls the interactive demos use.
+ * Anything scoped to a single demo lives in that component instead.
+ */
+
+:root {
+  --vp-c-brand-1: #2f8f66;
+  --vp-c-brand-2: #34a374;
+  --vp-c-brand-3: #3cb684;
+  --vp-c-brand-soft: rgba(52, 163, 116, 0.14);
+
+  --vp-home-hero-name-color: transparent;
+  --vp-home-hero-name-background: linear-gradient(120deg, #2f8f66, #6fbf8f 60%, #b8d95f);
+  --vp-home-hero-image-background-image: linear-gradient(
+    -45deg,
+    rgba(52, 163, 116, 0.6),
+    rgba(184, 217, 95, 0.5)
+  );
+  --vp-home-hero-image-filter: blur(48px);
+}
+
+.dark {
+  --vp-c-brand-1: #5cc596;
+  --vp-c-brand-2: #4fb888;
+  --vp-c-brand-3: #3ea073;
+  --vp-c-brand-soft: rgba(92, 197, 150, 0.16);
+}
+
+/* ------------------------------------------------------------ hero slot --- */
+
+/* The default hero image box is a fixed 320/392px square holding a blurred
+   blob. The calculator needs to size itself, so the box collapses to its
+   content and the blob stays behind it as a glow. */
+.VPHero .image {
+  margin: 24px 0 0;
+}
+
+.VPHero .image-container {
+  width: 100%;
+  height: auto;
+  margin: 0;
+  transform: none;
+  display: flex;
+  justify-content: center;
+}
+
+.VPHero .image-bg {
+  width: 260px;
+  height: 260px;
+  z-index: -1;
+}
+
+@media (min-width: 960px) {
+  .VPHero .image {
+    margin: 0;
+  }
+  .VPHero .image-container {
+    justify-content: flex-end;
+  }
+}
+
+/* ---------------------------------------------------------------- demos --- */
+
+.sp-field {
+  display: block;
+  margin-bottom: 12px;
+}
+
+.sp-field__label {
+  display: block;
+  margin-bottom: 5px;
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--vp-c-text-3);
+}
+
+.sp-field__label code {
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 11px;
+}
+
+.sp-input {
+  width: 100%;
+  padding: 9px 12px;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 8px;
+  background: var(--vp-c-bg);
+  color: var(--vp-c-text-1);
+  font-family: var(--vp-font-family-mono);
+  font-size: 14px;
+  line-height: 1.5;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
+}
+
+.sp-input:focus {
+  outline: none;
+  border-color: var(--vp-c-brand-1);
+  box-shadow: 0 0 0 3px var(--vp-c-brand-soft);
+}
+
+.sp-input--sm {
+  padding: 6px 9px;
+  font-size: 13px;
+}
+
+.sp-input--num {
+  font-variant-numeric: tabular-nums;
+}
+
+.sp-input--area {
+  resize: vertical;
+  min-height: 96px;
+}
+
+.sp-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0 0 12px;
+}
+
+.sp-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 999px;
+  background: var(--vp-c-bg);
+  color: var(--vp-c-text-2);
+  font-family: var(--vp-font-family-mono);
+  font-size: 12px;
+  line-height: 1.6;
+  transition:
+    color 0.2s,
+    border-color 0.2s;
+}
+
+.sp-chip:hover {
+  color: var(--vp-c-brand-1);
+  border-color: var(--vp-c-brand-1);
+}
+
+/* Feature icons on the home page: the `icon` frontmatter field renders raw
+   HTML, so an icon span needs a size the utility class does not carry. */
+.VPFeature .icon [class^="i-lucide-"] {
+  width: 22px;
+  height: 22px;
+}
