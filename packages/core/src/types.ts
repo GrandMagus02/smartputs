@@ -1,7 +1,7 @@
 import type { Decimal } from "./decimal";
 
 export type KindId = string;
-export type OpSymbol = "+" | "-" | "*" | "/" | "in";
+export type OpSymbol = "+" | "-" | "*" | "/" | "in" | "of";
 export type Keyword = "in" | "to" | "as" | "plus" | "minus" | "of";
 
 export interface Span {

@@ -7,6 +7,12 @@ import type { Token } from "./lex";
 const BINDING: Record<Exclude<OpSymbol, "in">, number> = {
   "+": 10,
   "-": 10,
+  // Between + and *: "50 + 20% of 100" is 50 + (20% of 100). The lexer does
+  // not yet produce an "of" op token (that lands with the parser support in
+  // a later task) — this entry exists so OpSymbol's exhaustiveness check
+  // here is satisfied now that Task 1's percent generation needs "of" on
+  // OpSymbol.
+  of: 15,
   "*": 20,
   "/": 20,
 };

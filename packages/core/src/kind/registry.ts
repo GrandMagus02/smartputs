@@ -10,7 +10,7 @@ import type {
 import { type NormalizedKind, normalizeKind } from "./define";
 import { generateRatioOps } from "./ratio-ops";
 
-export { NUMBER_KIND } from "./ratio-ops";
+export { NUMBER_KIND, PERCENT_KIND } from "./ratio-ops";
 
 export interface AliasEntry {
   kind: KindId;
