@@ -101,6 +101,16 @@ test("coerce throws when no candidate matches the kind", () => {
   expect(() => engine.coerce("mass", "10 m")).toThrow(NoCandidateError);
 });
 
+// Spec §3: the filter drops unit candidates, and a bare numeric literal has no
+// candidate set to drop from. Without this, `10 kg * 2` under kinds:["mass"]
+// would look like it needs "number" in the filter to survive — it does not.
+test("opts.kinds filters unit candidates, never bare numbers", () => {
+  expect(engine.evaluate("10 kg * 2", { kinds: ["mass"] }).formatted).toBe(
+    engine.evaluate("10 kg * 2").formatted,
+  );
+  expect(engine.coerce("mass", "10 kg * 2").canonical.toString()).toBe("20000");
+});
+
 test("mismatched dimensions throw", () => {
   expect(() => engine.evaluate("5 kg + 3 km")).toThrow(DimensionMismatchError);
 });
