@@ -20,6 +20,39 @@ interface Slot {
   candidates: Candidate[];
 }
 
+/**
+ * The operand kinds a DimensionMismatchError should name, in source order.
+ *
+ * Deliberately not `collectSlots`: a bare numeric literal has no slot (there
+ * is nothing to choose), so "2 / 20 C" used to report `temperature and
+ * unknown` — naming the one operand it could see and inventing the other,
+ * in the wrong order. It is a `number`, and saying so is the whole job here.
+ *
+ * For a quantity the source position is the quantity itself; for a convert
+ * the reported candidates are the *target* unit's, so the target token's own
+ * span is what source order means, not the span of the whole conversion
+ * expression (which starts at the operand, before the target).
+ */
+function reportedOperands(root: Node, kinds: KindId[] | undefined): KindId[] {
+  const refs: Array<{ start: number; kind: KindId }> = [];
+  const pick = (candidates: Candidate[]): KindId =>
+    (kinds === undefined
+      ? candidates
+      : candidates.filter((c) => kinds.includes(c.kind)))[0]?.kind ?? "unknown";
+
+  walk(root, (node) => {
+    if (node.type === "quantity") {
+      refs.push({ start: node.span.start, kind: pick(node.candidates) });
+    } else if (node.type === "convert") {
+      refs.push({ start: node.targetSpan.start, kind: pick(node.target) });
+    } else if (node.type === "number") {
+      refs.push({ start: node.span.start, kind: NUMBER_KIND });
+    }
+  });
+
+  return refs.sort((a, b) => a.start - b.start).map((r) => r.kind);
+}
+
 function collectSlots(root: Node, kinds: KindId[] | undefined): Slot[] {
   const slots: Slot[] = [];
   walk(root, (node) => {
@@ -142,9 +175,13 @@ export function solve(
   enumerate(0, new Map(), 0);
 
   if (viable.length === 0) {
-    const first = slots[0]?.candidates[0]?.kind ?? "unknown";
-    const second = slots[1]?.candidates[0]?.kind ?? "unknown";
-    throw new DimensionMismatchError(opts.input, "operation", first, second);
+    const operands = reportedOperands(root, opts.kinds);
+    throw new DimensionMismatchError(
+      opts.input,
+      "operation",
+      operands[0] ?? "unknown",
+      operands[1] ?? "unknown",
+    );
   }
 
   viable.sort(

@@ -67,23 +67,34 @@ export class TooAmbiguousError extends SmartputError {
   }
 }
 
-export class KindConflictError extends Error {
+/**
+ * These last two are configuration errors rather than input errors, but they
+ * still extend SmartputError: the facade throws KindConflictError at runtime
+ * (an affine kind whose delta kind has no facade), so a consumer's
+ * `instanceof SmartputError` guard has to catch them. There is no source
+ * expression to report, so `input` carries the offending id instead.
+ */
+export class KindConflictError extends SmartputError {
+  readonly kind: KindId;
   constructor(id: string, detail: string) {
-    super(`Kind ${JSON.stringify(id)} conflicts: ${detail}`);
-    this.name = "KindConflictError";
+    super(`Kind ${JSON.stringify(id)} conflicts: ${detail}`, id);
+    this.kind = id;
   }
 }
 
-export class UnknownKindError extends Error {
+export class UnknownKindError extends SmartputError {
   readonly pack: string;
   readonly kind: KindId;
-  constructor(pack: string, kind: KindId) {
+  readonly unit: string | undefined;
+  constructor(pack: string, kind: KindId, unit?: string) {
+    const where = unit === undefined ? "" : `, unit ${JSON.stringify(unit)}`;
     super(
-      `Locale pack ${JSON.stringify(pack)} contributes to unregistered kind ${JSON.stringify(kind)}`,
+      `Locale pack ${JSON.stringify(pack)} contributes to unregistered kind ${JSON.stringify(kind)}${where}`,
+      pack,
     );
-    this.name = "UnknownKindError";
     this.pack = pack;
     this.kind = kind;
+    this.unit = unit;
   }
 }
 

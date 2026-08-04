@@ -74,6 +74,22 @@ test("skips unrecognized characters instead of throwing", () => {
   expect(lex("10 kg @@ 5", en).map((t) => t.type)).toEqual(["number", "word", "number"]);
 });
 
+test("a unit symbol in the allowlist lexes as a word", () => {
+  const tokens = lex("20%", en);
+  expect(tokens.map((t) => t.type)).toEqual(["number", "word"]);
+  expect(tokens[1]).toMatchObject({ type: "word", text: "%", start: 2, end: 3 });
+});
+
+test("a degree sign is still skipped, so 20 °C resolves via the C word alone", () => {
+  // This is the case that rules out a general "any symbol becomes a word"
+  // fix: "°" is not in UNIT_SYMBOLS, so it falls through the
+  // unrecognized-character path exactly like today, and "°C" lexes as the
+  // single word "C".
+  const tokens = lex("20 °C", en);
+  expect(tokens.map((t) => t.type)).toEqual(["number", "word"]);
+  expect(tokens[1]).toMatchObject({ type: "word", text: "C" });
+});
+
 test("word runs are split by the locale segmenter when provided", () => {
   const zh = defineLocale({
     id: "zh",

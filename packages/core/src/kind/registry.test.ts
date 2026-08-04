@@ -1,7 +1,9 @@
 import { expect, test } from "bun:test";
 import { Decimal } from "../decimal";
-import { KindConflictError, UnknownKindError } from "../errors";
+import { DimensionMismatchError, KindConflictError, UnknownKindError } from "../errors";
+import { BUILTIN_KINDS } from "../kinds/index";
 import { defineLocalePack } from "../locale/define";
+import type { EvalCtx, Value } from "../types";
 import { defineKind } from "./define";
 import { buildRegistry, opKey } from "./registry";
 
@@ -114,6 +116,21 @@ test("a pack naming an unregistered unit throws", () => {
     contributes: { mass: { nosuchunit: ["x"] } },
   });
   expect(() => buildRegistry([number, mass], [pack], "en")).toThrow(UnknownKindError);
+});
+
+test("an unregistered unit reports a bare kind id and the unit separately", () => {
+  const pack = defineLocalePack({
+    locale: "en",
+    contributes: { mass: { nosuchunit: ["x"] } },
+  });
+  try {
+    buildRegistry([number, mass], [pack], "en");
+    throw new Error("should have thrown");
+  } catch (e) {
+    expect(e).toBeInstanceOf(UnknownKindError);
+    expect((e as UnknownKindError).kind).toBe("mass");
+    expect((e as UnknownKindError).unit).toBe("nosuchunit");
+  }
 });
 
 test("a third-party kind cannot hijack another kind's signature", () => {
@@ -246,4 +263,182 @@ test("an ambiguous alias yields several entries sorted by kind id", () => {
     { kind: "duration", unit: "min" },
     { kind: "length", unit: "m" },
   ]);
+});
+
+// --- The op table is the type system -------------------------------------
+//
+// An operation is legal exactly when a signature exists for its key, so the
+// full key list IS the public contract of what smartputs can compute. Twelve
+// per-task reviews could not see it: each task only ever looked at its own
+// kind, and both a missing key (`20% * 3` had no signature while the facade's
+// `Percent.scale(3)` answered it) and a key that silently belongs to the wrong
+// kind (`20 C + 20%` captured by tempdelta) are invisible one kind at a time.
+//
+// A key is listed as "refuses" when its `apply` throws DimensionMismatchError.
+// Those exist because an affine kind cannot forbid an operation by *absence*:
+// its delta kind shares its aliases and would capture the key instead.
+//
+// If this test fails, the diff names exactly which keys appeared, vanished, or
+// changed between answering and refusing. Update the list only once you can
+// say why each moved -- an unexplained move is the bug this test exists for.
+const OP_TABLE = [
+  "*|angle|number",
+  "*|area|length",
+  "*|area|number",
+  "*|datasize|number",
+  "*|duration|number",
+  "*|length|area",
+  "*|length|length",
+  "*|length|number",
+  "*|mass|number",
+  "*|number|angle",
+  "*|number|area",
+  "*|number|datasize",
+  "*|number|duration",
+  "*|number|length",
+  "*|number|mass",
+  "*|number|number",
+  "*|number|percent",
+  "*|number|speed",
+  "*|number|tempdelta",
+  "*|number|temperature  (refuses)",
+  "*|number|volume",
+  "*|percent|number",
+  "*|percent|percent",
+  "*|speed|number",
+  "*|tempdelta|number",
+  "*|temperature|number  (refuses)",
+  "*|volume|number",
+  "+|angle|angle",
+  "+|angle|percent",
+  "+|area|area",
+  "+|area|percent",
+  "+|datasize|datasize",
+  "+|datasize|percent",
+  "+|duration|duration",
+  "+|duration|percent",
+  "+|length|length",
+  "+|length|percent",
+  "+|mass|mass",
+  "+|mass|percent",
+  "+|number|number",
+  "+|number|percent",
+  "+|percent|percent",
+  "+|speed|percent",
+  "+|speed|speed",
+  "+|tempdelta|percent",
+  "+|tempdelta|tempdelta",
+  "+|temperature|percent  (refuses)",
+  "+|temperature|tempdelta",
+  "+|volume|percent",
+  "+|volume|volume",
+  "-|angle|angle",
+  "-|angle|percent",
+  "-|area|area",
+  "-|area|percent",
+  "-|datasize|datasize",
+  "-|datasize|percent",
+  "-|duration|duration",
+  "-|duration|percent",
+  "-|length|length",
+  "-|length|percent",
+  "-|mass|mass",
+  "-|mass|percent",
+  "-|number|number",
+  "-|number|percent",
+  "-|percent|percent",
+  "-|speed|percent",
+  "-|speed|speed",
+  "-|tempdelta|percent",
+  "-|tempdelta|tempdelta",
+  "-|temperature|percent  (refuses)",
+  "-|temperature|tempdelta",
+  "-|temperature|temperature",
+  "-|volume|percent",
+  "-|volume|volume",
+  "/|angle|number",
+  "/|area|number",
+  "/|datasize|number",
+  "/|duration|number",
+  "/|length|duration",
+  "/|length|number",
+  "/|mass|number",
+  "/|number|number",
+  "/|percent|number",
+  "/|percent|percent",
+  "/|speed|number",
+  "/|tempdelta|number",
+  "/|temperature|number  (refuses)",
+  "/|volume|number",
+  "in|angle|angle",
+  "in|area|area",
+  "in|datasize|datasize",
+  "in|duration|duration",
+  "in|length|length",
+  "in|mass|mass",
+  "in|number|number",
+  "in|percent|percent",
+  "in|speed|speed",
+  "in|tempdelta|tempdelta",
+  "in|temperature|temperature",
+  "in|volume|volume",
+  "of|percent|angle",
+  "of|percent|area",
+  "of|percent|datasize",
+  "of|percent|duration",
+  "of|percent|length",
+  "of|percent|mass",
+  "of|percent|number",
+  "of|percent|speed",
+  "of|percent|tempdelta",
+  "of|percent|temperature  (refuses)",
+  "of|percent|volume",
+];
+
+const META = Object.freeze({ probe: "meta" });
+
+/** A stand-in operand of `kindId`, in that kind's canonical unit, carrying meta. */
+function operand(registry: ReturnType<typeof buildRegistry>, kindId: string): Value {
+  const kind = registry.kinds.get(kindId);
+  const unit = kind?.spec.mode === "ratio" ? kind.spec.canonical : "one";
+  return { kind: kindId, canonical: new Decimal(2), unit, meta: META };
+}
+
+const evalCtx = (self: Value): EvalCtx => ({ self, locale: "en", input: "probe" });
+
+/** Applies `sig` to stand-in operands; null when the signature refuses. */
+function probe(
+  registry: ReturnType<typeof buildRegistry>,
+  sig: { left: string; right: string; apply: (l: Value, r: Value, c: EvalCtx) => Value },
+): Value | null {
+  const l = operand(registry, sig.left);
+  const r = operand(registry, sig.right);
+  try {
+    return sig.apply(l, r, evalCtx(l));
+  } catch (e) {
+    if (e instanceof DimensionMismatchError) return null;
+    throw e;
+  }
+}
+
+test("the built-in op table is exactly this, refusals included", () => {
+  const registry = buildRegistry(BUILTIN_KINDS, [], "en");
+  const actual = [...registry.ops.entries()]
+    .map(([key, sig]) => (probe(registry, sig) === null ? `${key}  (refuses)` : key))
+    .sort();
+  expect(actual).toEqual(OP_TABLE);
+});
+
+test("every signature that answers propagates its operand's meta", () => {
+  // `meta` is the design's one generic context mechanism (measure's dpi is the
+  // only current user). A hand-written `apply` that builds its Value literally
+  // drops it silently -- six of them did. `deriveValue` is the fix; this is
+  // the check that keeps it that way for every kind at once.
+  const registry = buildRegistry(BUILTIN_KINDS, [], "en");
+  const dropped: string[] = [];
+  for (const [key, sig] of registry.ops) {
+    const result = probe(registry, sig);
+    if (result !== null && result.meta === undefined) dropped.push(key);
+  }
+  expect(dropped).toEqual([]);
 });

@@ -7,6 +7,10 @@ import type { Token } from "./lex";
 const BINDING: Record<Exclude<OpSymbol, "in">, number> = {
   "+": 10,
   "-": 10,
+  // Between + and *: "50 + 20% of 100" is 50 + (20% of 100). "of" arrives as
+  // a *keyword* token, not an op token, so parseExpr reads this binding from
+  // its own branch below rather than from the `token.op` lookup.
+  of: 15,
   "*": 20,
   "/": 20,
 };
@@ -72,10 +76,9 @@ export function parse(tokens: Token[], resolver: Resolver, input: string): Node 
       const token = peek();
       if (token === undefined) break;
 
-      if (
-        token.type === "keyword" &&
-        (token.keyword === "in" || token.keyword === "to" || token.keyword === "as")
-      ) {
+      // "to" and "as" arrive here as `in` too: a locale lists them as aliases
+      // under its `in` key, and keywordFor returns the key, never the alias.
+      if (token.type === "keyword" && token.keyword === "in") {
         if (CONVERT_BINDING < minBinding) break;
         pos += 1;
         const unit = peek();
@@ -87,7 +90,28 @@ export function parse(tokens: Token[], resolver: Resolver, input: string): Node 
           ]);
         }
         pos += 1;
-        left = { type: "convert", operand: left, target, span: span(left.span, unit) };
+        left = {
+          type: "convert",
+          operand: left,
+          target,
+          span: span(left.span, unit),
+          targetSpan: { start: unit.start, end: unit.end },
+        };
+        continue;
+      }
+
+      if (token.type === "keyword" && token.keyword === "of") {
+        const binding = BINDING.of;
+        if (binding < minBinding) break;
+        pos += 1;
+        const right = parseExpr(binding + 1);
+        left = {
+          type: "binary",
+          op: "of",
+          left,
+          right,
+          span: span(left.span, right.span),
+        };
         continue;
       }
 

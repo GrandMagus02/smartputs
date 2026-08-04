@@ -114,6 +114,16 @@ test("never emits exponential notation, above or below Decimal's window", () => 
   );
 });
 
+test("a kind's own format hook wins over the default rendering", () => {
+  const shouty = defineKind({
+    id: "mass",
+    value: { mode: "ratio", canonical: "g", units: { g: 1, kg: 1000 } },
+    format: (v) => `<<${v.canonical.toFixed()}>>`,
+  });
+  const r = buildRegistry([number, shouty]);
+  expect(formatValue(value("1500", "kg"), r, en)).toBe("<<1500>>");
+});
+
 test("groups a 28-significant-digit value without losing a digit", () => {
   const digits = "1234567890123456789012345678";
   const out = formatValue(value(digits, "g"), registry, en);

@@ -1,8 +1,14 @@
 import type { Decimal } from "./decimal";
 
 export type KindId = string;
-export type OpSymbol = "+" | "-" | "*" | "/" | "in";
-export type Keyword = "in" | "to" | "as" | "plus" | "minus" | "of";
+export type OpSymbol = "+" | "-" | "*" | "/" | "in" | "of";
+/**
+ * The keys of `Locale.keywords`, not the surface words. A locale lists every
+ * word that means conversion under `in` (English: "in", "to", "as"), and
+ * `keywordFor` returns the key — so "to" and "as" are values, never keys, and
+ * a `Keyword` of "to" is unreachable by construction.
+ */
+export type Keyword = "in" | "of";
 
 export interface Span {
   start: number;
@@ -56,6 +62,12 @@ export type Lexicon = Record<string, UnitLexeme | string[]>;
 export interface EvalCtx {
   readonly self: Value;
   readonly locale: string;
+  /**
+   * The source expression being evaluated. Present while evaluating a parsed
+   * expression; absent during a standalone conversion (`toCanonical`/`fromCanonical`),
+   * which has no expression of its own to report.
+   */
+  readonly input?: string;
 }
 
 export interface FormatCtx {
@@ -71,7 +83,7 @@ export interface UnitDef {
 export interface RatioSpec {
   mode: "ratio";
   canonical: string;
-  units: Record<string, UnitDef | number>;
+  units: Record<string, UnitDef | number | Decimal>;
   affine?: { deltaKind: KindId };
 }
 
@@ -86,6 +98,13 @@ export interface OpSignature {
   left: KindId;
   right: KindId;
   result: KindId;
+  /**
+   * Recorded on the Result whenever this signature is applied. For operations
+   * that are defensible but not the only reading of the input — "20C + 5C"
+   * treats the right operand as a difference, because the alternative is
+   * meaningless rather than because the user said so.
+   */
+  assumption?: string;
   apply: (l: Value, r: Value, ctx: EvalCtx) => Value;
 }
 

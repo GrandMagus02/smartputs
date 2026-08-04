@@ -12,6 +12,20 @@ export type Token =
 
 const OPS: Record<string, OpSymbol> = { "+": "+", "-": "-", "*": "*", "/": "/" };
 
+// Unit symbols that are not letters and not arithmetic ops still need to
+// reach the resolver as a word so a kind's lexicon can claim them — "%" is
+// the M2 case, and M3's currency symbols ($, €, £, ...) are expected to add
+// entries here. This is an explicit allowlist, not a general "any symbol
+// character becomes a word" rule, because a general rule would break "20 °C":
+// "°" falls through the same unrecognized-character path below today, and
+// that is exactly what makes "°C" resolve as the single unit alias "C" — if
+// "°" became its own word token, "C" would still resolve but "°" would not,
+// and a general rule has no way to know that "°" should stay silent while
+// "%" should not. The principled general answer is threading the registry's
+// alias index into the lexer so any registered symbol alias lexes
+// automatically without either list; that was judged out of scope for M2.
+const UNIT_SYMBOLS = new Set(["%"]);
+
 function defaultSegment(run: string, localeId: string): string[] {
   const segmenter = new Intl.Segmenter(localeId, { granularity: "word" });
   return [...segmenter.segment(run)].filter((s) => s.isWordLike).map((s) => s.segment);
@@ -60,6 +74,12 @@ export function lex(input: string, locale: Locale): Token[] {
     const op = OPS[ch];
     if (op !== undefined) {
       tokens.push({ type: "op", op, start: i, end: i + 1 });
+      i += 1;
+      continue;
+    }
+
+    if (UNIT_SYMBOLS.has(ch)) {
+      tokens.push({ type: "word", text: ch, start: i, end: i + 1 });
       i += 1;
       continue;
     }

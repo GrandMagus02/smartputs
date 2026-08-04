@@ -18,7 +18,7 @@ const length = defineKind({
 const en = defineLocale({
   id: "en",
   numberFormat: "intl",
-  keywords: { in: ["in", "to", "as"] },
+  keywords: { in: ["in", "to", "as"], of: ["of"] },
 });
 const registry = buildRegistry([number, length]);
 const resolver = createResolver({ registry, locale: en, packs: [], layers: [] });
@@ -119,4 +119,9 @@ test("a quantity node preserves every candidate for an ambiguous unit", () => {
 test("nodes carry spans back to the source", () => {
   const node = ast("10 km");
   expect(node.span).toEqual({ start: 0, end: 5 });
+});
+
+test("the of keyword produces a binary node", () => {
+  const node = ast("2 of 3");
+  expect(node).toMatchObject({ type: "binary", op: "of" });
 });

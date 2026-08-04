@@ -6,12 +6,20 @@ import { BUILTIN_KINDS } from "./index";
 
 const registry = buildRegistry(BUILTIN_KINDS, [], "en");
 
-test("all four M1 kinds are registered", () => {
+test("all M1 and M2 built-in kinds are registered", () => {
   expect([...registry.kinds.keys()].sort()).toEqual([
+    "angle",
+    "area",
+    "datasize",
     "duration",
     "length",
     "mass",
     "number",
+    "percent",
+    "speed",
+    "tempdelta",
+    "temperature",
+    "volume",
   ]);
 });
 

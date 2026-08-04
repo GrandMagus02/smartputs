@@ -10,7 +10,7 @@ import type {
 import { type NormalizedKind, normalizeKind } from "./define";
 import { generateRatioOps } from "./ratio-ops";
 
-export { NUMBER_KIND } from "./ratio-ops";
+export { NUMBER_KIND, PERCENT_KIND } from "./ratio-ops";
 
 export interface AliasEntry {
   kind: KindId;
@@ -84,8 +84,7 @@ export function buildRegistry(
       if (kind === undefined) throw new UnknownKindError(pack.locale, kindId);
       for (const [unit, entry] of Object.entries(lexicon)) {
         const existing = kind.units.get(unit);
-        if (existing === undefined)
-          throw new UnknownKindError(pack.locale, `${kindId}:${unit}`);
+        if (existing === undefined) throw new UnknownKindError(pack.locale, kindId, unit);
         const patch: UnitLexeme = Array.isArray(entry) ? { aliases: entry } : entry;
         existing.lexeme = mergeLexeme(existing.lexeme, patch);
       }
