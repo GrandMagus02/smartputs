@@ -55,6 +55,12 @@ export interface UnitLexeme {
   aliases: string[];
   symbol?: string;
   display?: Partial<Record<Intl.LDMLPluralRule, string>>;
+  /**
+   * The magnitude band people actually type this unit in, inclusive at both
+   * ends. Read only by completion's `scaleFit`. Omitting it scores 0, which is
+   * the same as being out of band — declaring a band is never a penalty.
+   */
+  typical?: [number, number];
 }
 
 export type Lexicon = Record<string, UnitLexeme | string[]>;
