@@ -58,6 +58,9 @@ export function complete(args: {
 
       const kind = registry.kinds.get(entry.kind);
       if (kind === undefined) continue;
+      // Completion inserts "<number><unit>", which a time zone is not. Date
+      // completion has its own shape and is out of M4's scope (ruling R8).
+      if (kind.spec.mode !== "ratio") continue;
       const unit = kind.units.get(entry.unit);
       if (unit === undefined) continue;
 

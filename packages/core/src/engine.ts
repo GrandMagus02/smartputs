@@ -14,6 +14,7 @@ import { formatValue } from "./format/format";
 import { buildRegistry, NUMBER_KIND } from "./kind/registry";
 import { createResolver } from "./parse/candidates";
 import { lex, type Token } from "./parse/lex";
+import { foldLiterals } from "./parse/literals";
 import { normalize } from "./parse/normalize";
 import { foldNumerals } from "./parse/numerals";
 import { parse } from "./parse/pratt";
@@ -27,6 +28,7 @@ import type {
   KindId,
   Locale,
   LocalePack,
+  MatchCtx,
   RateLookup,
   ResultCandidate,
   Span,
@@ -74,11 +76,22 @@ export interface EngineOptions {
   rates?: RateLookup;
   /** Rounding mode for money formatting. Default ROUND_HALF_EVEN. */
   rounding?: Decimal.Rounding;
+  /**
+   * Injectable clock, epoch milliseconds. Spec §6 requires it: "today" and
+   * "next week monday" are untestable without one. Epoch milliseconds rather
+   * than a Temporal instant so core stays free of a Temporal dependency —
+   * `@smartput/datetime` converts.
+   */
+  now?: () => number;
+  /** IANA time zone every literal matcher resolves against. Defaults to the host zone. */
+  timeZone?: string;
 }
 
 export interface EvalOptions {
   kinds?: KindId[];
   weights?: Weights;
+  /** Per-call time zone, overriding `EngineOptions.timeZone`. */
+  timeZone?: string;
 }
 
 export interface Result {
@@ -125,6 +138,9 @@ export function createEngine(opts: EngineOptions): Engine {
   const formatPrecision = opts.formatPrecision;
   const rates = opts.rates;
   const rounding = opts.rounding;
+  const now = opts.now ?? (() => Date.now());
+  const hostZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const timeZone = opts.timeZone ?? hostZone;
 
   const layersFor = (call?: Weights) => [locale.weights, opts.weights, call];
 
@@ -138,7 +154,16 @@ export function createEngine(opts: EngineOptions): Engine {
       layers: layersFor(call?.weights),
     });
     const lexed = lex(normalized, locale as Locale);
-    const tokens = foldWordOps(foldNumerals(lexed, locale as Locale));
+    const matchCtx: MatchCtx = {
+      locale: (locale as Locale).id,
+      now: now(),
+      timeZone: call?.timeZone ?? timeZone,
+      isUnitAlias: (text) =>
+        registry.aliasIndex.has(text.toLocaleLowerCase((locale as Locale).id)),
+    };
+    const tokens = foldWordOps(
+      foldNumerals(foldLiterals(lexed, normalized, registry, matchCtx), locale as Locale),
+    );
     const node = parse(tokens, resolver, input);
     const assignments = solve(node, registry, {
       maxCandidates,

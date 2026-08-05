@@ -1,0 +1,15 @@
+{
+  "name": "@smartput/datetime",
+  "version": "0.0.0",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./locale/en": "./src/locale/en.ts"
+  },
+  "dependencies": {
+    "@smartput/core": "workspace:*",
+    "chrono-node": "^2.9.0",
+    "decimal.js": "^10.6.0",
+    "temporal-polyfill": "^0.3.0"
+  }
+}

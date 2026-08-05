@@ -1,0 +1,48 @@
+# input	kind	canonical	formatted
+#
+# The clock is 2026-01-15T12:00:00Z — a Thursday — and the engine zone is UTC.
+# `canonical` is epoch nanoseconds for a datetime and canonical seconds for a
+# duration. `formatted` follows "YYYY-MM-DD HH:MM <zone symbol>", with midnight
+# whenever the input named no time of day.
+
+# datetime — recognition
+today	datetime	1768435200000000000	2026-01-15 00:00 UTC
+tomorrow	datetime	1768521600000000000	2026-01-16 00:00 UTC
+yesterday	datetime	1768348800000000000	2026-01-14 00:00 UTC
+next week monday	datetime	1768780800000000000	2026-01-19 00:00 UTC
+# "next friday" is the Friday of the following week, not tomorrow: chrono reads
+# a "next" modifier as a whole week forward. 2026-01-16 is "friday".
+next friday	datetime	1769126400000000000	2026-01-23 00:00 UTC
+last monday	datetime	1768176000000000000	2026-01-12 00:00 UTC
+3pm	datetime	1768489200000000000	2026-01-15 15:00 UTC
+9:30	datetime	1768469400000000000	2026-01-15 09:30 UTC
+2026-03-01	datetime	1772323200000000000	2026-03-01 00:00 UTC
+2026-03-01 08:00	datetime	1772352000000000000	2026-03-01 08:00 UTC
+in 3 days	datetime	1768694400000000000	2026-01-18 00:00 UTC
+3 days ago	datetime	1768176000000000000	2026-01-12 00:00 UTC
+
+# datetime — arithmetic against core's duration kind
+today + 3 d	datetime	1768694400000000000	2026-01-18 00:00 UTC
+today - 1 wk	datetime	1767830400000000000	2026-01-08 00:00 UTC
+3 d + today	datetime	1768694400000000000	2026-01-18 00:00 UTC
+today + 2 h	datetime	1768442400000000000	2026-01-15 02:00 UTC
+today + 90 min	datetime	1768440600000000000	2026-01-15 01:30 UTC
+tomorrow - today	duration	86400	1 day
+# 2026-01-15 to 2026-03-01 is 45 days = 3,888,000s, which durationValue reports
+# in weeks because that is the largest unit it fills.
+2026-03-01 - today	duration	3888000	6.4285714285714285714285714 weeks
+
+# time-zone conversion — `in` keeps the instant and relabels the wall clock
+3pm in tokyo	datetime	1768489200000000000	2026-01-16 00:00 JST
+today in nyc	datetime	1768435200000000000	2026-01-14 19:00 ET
+9:30 in london	datetime	1768469400000000000	2026-01-15 09:30 London
+# "japan" comes from this package's English locale pack, not from ZONES.
+3pm in japan	datetime	1768489200000000000	2026-01-16 00:00 JST
+
+# Nothing below is a date. These rows are the accept-gate's regression guard
+# (plan ruling R4): if a chrono upgrade starts claiming them, they fail loudly.
+10 km + 5 km	length	15000	15 kilometres
+30 hours - 10 minutes	duration	107400	29.833333333333333333333333 hours
+5 min	duration	300	5 minutes
+20 C	temperature	20	20°C
+2 wk	duration	1209600	2 weeks

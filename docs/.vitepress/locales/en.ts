@@ -44,7 +44,10 @@ export const en: LocaleSpecificConfig<DefaultTheme.Config> & {
         },
         {
           text: "Packages",
-          items: [{ text: "Money and rates", link: "/guide/money" }],
+          items: [
+            { text: "Money and rates", link: "/guide/money" },
+            { text: "Dates and time zones", link: "/guide/datetime" },
+          ],
         },
         {
           text: "Extending",

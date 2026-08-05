@@ -1,11 +1,17 @@
 import { expect, test } from "bun:test";
+import { Decimal } from "../decimal";
+import { createEngine } from "../engine";
 import { DimensionMismatchError, TooAmbiguousError } from "../errors";
 import { defineKind } from "../kind/define";
 import { buildRegistry } from "../kind/registry";
+import { duration as durationKind } from "../kinds/duration";
+import { number as numberKind } from "../kinds/number";
 import { defineLocale } from "../locale/define";
+import enLocale from "../locale/en";
 import { createResolver } from "../parse/candidates";
 import { lex } from "../parse/lex";
 import { parse } from "../parse/pratt";
+import type { LiteralMatcher } from "../types";
 import { solve } from "./solver";
 
 const number = defineKind({
@@ -228,4 +234,105 @@ test("ranking is stable across repeated runs", () => {
   const first = run("10 m").assignments.map((a) => `${a.kind}`);
   const second = run("10 m").assignments.map((a) => `${a.kind}`);
   expect(first).toEqual(second);
+});
+
+/**
+ * A stand-in for M4's chrono bridge: "day7" is a point in time whose canonical
+ * value is a second count, so core can be tested against an opaque kind without
+ * depending on the datetime package.
+ */
+const day7: LiteralMatcher = (input, offset) =>
+  input.startsWith("day7", offset)
+    ? {
+        kind: "day",
+        unit: "UTC",
+        canonical: new Decimal(604_800),
+        meta: { iso: "day7" },
+        length: 4,
+      }
+    : null;
+
+const day = defineKind({
+  id: "day",
+  value: { mode: "opaque", units: { UTC: ["utc"] } },
+  literals: [day7],
+  ops: [
+    {
+      op: "+",
+      left: "day",
+      right: "duration",
+      result: "day",
+      apply: (l, r) =>
+        Object.freeze({
+          kind: "day",
+          canonical: l.canonical.plus(r.canonical),
+          unit: l.unit,
+        }),
+    },
+    {
+      op: "-",
+      left: "day",
+      right: "day",
+      result: "duration",
+      apply: (l, r) =>
+        Object.freeze({
+          kind: "duration",
+          canonical: l.canonical.minus(r.canonical),
+          unit: "s",
+        }),
+    },
+  ],
+  format: (v) => `day+${v.canonical.toFixed()}`,
+});
+
+const engine = createEngine({
+  locales: [enLocale],
+  kinds: [numberKind, durationKind, day],
+});
+
+test("a literal evaluates to the value its matcher built", () => {
+  const r = engine.evaluate("day7");
+  expect(r.kind).toBe("day");
+  expect(r.value.canonical.toString()).toBe("604800");
+  expect(r.value.unit).toBe("UTC");
+  expect(r.value.meta).toEqual({ iso: "day7" });
+  expect(r.formatted).toBe("day+604800");
+});
+
+test("a cross-kind op signature joins a literal to a quantity", () => {
+  const r = engine.evaluate("day7 + 2 h");
+  expect(r.kind).toBe("day");
+  expect(r.value.canonical.toString()).toBe("612000");
+});
+
+test("a literal minus a literal takes the declared result kind", () => {
+  const r = engine.evaluate("day7 - day7");
+  expect(r.kind).toBe("duration");
+  expect(r.value.canonical.toString()).toBe("0");
+});
+
+test("a literal without a matching signature raises DimensionMismatchError", () => {
+  expect(() => engine.evaluate("day7 * 2")).toThrow(/day/);
+});
+
+test("the kinds filter drops a literal candidate", () => {
+  expect(() => engine.evaluate("day7", { kinds: ["duration"] })).toThrow();
+});
+
+test("a literal's weight goes through the weight layers", () => {
+  const boosted = createEngine({
+    locales: [enLocale],
+    kinds: [numberKind, durationKind, day],
+    weights: { day: 11 },
+  });
+  const contributions = boosted.explain("day7").assignments[0]?.contributions ?? [];
+  expect(contributions).toContainEqual({ selector: "day", value: 11, layer: 2 });
+});
+
+test("explain lists the literal as a candidate", () => {
+  expect(engine.explain("day7").candidates[0]).toMatchObject({
+    kind: "day",
+    unit: "UTC",
+    surface: "day7",
+  });
 });

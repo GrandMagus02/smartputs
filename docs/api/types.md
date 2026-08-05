@@ -51,6 +51,7 @@ interface Kind {
   extendsKind?: KindId;
   prior?: number;
   lexicon?: Lexicon;
+  literals?: LiteralMatcher[];
   ops?: OpSignature[];
   format?: (v: Value, ctx: FormatCtx) => string;
 }
@@ -70,8 +71,10 @@ interface RatioSpec {
 
 interface OpaqueSpec {
   mode: "opaque";
-  parse: (token: string, ctx: EvalCtx) => unknown | null;
-  equals: (a: unknown, b: unknown) => boolean;
+  /** Units as labels rather than ratios — `datetime`'s are IANA time zones. */
+  units?: Record<string, UnitLexeme | string[]>;
+  parse?: (token: string, ctx: EvalCtx) => unknown | null;
+  equals?: (a: unknown, b: unknown) => boolean;
 }
 
 interface UnitDef {
@@ -88,6 +91,41 @@ interface OpSignature {
   /** Recorded on the Result whenever this signature is applied. */
   assumption?: Assumption;
   apply: (l: Value, r: Value, ctx: EvalCtx) => Value;
+}
+```
+
+## Literal recognition
+
+A kind's escape hatch out of the `<number><unit-word>` shape. See
+[`defineKind`](/api/define-kind#literals).
+
+```ts
+type LiteralMatcher = (
+  input: string,
+  offset: number,
+  ctx: MatchCtx,
+) => LiteralMatch | null;
+
+interface LiteralMatch {
+  readonly kind: KindId;
+  /** A unit registered by the kind. Never a free-form string. */
+  readonly unit: string;
+  readonly canonical: Decimal;
+  readonly meta?: Readonly<Record<string, unknown>>;
+  /** Characters consumed starting at the offered offset. Must be > 0. */
+  readonly length: number;
+  /** Summed into the candidate's score, exactly like an analyzer's weight. */
+  readonly weight?: number;
+}
+
+interface MatchCtx {
+  readonly locale: string;
+  /** Epoch milliseconds of "now", from `EngineOptions.now`. */
+  readonly now: number;
+  /** IANA zone, from `EvalOptions.timeZone ?? EngineOptions.timeZone`. */
+  readonly timeZone: string;
+  /** True when `text` is a registered unit alias of any kind. */
+  isUnitAlias(text: string): boolean;
 }
 ```
 
@@ -233,11 +271,16 @@ interface EngineOptions {
   formatPrecision?: number;
   rates?: RateLookup;
   rounding?: Decimal.Rounding;
+  /** Injectable clock, epoch milliseconds. Default `Date.now`. */
+  now?: () => number;
+  /** IANA zone every literal matcher resolves against. Default: the host zone. */
+  timeZone?: string;
 }
 
 interface EvalOptions {
   kinds?: KindId[];
   weights?: Weights;
+  timeZone?: string;
 }
 
 interface Result {

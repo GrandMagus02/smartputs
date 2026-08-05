@@ -1,11 +1,11 @@
 ---
 title: API overview
-description: Every symbol exported by @smartput/core and @smartput/rates.
+description: Every symbol exported by @smartput/core, @smartput/rates and @smartput/datetime.
 ---
 
 # API overview
 
-Both packages are ESM only. Everything below is exported from the package root
+Every package is ESM only. Everything below is exported from the package root
 unless stated otherwise.
 
 ## Entry points
@@ -17,6 +17,8 @@ unless stated otherwise.
 | `@smartput/core/testing` | `assertKindContract` |
 | `@smartput/rates` | The `money` kind, snapshots, providers, `createLiveEngine` |
 | `@smartput/rates/locale/en` | Colloquial English currency words (default export) |
+| `@smartput/datetime` | The `datetime` kind, the chrono bridge, `ZONES`, `Temporal` |
+| `@smartput/datetime/locale/en` | English zone words (default export) |
 
 ## Functions
 
@@ -35,6 +37,7 @@ unless stated otherwise.
 | [`cardinalNumerals(opts)`](/api/define-locale#numerals) | Build a `NumeralParser` from unit / tens / scale tables. |
 | `formatValue(value, registry, locale, opts?)` | The formatter the engine uses, exposed. |
 | `formatNumber(value, locale, opts?)` | Locale number grammar alone, no unit. |
+| [`foldLiterals(tokens, input, registry, ctx)`](/api/define-kind#literals) | The literal token pass, exposed so a matcher can be tested without an engine. |
 
 ## Values
 
@@ -58,6 +61,17 @@ unless stated otherwise.
 | [`custom(fn)`](/api/rates#custom) | Wrap any async source in the provider shape. |
 | [`CURRENCIES`](/api/rates#currencies) | The twelve currency descriptors, keyed by lowercase ISO code. |
 
+## @smartput/datetime
+
+| Export | Purpose |
+| --- | --- |
+| [`datetime`](/guide/datetime) | The `datetime` `Kind`. Register it and set `now` / `timeZone`. |
+| `ZONES` | The eighteen shipped time zones, keyed by IANA id. |
+| `parseDateTime(input, offset, ctx)` | The chrono bridge, exposed for testing a match in isolation. |
+| `wrap(zdt)` / `unwrap(value)` | The `Value` ⇄ `Temporal.ZonedDateTime` boundary. |
+| `Temporal` | Re-exported from `temporal-polyfill` — the package's single import site. |
+| `DATETIME_KIND` | `"datetime"`, so a patch or op signature need not spell it. |
+
 ## Errors
 
 Every error extends `SmartputError`. See [Errors](/guide/errors).
@@ -75,6 +89,7 @@ The last three are defined in core and raised from `@smartput/rates`, so
 `Engine` · `EngineOptions` · `EvalOptions` · `Result` · `Explanation` ·
 `Completion` · `CompleteOptions` · `Value` · `Candidate` · `ResultCandidate` ·
 `Assumption` · `Kind` · `RatioSpec` · `OpaqueSpec` · `UnitDef` · `OpSignature` ·
+`LiteralMatcher` · `LiteralMatch` · `MatchCtx` ·
 `Lexicon` · `UnitLexeme` · `Locale` · `LocalePack` · `Analyzer` ·
 `AnalyzedForm` · `NumeralParser` · `NumeralMatch` · `RateLookup` · `EvalCtx` ·
 `FormatCtx` · `FormatOptions` · `Weights` · `Selector` · `Span` · `Token` ·

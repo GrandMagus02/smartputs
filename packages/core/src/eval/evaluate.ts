@@ -49,6 +49,16 @@ export function evaluateNode(opts: EvaluateOptions): EvalResult {
       case "number":
         return deepFreeze({ kind: NUMBER_KIND, canonical: n.value, unit: "one" });
 
+      case "literal": {
+        // The matcher already built this. The choices lookup is not for the
+        // value — it is the assertion that this assignment actually selected
+        // the literal, so a filtered-out literal cannot be evaluated anyway.
+        const choice = assignment.choices.get(n);
+        if (choice === undefined)
+          throw new DimensionMismatchError(input, "literal", n.value.kind, "?");
+        return deepFreeze({ ...n.value });
+      }
+
       case "quantity": {
         const choice = assignment.choices.get(n);
         if (choice === undefined)

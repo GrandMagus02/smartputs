@@ -45,4 +45,7 @@ export {
 } from "./locale/helpers";
 // Explanation.tokens is Token[]; without this the type is unnameable downstream.
 export type { Token } from "./parse/lex";
+// Exported so a plugin author can drive a literal matcher in isolation, without
+// standing up an engine just to see what their matcher claims.
+export { foldLiterals } from "./parse/literals";
 export type * from "./types";

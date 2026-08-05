@@ -143,6 +143,7 @@ parseable: [`complete()`](/api/complete).
 interface EvalOptions {
   kinds?: KindId[];   // hard filter — candidates outside this set are dropped
   weights?: Weights;  // per-call layer 4
+  timeZone?: string;  // per-call override of EngineOptions.timeZone
 }
 ```
 
@@ -152,6 +153,15 @@ scoring, which is a different operation from being ranked last:
 ```ts
 engine.evaluate("10 m", { kinds: ["length"] });        // duration cannot win
 engine.evaluate("10 m", { weights: { length: 99 } });  // duration could still win
+```
+
+`timeZone` reaches every [literal matcher](/api/define-kind#literals) as
+`MatchCtx.timeZone`, so one engine can answer `"3pm"` for callers in different
+places without being rebuilt:
+
+```ts
+engine.evaluate("3pm", { timeZone: "Asia/Tokyo" }).formatted;
+// "2026-01-15 15:00 JST"
 ```
 
 ## Result

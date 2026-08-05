@@ -43,6 +43,8 @@ function reportedOperands(root: Node, kinds: KindId[] | undefined): KindId[] {
   walk(root, (node) => {
     if (node.type === "quantity") {
       refs.push({ start: node.span.start, kind: pick(node.candidates) });
+    } else if (node.type === "literal") {
+      refs.push({ start: node.span.start, kind: pick(node.candidates) });
     } else if (node.type === "convert") {
       refs.push({ start: node.targetSpan.start, kind: pick(node.target) });
     } else if (node.type === "number") {
@@ -56,7 +58,7 @@ function reportedOperands(root: Node, kinds: KindId[] | undefined): KindId[] {
 function collectSlots(root: Node, kinds: KindId[] | undefined): Slot[] {
   const slots: Slot[] = [];
   walk(root, (node) => {
-    if (node.type === "quantity") {
+    if (node.type === "quantity" || node.type === "literal") {
       const filtered =
         kinds === undefined
           ? node.candidates
@@ -83,6 +85,8 @@ function typeOf(
     case "number":
       return NUMBER_KIND;
     case "quantity":
+      return choices.get(node)?.kind ?? null;
+    case "literal":
       return choices.get(node)?.kind ?? null;
     case "unary":
       return typeOf(node.operand, choices, registry);

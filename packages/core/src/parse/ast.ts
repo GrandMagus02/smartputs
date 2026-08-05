@@ -1,5 +1,5 @@
 import type { Decimal } from "../decimal";
-import type { Candidate, OpSymbol, Span } from "../types";
+import type { Candidate, OpSymbol, Span, Value } from "../types";
 
 export interface NumberNode {
   type: "number";
@@ -10,6 +10,19 @@ export interface NumberNode {
 export interface QuantityNode {
   type: "quantity";
   value: Decimal;
+  candidates: Candidate[];
+  span: Span;
+}
+
+/**
+ * A run of source a kind claimed outright. Unlike a quantity, the value is
+ * already built — the matcher had to build it to decide the match — so the
+ * evaluator has nothing to compute here. The candidate list exists purely so
+ * the node is scored, filtered and explained like every other operand.
+ */
+export interface LiteralNode {
+  type: "literal";
+  value: Value;
   candidates: Candidate[];
   span: Span;
 }
@@ -38,7 +51,13 @@ export interface ConvertNode {
   targetSpan: Span;
 }
 
-export type Node = NumberNode | QuantityNode | BinaryNode | UnaryNode | ConvertNode;
+export type Node =
+  | NumberNode
+  | QuantityNode
+  | LiteralNode
+  | BinaryNode
+  | UnaryNode
+  | ConvertNode;
 
 export function walk(node: Node, visit: (n: Node) => void): void {
   visit(node);

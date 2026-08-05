@@ -66,6 +66,13 @@ export function createFacade(args: {
    */
   rates?: RateLookup;
 }): QuantityClass {
+  if (args.kind.spec.mode !== "ratio") {
+    throw new KindConflictError(
+      args.kind.id,
+      "createFacade requires a ratio kind; opaque kinds have no unit ratios to convert between",
+    );
+  }
+
   const { kind, registry, locale, rates } = args;
   const deltaFacades = args.deltaFacades ?? new Map<KindId, QuantityClass>();
   const canonicalUnit = kind.spec.mode === "ratio" ? kind.spec.canonical : "";

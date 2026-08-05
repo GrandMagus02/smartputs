@@ -35,6 +35,28 @@ export function parse(tokens: Token[], resolver: Resolver, input: string): Node 
       return inner;
     }
 
+    if (token.type === "literal") {
+      pos += 1;
+      return {
+        type: "literal",
+        value: Object.freeze({
+          kind: token.kind,
+          canonical: token.canonical,
+          unit: token.unit,
+          ...(token.meta ? { meta: token.meta } : {}),
+        }),
+        candidates: [
+          resolver.literal({
+            kind: token.kind,
+            unit: token.unit,
+            surface: token.text,
+            weight: token.weight,
+          }),
+        ],
+        span: { start: token.start, end: token.end },
+      };
+    }
+
     if (token.type === "op" && token.op === "-") {
       pos += 1;
       const operand = parseExpr(30);
