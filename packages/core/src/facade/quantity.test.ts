@@ -79,7 +79,7 @@ test("equals compares canonical values across units", () => {
 
 test("toString renders in the authored unit", () => {
   expect(new Weight(1.5, "kg").toString()).toBe("1.5 kilograms");
-  expect(new Weight(210, "g").toString()).toBe("210g");
+  expect(new Weight(210, "g").toString()).toBe("210 grams");
 });
 
 test("toJSON round-trips through from", () => {

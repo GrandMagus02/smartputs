@@ -1,3 +1,6 @@
+export type { CompleteOptions, Completion } from "./complete/complete";
+export { complete } from "./complete/complete";
+export { EXACT_BONUS, LENGTH_PENALTY, SCALE_BONUS } from "./complete/score";
 export { Decimal } from "./decimal";
 export type { Engine, EngineOptions, EvalOptions, Explanation, Result } from "./engine";
 export { createEngine } from "./engine";
@@ -9,6 +12,8 @@ export type {
   QuantitySnapshot,
 } from "./facade/index";
 export { createFacade, createFacades } from "./facade/index";
+export type { FormatOptions } from "./format/format";
+export { DISPLAY_PRECISION, formatNumber, formatValue } from "./format/format";
 export { defineKind } from "./kind/define";
 // Every built-in kind is exported by name, not only as an anonymous member of
 // BUILTIN_KINDS. `measure` in particular has no other route: it is deliberately

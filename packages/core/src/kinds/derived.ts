@@ -25,10 +25,19 @@ export const speed = defineKind({
     },
   },
   lexicon: {
-    mps: { aliases: ["mps"], symbol: "m/s" },
-    kph: { aliases: ["kph", "kmh"], symbol: "kph" },
-    mph: { aliases: ["mph"], symbol: "mph" },
-    knot: { aliases: ["knot", "kt"], symbol: "kt" },
+    // mps, kph and mph carry no `display`: their written-out forms
+    // ("metres per second", "kilometres per hour") are compounds the parser
+    // rejects, and a display form that does not parse back is a dead end for
+    // completion. Absent display keeps formatValue on the symbol.
+    mps: { aliases: ["mps"], symbol: "m/s", typical: [0.5, 100] },
+    kph: { aliases: ["kph", "kmh"], symbol: "kph", typical: [5, 300] },
+    mph: { aliases: ["mph"], symbol: "mph", typical: [5, 200] },
+    knot: {
+      aliases: ["knot", "kt"],
+      symbol: "kt",
+      display: { one: "knot", other: "knots" },
+      typical: [1, 100],
+    },
   },
   ops: [
     {
@@ -50,11 +59,24 @@ export const area = defineKind({
     units: { m2: 1, cm2: 0.0001, km2: 1e6, hectare: 1e4, acre: 4046.8564224 },
   },
   lexicon: {
-    m2: { aliases: ["m2", "sqm"], symbol: "m²" },
-    cm2: { aliases: ["cm2", "sqcm"], symbol: "cm²" },
-    km2: { aliases: ["km2", "sqkm"], symbol: "km²" },
-    hectare: { aliases: ["hectare", "ha"], symbol: "ha" },
-    acre: { aliases: ["acre"], symbol: "acre" },
+    // The squared units carry no `display` for the same reason as the speeds:
+    // "square metres" is not a string the parser accepts, so completion would
+    // hand back text that fails to evaluate.
+    m2: { aliases: ["m2", "sqm"], symbol: "m²", typical: [1, 10000] },
+    cm2: { aliases: ["cm2", "sqcm"], symbol: "cm²", typical: [1, 10000] },
+    km2: { aliases: ["km2", "sqkm"], symbol: "km²", typical: [0.1, 10000] },
+    hectare: {
+      aliases: ["hectare", "ha"],
+      symbol: "ha",
+      display: { one: "hectare", other: "hectares" },
+      typical: [0.1, 1000],
+    },
+    acre: {
+      aliases: ["acre"],
+      symbol: "acre",
+      display: { one: "acre", other: "acres" },
+      typical: [0.1, 1000],
+    },
   },
   ops: [
     {
@@ -76,11 +98,32 @@ export const volume = defineKind({
     units: { l: 1, ml: 0.001, m3: 1000, gal: 3.785411784, pint: 0.473176473 },
   },
   lexicon: {
-    l: { aliases: ["l", "litre", "liter"], symbol: "l" },
-    ml: { aliases: ["ml", "millilitre", "milliliter"], symbol: "ml" },
-    m3: { aliases: ["m3"], symbol: "m³" },
-    gal: { aliases: ["gal", "gallon"], symbol: "gal" },
-    pint: { aliases: ["pint"], symbol: "pint" },
+    l: {
+      aliases: ["l", "litre", "liter"],
+      symbol: "l",
+      display: { one: "litre", other: "litres" },
+      typical: [0.1, 100],
+    },
+    ml: {
+      aliases: ["ml", "millilitre", "milliliter"],
+      symbol: "ml",
+      display: { one: "millilitre", other: "millilitres" },
+      typical: [1, 2000],
+    },
+    // m3 has no parseable word form ("cubic metres" is rejected), so no display.
+    m3: { aliases: ["m3"], symbol: "m³", typical: [0.1, 1000] },
+    gal: {
+      aliases: ["gal", "gallon"],
+      symbol: "gal",
+      display: { one: "gallon", other: "gallons" },
+      typical: [0.1, 100],
+    },
+    pint: {
+      aliases: ["pint"],
+      symbol: "pint",
+      display: { one: "pint", other: "pints" },
+      typical: [1, 20],
+    },
   },
   ops: [
     {

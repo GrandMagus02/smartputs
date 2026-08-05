@@ -13,7 +13,7 @@
     "docs:preview": "bun run --cwd docs preview",
     "lint": "biome check .",
     "format": "biome format --write .",
-    "typecheck": "tsc -p packages/core/tsconfig.json --noEmit",
+    "typecheck": "tsc -p packages/core/tsconfig.json --noEmit && tsc -p packages/rates/tsconfig.json --noEmit",
     "check-deps": "bun run scripts/check-deps.ts",
     "check": "bun run lint && bun run typecheck && bun run check-deps && bun test"
   },

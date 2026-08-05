@@ -78,6 +78,7 @@ export class KindConflictError extends SmartputError {
   readonly kind: KindId;
   constructor(id: string, detail: string) {
     super(`Kind ${JSON.stringify(id)} conflicts: ${detail}`, id);
+    this.name = "KindConflictError";
     this.kind = id;
   }
 }
@@ -92,6 +93,7 @@ export class UnknownKindError extends SmartputError {
       `Locale pack ${JSON.stringify(pack)} contributes to unregistered kind ${JSON.stringify(kind)}${where}`,
       pack,
     );
+    this.name = "UnknownKindError";
     this.pack = pack;
     this.kind = kind;
     this.unit = unit;
@@ -102,5 +104,43 @@ export class DivideByZeroError extends SmartputError {
   constructor(input: string) {
     super("Division by zero", input);
     this.name = "DivideByZeroError";
+  }
+}
+
+/**
+ * A rate provider could not produce a usable snapshot: the request failed, or
+ * the payload carried no date or no quotes. Like the two configuration errors
+ * above, it still extends SmartputError — `instanceof SmartputError` is the
+ * discriminator this codebase's own engine branches on, so an error that does
+ * not extend it is invisible to every consumer that follows the convention.
+ * There is no source expression, so `input` carries the provider id.
+ */
+export class RateProviderError extends SmartputError {
+  readonly provider: string;
+  constructor(provider: string, detail: string) {
+    super(`Rate provider ${JSON.stringify(provider)} failed: ${detail}`, provider);
+    this.name = "RateProviderError";
+    this.provider = provider;
+  }
+}
+
+/** Rates were asked for before any snapshot had been fetched. */
+export class RatesNotReadyError extends SmartputError {
+  constructor(detail: string) {
+    super(`No rates available: ${detail}`, "");
+    this.name = "RatesNotReadyError";
+  }
+}
+
+export class MissingRateError extends SmartputError {
+  readonly from: string;
+  readonly to: string;
+  readonly asOf: string;
+  constructor(input: string, from: string, to: string, asOf: string) {
+    super(`No rate for ${from}->${to} in the snapshot as of ${asOf}`, input);
+    this.name = "MissingRateError";
+    this.from = from;
+    this.to = to;
+    this.asOf = asOf;
   }
 }

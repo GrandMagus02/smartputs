@@ -1,5 +1,5 @@
 import { buildRegistry } from "../kind/registry";
-import type { Kind, KindId, Locale } from "../types";
+import type { Kind, KindId, Locale, RateLookup } from "../types";
 import { createFacade, type QuantityClass } from "./quantity";
 
 export type {
@@ -25,6 +25,8 @@ export { createFacade } from "./quantity";
 export function createFacades(args: {
   kinds: Kind[];
   locale: Locale;
+  /** FX rates, threaded to every facade — see `createFacade`'s own doc. */
+  rates?: RateLookup;
 }): Record<KindId, QuantityClass> {
   const registry = buildRegistry(args.kinds, [], args.locale.id);
   const classes = new Map<KindId, QuantityClass>();
@@ -32,7 +34,13 @@ export function createFacades(args: {
   for (const [id, kind] of registry.kinds) {
     classes.set(
       id,
-      createFacade({ kind, registry, locale: args.locale, deltaFacades: classes }),
+      createFacade({
+        kind,
+        registry,
+        locale: args.locale,
+        deltaFacades: classes,
+        ...(args.rates ? { rates: args.rates } : {}),
+      }),
     );
   }
 

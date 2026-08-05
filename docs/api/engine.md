@@ -36,7 +36,7 @@ result.value.canonical.toString(); // "1500"
 result.value.unit; // "kg"
 result.confidence; // 1
 result.spans; // [{ start, end }, …] token → source offsets
-result.meta.assumptions; // string[]
+result.meta.assumptions; // Assumption[]
 ```
 
 Throws `AmbiguityError` when the top two confidences are within
@@ -57,8 +57,8 @@ unparseable input is an empty array, and the failure is visible through
 
 ```ts
 engine.suggest("10 m");
-// [ { kind: "duration", formatted: "10min", confidence: 0.5 },
-//   { kind: "length",   formatted: "10m",   confidence: 0.5 } ]
+// [ { kind: "duration", formatted: "10 minutes", confidence: 0.5 },
+//   { kind: "length",   formatted: "10 metres",  confidence: 0.5 } ]
 
 engine.suggest("nonsense"); // []
 ```
@@ -140,7 +140,7 @@ interface Result {
   kind: KindId;
   confidence: number;   // 0..1, softmax over raw solver scores
   spans: Span[];        // token → source offsets
-  meta: { assumptions: string[] };
+  meta: { assumptions: Assumption[] };
 }
 ```
 

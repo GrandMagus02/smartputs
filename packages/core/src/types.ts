@@ -55,9 +55,30 @@ export interface UnitLexeme {
   aliases: string[];
   symbol?: string;
   display?: Partial<Record<Intl.LDMLPluralRule, string>>;
+  /**
+   * The magnitude band people actually type this unit in, inclusive at both
+   * ends. Read only by completion's `scaleFit`. Omitting it scores 0, which is
+   * the same as being out of band — declaring a band is never a penalty.
+   */
+  typical?: [number, number];
 }
 
 export type Lexicon = Record<string, UnitLexeme | string[]>;
+
+/**
+ * The shape the engine needs from a rate table, declared here rather than
+ * imported: `@smartput/rates`'s `RateSnapshot` satisfies it structurally, and
+ * core stays free of a dependency on a package that depends on core.
+ *
+ * `get` returns null for an unknown pair rather than throwing, so the kind that
+ * asked decides what a missing rate means. The money kind raises
+ * MissingRateError; a different kind might fall back.
+ */
+export interface RateLookup {
+  readonly base: string;
+  readonly asOf: string;
+  get(from: string, to: string): Decimal | null;
+}
 
 export interface EvalCtx {
   readonly self: Value;
@@ -68,10 +89,59 @@ export interface EvalCtx {
    * which has no expression of its own to report.
    */
   readonly input?: string;
+  /** The engine's injected rate table, when one was supplied. */
+  readonly rates?: RateLookup;
+  /**
+   * Records an assumption made while converting. Supplied by the evaluator;
+   * absent during a standalone conversion, which has no Result to attach to.
+   */
+  readonly note?: (a: Assumption) => void;
 }
 
-export interface FormatCtx {
+/**
+ * A defensible-but-not-unique reading of the input, surfaced on the Result.
+ *
+ * `code` is stable and machine-readable — a UI branches on it, a test asserts
+ * it. `message` is human-facing and may be reworded freely. `detail` carries
+ * the specifics: which currencies, which pivot.
+ */
+export interface Assumption {
+  readonly code: string;
+  readonly message: string;
+  readonly detail?: Readonly<Record<string, string>>;
+}
+
+export interface FormatOptions {
+  /** Significant digits to display. Defaults to 26. */
+  readonly precision?: number;
+  /** Rounding mode. Defaults to Decimal's configured mode. */
+  readonly rounding?: Decimal.Rounding;
+  /** FX rates, threaded through so a money value can format back into its authored currency. */
+  readonly rates?: RateLookup;
+  /**
+   * Pad the fraction to at least this many digits. A Decimal has no notion of
+   * a trailing zero, so significant-digit formatting alone cannot express a
+   * fixed scale: money needs "30.00", not "30".
+   */
+  readonly minFractionDigits?: number;
+}
+
+export interface FormatCtx extends FormatOptions {
   readonly locale: string;
+  /**
+   * `value.canonical` already converted into `value.unit`. A hook that wants
+   * the number the user typed wants this, not `value.canonical` — and it means
+   * a hook never has to resolve a unit ratio, which for money would mean
+   * reaching the rate table from inside the formatter.
+   */
+  readonly authored: Decimal;
+  /**
+   * The locale-aware number formatter, pre-bound to this locale. Hooks MUST
+   * render through it: M2 rejected a per-kind hook precisely because it
+   * formatted by hand and silently dropped locale grouping and the locale
+   * decimal separator.
+   */
+  formatNumber(value: Decimal, opts?: FormatOptions): string;
 }
 
 export interface UnitDef {
@@ -85,6 +155,19 @@ export interface RatioSpec {
   canonical: string;
   units: Record<string, UnitDef | number | Decimal>;
   affine?: { deltaKind: KindId };
+  /**
+   * Names the unit whose ratio is a function of `meta.dpi` — `measure`'s `px`,
+   * and nothing else today. Declaring it is what gives a facade of this kind
+   * the `.dpi` getter and the `withDpi()` method; a kind that does not declare
+   * it gets neither.
+   *
+   * Explicit opt-in rather than inference: the facade used to look for "the
+   * first unit with a function ratio", which was a sound proxy for `px` only
+   * while `measure` was the only kind with one. `money` has twelve, so its
+   * quantities acquired a `withDpi()` that wrote into a `meta` nothing reads,
+   * and a `.dpi` getter that threw `MissingRateError`.
+   */
+  dpiUnit?: string;
 }
 
 export interface OpaqueSpec {
@@ -104,7 +187,7 @@ export interface OpSignature {
    * treats the right operand as a difference, because the alternative is
    * meaningless rather than because the user said so.
    */
-  assumption?: string;
+  assumption?: Assumption;
   apply: (l: Value, r: Value, ctx: EvalCtx) => Value;
 }
 

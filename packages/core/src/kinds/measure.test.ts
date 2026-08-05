@@ -12,7 +12,7 @@ const at = (dpi?: number) =>
   });
 
 test("pixels default to 96dpi", () => {
-  expect(at().evaluate("96 px in inch").formatted).toBe("1inch");
+  expect(at().evaluate("96 px in inch").formatted).toBe("1 inch");
 });
 
 test("the engine's kindMeta overrides the default dpi", () => {
@@ -24,11 +24,13 @@ test("the engine's kindMeta overrides the default dpi", () => {
 test("A4 width in points", () => {
   expect(at().evaluate("210 mm in pt").value.canonical.toFixed(3)).toBe("8.268");
   // mm -> inch is 1/25.4 = 5/127, and 127 has no factor of 2 or 5, so the
-  // conversion never terminates in decimal. formatValue renders the exact
-  // authored value, not a display-rounded one (see angle.test.ts for the
-  // same phenomenon with pi-based ratios) — so this is 28 significant
-  // digits, not "595.276pt".
-  expect(at().evaluate("210 mm in pt").formatted).toBe("595.2755905511811023622047243pt");
+  // conversion never terminates in decimal. formatValue guard-rounds the
+  // exact authored value to 26 significant digits (see format.ts) rather
+  // than printing all 28 Decimal computes at — so this is 26 significant
+  // digits, not "595.276 points".
+  expect(at().evaluate("210 mm in pt").formatted).toBe(
+    "595.27559055118110236220472 points",
+  );
 });
 
 test("physical units are unaffected by dpi", () => {
@@ -40,7 +42,7 @@ test("physical units are unaffected by dpi", () => {
   // measure's own inch/mm ratio rather than erroring or silently falling
   // through to `length`.
   expect(at(300).evaluate("1 inch in mm", { kinds: ["measure"] }).formatted).toBe(
-    "25.4mm",
+    "25.4 millimetres",
   );
 });
 

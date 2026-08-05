@@ -1,0 +1,13 @@
+{
+  "name": "@smartput/rates",
+  "version": "0.0.0",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./locale/en": "./src/locale/en.ts"
+  },
+  "dependencies": {
+    "@smartput/core": "workspace:*",
+    "decimal.js": "^10.6.0"
+  }
+}

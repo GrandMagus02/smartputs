@@ -39,7 +39,7 @@ function evaluate(input: string) {
   const node = parse(lex(input, en), resolver, input);
   const [best] = solve(node, registry, { maxCandidates: 10_000, input });
   if (best === undefined) throw new Error("no assignment");
-  return evaluateNode(node, best, registry, "en", input);
+  return evaluateNode({ node, assignment: best, registry, locale: "en", input });
 }
 
 test("evaluates a single quantity in its authored unit", () => {
@@ -104,7 +104,7 @@ test("evaluateNode collects the assumption of every signature it applies", () =>
         left: "number",
         right: "length",
         result: "length",
-        assumption: "read as a scale factor",
+        assumption: { code: "scale-factor", message: "read as a scale factor" },
         apply: (l, r) =>
           Object.freeze({ ...r, canonical: r.canonical.times(l.canonical) }),
       },
@@ -117,13 +117,58 @@ test("evaluateNode collects the assumption of every signature it applies", () =>
   const [best] = solve(node, r, { maxCandidates: 10_000, input });
   if (best === undefined) throw new Error("no assignment");
 
-  const out = evaluateNode(node, best, r, "en", input);
+  const out = evaluateNode({ node, assignment: best, registry: r, locale: "en", input });
   expect(out.value.canonical.toString()).toBe("20000");
-  expect(out.assumptions).toEqual(["read as a scale factor"]);
+  expect(out.assumptions).toEqual([
+    { code: "scale-factor", message: "read as a scale factor" },
+  ]);
 });
 
 test("a plain expression records no assumptions", () => {
   expect(evaluate("1 km + 500 m").assumptions).toEqual([]);
+});
+
+// A kind whose `+` records an assumption naming its own operands — the shape
+// money's cross-rate needs, where the detail is known only per expression.
+const dynamicallyNoted = defineKind({
+  id: "treasure",
+  value: { mode: "ratio", canonical: "gld", units: { gld: 1, slv: 0.5 } },
+  lexicon: { gld: { aliases: ["gld"] }, slv: { aliases: ["slv"] } },
+  ops: [
+    {
+      op: "+",
+      left: "treasure",
+      right: "treasure",
+      result: "treasure",
+      apply: (l, r, ctx) => {
+        ctx.note?.({
+          code: "melted-down",
+          message: `${l.unit} and ${r.unit} were melted into one ingot`,
+          detail: { from: l.unit, to: r.unit, via: "gld" },
+        });
+        return Object.freeze({
+          kind: l.kind,
+          canonical: l.canonical.plus(r.canonical),
+          unit: l.unit,
+        });
+      },
+    },
+  ],
+});
+
+test("an op can record an assumption dynamically through the context sink", () => {
+  const e = createEngine({ locales: [en], kinds: [number, dynamicallyNoted] });
+  const r = e.evaluate("10 gld + 4 slv");
+  expect(r.meta.assumptions).toHaveLength(1);
+  expect(r.meta.assumptions[0]?.code).toBe("melted-down");
+  expect(r.meta.assumptions[0]?.detail?.via).toBe("gld");
+  expect(r.meta.assumptions[0]?.message).toBe("gld and slv were melted into one ingot");
+});
+
+test("the same assumption recorded twice is kept once", () => {
+  const e = createEngine({ locales: [en], kinds: [number, dynamicallyNoted] });
+  // Two additions, identical operand units, so both notes serialize the same.
+  expect(e.evaluate("1 gld + 2 gld + 3 gld").meta.assumptions).toHaveLength(1);
 });
 
 test("a value's meta is frozen, not just the value", () => {

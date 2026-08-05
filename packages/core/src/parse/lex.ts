@@ -107,17 +107,29 @@ export function lex(input: string, locale: Locale): Token[] {
     if (isLetter(ch)) {
       const start = i;
       while (i < input.length && isLetter(input[i] as string)) i += 1;
-      const run = input.slice(start, i);
+      const letterEnd = i;
+      // A unit alias may end in digits -- M2 registers m2, cm2, km2 and m3.
+      // Without absorbing that suffix the run lexes as a word followed by a
+      // number, which no unit can claim, so those four aliases were
+      // unreachable through the parser: "1 m2" threw UnitParseError while
+      // "1 sqm" evaluated. Segmentation still runs over the letters alone --
+      // Intl.Segmenter would keep "m2" whole, but a locale `segment` hook
+      // returning substrings of its input cannot be asked to.
+      while (i < input.length && isDigit(input[i] as string)) i += 1;
+      const digits = input.slice(letterEnd, i);
+      const run = input.slice(start, letterEnd);
       const words = locale.segment ? locale.segment(run) : defaultSegment(run, locale.id);
       let offset = start;
-      for (const word of words) {
+      for (const [index, word] of words.entries()) {
         const at = input.indexOf(word, offset);
         const wordStart = at === -1 ? offset : at;
-        const wordEnd = wordStart + word.length;
-        const keyword = keywordFor(word, locale);
+        // The digits belong to the final word of the run and nowhere else.
+        const text = index === words.length - 1 ? word + digits : word;
+        const wordEnd = wordStart + text.length;
+        const keyword = keywordFor(text, locale);
         tokens.push(
           keyword === null
-            ? { type: "word", text: word, start: wordStart, end: wordEnd }
+            ? { type: "word", text, start: wordStart, end: wordEnd }
             : { type: "keyword", keyword, start: wordStart, end: wordEnd },
         );
         offset = wordEnd;

@@ -12,12 +12,14 @@ test("decimal and binary prefixes are distinct", () => {
 
 test("mixed-prefix arithmetic converts through the canonical byte", () => {
   const r = engine.evaluate("2 mib + 500 kb in kb");
-  expect(r.formatted).toBe("2,597.152kb");
+  expect(r.formatted).toBe("2,597.152 kilobytes");
 });
 
 test("gigabyte and gibibyte differ as expected", () => {
   // Canonical is bytes whatever the target unit; the formatted value is what
   // actually distinguishes gb from gib.
-  expect(engine.evaluate("1 gib in gb").formatted).toBe("1.073741824gb");
-  expect(engine.evaluate("1 gb in gib").formatted).toBe("0.931322574615478515625gib");
+  expect(engine.evaluate("1 gib in gb").formatted).toBe("1.073741824 gigabytes");
+  expect(engine.evaluate("1 gb in gib").formatted).toBe(
+    "0.931322574615478515625 gibibytes",
+  );
 });

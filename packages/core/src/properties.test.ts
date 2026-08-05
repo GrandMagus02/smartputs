@@ -30,7 +30,12 @@ test("conversion round-trips for every unit of every kind", () => {
     for (const unit of kind.units.keys()) {
       for (const sample of SAMPLES) {
         const v = new Decimal(sample);
-        const back = fromCanonical(toCanonical(v, kind, unit, "en"), kind, unit, "en");
+        const back = fromCanonical(
+          toCanonical(v, kind, unit, { locale: "en" }),
+          kind,
+          unit,
+          { locale: "en" },
+        );
         expect(back.minus(v).abs().lessThan("1e-20")).toBe(true);
       }
     }
@@ -43,8 +48,13 @@ test("conversion is transitive across every unit pair", () => {
     const units = [...kind.units.keys()];
     for (const a of units) {
       for (const b of units) {
-        const direct = toCanonical(new Decimal("7"), kind, a, "en");
-        const viaB = toCanonical(fromCanonical(direct, kind, b, "en"), kind, b, "en");
+        const direct = toCanonical(new Decimal("7"), kind, a, { locale: "en" });
+        const viaB = toCanonical(
+          fromCanonical(direct, kind, b, { locale: "en" }),
+          kind,
+          b,
+          { locale: "en" },
+        );
         const diff = viaB.minus(direct).abs();
         // RULING 12: an absolute epsilon assumes every kind's canonical
         // magnitude is small, which held for every M1 kind but not for
@@ -81,7 +91,7 @@ test("parse(format(v)) === v for every unit of every kind (spec §10 property 2)
     for (const unit of kind.units.keys()) {
       for (const sample of SAMPLES) {
         const authored = new Decimal(sample);
-        const canonical = toCanonical(authored, kind, unit, "en");
+        const canonical = toCanonical(authored, kind, unit, { locale: "en" });
         const formatted = formatValue({ kind: kind.id, canonical, unit }, registry, en);
 
         // Strip the rendered unit or display word back off; what remains is the
@@ -103,19 +113,19 @@ test("parse(format(v)) === v for every unit of every kind (spec §10 property 2)
         // (deg/rad is pi/180, grad is pi/200) and speed (kph is 1000/3600)
         // all have one. `authored -> canonical -> formatted -> parsed`
         // passes through that ratio twice, so the last digit or two of a
-        // 28-significant-digit value drifts — by design, not by bug:
-        // formatValue renders the exact authored value, never a
-        // display-rounded one (see angle.test.ts and measure.test.ts for the
-        // same phenomenon documented at the single-assertion level), and the
-        // corpus deliberately asserts full-precision output (e.g.
-        // "90 deg in rad" -> ...1.570796326794896619231321691rad). The
-        // property that's actually true, and worth asserting, is round-trip
-        // stability at the configured precision: parsed and authored agree
-        // to within a couple of ulps — the same 1e-25 relative reasoning as
-        // the transitivity test above. A tighter, human-facing
-        // display-precision policy at format time would close this gap for
-        // real, but is deliberately out of scope for M2 and is tracked as a
-        // deferred whole-branch finding.
+        // 28-significant-digit value drifts — by design, not by bug. M3
+        // added guard-digit rounding at format time (26 significant digits,
+        // two below the 28 Decimal computes at — see angle.test.ts and
+        // measure.test.ts for the same phenomenon documented at the
+        // single-assertion level, and the corpus, e.g. "90 deg in rad" ->
+        // ...1.570796326794896619231321691rad canonical formatted as
+        // ...1.5707963267948966192313217 radians), but that rounding only
+        // trims trailing noise from a display string; the conversion itself
+        // is still exact, so the relative-tolerance reasoning below still
+        // applies. The property that's actually true, and worth asserting,
+        // is round-trip stability at the configured precision: parsed and
+        // authored agree to within a couple of ulps — the same 1e-25
+        // relative reasoning as the transitivity test above.
         //
         // The reference magnitude for "relative to what" is
         // max(authored, canonical), not authored alone: the value that
@@ -146,7 +156,7 @@ test("formatting never emits exponential notation for any sample", () => {
     if (kind.spec.mode !== "ratio") continue;
     for (const unit of kind.units.keys()) {
       for (const sample of ["1e41", "1e-22", ...SAMPLES]) {
-        const canonical = toCanonical(new Decimal(sample), kind, unit, "en");
+        const canonical = toCanonical(new Decimal(sample), kind, unit, { locale: "en" });
         const formatted = formatValue({ kind: kind.id, canonical, unit }, registry, en);
         expect(`${kind.id}:${unit} ${formatted}`).not.toMatch(/e[+-]\d/);
       }
@@ -187,8 +197,8 @@ test("affine round-trips are exact at the anchor points", () => {
     ["f", "32"],
     ["k", "273.15"],
   ] as const) {
-    const canonical = toCanonical(new Decimal(expected), temp, unit, "en");
-    const back = fromCanonical(canonical, temp, unit, "en");
+    const canonical = toCanonical(new Decimal(expected), temp, unit, { locale: "en" });
+    const back = fromCanonical(canonical, temp, unit, { locale: "en" });
     expect(back.toString()).toBe(expected);
   }
 });

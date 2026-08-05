@@ -1,8 +1,13 @@
+import { type CompleteOptions, type Completion, complete } from "./complete/complete";
+import type { Decimal } from "./decimal";
 import {
   AmbiguityError,
+  KindConflictError,
+  MissingRateError,
   NoCandidateError,
   SmartputError,
   UnitParseError,
+  UnknownKindError,
 } from "./errors";
 import { evaluateNode } from "./eval/evaluate";
 import { formatValue } from "./format/format";
@@ -14,16 +19,32 @@ import { parse } from "./parse/pratt";
 import { type Assignment, solve } from "./solve/solver";
 import { weightBreakdown } from "./solve/weights";
 import type {
+  Assumption,
   Candidate,
   Kind,
   KindId,
   Locale,
   LocalePack,
+  RateLookup,
   ResultCandidate,
   Span,
   Value,
   Weights,
 } from "./types";
+
+/**
+ * SmartputErrors that never mean "this input has no interpretation", so
+ * `suggest` re-throws them rather than answering with an empty list.
+ *
+ * Spec §7 promises `suggest()` does not throw on *parse* problems. A missing
+ * rate is a data problem: `suggest("30 jpy")` against a snapshot without JPY
+ * used to return `[]` while `evaluate` on the same input threw, and
+ * `LiveEngine.suggest` is the keystroke-rate API, so the user saw "no results"
+ * where the truth was "no rate for JPY". The other two are registration errors
+ * — a kind registered twice, a locale pack contributing to a kind that does not
+ * exist — which describe the caller's wiring, never the caller's input.
+ */
+const NEVER_SWALLOWED = [MissingRateError, KindConflictError, UnknownKindError];
 
 export interface EngineOptions {
   locales: Locale[];
@@ -38,6 +59,19 @@ export interface EngineOptions {
    * The `measure` kind reads `{ dpi }` from here; nothing else uses it yet.
    */
   kindMeta?: Readonly<Record<KindId, Readonly<Record<string, unknown>>>>;
+  /**
+   * Significant digits in formatted output. Defaults to 26 — two guard digits
+   * below the 28 Decimal computes at, which is what keeps a round trip through
+   * a non-terminating ratio from surfacing as trailing noise.
+   */
+  formatPrecision?: number;
+  /**
+   * FX rates for kinds whose unit ratios are not constants. `@smartput/rates`'s
+   * RateSnapshot satisfies this structurally; core never imports it.
+   */
+  rates?: RateLookup;
+  /** Rounding mode for money formatting. Default ROUND_HALF_EVEN. */
+  rounding?: Decimal.Rounding;
 }
 
 export interface EvalOptions {
@@ -51,7 +85,7 @@ export interface Result {
   kind: KindId;
   confidence: number;
   spans: Span[];
-  meta: { assumptions: string[] };
+  meta: { ratesAsOf?: string; assumptions: Assumption[] };
 }
 
 export interface Explanation {
@@ -72,6 +106,7 @@ export interface Engine {
   suggest(input: string, opts?: EvalOptions): Result[];
   coerce(kind: KindId, input: string, opts?: EvalOptions): Value;
   explain(input: string, opts?: EvalOptions): Explanation;
+  complete(input: string, opts?: CompleteOptions): Completion[];
 }
 
 export function createEngine(opts: EngineOptions): Engine {
@@ -85,6 +120,9 @@ export function createEngine(opts: EngineOptions): Engine {
   const epsilon = opts.ambiguityEpsilon ?? 0.05;
   const tiebreak = opts.tiebreak ?? "error";
   const kindMeta = opts.kindMeta ?? {};
+  const formatPrecision = opts.formatPrecision;
+  const rates = opts.rates;
+  const rounding = opts.rounding;
 
   const layersFor = (call?: Weights) => [locale.weights, opts.weights, call];
 
@@ -112,21 +150,29 @@ export function createEngine(opts: EngineOptions): Engine {
     assignment: Assignment,
     input: string,
   ): Result {
-    const { value, assumptions } = evaluateNode(
+    const { value, assumptions } = evaluateNode({
       node,
       assignment,
       registry,
-      (locale as Locale).id,
+      locale: (locale as Locale).id,
       input,
       kindMeta,
-    );
+      ...(rates ? { rates } : {}),
+    });
     return {
       value,
-      formatted: formatValue(value, registry, locale as Locale),
+      formatted: formatValue(value, registry, locale as Locale, {
+        ...(formatPrecision === undefined ? {} : { precision: formatPrecision }),
+        ...(rounding === undefined ? {} : { rounding }),
+        ...(rates ? { rates } : {}),
+      }),
       kind: value.kind,
       confidence: assignment.confidence,
       spans: [node.span],
-      meta: { assumptions },
+      meta: {
+        assumptions,
+        ...(rates ? { ratesAsOf: rates.asOf } : {}),
+      },
     };
   }
 
@@ -157,10 +203,13 @@ export function createEngine(opts: EngineOptions): Engine {
         const { node, assignments } = pipeline(input, call);
         return assignments.map((a) => toResult(node, a, input));
       } catch (e) {
-        // Only the library's own errors mean "this input has no interpretation".
-        // A TypeError from a bug in the pipeline must keep its stack rather than
-        // masquerade as an empty result.
-        if (e instanceof SmartputError) return [];
+        // Only the library's own errors mean "this input has no interpretation",
+        // and not even all of those — see NEVER_SWALLOWED. A TypeError from a
+        // bug in the pipeline must keep its stack rather than masquerade as an
+        // empty result.
+        if (e instanceof SmartputError && !NEVER_SWALLOWED.some((C) => e instanceof C)) {
+          return [];
+        }
         throw e;
       }
     },
@@ -181,7 +230,15 @@ export function createEngine(opts: EngineOptions): Engine {
       }
       const best = assignments.find((a) => a.kind === kind);
       if (best === undefined) throw new NoCandidateError(input, input, []);
-      return evaluateNode(node, best, registry, locale.id, input, kindMeta).value;
+      return evaluateNode({
+        node,
+        assignment: best,
+        registry,
+        locale: locale.id,
+        input,
+        kindMeta,
+        ...(rates ? { rates } : {}),
+      }).value;
     },
 
     explain(input, call) {
@@ -229,6 +286,16 @@ export function createEngine(opts: EngineOptions): Engine {
           };
         }),
       };
+    },
+
+    complete(input, call) {
+      return complete({
+        registry,
+        locale: locale as Locale,
+        layers: layersFor(call?.weights),
+        input,
+        ...(call ? { opts: call } : {}),
+      });
     },
   };
 }

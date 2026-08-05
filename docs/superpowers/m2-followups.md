@@ -9,27 +9,20 @@ Thirteen defects in the M2 plan itself were found and adjudicated during
 execution. Those are closed — the rulings are recorded in the commit history of
 `worktree-m2-kinds`. This file lists only what remains open.
 
-## Blocking before any published release
+## Closed in M3
 
 ### No display-precision policy
 
-`formatValue` renders the exact authored value with no rounding anywhere, which
-is what makes the corpus's 28-digit rows meaningful. The cost is that any kind
-with an irrational unit ratio prints artifacts to the user:
+Closed by commit `05f3db7` ("feat(core): round formatted output at two guard
+digits"), M3 Task 1. Formatted output now rounds at 26 significant digits —
+two guard digits below the 28 Decimal computes at — instead of rendering the
+exact authored value, which is what surfaced artifacts like
+`0.4999999999999999999999999998turn`. The corpus rows that asserted full
+28-digit precision were updated in the same commit to the new rounded values.
 
-```
-90 deg + 90 deg in turn  ->  0.4999999999999999999999999998turn
-2 turn in grad           ->  799.9999999999999999999999996grad
-210 mm in pt             ->  595.2755905511811023622047243pt
-```
+## Blocking before any published release
 
-`angle` as shipped produces this for essentially every non-radian conversion. No
-consumer would accept it. The fix is cross-cutting — it means deciding where
-display rounding lives and reconciling it with the corpus rows that currently
-assert full precision — which is why it was not attempted inside M2.
-
-**This should be the first item in M3's plan.** It must not reach a published
-release.
+_(nothing currently listed)_
 
 ## Correctness and API
 
@@ -89,6 +82,23 @@ release.
   direction. Declaring `canonical: "m3"` with `l: 0.001` would remove the factor,
   the duplication and the sign trap, at the cost of churning test expectations
   that were already corrected once during M2.
+
+- **Currency symbols are output-only, and a money string parses as `number`.**
+  Core's lexer allowlist (`UNIT_SYMBOLS`) contains only `%`, so a leading `$` is
+  skipped rather than rejected: `evaluate("$30.00")` returns `number` 30, and
+  `evaluate("$30")` returns `number` 30. That is a *silent kind change* on a
+  money string, which is materially worse than a throw — the amount survives and
+  the currency does not. The same skip breaks the facade round trip:
+  `Money.parse(new Money(30, "usd").toString())` throws `UnitParseError`,
+  because `toString()` emits `$30.00`. `packages/rates/src/properties.test.ts`
+  pins both, so this stops being invisible.
+  Adding currency symbols to the allowlist is a lexer change with its own
+  ambiguity questions — `$` prefixes the number rather than following it — and
+  belongs in its own task. (Ruled out of M3 scope by the M3 plan's Self-Review;
+  only this text was corrected there.)
+
+- **`money` is not in any default kind set.** It lives in `@smartput/rates` and
+  callers pass it explicitly, like every other kind.
 
 ## Test gaps
 

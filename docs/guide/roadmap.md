@@ -11,6 +11,7 @@ Each milestone is independently shippable and gets its own implementation plan.
 | --- | --- | --- |
 | **M1** | Contracts, registry, lexer, Pratt parser, solver, layered weights, softmax confidence, `explain()`. Kinds: `number`, `length`, `mass`, `duration`. Locale: `en`. | **Shipped** |
 | **M2** | Temperature (affine), Measure (dpi via `Value.meta`), angle, datasize, speed/area/volume as explicit op signatures. Facade class generator. | Planned |
+| **M2.5** | `Engine.complete()`, prefix completion, `typical` bands, `display` on every unit, consistent word-form output. | **Shipped** |
 | **M3** | Money kind, `@smartput/rates`, ECB provider, `createLiveEngine`. | Planned |
 | **M4** | `@smartput/datetime`: datetime kind, chrono bridge, Temporal ops, timezones. | Planned |
 | **M5** | `@smartput/color`, the Ukrainian locale across every package, `defineLocalePack`, analyzer helpers, `assertLocaleContract`. | Planned |

@@ -6,7 +6,7 @@ import type { NormalizedKind } from "../kind/define";
 import type { Registry } from "../kind/registry";
 import { createAnalyzerChain } from "../locale/analyze";
 import { numberSymbols, parseNumber } from "../locale/number";
-import type { EvalCtx, KindId, Locale, Value } from "../types";
+import type { EvalCtx, KindId, Locale, RateLookup, Value } from "../types";
 
 /**
  * What `toJSON()` produces and what `from()` accepts back. Plain JSON, so it
@@ -57,8 +57,16 @@ export function createFacade(args: {
   registry: Registry;
   locale: Locale;
   deltaFacades?: Map<KindId, QuantityClass>;
+  /**
+   * FX rates for a `money`-shaped kind, whose unit ratios are functions that
+   * read `ctx.rates` rather than constants. Without this, a money facade
+   * builds fine but every operation that has to convert — `to`, `as`,
+   * `equals`, `add`/`sub`, `toString` — throws `MissingRateError` the moment
+   * it reaches a non-canonical currency's `ratio`.
+   */
+  rates?: RateLookup;
 }): QuantityClass {
-  const { kind, registry, locale } = args;
+  const { kind, registry, locale, rates } = args;
   const deltaFacades = args.deltaFacades ?? new Map<KindId, QuantityClass>();
   const canonicalUnit = kind.spec.mode === "ratio" ? kind.spec.canonical : "";
   const fold = (s: string) => s.toLocaleLowerCase(locale.id);
@@ -141,19 +149,24 @@ export function createFacade(args: {
     }
   };
 
-  // The unit (if any) whose ratio is context-dependent — currently only
-  // `measure`'s `px`, which reads dpi from `meta`. Keeping a handle on the
-  // NormalizedUnit itself (rather than a bare boolean) lets the `dpi` getter
-  // below ask the kind for its own default instead of restating one.
-  const dpiUnitName =
-    kind.spec.mode === "ratio"
-      ? Object.entries(kind.spec.units).find(
-          ([, u]) =>
-            typeof u === "object" && "ratio" in u && typeof u.ratio === "function",
-        )?.[0]
-      : undefined;
-  const dpiUnit = dpiUnitName !== undefined ? kind.units.get(dpiUnitName) : undefined;
-  const usesDpi = dpiUnit !== undefined;
+  // The unit whose ratio reads `meta.dpi`, if the kind declares one. Explicit
+  // opt-in via `spec.dpiUnit`: this used to be inferred as "the first unit with
+  // a function ratio", which stopped being a proxy for `measure`'s `px` the
+  // moment `money` arrived with twelve rate-driven units — a money quantity
+  // grew a meaningless `withDpi()` and a `.dpi` getter that threw
+  // MissingRateError. Keeping a handle on the NormalizedUnit itself (rather
+  // than a bare boolean) lets the `dpi` getter below ask the kind for its own
+  // default instead of restating one.
+  const dpiUnitName = kind.spec.mode === "ratio" ? kind.spec.dpiUnit : undefined;
+  const dpiUnit = dpiUnitName === undefined ? undefined : kind.units.get(dpiUnitName);
+  if (dpiUnitName !== undefined && dpiUnit === undefined) {
+    // A declaration naming a unit the kind does not have is a wiring error, and
+    // silently dropping the dpi surface would look like the bug this replaced.
+    throw new KindConflictError(
+      kind.id,
+      `dpiUnit ${JSON.stringify(dpiUnitName)} is not a unit`,
+    );
+  }
 
   class Q implements Quantity {
     readonly value: Decimal;
@@ -205,23 +218,19 @@ export function createFacade(args: {
 
     /** Canonical magnitude, the basis for every conversion and comparison. */
     private canonical(): Decimal {
-      return toCanonical(
-        this.value,
-        kind,
-        this.unit,
-        locale.id,
-        this.meta as Record<string, unknown>,
-      );
+      return toCanonical(this.value, kind, this.unit, {
+        locale: locale.id,
+        ...(this.meta ? { meta: this.meta as Record<string, unknown> } : {}),
+        ...(rates ? { rates } : {}),
+      });
     }
 
     to(unit: string): Decimal {
-      return fromCanonical(
-        this.canonical(),
-        kind,
-        requireUnit(unit),
-        locale.id,
-        this.meta as Record<string, unknown>,
-      );
+      return fromCanonical(this.canonical(), kind, requireUnit(unit), {
+        locale: locale.id,
+        ...(this.meta ? { meta: this.meta as Record<string, unknown> } : {}),
+        ...(rates ? { rates } : {}),
+      });
     }
 
     as(unit: string): Quantity {
@@ -243,7 +252,7 @@ export function createFacade(args: {
         unit: this.unit,
         ...(this.meta ? { meta: this.meta } : {}),
       });
-      return formatValue(value, registry, locale);
+      return formatValue(value, registry, locale, rates ? { rates } : {});
     }
 
     toJSON(): QuantitySnapshot {
@@ -271,29 +280,14 @@ export function createFacade(args: {
       const delta = (rhs as Q).canonical().times(sign);
       const total = this.canonical().plus(delta);
       return new Q(
-        fromCanonical(
-          total,
-          kind,
-          this.unit,
-          locale.id,
-          this.meta as Record<string, unknown>,
-        ),
+        fromCanonical(total, kind, this.unit, {
+          locale: locale.id,
+          ...(this.meta ? { meta: this.meta as Record<string, unknown> } : {}),
+          ...(rates ? { rates } : {}),
+        }),
         this.unit,
         this.meta as Record<string, unknown>,
       );
-    }
-
-    get dpi(): number | undefined {
-      const d = this.meta?.dpi;
-      if (typeof d === "number") return d;
-      if (dpiUnit === undefined) return undefined;
-      // Ask the kind's own ratio function for its default, with no dpi in
-      // meta, rather than restating that default (currently 96) here.
-      const ctx: EvalCtx = {
-        self: { kind: kind.id, canonical: new Decimal(0), unit: dpiUnit.unit },
-        locale: locale.id,
-      };
-      return new Decimal(1).div(dpiUnit.ratio(ctx)).toNumber();
     }
   }
 
@@ -347,13 +341,10 @@ export function createFacade(args: {
         .canonical()
         .plus((rhs as unknown as { canonical(): Decimal }).canonical());
       return new Q(
-        fromCanonical(
-          total,
-          kind,
-          this.unit,
-          locale.id,
-          this.meta as Record<string, unknown>,
-        ),
+        fromCanonical(total, kind, this.unit, {
+          locale: locale.id,
+          ...(this.meta ? { meta: this.meta as Record<string, unknown> } : {}),
+        }),
         this.unit,
         this.meta as Record<string, unknown>,
       );
@@ -372,7 +363,26 @@ export function createFacade(args: {
     };
   }
 
-  if (usesDpi) {
+  if (dpiUnit !== undefined) {
+    // Both members are defined only for a kind that declared `spec.dpiUnit`, so
+    // `"dpi" in q` and `"withDpi" in q` answer honestly — a money quantity has
+    // neither, rather than a getter that throws and a setter nothing reads.
+    Object.defineProperty(proto, "dpi", {
+      get(this: Quantity): number | undefined {
+        const d = this.meta?.dpi;
+        if (typeof d === "number") return d;
+        // Ask the kind's own ratio function for its default, with no dpi in
+        // meta, rather than restating that default (currently 96) here. It
+        // gets `rates` for the same reason every other conversion site does:
+        // the ratio is a function, and a function may consult them.
+        const ctx: EvalCtx = {
+          self: { kind: kind.id, canonical: new Decimal(0), unit: dpiUnit.unit },
+          locale: locale.id,
+          ...(rates ? { rates } : {}),
+        };
+        return new Decimal(1).div(dpiUnit.ratio(ctx)).toNumber();
+      },
+    });
     proto.withDpi = function (this: Quantity, dpi: number) {
       return new Q(this.value, this.unit, { ...this.meta, dpi });
     };
