@@ -52,6 +52,7 @@ interface Kind {
   prior?: number;
   lexicon?: Lexicon;
   literals?: LiteralMatcher[];
+  completions?: Completer;
   ops?: OpSignature[];
   format?: (v: Value, ctx: FormatCtx) => string;
 }
@@ -441,6 +442,54 @@ interface CompleteOptions {
 ```
 
 See [`complete()`](/api/complete).
+
+### A kind that completes itself
+
+`Completion` above is what a caller receives. These three are what a **kind
+supplies**, through [`Kind.completions`](/api/define-kind#completions), and they
+exist because the global alias index cannot hold every vocabulary that wants
+completing — `@smartput/geo` registers no name shorter than four characters and
+no city at all, so without this seam a place could not be offered at any price.
+
+```ts
+type Completer = (ctx: CompleteCtx) => readonly KindCompletion[];
+
+interface CompleteCtx {
+  readonly locale: string;
+  /** The trailing fragment, NFKC-folded and lowercased. */
+  readonly fragment: string;
+  /** The number in front of the fragment, when there is one. */
+  readonly count?: Decimal;
+}
+
+interface KindCompletion {
+  /** What replaces the fragment. A replacement, never a template. */
+  readonly text: string;
+  /** The alias that matched — displayed, and the last tiebreak but one. */
+  readonly alias: string;
+  /** A unit this kind registered. A row naming anything else is dropped. */
+  readonly unit: string;
+  /** Summed into the score exactly like a weight layer. */
+  readonly weight?: number;
+  /** De-duplication key within the kind. Defaults to `unit`. */
+  readonly key?: string;
+}
+```
+
+The `ctx` is **frozen**, and that is load-bearing rather than decorative: one
+object is built per keystroke and handed to every kind that declares a
+completer, so a kind that reached past `readonly` and rewrote `fragment` would
+be answering the next kind's question. It is the only context core hands to more
+than one plugin from one object — `EvalCtx` is rebuilt per `Value`.
+
+`key` exists because a unit is not always one row. Every US city carries the
+unit `us`, so a unit-keyed map would keep one Springfield of three; geo keys on
+the GeoNames id.
+
+Rows from this seam land in the same ranking as the alias index's, scored
+`resolveWeight + weight + prefixQuality` and cut by the same `limit`. See
+[`completions`](/api/define-kind#completions) for what that means for the
+numbers you put in `weight`.
 
 ## Facade
 

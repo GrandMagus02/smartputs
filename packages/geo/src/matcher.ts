@@ -102,6 +102,16 @@ interface CountryHit {
   readonly weight: number;
 }
 
+/**
+ * Alpha-2 ascending. Not `localeCompare`, which orders by the *host's* locale
+ * and would let two machines rank two countries differently; an alpha-2 is two
+ * ASCII letters, where `<` is already the alphabet.
+ */
+function byCode(a: CountryHit, b: CountryHit): number {
+  if (a.row.a2 === b.row.a2) return 0;
+  return a.row.a2 < b.row.a2 ? -1 : 1;
+}
+
 interface CityHit {
   readonly row: CityRow;
   readonly weight: number;
@@ -119,15 +129,17 @@ interface TrieNode {
    */
   readonly next: Map<string, TrieNode>;
   /**
-   * The largest country of this alias. At most one, still, now that a claim can
-   * carry several readings: every country weighs a flat `+3`, so both Congos
-   * would reach the solver on identical scores and turn `congo` from a decided
-   * answer into an `AmbiguityError` naming two countries the user cannot pick
-   * between with any more input than they already gave. A city runner-up is
-   * separated by population and does not have that problem. Surfacing the second
-   * Congo wants a tiebreak §6.1 does not have; it stays M6.4's, with completion.
+   * Every country of this alias, largest first.
+   *
+   * One of them until M6.4, because every country weighs a flat `+3`: both
+   * Congos reached the solver on identical scores and turned `congo` from a
+   * decided answer into an `AmbiguityError` naming two countries no further
+   * input could separate. What expired that is `RANK_STEP` — the readings are
+   * pushed apart on the way out, so the runner-up is listed without ever being
+   * close enough to make the winner a coin flip. The tiebreak §6.1 was missing
+   * is the one it already spends on cities: population.
    */
-  country?: CountryHit;
+  countries?: CountryHit[];
   /** Every city of this alias, heaviest first. */
   cities?: CityHit[];
   /**
@@ -169,17 +181,28 @@ function buildTrie(
   const root: TrieNode = { next: new Map() };
   const registered = new Set(countries.map((c) => c.a2));
 
+  // "congo" is both Congos and "soudan" is both Mali and Sudan, and over the
+  // whole table those two names are the entirety of it — which is why one row
+  // per node survived three milestones before the cost of it showed.
+  const named: TrieNode[] = [];
   for (const row of countries) {
+    const hit: CountryHit = { row, weight: COUNTRY_WEIGHT };
     for (const alias of row.aliases) {
       const node = nodeFor(root, alias);
       if (node === null) continue;
-      // "congo" is both Congos and "soudan" is both Mali and Sudan. §6.1 ranks
-      // by population everywhere else it has a choice, so it ranks here too;
-      // the runner-up is suggest()'s to surface once M6.4 gives it one.
-      if (node.country === undefined || node.country.row.population < row.population) {
-        node.country = { row, weight: COUNTRY_WEIGHT };
+      if (node.countries === undefined) {
+        node.countries = [];
+        named.push(node);
       }
+      node.countries.push(hit);
     }
+  }
+  // §6.1 ranks by population everywhere it has a choice, so it ranks here too.
+  // Alpha-2 underneath it is a tiebreak nobody will meet — no two countries of
+  // one alias share a population — and it is here so the order is a fact about
+  // the data rather than about the generator's row order, which is free to move.
+  for (const node of named) {
+    node.countries?.sort((a, b) => b.row.population - a.row.population || byCode(a, b));
   }
 
   const populated: TrieNode[] = [];
@@ -414,10 +437,17 @@ function scopeFrom(
       if (hit !== undefined) return { hit, end };
     }
 
-    if (at.country !== undefined && claimable(first, surface, ctx)) {
-      const a2 = at.country.row.a2;
-      const hit = cities.find((c) => c.row.country === a2);
-      if (hit !== undefined) return { hit, end };
+    // Every country of the scope word, largest first, so the answer is the
+    // biggest one that really holds a city of the name. "brazzaville congo" is
+    // what that buys: the Republic of the Congo is the runner-up of "congo",
+    // and while the node carried one country the scope asked the DRC, missed,
+    // and degraded to the unscoped city — a worse reading of an input where the
+    // user had already been explicit.
+    if (at.countries !== undefined && claimable(first, surface, ctx)) {
+      for (const { row } of at.countries) {
+        const hit = cities.find((c) => c.row.country === row.a2);
+        if (hit !== undefined) return { hit, end };
+      }
     }
   }
 
@@ -552,7 +582,7 @@ export function createPlaceLiteral(
 
     for (let i = path.length - 1; i >= 0; i -= 1) {
       const at = path[i] as TrieNode;
-      if (at.country === undefined && at.cities === undefined) continue;
+      if (at.countries === undefined && at.cities === undefined) continue;
 
       // Only a one-word claim can be another kind's token: two words in a row
       // are nobody's unit and nobody's keyword.
@@ -562,29 +592,36 @@ export function createPlaceLiteral(
       const end = ends[i] as number;
       const readings: LiteralMatch[] = [];
 
-      // Country before city, which is §6.1's +3 against at most +2 read as
-      // ordering rather than as a comparison — the two never tie, so scoring
+      // Countries before cities, which is §6.1's +3 against at most +2 read as
+      // ordering rather than as a comparison — those two never tie, so scoring
       // them and sorting would be a longer way to write this line. It is an
       // ordering and no longer a return: "singapore" is a country and a city of
       // the name, and the city is now the runner-up rather than nothing.
-      if (at.country !== undefined && (!single || claimable(word, surface, ctx))) {
-        const { row } = at.country;
-        readings.push(
-          claim(
-            {
-              geonameId: row.geonameId,
-              name: row.name,
-              zone: row.zone,
-              currency: row.currency,
-              lat: row.lat,
-              lon: row.lon,
-              population: row.population,
-              country: row.a2,
-            },
-            end - offset,
-            at.country.weight,
-          ),
-        );
+      //
+      // Two countries of one name *do* tie, at the same flat +3, and this is the
+      // one ranking in the file that no weight decides — `spaced` separates them
+      // afterwards, off the order sorted into the node. So both Congos are
+      // ranked ahead of any city of the name, which is what §6.1 says a country
+      // is worth and not an artefact of where the loop puts them.
+      if (at.countries !== undefined && (!single || claimable(word, surface, ctx))) {
+        for (const { row, weight } of at.countries) {
+          readings.push(
+            claim(
+              {
+                geonameId: row.geonameId,
+                name: row.name,
+                zone: row.zone,
+                currency: row.currency,
+                lat: row.lat,
+                lon: row.lon,
+                population: row.population,
+                country: row.a2,
+              },
+              end - offset,
+              weight,
+            ),
+          );
+        }
       }
 
       // Already sorted, at build time, by the weight §6.1 tables — so the other

@@ -1,6 +1,6 @@
 ---
 title: Places and distances
-description: The place kind, countries and cities as values, postal codes, admin1 scoping, great-circle distance, the GeoNames providers, and the datetime and rates bridges.
+description: The place kind, countries and cities as values, postal codes and their formats, admin1 scoping, great-circle distance, prefix completion, the GeoNames providers, and the datetime and rates bridges.
 ---
 
 # Places and distances
@@ -910,11 +910,13 @@ section: `@smartput/rates` has `createLiveEngine`, geo does not. A provider row
 is a `Place` and a kind is built from `CityRow`s, so anyone wiring a live place
 engine today writes that mapping themselves, deciding for their own data what a
 row with no zone and no population should become. Whether geo ships the mapping,
-or a whole `createLivePlaceEngine` around it, is open.
+or a whole `createLivePlaceEngine` around it, was M6.4's to decide and M6.4 did
+not decide it — the milestone ended with this still open.
 
 ## How it works
 
-Two seams, both of them M4's, plus two core changes.
+Two seams that were already there, both of them M4's, plus three core changes
+this milestone made.
 
 - **Literal matchers** — the same seam `@smartput/datetime` uses. Geo registers
   two, each offered `(input, offset, ctx)` at every token boundary: one walks the
@@ -948,32 +950,326 @@ things in this guide are that one change: `suggest()`
 [is a number with a postcode underneath](#90210-is-still-a-number). The full
 contract is in [Types](/api/types#returning-more-than-one-reading).
 
+The third is M6.4's and it is a new seam rather than a widened one: a kind may
+declare [`completions`](/api/define-kind#completions), a function core calls once
+per keystroke for a vocabulary the global alias index was never allowed to hold.
+Geo is its first consumer and the reason it exists — a city is in no index and a
+country name below four characters is in none either — but nothing about it is
+geo's. It is the door datetime needs to complete a time zone, and that kind does
+not declare one yet.
+
 One other observable change comes with cities, and no corpus can show it: `5 nice`
 and `10 mobile` used to throw `NoCandidateError` and now throw `UnitParseError`,
 because a claimed place where a unit was expected is a parse failure rather than
 a missing candidate. Both still mean "no reading". A caller that switches on the
 error class should know.
 
+## Completing a name
+
+`complete()` offers places, and the kind wires it up for you — there is nothing
+to register:
+
+```ts
+engine.complete("kyi").map((c) => c.text);
+// [ "Kyiv", "Kyivskyi", "Kyivskyi" ]
+engine.complete("ukrai").map((c) => c.text);
+// [ "Ukraine" ]
+engine.complete("united").map((c) => c.text);
+// [ "United States", "United Kingdom", "United Arab Emirates" ]
+engine.complete("3pm in kyi")[0].text;
+// "3pm in Kyiv"
+```
+
+The row replaces the word being typed with the place's **display name**, not with
+the alias that matched, so a historical or local name reaches the modern one:
+
+```ts
+engine.complete("kiev").map((c) => c.text);      // [ "Kyiv" ]
+engine.complete("leningrad").map((c) => c.text); // [ "Saint Petersburg" ]
+engine.complete("nipp").map((c) => c.text);      // [ "Japan", "Nippes" ]
+engine.complete("america").map((c) => c.text);
+// [ "United States", "Americana", "American Samoa" ]
+```
+
+The two rows named `Kyivskyi` above are two different places — GeoNames
+`13680589` and `13561145`, 182,900 and 139,177 people, and a third at 110,600
+that the row cap below cuts. They are two rows rather than one because the
+completer de-duplicates on the GeoNames id, which is what identifies a place
+everywhere else in this package. The list is not showing you one answer twice;
+it is showing you a name three settlements share.
+
+Completion is tiered exactly like matching. A countries-only build completes
+countries and not one city:
+
+```ts
+// engine: BUILTIN_KINDS + place  (countries only)
+engine.complete("ukrai").map((c) => c.text); // [ "Ukraine" ]
+engine.complete("kyi");                      // []
+```
+
+A multi-word name completes from its **first** word and only from there: the
+trie holds `united states` and `south korea` whole, so `unit` and `sout` reach
+them, while `united s` does not. See [Not yet](#not-yet) — that one is core's
+fragment rule, not missing data.
+
+```ts
+engine.complete("sout").map((c) => c.text);
+// [ "South Korea", "South Sudan", "South Bend" ]
+```
+
+### A place is not a quantity
+
+Two rules keep the list a calculator's. A count in front of the fragment means
+the word is a unit — there is no such thing as ten Kyivs — so places sit out
+entirely:
+
+```ts
+engine.complete("10 k").map((c) => c.text);
+// [ "10 k", "10 kilobytes", "10 kilometres", "10 kilograms", "10 knots",
+//   "10 km2", "10 kibibytes", "10 kmh", "10 k" ]
+```
+
+And the list is shared. Core merges every kind into one ranking of ten, so a
+place is ranked against `kilometre` and not only against other places. A country
+carries **no weight advantage at all** there: it meets a unit at zero and is
+separated from it by one thing, how much of each name is still to be typed. A
+city sits 1 to 3 points below that, which is [the matcher's ranking](#ranking) —
+country, then capital, then population — kept intact under a ceiling of zero.
+
+The ceiling is a deliberate reversal. In the matcher, `+3` for a country ranks
+one place against another place; in this list the other rows are every unit in
+the engine, so the same `+3` reads as "a country outranks the kilogram". It
+measurably did: at the matcher's figures, 56 of the 294 prefixes of a builtin unit
+alias handed their first row to a place, `me` completed Mesa rather than metre,
+and `2 km in mil` completed Milan rather than mile. Rebased, twelve do — see
+[below](#when-a-place-answers-first).
+
+```ts
+engine.complete("mi").map((c) => `${c.kind}:${c.text}`);
+// [ "length:mile", "datasize:mebibyte", "duration:minute", "place:Myanmar", … ]
+engine.complete("ki").map((c) => `${c.kind}:${c.text}`);
+// [ "datasize:kibibyte", "mass:kilogram", "place:Kyiv", "place:Kira",
+//   "place:Kita", "datasize:kilobyte", "length:kilometre" ]
+```
+
+At most **three** places compete for the ten. That cap is what leaves
+`kilobyte` and `kilometre` in the list behind `ki`, where eight cities — Kira,
+Kita and Kisi among them — would otherwise have pushed them off the end. Across
+every prefix of every builtin alias, registering the kind now costs the units
+one row in total.
+
+A place picker wants the opposite trade, so it asks for it:
+
+```ts
+import { COUNTRIES, PlaceCompleter } from "@smartput/geo";
+import { CITIES } from "@smartput/geo/cities";
+
+const wide = new PlaceCompleter(COUNTRIES, CITIES).withLimit(10);
+wide.completions({ locale: "en", fragment: "par" }).map((r) => r.text);
+// [ "Pare", "Paris", "Parma", "Parla", "Paraná", "Parung", "Pardīs",
+//   "Hidalgo del Parral", "Paraguay", "Parakou" ]
+```
+
+`PlaceCompleter` is frozen and `withLimit` returns a new one over the same index,
+so widening the list costs a walk and not a rebuild. Underneath it,
+`createPlaceIndex(countries, cities)` and `completePlaces(index, ctx, limit)` are
+the same thing as functions, for a picker that has no engine at all. The seam
+they plug into is core's, and it is [`Kind.completions`](/api/define-kind#completions)
+— any kind with a vocabulary too large or too collision-prone for the global
+alias index can do what geo does here.
+
+### When one prefix names two countries
+
+The ranked list is the answer to an ambiguous name, and for a country it is
+usually the whole answer:
+
+```ts
+engine.complete("congo").map((c) => c.text);
+// [ "Democratic Republic of the Congo", "Republic of the Congo" ]
+engine.complete("guine").map((c) => c.text);
+// [ "Guinea", "Guinea-Bissau", "Equatorial Guinea" ]
+engine.complete("niger").map((c) => c.text);
+// [ "Niger", "Nigeria" ]
+engine.complete("domin").map((c) => c.text);
+// [ "Dominica", "Dominican Republic", "Sri Lanka" ]
+```
+
+Sri Lanka is there on `dominion of ceylon`, one of its GeoNames alternate names,
+and Equatorial Guinea on `guinee espagnol`. That is the shape of nearly every
+surprise in this list: **the alias that matched is not the name that is shown**.
+`Completion` carries both — `alias` and `text` — so a launcher can tell the user
+which of a place's names it answered on.
+
+An exact match takes the top row outright — `EXACT_BONUS` is 10, against a
+one-per-character prefix penalty — which is what keeps a typed-out name from
+being ranked below a longer one that merely starts the same way:
+
+```ts
+engine.complete("paris").map((c) => c.text);
+// [ "Paris", "Paris 16 Passy", "Paris 12 Reuilly" ]
+```
+
+Short of an exact match, a country still leads a city of a similar name, and this
+is the one place the matcher's ranking shows through:
+
+```ts
+engine.complete("geor").map((c) => c.text);
+// [ "Georgia", "George", "Georgetown" ]
+```
+
+`georgia` is a character longer than `george`, so on prefix quality alone the
+South African city would lead. The country's zero against the city's −1.24 is
+what decides it. Against a *unit* six characters long, `georgia` would have lost
+that character and the unit would lead.
+
+### When a place answers first
+
+Twelve prefixes of a builtin unit alias lead with a place rather than the unit
+once the kind is registered. All twelve, verbatim, because a list is checkable
+where a count is not:
+
+| Typed | Offered first | Instead of |
+| --- | --- | --- |
+| `ce` | Sri Lanka — on `ceylon` | `celsius` |
+| `fa` | Fatih | `fahrenheit` |
+| `he`, `hec` | Heze, Hechi | `hectare` |
+| `ke` | Kenya — on `kenia` | `kelvin` |
+| `li` | Libya — on `libia` | `liter` |
+| `meg` | Meguro | `megabyte` |
+| `pe`, `per` | Peru | `percent` |
+| `te`, `ter` | Teni, Terni | `terabyte` |
+| `to` | Togo | `tonne` |
+
+Eleven of them are a **shorter name winning on how much is left to type**, which
+is the alias index's own rule applied to a place: `kenia` is five letters where
+`kelvin` is six, `togo` four where `tonne` is five. The twelfth, `li`, is a real
+tie at −3.00 between `libia` and `liter`, broken by core's last resort of kind id
+ascending; it is in the list rather than fixed, because the thumb on the scale
+that would fix it is exactly what was taken off above.
+
+The list is pinned by a test that sweeps all 294 prefixes and asserts the top row
+is byte-identical to the geo-free engine everywhere else, so any movement in it
+is a deliberate change rather than a drift. If `pe` offering Peru over `percent`
+is wrong for your launcher, `complete("...", { kinds: [...] })` drops the kind
+before its completer is ever called.
+
+## Checking a postal code
+
+The format is one column of the country table, so the same 178 formats that
+parse `SW1A 1AA` will also answer for a form field:
+
+```ts
+import { PostalFormat } from "@smartput/geo";
+
+const gb = PostalFormat.for("GB");
+gb.validate("sw1a1aa");  // true
+gb.normalize("sw1a1aa"); // "SW1A 1AA"
+gb.shape("sw1a1aa");     // "@@#@ #@@"
+
+PostalFormat.for("AQ");  // null — Antarctica has no postal system
+```
+
+`for` takes alpha-2 or alpha-3 in any case and returns `null` twice over: for a
+code that names no country, and for one of the 74 countries with no format to
+check against. Check once at the door rather than a hundred codes later. There is
+no constructor, and the instance is frozen — `for` and `of` are the only ways in,
+and both may refuse. `PostalFormat.of(row)` is the same door for a row you
+brought yourself: a `definePlace()` table, a row off a provider. The same
+instance comes back for the same country, which is what makes the matcher behind
+it worth caching.
+
+Ireland is the near miss worth knowing about: the Eircode has been in GeoNames'
+column since 2015, so `for("IE")` is a format and `d02af30` normalizes to
+`D02 AF30`.
+
+Normalization is a search, not a table. Every country's separator goes somewhere
+different, so `normalize` strips the separators and offers the country's own
+format each single reinsertion until one is accepted:
+
+```ts
+PostalFormat.for("CA").normalize("m5v3l9");    // "M5V 3L9"
+PostalFormat.for("NL").normalize("1234ab");    // "1234 AB"
+PostalFormat.for("JP").normalize("1000001");   // "100-0001"
+PostalFormat.for("US").normalize("902101234"); // "90210-1234"
+PostalFormat.for("GB").normalize("nope");      // null
+```
+
+`validate` is defined as `normalize(code) !== null`, so the two can never
+disagree in a form — a field that accepted a code and then failed to
+canonicalize it would be the worse of the two answers. The strict question,
+without the case and separator repair, is `postalAccepts(row, code)` in the layer
+underneath, beside `normalizePostal` and `postalShape`:
+
+```ts
+import { COUNTRIES, postalAccepts } from "@smartput/geo";
+
+const us = COUNTRIES.find((c) => c.a2 === "us");
+postalAccepts(us, "902101234");                 // false — not as written
+PostalFormat.of(us).validate("902101234");      // true  — after repair
+```
+
+Each `PostalFormat` also carries the raw pattern as `source` and the country as
+`country`. `source` is GeoNames' column verbatim, uncompiled and still anchored,
+for a caller wiring an HTML `pattern=` attribute or a check in another language —
+this class is not reachable from a form's server side.
+
+Two limits, both of them on the way in. A code longer than `MAX_CODE_LENGTH`
+(40) is refused before any pattern sees it: the longest code any shipped format
+can match is Portugal's, at 34, and backtracking cost is a function of input
+length. And a pattern shaped the way catastrophic backtracking needs is refused
+outright, which makes its country's format accept nothing rather than everything.
+No shipped format is in either state, which the tests assert against the raw
+column — `isBacktrackRisk` is exported for screening patterns of your own.
+
+One shape the search cannot rebuild: a code with **two** separators, which only
+Portugal has. `1234-567 LISBOA` survives as written because a code that is
+already separated and valid is kept, but `1234567LISBOA` normalizes to
+`1234-567LISBOA`.
+
 ## Not yet
 
-Postal codes, the providers and the ranked `suggest()` shipped in M6.3. What
-remains:
+Postal codes, the providers and the ranked `suggest()` shipped in M6.3;
+completion and postal format checking shipped in M6.4, which is the last of them.
+Five things remain.
 
-- **No completion.** `complete("kyi")` returns nothing. Core's completion inserts
-  `<number><unit>` and skips non-ratio kinds outright, so place completion has to
-  go through the matcher's trie rather than the alias index. That is M6.4, with
-  postal format validation. Not geo-specific — datetime has the same hole.
+Multi-word completion is not one of them, though it nearly shipped as one.
+`complete("san fran")` first offered `san France`: core took the fragment to be
+the trailing *word*, so `fran` was the whole question geo was asked, `France` was
+a truthful answer to it, and core spliced that back over `fran` alone to make a
+place that does not exist. `CompleteCtx` now carries the whole input and the
+fragment's span, and a `KindCompletion` may name the offset it replaces from:
+
+```ts
+engine.complete("san fran").map((c) => c.text); // [ "San Francisco", … ]
+engine.complete("new yor").map((c) => c.text);  // [ "New York City", "Jakarta" ]
+```
+
+That second line is the part worth keeping: Jakarta's GeoNames aliases really do
+include `new york van java`, and it is a capital, so on weight alone it ties New
+York City. What separates them is how much of the alias is still untyped — and
+that has to be measured against everything typed, `new yor`, not against the
+fragment `yor` that neither alias begins with.
 - **No live place engine.** The cache facade is core's and the providers are
   geo's, and nothing joins them: `@smartput/rates` has `createLiveEngine` and
-  geo has no equivalent. [Wiring one](#keeping-it-fresh) means writing the
-  `Place` → `CityRow` mapping yourself.
+  geo has no equivalent. M6.4 was where that was to be ruled on and it was not —
+  [wiring one](#keeping-it-fresh) still means writing the `Place` → `CityRow`
+  mapping yourself, deciding for your own data what a row with no zone and no
+  population should become.
 - **One Paris.** `paris texas` still throws and `suggest("paris")` still returns
   one result, and neither is a matcher limit any more — `suggest()` genuinely
   ranks runners-up, there is simply one Paris in the data. Paris, Texas is 25,171
   people against T1's 100,000 floor, so this needs T2 rather than more code.
-- **A postal code carries its country's coordinates**, so `us 90210 to japan` is
-  Washington to Tokyo. Real coordinates need a provider lookup, and nothing wires
-  a provider into the kind.
+- **A postal code has no position of its own.** It borrows its country's
+  coordinates so the zone, currency and country stay usable, and measuring from
+  them is [refused rather than answered](#postal-codes) — `us 90210 to japan`
+  throws `UnpositionedPlaceError`. Real coordinates for a
+  code need [a provider](#providers-and-t2), and nothing wires a provider into
+  the kind.
+- **`PostalFormat.shape()` is a code's shape, not a country's format.**
+  `shape("sw1a1aa")` is `"@@#@ #@@"` because that code validated; there is no way
+  to ask GB for its mask without a code in hand. GeoNames publishes one — the
+  `@# #@@` column — and the generator takes the regex column instead, so carrying
+  it means a generator change and a new `CountryRow` field.
 - **No geocoding, no reverse geocoding, no street addresses.** Not a milestone —
   a different product, and no free dataset carries them at quality.
 

@@ -1,9 +1,11 @@
 import { expect, test } from "bun:test";
 import { BUILTIN_KINDS } from "@smartput/kinds";
+import { defineKind } from "../kind/define";
 import { buildRegistry } from "../kind/registry";
 import en from "../locale/en";
-import type { Weights } from "../types";
+import type { CompleteCtx, Completer, Kind, KindCompletion, Weights } from "../types";
 import { complete } from "./complete";
+import { SCALE_BONUS } from "./score";
 
 const registry = buildRegistry(BUILTIN_KINDS, [], "en");
 const run = (
@@ -129,4 +131,313 @@ test("results are deterministic across runs", () => {
 test("matching is case-insensitive", () => {
   expect(run("30 HO")[0]?.unit).toBe("h");
   expect(run("30 Ho")[0]?.text).toBe("30 hours");
+});
+
+// ---------------------------------------------------------------------------
+// The completer seam.
+//
+// Probed rather than driven from @smartput/geo, which is the kind that needed
+// the seam: core cannot depend on a package that depends on core, and a test
+// that reached for the real gazetteer would also be asserting six thousand
+// rows of data every time it asserted a scoring rule. Same shape engine.test.ts
+// builds its literal-matcher probes in.
+// ---------------------------------------------------------------------------
+
+/**
+ * A vocabulary the global alias index must never hold: several names per unit,
+ * names short enough to collide with somebody's symbol, and a ranking of its
+ * own that core has no information to re-derive.
+ */
+const GAZETTEER: KindCompletion[] = [
+  { text: "Kyiv", alias: "kyiv", unit: "ua", weight: 2 },
+  { text: "Kyoto", alias: "kyoto", unit: "jp", weight: 1.5 },
+  { text: "Kingston", alias: "kingston", unit: "jm", weight: 1 },
+  {
+    text: "Springfield, IL",
+    alias: "springfield",
+    unit: "us",
+    key: "4250542",
+    weight: 1,
+  },
+  {
+    text: "Springfield, MA",
+    alias: "springfield",
+    unit: "us",
+    key: "4951788",
+    weight: 0.5,
+  },
+];
+
+let seen: CompleteCtx[] = [];
+
+const gazetteer: Completer = (ctx) => {
+  seen.push(ctx);
+  return GAZETTEER.filter((row) => row.alias.startsWith(ctx.fragment));
+};
+
+/** Opaque, with registered aliases of its own, exactly as `place` is. */
+const places = (completions: Completer) =>
+  defineKind({
+    id: "place",
+    value: {
+      mode: "opaque",
+      units: { ua: ["ukraine"], jp: ["japan"], jm: ["jamaica"], us: ["usa"] },
+    },
+    completions,
+    format: (v) => v.unit,
+  });
+
+const probeRun = (
+  kinds: Kind[],
+  input: string,
+  opts?: Parameters<typeof complete>[0]["opts"],
+  layers: (Weights | undefined)[] = [en.weights],
+) =>
+  complete({
+    registry: buildRegistry([...BUILTIN_KINDS, ...kinds], [], "en"),
+    locale: en,
+    layers,
+    input,
+    ...(opts ? { opts } : {}),
+  });
+
+const gaz = (input: string, opts?: Parameters<typeof complete>[0]["opts"]) =>
+  probeRun([places(gazetteer)], input, opts);
+
+/**
+ * The nine rows "10 k" returned before the seam existed, in order. Pinned as a
+ * literal rather than compared against a second run, because the point is that
+ * the ratio path did not move — and a self-comparison would hold just as well
+ * if both sides broke together.
+ */
+const TEN_K = [
+  "temperature:k",
+  "datasize:kb",
+  "length:km",
+  "mass:kg",
+  "speed:knot",
+  "area:km2",
+  "datasize:kib",
+  "speed:kph",
+  "tempdelta:k",
+];
+
+test("the ratio path is exactly what it was", () => {
+  expect(run("10 k").map((r) => `${r.kind}:${r.unit}`)).toEqual(TEN_K);
+});
+
+test("registering a completer does not disturb the ratio rows", () => {
+  const rows = gaz("10 k", { limit: 50 });
+  expect(
+    rows.filter((r) => r.kind !== "place").map((r) => `${r.kind}:${r.unit}`),
+  ).toEqual(TEN_K);
+});
+
+test("an opaque kind completes through its completer", () => {
+  const [top] = gaz("kyi");
+  expect(top?.kind).toBe("place");
+  expect(top?.unit).toBe("ua");
+  expect(top?.alias).toBe("kyiv");
+  expect(top?.text).toBe("Kyiv");
+});
+
+// The other half of ruling R8, and the reason the alias-index filter stayed:
+// "ukraine" is a registered alias of this same opaque kind, and completing it
+// would splice "<count> ukraine" — which is what a time zone is not.
+test("an opaque kind's registered aliases still do not complete", () => {
+  expect(gaz("ukrai")).toEqual([]);
+  expect(gaz("30 ukrai")).toEqual([]);
+});
+
+test("a completer's text replaces the fragment inside the whole input", () => {
+  const [top] = gaz("10 km + kyi");
+  expect(top?.span).toEqual({ start: 8, end: 11 });
+  expect(top?.text).toBe("10 km + Kyiv");
+});
+
+// The rule `key` exists for. Both Springfields are in the US, so a map keyed on
+// the unit would offer one of them and silently drop the other.
+test("rows sharing a unit survive on distinct keys", () => {
+  const rows = gaz("springfield");
+  expect(rows.map((r) => r.text)).toEqual(["Springfield, IL", "Springfield, MA"]);
+});
+
+test("rows sharing a key collapse to the best-scoring one", () => {
+  const twice: Completer = () => [
+    { text: "quiet", alias: "quixote", unit: "ua", weight: 1 },
+    { text: "loud", alias: "quixote", unit: "ua", weight: 9 },
+  ];
+  const rows = probeRun([places(twice)], "quix");
+  expect(rows.map((r) => r.text)).toEqual(["loud"]);
+});
+
+test("a row's weight is summed in like a weight layer", () => {
+  // prior 0 and no selector matches, so the whole score is the row's own weight
+  // plus the three characters of "kyiv" still untyped.
+  expect(gaz("k").find((r) => r.unit === "ua")?.score).toBe(2 - 3);
+  expect(gaz("kyi")[0]?.score).toBe(2 - 1);
+});
+
+test("weight layers reach completer rows through the same selectors", () => {
+  const boosted = probeRun([places(gazetteer)], "k", undefined, [
+    en.weights,
+    { "place:ua": 5 },
+  ]);
+  expect(boosted.find((r) => r.unit === "ua")?.score).toBe(2 - 3 + 5);
+});
+
+/**
+ * `scaleFit` reads a `typical` band off a ratio unit — the magnitude people
+ * type that unit in — and a completer row is not a magnitude of anything, so it
+ * must not collect the bonus even when its kind is a ratio kind that declares
+ * one. Both rows below are the same unit under the same alias, separated only
+ * by `key`, so the gap between their scores is the bonus and nothing else.
+ */
+test("scaleFit is not applied to a completer row", () => {
+  const banded = defineKind({
+    id: "banded",
+    value: { mode: "ratio", canonical: "b", units: { b: 1 } },
+    lexicon: { b: { aliases: ["bandit"], typical: [1, 100] } },
+    completions: () => [{ text: "bandit", alias: "bandit", unit: "b", key: "own" }],
+  });
+
+  const rows = probeRun([banded], "5 band").filter((r) => r.kind === "banded");
+  expect(rows).toHaveLength(2);
+  expect((rows[0]?.score ?? 0) - (rows[1]?.score ?? 0)).toBe(SCALE_BONUS);
+});
+
+/**
+ * `prefixQuality` counts the characters of the alias the user has not typed
+ * yet, which is as true of "kyiv" under "kyi" as of "kilometre" under "kilom".
+ * It is withheld only where that count is undefined — see the next test.
+ */
+test("prefixQuality applies when the alias extends the fragment", () => {
+  const rows = gaz("k", { limit: 50 });
+  const byUnit = new Map(rows.map((r) => [r.unit, r.score]));
+  // Same shape of answer, ranked by how much is left to type: kyiv 2-3,
+  // kyoto 1.5-4, kingston 1-7.
+  expect(byUnit.get("ua")).toBe(-1);
+  expect(byUnit.get("jp")).toBe(-2.5);
+  expect(byUnit.get("jm")).toBe(-6);
+});
+
+test("prefixQuality is withheld from an alias the fragment does not prefix", () => {
+  // A completer may match by fold, transliteration or second name. "kv" is
+  // shorter than the fragment, so the subtraction would pay it +1 for being a
+  // worse match than an alias that starts with what was typed.
+  const abbreviated: Completer = () => [
+    { text: "Kyiv", alias: "kv", unit: "ua", weight: 2 },
+  ];
+  expect(probeRun([places(abbreviated)], "kyi")[0]?.score).toBe(2);
+});
+
+test("the completer sees the folded fragment, the locale and the count", () => {
+  seen = [];
+  gaz("10 KYI");
+  expect(seen).toHaveLength(1);
+  expect(seen[0]?.locale).toBe("en");
+  expect(seen[0]?.fragment).toBe("kyi");
+  expect(seen[0]?.count?.toString()).toBe("10");
+});
+
+test("the count is absent when nothing precedes the fragment", () => {
+  seen = [];
+  gaz("kyi");
+  expect(seen[0]?.count).toBeUndefined();
+});
+
+// One ctx object goes to every completer in turn, which no other context in
+// core does — `EvalCtx` is rebuilt per Value. Unfrozen, a kind that wrote to it
+// would be silently rewriting the question the next kind is asked, and the two
+// kinds need never have heard of each other.
+test("the ctx is frozen, so one kind cannot rewrite the next kind's question", () => {
+  const vandal: Completer = (ctx) => {
+    (ctx as { fragment: string }).fragment = "zzz";
+    return [];
+  };
+  expect(() => probeRun([places(vandal)], "kyi")).toThrow(TypeError);
+});
+
+test("a row naming an unregistered unit is dropped", () => {
+  const wrong: Completer = () => [
+    { text: "Nowhere", alias: "nowhere", unit: "zz", weight: 99 },
+  ];
+  expect(probeRun([places(wrong)], "nowh")).toEqual([]);
+});
+
+test("opts.kinds filters completer rows and skips the completer", () => {
+  seen = [];
+  expect(gaz("kyi", { kinds: ["duration"] })).toEqual([]);
+  expect(seen).toEqual([]);
+  expect(gaz("kyi", { kinds: ["place"] }).map((r) => r.unit)).toEqual(["ua"]);
+});
+
+test("limit applies to the merged list, not to each source", () => {
+  const all = gaz("k", { limit: 50 });
+  expect(all.length).toBeGreaterThan(10);
+  expect(gaz("k")).toEqual(all.slice(0, 10));
+});
+
+test("completer rows are deterministic across runs", () => {
+  expect(JSON.stringify(gaz("k"))).toBe(JSON.stringify(gaz("k")));
+});
+
+// Nothing to complete is decided before any completer runs, so a kind is never
+// asked what an empty fragment could become.
+test("no fragment means no completer call", () => {
+  seen = [];
+  expect(gaz("10 ")).toEqual([]);
+  expect(seen).toEqual([]);
+});
+
+// ---- reaching back over the words in front of the fragment ----
+
+/** Claims a two-word name the way geo's trie does. */
+const twoWord: Completer = (ctx) => {
+  const whole = ctx.input.slice(0, ctx.span.end).toLowerCase();
+  if (!"san francisco".startsWith(whole)) return [];
+  return [
+    {
+      text: "San Francisco",
+      alias: "san francisco",
+      unit: "us",
+      key: "5391959",
+      start: 0,
+    },
+  ];
+};
+
+test("a completer sees the whole input and where the fragment sits in it", () => {
+  seen = [];
+  gaz("san fran");
+  const ctx = seen[0] as CompleteCtx;
+  // The fragment is one word and the name is two. With only the fragment to go
+  // on, a completer can answer about "fran" and nothing else — which is how
+  // "san fran" came back as "san France".
+  expect(ctx.fragment).toBe("fran");
+  expect(ctx.input).toBe("san fran");
+  expect(ctx.input.slice(ctx.span.start, ctx.span.end)).toBe("fran");
+});
+
+test("a row may replace the words in front of the fragment", () => {
+  const rows = probeRun([places(twoWord)], "san fran");
+  expect(rows.map((r) => r.text)).toEqual(["San Francisco"]);
+  // The span widens with the text, so a caller splicing by span and a caller
+  // taking `text` wholesale agree about what was replaced.
+  expect(rows[0]?.span).toEqual({ start: 0, end: 8 });
+});
+
+test("a start outside the input is dropped rather than spliced", () => {
+  const bad =
+    (start: number): Completer =>
+    () => [{ text: "Nowhere", alias: "nowhere", unit: "us", key: "x", start }];
+  // Past the fragment's start: would duplicate the text it meant to replace.
+  expect(probeRun([places(bad(6))], "san fran")).toEqual([]);
+  // Negative, and fractional: neither names a position in a string.
+  expect(probeRun([places(bad(-1))], "san fran")).toEqual([]);
+  expect(probeRun([places(bad(1.5))], "san fran")).toEqual([]);
+  // The fragment's own start is the boundary and is legal — it is the default.
+  expect(probeRun([places(bad(4))], "san fran").map((r) => r.text)).toEqual([
+    "san Nowhere",
+  ]);
 });

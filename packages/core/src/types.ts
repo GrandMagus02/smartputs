@@ -315,6 +315,92 @@ export interface OpaqueSpec {
   equals?: (a: unknown, b: unknown) => boolean;
 }
 
+/**
+ * Everything a completer may read about the keystroke. Deliberately not the
+ * whole input: a completer answers "what could this word become", and the words
+ * before it are the parser's business, not a lexicon's.
+ *
+ * The fragment arrives folded because completion has already folded it to search
+ * the alias index, and a completer that folded the raw text again would be a
+ * second answer to "does this alias match" — drifting the day one of the two
+ * learns about a script the other does not.
+ */
+export interface CompleteCtx {
+  readonly locale: string;
+  /** The trailing fragment, NFKC-folded and lowercased — what the user is typing. */
+  readonly fragment: string;
+  /** The number in front of the fragment, when there is one. */
+  readonly count?: Decimal;
+  /**
+   * The whole input, and where `fragment` sits in it.
+   *
+   * A completer needs both because the fragment is one word and a name is not:
+   * "san fran" hands over `fragment` "fran", and a completer that can see no
+   * further offers "France" — which core then splices back as "san France", a
+   * place that does not exist. Looking behind the fragment is the only way to
+   * know the word before it was part of the name being typed.
+   */
+  readonly input: string;
+  readonly span: Span;
+}
+
+/**
+ * One row a kind offers for the fragment being typed.
+ *
+ * `text` is the replacement and not a template, which is the whole difference
+ * from the alias-index path: that path splices "<the count already typed> <the
+ * unit's plural display form>", and a place is not a quantity. "Kyiv" is the
+ * answer; there is no count for it to agree with and no word to pluralize.
+ * Templating with an opt-out flag was the alternative, and it says the same
+ * thing twice — a kind that wants the templated form gets it by registering an
+ * alias, which is what the index is for.
+ */
+export interface KindCompletion {
+  /** What replaces the fragment. A place supplies a name; nothing is templated. */
+  readonly text: string;
+  /** The alias that matched, for display and for tie-breaking. */
+  readonly alias: string;
+  /** A registered unit of the kind. */
+  readonly unit: string;
+  /** Summed into the score exactly like a weight layer. */
+  readonly weight?: number;
+  /**
+   * De-duplication key within the kind. Defaults to `unit`. Places need it:
+   * every US city shares the unit "us", so a unit-keyed map keeps one of them.
+   */
+  readonly key?: string;
+  /**
+   * Replace from this offset instead of from the fragment's start, so a row may
+   * consume the words *before* what is being typed. "san fran" is one name and
+   * has to be replaced as one: without this the row can only rewrite "fran",
+   * and "San Francisco" spliced over it reads "san San Francisco".
+   *
+   * Must be a real offset at or before `ctx.span.start`; a row naming anything
+   * else is dropped, on the same reasoning as a row naming an unregistered unit.
+   * Core does not check that it falls on a word boundary — the completer chose
+   * it from `ctx.input`, and only the completer knows what a word is in its own
+   * vocabulary.
+   */
+  readonly start?: number;
+}
+
+/**
+ * Called once per keystroke for every registered kind that declares one, and
+ * the only way a vocabulary that must stay out of the global alias index can
+ * still be completed.
+ *
+ * That exclusion is not hypothetical: `km` is Comoros and `pm` is Saint Pierre,
+ * which is why nothing shorter than four characters is indexed at all, and
+ * @smartput/geo's gazetteer is six thousand more names of exactly that kind. A
+ * kind in that position keeps its own structure — geo keeps a trie — and this is
+ * how what it knows reaches the ranking without core learning what a city is.
+ *
+ * Return rows already ranked among themselves. Core scores them against every
+ * other row and re-sorts, but a tie falls back to this order, so a kind that has
+ * ranked its hits should say so here rather than hope the score preserves it.
+ */
+export type Completer = (ctx: CompleteCtx) => readonly KindCompletion[];
+
 export interface OpSignature {
   op: OpSymbol;
   left: KindId;
@@ -337,6 +423,12 @@ export interface Kind {
   prior?: number;
   lexicon?: Lexicon;
   literals?: LiteralMatcher[];
+  /**
+   * Beside `lexicon`, never instead of it. A unit's aliases keep completing
+   * through the global index; this is for the names that were never allowed in
+   * it, and a kind may declare both.
+   */
+  completions?: Completer;
   ops?: OpSignature[];
   format?: (v: Value, ctx: FormatCtx) => string;
 }

@@ -478,3 +478,102 @@ test("what a city name changes is only ever nothing into something", () => {
     expect(() => full.evaluate(input)).toThrow(UnitParseError);
   }
 });
+
+/**
+ * Every prefix of every builtin unit alias — the fragments on which a unit is
+ * the answer.
+ *
+ * This is the completion half of "registering geo costs nothing", which M6.4
+ * needs and the corpora above only sample: `en-complete.tsv` is 49 rows, and the
+ * kind now answers on every keystroke in the language.
+ */
+function unitPrefixes(): string[] {
+  const registry = buildRegistry(BUILTIN_KINDS, [], "en");
+  const out = new Set<string>();
+  for (const alias of registry.aliasIndex.keys()) {
+    if (!/^[a-z ]+$/.test(alias)) continue;
+    for (let n = 1; n <= alias.length; n += 1) out.add(alias.slice(0, n));
+  }
+  return [...out];
+}
+
+/**
+ * The fragments where a place leads, listed rather than counted.
+ *
+ * Eleven of the twelve are a *shorter* name winning on `prefixQuality` alone —
+ * "kenia" is five letters where "kelvin" is six, "togo" four where "tonne" is
+ * five — which is the alias index's own rule applied to a place, and a ranking
+ * anyone can explain. The twelfth, `li`, is a true tie at -3.00 between "libia"
+ * and "liter", decided by core's last resort of kind id ascending, and it is in
+ * the list rather than fixed because a per-kind thumb on that tie is the very
+ * thing the rebase below removed.
+ *
+ * A weight advantage is the ranking nobody can explain, and this list is how the
+ * difference stays visible: at spec §6.1's own figures, which is what the
+ * completer carried before it was registered anywhere, 56 of these 294 prefixes
+ * handed their first row to a place and `me` completed Mesa rather than metre.
+ * §6.1's numbers rank one place against another in the matcher; `complete()`
+ * adds them to a score whose other rows — every unit in the engine — carry no
+ * such term at all, so `completion.ts` rebases them onto core's own origin.
+ */
+const PLACE_LED: readonly string[] = [
+  "ce",
+  "fa",
+  "he",
+  "hec",
+  "ke",
+  "li",
+  "meg",
+  "pe",
+  "per",
+  "te",
+  "ter",
+  "to",
+];
+
+test("a place does not take the first completion row from a unit", () => {
+  const fragments = unitPrefixes();
+  expect(fragments.length).toBeGreaterThan(200);
+
+  const led: string[] = [];
+  for (const fragment of fragments) {
+    const before = without.complete(fragment)[0];
+    const after = full.complete(fragment)[0];
+    if (before === undefined || after === undefined) continue;
+    if (after.kind === "place" && before.kind !== "place") {
+      led.push(fragment);
+      continue;
+    }
+    // Whatever wins, it is the same row in both engines unless a place took it.
+    // The stronger half of the claim: geo may not reorder the units either.
+    expect(`${fragment} => ${after.kind}:${after.unit}`).toBe(
+      `${fragment} => ${before.kind}:${before.unit}`,
+    );
+  }
+
+  expect(led.sort()).toEqual([...PLACE_LED]);
+});
+
+test("and pushes at most one unit off the end of the ten", () => {
+  // The row cap's justification, asserted where it can be seen rather than left
+  // in the comment that states it. Core merges every kind into one list of ten,
+  // so `DEFAULT_LIMIT` does not set how many places are interesting — it sets
+  // how many units a place may displace. At eight, seven of these prefixes lost
+  // eleven rows between them and `ki` offered eight cities, three of them Kira,
+  // Kita and Kisi. The two fixes are independent, which is why both are here:
+  // the rebase above decides the first row (56 taken, then 12), the cap decides
+  // the body (11 rows lost, then 1).
+  let dropped = 0;
+  for (const fragment of unitPrefixes()) {
+    const kept = new Set(
+      full
+        .complete(fragment)
+        .filter((c) => c.kind !== "place")
+        .map((c) => `${c.kind}:${c.unit}`),
+    );
+    dropped += without
+      .complete(fragment)
+      .filter((c) => !kept.has(`${c.kind}:${c.unit}`)).length;
+  }
+  expect(dropped).toBeLessThanOrEqual(1);
+});

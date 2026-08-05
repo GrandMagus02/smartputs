@@ -16,12 +16,15 @@ Each milestone is independently shippable and gets its own implementation plan.
 | **Word math** | `NumeralParser`, `cardinalNumerals`, numeral folding, word operators — `"twenty two kg"`, `"ten km plus five km"`. | **Shipped** |
 | **M4** | `@smartput/datetime`: datetime kind, chrono bridge, Temporal ops, timezones. Core's literal-matcher seam and opaque-kind units. | **Shipped** |
 | **M5** | `@smartput/color`, the Ukrainian locale across every package, `defineLocalePack`, analyzer helpers, `assertLocaleContract`. | Planned |
-| **M6** | `@smartput/geo`: place kind, countries and cities, `kyiv to warsaw` as a distance, the datetime and rates bridges, GeoNames providers. | Planned |
+| **M6** | `@smartput/geo`: place kind, countries and cities, `kyiv to warsaw` as a distance, postal codes, the datetime and rates bridges, GeoNames providers, place completion. | **Shipped** |
 | **M7** | `@smartput/http`, meta-package, npm release. | Planned |
 
-M1 carried the only real invention risk. Everything after it is largely
+M1 carried the only real invention risk. Most of what came after it is
 descriptor tables — M3 added a kind whose unit ratios come from an injected
-table without touching the solver at all, which is the point of the design.
+table without touching the solver at all, which is the point of the design. The
+exception is recognition: every plugin that had to claim text the lexer does not
+shape (`3pm`, `kyiv to warsaw`, `SW1A 1AA`) has taken a change out of core, and
+M6 took three. The solver has never moved.
 
 Word math has shipped in full: `NumeralParser`, `cardinalNumerals`, and
 `Locale.numerals` are [documented](/api/define-locale#numerals), and the two
@@ -38,6 +41,47 @@ weighted and usable as `in` targets like any other kind's. `today + 3 d` and
 `3pm in tokyo` fall out of those two additions plus four op signatures declared
 in the plugin.
 
+M6 shipped `@smartput/geo` in four parts — see
+[Places and distances](/guide/places). Core knows no geography: a place is an
+opaque kind whose units are country codes, the distance is one
+`in | place | place` signature, and the datetime and rates bridges are one op
+signature each in *those* packages, reading a string off core's `PlaceMeta`.
+Nobody imports anybody, and `check-deps` enforces it.
+
+**Geo was not free for core, though, and the design document that said it would
+be was wrong three times over.** Core took three changes across the milestone,
+each forced by the same shape — a seam built to produce one answer per offset,
+meeting a package whose answers arrive in groups:
+
+- **M6.1: a claimed conversion target reaches `apply`.** `15:00 in japan` needs
+  the claimed *value* on the right of `in`, because the zone lives in its `meta`,
+  and the parser had been discarding it for a stand-in built from the unit name.
+  Gated on an opt-in `LiteralMatch.targetable`, because accepting every literal
+  made `today in tomorrow` a zone conversion where it had always thrown.
+- **M6.3: the literal fold stopped being destructive.** A
+  [`LiteralMatcher`](/api/types#returning-more-than-one-reading) may return
+  several readings of one span, and the fold keeps every match reaching the
+  furthest end instead of choosing one. The lexer, the AST, the Pratt parser and
+  the evaluator changed with it. `suggest("springfield")` returning all three is
+  that change; so is `tokyo` being a city and a time zone in one engine, which
+  was datetime's half of the same defect.
+- **M6.4: a kind may complete itself.**
+  [`Kind.completions`](/api/define-kind#completions) is called once per keystroke
+  for a vocabulary the global alias index cannot hold — six thousand city names,
+  or any name short enough that `km` becomes Comoros. Opaque kinds could not be
+  completed at all before it.
+
+Two of the three are seams any plugin can use; the third is a gate on the parser.
+The lifted [snapshot cache](/api/types#snapshot-cache) came with them — rates'
+`createLiveEngine` was generalized into `createSnapshotCache` /
+`createCachedEngine` so that geo's providers could share it, which geo then did
+not do, so that generalization is still waiting for its second consumer.
+
+What fell out for free: `nice`, `mobile` and `split` became places without
+costing any input its reading, `90210` stayed 90,210 with a postcode ranked
+underneath it, and the eighteen hand-written zones in `@smartput/datetime`
+stopped being the only places the engine knows.
+
 ## Packages
 
 Shipped:
@@ -46,13 +90,14 @@ Shipped:
 @smartput/core        registry, lexer, parser, solver, evaluator, ratio kinds
 @smartput/rates       money kind, RateSnapshot, ECB provider, async facade
 @smartput/datetime    datetime kind, chrono bridge, Temporal ops, time zones
+@smartput/geo         place kind: countries, cities, postal codes, distance,
+                      zone and currency lookup, GeoNames providers
 ```
 
 Planned:
 
 ```
 @smartput/color       @urcolor adapter → color kind
-@smartput/geo         place kind: countries, cities, distance, zone and currency lookup
 @smartput/http        Hono on Bun, REST + OpenAPI
 smartputs             meta: core + datetime + rates, en preloaded
 ```
@@ -106,5 +151,13 @@ fractions (`half a kg`), and ordinals.
 
 ## Two standing targets
 
-- **`@smartput/core` ships one runtime dependency.** CI fails on a second.
-- **A new ratio kind is five lines**, and needs no knowledge of the solver.
+- **`@smartput/core` ships one runtime dependency.** CI fails on a second. Still
+  true after M6: the lifted snapshot cache is code, not a dependency, and geo's
+  GeoNames data is vendored as generated TypeScript inside geo.
+- **A new ratio kind is five lines**, and needs no knowledge of the solver. Still
+  true after M6, and worth stating precisely, because M6 was not free for core
+  (above): geo added no solver knowledge, no new `OpSymbol` and no lexer or
+  parser *stage*. What it added was one gated branch inside the existing `in`
+  parse, a widened `LiteralMatcher` return type, and one optional field on
+  `Kind`. A kind that wants none of the three is unaffected by all three — every
+  one of them is opt-in, and `datasize` is still five lines.

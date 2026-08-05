@@ -228,3 +228,41 @@ test("the entry point never pulls the city table into a bundle", () => {
   // asserted on the source rather than trusted to review.
   expect(placeSource).not.toMatch(/from\s+"\.\/data\/(cities|admin1)"/);
 });
+
+test("and neither does anything the entry point re-exports", async () => {
+  // The line above reads one file, which was the whole entry point until M6.4
+  // widened it. `index.ts` now re-exports two more modules, and a static import
+  // three hops away links the gazetteer just as thoroughly as one in `place.ts`
+  // — so the claim is made about the graph rather than about the one file that
+  // used to be all of it. Bundling and weighing the output was the alternative:
+  // it measures the real thing, and it makes the failure "the number moved"
+  // instead of naming the import that moved it.
+  const seen = new Set<string>();
+  const reached: string[] = [];
+
+  const walk = async (from: URL): Promise<void> => {
+    if (seen.has(from.href)) return;
+    seen.add(from.href);
+    reached.push(from.pathname.split("/").slice(-2).join("/"));
+
+    const source = await Bun.file(from).text();
+    // Static forms only, which is the point: `import()` is a split and it is how
+    // `@smartput/geo/cities` is meant to be reached. The body may span lines —
+    // `index.ts`'s own re-exports do — so the only thing it may not cross is the
+    // semicolon that ends the statement, which is what keeps one match from
+    // running into the next statement's specifier.
+    for (const [, spec] of source.matchAll(
+      /(?:^|\n)(?:import|export)[^;]*?from\s+"(\.[^"]+)"/g,
+    )) {
+      await walk(new URL(`${spec}.ts`, from));
+    }
+  };
+
+  await walk(new URL("./index.ts", import.meta.url));
+
+  expect(reached).toContain("src/place.ts");
+  expect(reached).toContain("src/completion.ts");
+  expect(reached).toContain("src/postal-format.ts");
+  expect(reached).not.toContain("data/cities.ts");
+  expect(reached).not.toContain("data/admin1.ts");
+});

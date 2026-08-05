@@ -1,4 +1,5 @@
 import { defineKind, type Kind, type UnitLexeme } from "@smartput/core";
+import { PlaceCompleter } from "./completion";
 import { COUNTRIES } from "./data/countries";
 import { distance } from "./distance";
 import { formatPlace } from "./format";
@@ -85,6 +86,21 @@ export function definePlace(opts: PlaceOptions = {}): Kind {
       createPlaceLiteral(COUNTRIES, opts.cities, opts.admin1),
       createPostalLiteral(COUNTRIES),
     ],
+    // Tiered by the same argument the matcher is, so `definePlace()` completes
+    // countries and not one city, and the gazetteer is only walked by a build
+    // that was handed it.
+    //
+    // Registered by both tiers and not gated on `opts.cities`, which is the
+    // non-obvious half: core completes a kind out of the global alias index,
+    // that path takes ratio kinds only, and a place is opaque — so the T0 build
+    // is the one that completes *nothing* without this line, even though every
+    // country is in that index as a unit. Gating would have read as "cities are
+    // the thing being completed" and quietly cost `ukrai` its answer.
+    //
+    // The trie itself is not built here. `place` below is a module constant, so
+    // this runs at import time for every consumer, and `PlaceCompleter` defers
+    // to the first keystroke.
+    completions: new PlaceCompleter(COUNTRIES, opts.cities).completions,
     ops: [distance],
     format: formatPlace,
   });

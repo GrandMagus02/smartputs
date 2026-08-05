@@ -32,6 +32,15 @@ big enough to make that visible, but nothing about either change is geo's — th
 17 city names datetime was taking (§6.3) were datetime's side of the same
 defect.
 
+**Amended during M6.4: three core changes, and the third is a new seam rather
+than a widened one.** `Kind.completions` lets a kind answer `complete()` for
+itself, which is the only way a vocabulary barred from the global alias index can
+be completed at all — and this package's names are barred twice: a city is never
+a unit (M6.2), and a country alias below four characters never enters the index
+(§4.1). §12.5 has it and §11 tables all three core changes together. The same
+sentence applies as to the other two: datetime has the identical hole and had
+not hit it.
+
 ## 1. Why this exists
 
 `packages/datetime/src/zones.ts` is a hand-written table of eighteen IANA zones
@@ -407,6 +416,51 @@ unit, the claim stands and the expression fails on the leftover with
 `UnitParseError`, rather than reporting `NoCandidateError` for a token nothing
 ever read as a unit. `5 nice` therefore keeps the error class M6.2 recorded.
 
+### 4.7 A kind may complete itself — the third core change
+
+**Added during M6.4.** `complete("jap")`, `complete("kyi")` and
+`complete("united")` all returned nothing, for two independent reasons that
+happen to have one answer.
+
+`complete.ts` skipped every non-ratio kind — M4's ruling R8, on the sound
+argument that completion splices `<number><unit>` and a time zone is not that.
+But lifting the filter would have completed no city either, because a city is
+not in the alias index at all and M6.2 kept it out deliberately (§4.1). The
+vocabulary that most needs completing is exactly the vocabulary that cannot be
+indexed.
+
+So the filter stays and the seam is additive: a `Kind` may declare
+`completions?: Completer`, called once per keystroke, whose rows are ranked and
+limited beside the alias-index rows in one list. A row supplies its replacement
+text outright rather than a unit to be templated — "Kyiv" is the answer, and
+there is no count for it to agree with.
+
+Two details the first cut got wrong, both found by running it rather than
+reading it:
+
+- **A row may replace more than the fragment.** `CompleteCtx` carries the whole
+  input and the fragment's span, and `KindCompletion.start` names where the
+  replacement begins. Without it, `complete("san fran")` asked geo about `fran`,
+  got `France`, and spliced it back as `san France` — a place that does not
+  exist. A row naming a `start` that is not an integer at or before the
+  fragment's start is dropped, on the same reasoning as a row naming an
+  unregistered unit.
+- **Prefix quality is measured against everything typed**, not against the
+  fragment. Jakarta's GeoNames aliases include `new york van java` and it is a
+  capital, so it ties New York City on weight; measuring the untyped remainder
+  against `yor` finds no prefix in either alias, scores both zero, and lets the
+  tiebreak fall through to the country code — offering Jakarta first for
+  `new yor`.
+
+Rows from a completer are de-duplicated on their **insertion**, within one kind:
+Ukraine has two places called Kyivskyi, and a list that offers the same string
+twice has spent a slot saying nothing. The alias path is deliberately excluded
+from that rule — `temperature:k` and `tempdelta:k` both render `10 k` and are
+genuinely two units, so collapsing them drops one out of the list and out of the
+roundtrip property with it. `completePlaces` keeps both rows too, because a
+picker calling it directly wants every distinct place; the collapse is a display
+question and is answered where the display list is built.
+
 ## 5. Matching
 
 ### 5.1 Multi-word names need a matcher, not an alias
@@ -723,6 +777,28 @@ distinguishable by `(kind, unit)` does not fix `san jose` (cr/us/ph) or
 `barcelona` (es/ve); re-recording the corpus fixes 2 of 91;
 `tiebreak: "first"` fixes 91 of 91 and disables the guard that makes `10 m`
 throw. Lowering the epsilon to 0.02 still leaves 59 ambiguous.
+
+**Amended during M6.4: this table is now realised on two origins, and the second
+one is completion's.** The figures above are the matcher's and are unchanged.
+`completion.ts` rebases the same *order* onto a ceiling of zero — country `0`,
+capital `−1`, city scale `[−3, −1]` — for one reason, and it is not a taste
+about places.
+
+`complete()` sums this number into a score whose other rows are every unit in the
+engine, and a unit contributes nothing in that position at all. So `+3` there
+does not say "a country outranks a city", it says "a country outranks the
+kilogram". Measured: at the figures above, 56 of the 294 prefixes of a builtin
+unit alias lost their first row to a place — `me` completed Mesa rather than
+metre, `ho` completed Homs rather than hour, and the corpus row `2 km in mil`
+completed Milan rather than mile. Rebased, twelve prefixes lead with a place and
+eleven of those are a shorter alias winning on prefix quality alone, which is the
+alias index's own rule. `ambiguity.test.ts` holds the sweep and names the twelve.
+
+Scaling the figures down was the alternative, and it pays for the gap to the
+units by shrinking the gaps between places — which are the ones this section
+actually decided. Zero at the top is the two scales sharing an origin instead.
+No evaluation weight moved: this rebase is confined to `completion.ts`, and
+`RANK_STEP` and the matcher's table are untouched.
 
 ### 6.2 Place against number
 
@@ -1088,6 +1164,15 @@ live place engine writes that mapping themselves. Either geo ships a
 the facade stays core's. That is M6.4's to rule on; the guide documents the
 hand-assembled form in the meantime.
 
+**Amended during M6.4: M6.4 did not rule, and the milestone is over.** Nothing
+under `packages/geo` references `createSnapshotCache`, `createCachedEngine` or a
+`createLivePlaceEngine`; the choice this section names is still open and now has
+no milestone behind it. The lift itself stands and rates is unaffected, but its
+stated justification — "a second consumer is the point at which the shape is
+proven rather than guessed" — remains unearned, one sub-milestone longer than
+M6.3 expected. The guide still documents the hand-assembled form and now says
+plainly that M6.4 was where this was to be decided.
+
 One behaviour change in the rates lift, uncovered by any test and noted rather
 than treated as a defect: if `createEngine` threw during a load, the old code
 left `rates` set — so `ratesAsOf` reported a snapshot with no engine — while
@@ -1205,6 +1290,28 @@ widened contract (§4.6) landed here, so the `suggest()` ranking M6.2 deferred
 shipped in M6.3 rather than in the milestone that promised it. M6.4's row is
 unchanged in scope, and §12.4 lists what it now starts from.
 
+**Amended during M6.4: what the four rows actually delivered.** The table above
+is the plan; this is the outcome. M6 is closed either way — there is no M6.5.
+
+| M | Delivered | Not delivered |
+| --- | --- | --- |
+| **M6.1** | Row as written, plus a core change the document said would not be needed (§4.5) | — |
+| **M6.2** | T1, admin1 scoping, weights | `suggest()` ranking — undeliverable without a core change; went to M6.3 |
+| **M6.3** | Row as written, plus M6.2's debt and the widened matcher contract (§4.6) — the largest core change of the four | — |
+| **M6.4** | Row as written: postal format validation and normalization in full, and prefix completion over both tiers including past a space — plus the third core change of the four (§4.7) | — |
+
+M6.4's completion nearly shipped one word wide. `complete("san fran")` offered
+`san France`: core's fragment is the trailing *word*, so `fran` was the whole
+question geo was asked, `France` was a truthful answer to it, and core spliced
+that over `fran` alone. The trie had `san francisco` all along and answered it
+when asked directly, which is what made the gap a seam problem rather than a
+data one — and what made it cheap to close once found.
+
+The row above is not the whole of what M6.4 owed. §12.4's deferred column also
+assigned it "geo constructing from `createSnapshotCache` / `createCachedEngine`",
+which §8.1 states as a choice to be ruled on; that did not happen, and §8.1 now
+records it.
+
 ### 10.1 Roadmap renumbering
 
 The existing M5 is `@smartput/color` plus the Ukrainian locale; the existing M6
@@ -1222,6 +1329,26 @@ updated in M6.1 rather than left to drift.
   or parser *stage*, and no new `OpSymbol`. It does add one gated branch to the
   existing `in` parse — see §4.5, and note that the original claim of "no parser
   change at all" did not survive contact with `3pm in japan`.
+
+**Amended during M6.4: all three still hold, and the third has now cost core
+three changes rather than one.** `check-deps` is green: core still ships
+`decimal.js` alone, and geo ships `@smartput/core` and `decimal.js`. A new ratio
+kind is still five lines and still knows nothing about the solver. But the
+three things core took across this milestone should be counted in one place
+rather than each in its own section:
+
+| Where | What core gained | Opt-in? |
+| --- | --- | --- |
+| §4.5, M6.1 | `LiteralMatch.targetable`, and a literal-claimed conversion target that travels to `apply` as a `Value` | Yes — off by default, which is what keeps `today in tomorrow` throwing |
+| §4.6, M6.3 | `LiteralMatcher` may return an array of readings; the fold groups instead of choosing; the literal token carries `readings` and `fallback` | Yes — returning the single object still means what it did |
+| §12.5, M6.4 | `Kind.completions`, `Completer`, `CompleteCtx`, `KindCompletion` | Yes — a kind that declares none is untouched, and the alias-index path is byte-identical |
+
+Plus one lift that is not a change to a seam: §8.1's snapshot cache, moved out of
+rates into core and generalized. Every row is opt-in and every row was forced by
+recognition rather than by geography, which is the sense in which the standing
+target survives: nothing here is knowledge of a solver, a lexer stage or a
+dimensional model. It is also three more seams than "one kind, one generator
+script and three op signatures" predicted, and the introduction now says so.
 
 ## 12. What has actually shipped
 
@@ -1351,3 +1478,97 @@ Still open, for M6.4:
    readings genuine. Relatedly, `explain()`'s `candidates` field dedupes by
    `(kind, unit)` in pre-existing code, so a three-reading literal reports one
    candidate while its assignments correctly report three.
+
+### 12.5 M6.4 — completion, postal formats, and the end of M6
+
+| Shipped | Deferred to |
+| --- | --- |
+| `Kind.completions` / `Completer` / `CompleteCtx` / `KindCompletion` in core — the third core change (§11) | Completion past a space, which needs `CompleteCtx` widened again — no milestone |
+| `PlaceCompleter`, `createPlaceIndex`, `completePlaces`, `PlaceIndex`; a character trie beside the matcher's word trie | — |
+| Completion registered by `place` and `definePlace({cities})` alike, tiered by the same argument the matcher is | — |
+| §6.1's order rebased onto a ceiling of zero for completion only (§6.1) | — |
+| `PostalFormat` with `for`/`of`/`validate`/`normalize`/`shape`/`source`, over `postalAccepts`, `normalizePostal`, `postalShape`, `isBacktrackRisk`, `MAX_CODE_LENGTH` | GeoNames' `@# #@@` format column — needs a generator change and a new `CountryRow` field |
+| `ambiguity.test.ts` sweeping all 294 prefixes of every builtin unit alias; the twelve place-led fragments named rather than counted | — |
+| — | Geo constructing from `createSnapshotCache` — **not ruled on**, and there is no milestone left to rule (§8.1) |
+
+Deviations. **Five, and none of them is small print.**
+
+1. **§10's M6.4 row is a partial, not a met row.** "Country and city prefix
+   completion" ships for every alias from its first character, and stops at a
+   space. §10 has the table.
+2. **§8.1's ruling was M6.4's and M6.4 did not make it.** The one item this
+   sub-milestone's scope named that has no code behind it. §8.1 has it.
+3. **§6.1's figures now exist twice** — the matcher's `+3/+2/population` and
+   completion's `0/−1/[−3,−1]` — because the two scales measure against different
+   neighbours. §6.1 records it, and the section now reads as one ordering
+   realised on two origins rather than as one table.
+4. **`PostalFormat.shape()` is a code's shape, not a country's format.** The
+   brief expected countryInfo.txt's column 13 (`@# #@@`); `scripts/geo/build.ts`
+   generates column 14, the regex, and `CountryRow` has no field for the other
+   one. What ships is the mask of a code that already validated. Carrying the
+   real column is a generator change, a new field and a new body hash.
+5. **Core's `kind/define.ts` was edited outside the implementing agent's file
+   list.** `normalizeKind` builds a fresh object and drops what it does not name,
+   so a top-level `Kind.completions` never reached the registry and the seam was
+   unbuildable without it. Seven additive lines. The alternative — declaring
+   `completions` on `RatioSpec`/`OpaqueSpec`, where `spec` is `k.value` by
+   reference and no edit is needed — was rejected for filing a lexical hook under
+   the value model and duplicating the declaration across two interfaces.
+
+One ruling that is not a deviation but is the thing a second consumer of the seam
+will trip over: **the row cap and the name floor are geo's, and core imposes
+neither.** A completer bypasses the alias index entirely, so `MIN_NAME_LENGTH`
+does not reach it — a completer emitting alpha-2 codes returns Comoros above
+`kilometre` for `km`, which is M6.1's failure through a new door.
+`completion.ts` applies the floor on insert and caps at three rows, and
+`/api/define-kind#completions` says so in as many words.
+
+What M6.4 inherited, item by item, from §12.4's five:
+
+| §12.4 item | Now |
+| --- | --- |
+| 1. Opaque kinds cannot complete | **Closed.** `complete()` runs a second pass over every kind declaring `completions`, ratio or opaque. The alias-index loop is byte-identical, proved by differential execution against HEAD rather than by inspection |
+| 2. `12345-6789` and `01310-100` stop being arithmetic | **Open, unchanged.** Implemented as §6.2 rules; still the only two answers geo takes from an engine that had one |
+| 3. `paris texas` does not resolve | **Open, unchanged.** T1's 100,000 floor, not a code limit |
+| 4. Geo has no live engine | **Open, and now unowned.** §8.1 |
+| 5. `3pm in tokyo` suggests two identical-looking rows | **Open, unchanged.** Cosmetic |
+
+Two defects found while building this and fixed rather than documented, both by
+sweeping:
+
+- **The completer shipped §6.1's absolute weights**, which read as "a country
+  outranks the kilogram" once merged with every unit in the engine: 56 of 294
+  prefixes lost their first row to a place, `me` completed Mesa, and corpus row
+  `2 km in mil` completed Milan rather than mile. §6.1 has the rebase.
+- **The `CompleteCtx` was shared, mutable and handed to every kind in turn.**
+  Demonstrated: one kind rewrote `fragment` and the next kind, which had never
+  heard of it, was asked the wrong question. `Object.freeze` on the literal, so
+  the runtime agrees with the `readonly` already on every field.
+
+Still open after M6.4, which is to say still open, since M6 ends here: §12.4's
+items 2–5, completion past a space, and the format column in deviation 4 above.
+None has a milestone. `bun run check` is green — biome, typecheck across all 18
+packages, `check-deps`, and 1,204 tests across 85 files, 0 failing, from a
+baseline of 1,132 at the start of the sub-milestone.
+
+### 12.6 M6 as a whole
+
+Four sub-milestones, one package, three core changes and one lift. Rolled up so
+the four tables above do not have to be read in sequence:
+
+| Sub-milestone | Shipped | Left behind |
+| --- | --- | --- |
+| **M6.1** | T0 countries, `place`, the trie matcher, `in \| place \| place`, fact formatting, the datetime and rates bridges | Lowercase short codes are unclaimable (§5.1) — permanent, and the country's full name covers it |
+| **M6.2** | T1 cities and divisions behind a second entry point, admin1 scoping, `RESERVED_WORDS`, §6.1's weights | 65 cities whose every alias was refused; `paris texas` |
+| **M6.3** | Postal literals, `suggest()` ranking, the widened matcher contract, the providers, the lifted cache | `12345-6789` stops being arithmetic; the duplicate `3pm in tokyo` row |
+| **M6.4** | Completion for both tiers, `PostalFormat`, the completion seam in core | Completion past a space; the §8.1 ruling; GeoNames' format column |
+
+What the package is, measured rather than claimed: 252 countries, 6,247 cities,
+1,664 divisions, 178 postal formats; +27 KB gz for T0 and +234 KB for T1; two
+runtime dependencies; no npm data package; every generated file body-hashed. What
+core is: one runtime dependency, an untouched solver, and three opt-in seams it
+did not have before this milestone.
+
+The introduction's claim that this document "adds one package, one kind, one
+generator script and three op signatures" is the one sentence in it that never
+became true, and §11 now counts what it actually cost.

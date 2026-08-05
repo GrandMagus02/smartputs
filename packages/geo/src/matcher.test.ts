@@ -167,6 +167,100 @@ test("prefers the larger country when one name is two countries", () => {
   expect(claim("soudan")).toMatchObject({ unit: "sd" });
 });
 
+test("and the smaller one is a reading behind it, not nothing", () => {
+  // M6.3's note closing. Both Congos weigh a flat +3, so carrying both was an
+  // AmbiguityError between two countries until RANK_STEP existed to separate
+  // them; it does, so `suggest("congo")` now has a second row to list.
+  expect(readingsWith(placeLiteral, "congo").map((m) => m.unit)).toEqual(["cd", "cg"]);
+  expect(readingsWith(placeLiteral, "congo").map((m) => m.weight)).toEqual([3, 2.5]);
+  expect(readingsWith(placeLiteral, "soudan").map((m) => m.unit)).toEqual(["sd", "ml"]);
+  // Both readings are of the same span: this is one claim with two meanings,
+  // not a short claim and a long one.
+  for (const m of readingsWith(placeLiteral, "congo")) expect(m.length).toBe(5);
+});
+
+test("an unambiguous name is still one reading, returned bare", () => {
+  // The contract takes either shape and every country but the four below has
+  // exactly one reading. Wrapping those would push every caller through `[0]`
+  // to say nothing, and would change what every name in the corpora returns.
+  expect(Array.isArray(placeLiteral("japan", 0, ctx()))).toBe(false);
+  expect(Array.isArray(placeLiteral("united kingdom", 0, ctx()))).toBe(false);
+  expect(Array.isArray(placeLiteral("congo", 0, ctx()))).toBe(true);
+});
+
+test("countries of one name order by population, then by alpha-2", () => {
+  // Population is §6.1's rule and the cities' rule, and it decides both real
+  // cases. The alpha-2 underneath it is not a tiebreak anyone will meet — no
+  // two countries of one alias have the same population — it is there so the
+  // order is a fact about the data rather than about the generator's row order.
+  const at = (a2: string, population: number): CountryRow => ({
+    ...row("jp"),
+    a2,
+    population,
+    aliases: ["atlantis"],
+  });
+  const tied = createPlaceLiteral([at("zz", 100), at("bb", 900), at("aa", 100)]);
+  expect(readingsWith(tied, "atlantis").map((m) => m.unit)).toEqual(["bb", "aa", "zz"]);
+});
+
+test("every country of a name is a reading the resolver can take", () => {
+  // The whole table, not the two known rows: a runner-up naming a unit the kind
+  // never registered is the same resolver error a winner would be, and it is
+  // the reading nobody looks at.
+  const units = new Set(COUNTRIES.map((c) => c.a2));
+  const seen = new Map<string, string[]>();
+  for (const country of COUNTRIES) {
+    for (const alias of country.aliases) {
+      const readings = readingsWith(placeLiteral, alias);
+      if (readings.length < 2) continue;
+      seen.set(
+        alias,
+        readings.map((m) => m.unit),
+      );
+      for (const match of readings) {
+        expect(units.has(match.unit)).toBe(true);
+        expect(match.length).toBe(alias.length);
+      }
+    }
+  }
+  // Stated as the whole set rather than as a spot check, because the interesting
+  // number is how few there are: 251 countries and only two names collide.
+  expect([...seen.entries()].sort()).toEqual([
+    ["congo", ["cd", "cg"]],
+    ["soudan", ["sd", "ml"]],
+  ]);
+});
+
+test("the names that read as ambiguous are one country each in this table", () => {
+  // Probed because a name being ambiguous in English says nothing about whether
+  // the gazetteer is: GeoNames gives each of these one country outright, and
+  // the second meaning is a longer alias the longest-match rule already
+  // separates. Recorded so a table change that makes one of them collide has to
+  // come past this row.
+  expect(claim("guinea")).toMatchObject({ unit: "gn" });
+  expect(claim("equatorial guinea")).toMatchObject({ unit: "gq" });
+  expect(claim("papua new guinea")).toMatchObject({ unit: "pg" });
+  expect(claim("samoa")).toMatchObject({ unit: "ws" });
+  expect(claim("american samoa")).toMatchObject({ unit: "as" });
+  expect(claim("china")).toMatchObject({ unit: "cn" });
+  expect(claim("republic of china")).toMatchObject({ unit: "tw" });
+  expect(claim("ireland")).toMatchObject({ unit: "ie" });
+  for (const name of ["guinea", "samoa", "china", "ireland"]) {
+    expect(readingsWith(placeLiteral, name)).toHaveLength(1);
+  }
+
+  // Two the table gets wrong, and neither is the matcher's to fix. "virgin
+  // islands" is an alias of the British ones and of nothing else, though the
+  // U.S. ones are three and a half times the size and are what the phrase means
+  // in American use. And neither Korea is aliased "korea" at all, so the
+  // commonest name for either is unclaimable — `3pm in korea` has no reading.
+  // Both are missing rows in `data/countries.ts`, which is generated and hash
+  // checked; curating them here would put country data in the mechanism, where
+  // `createPlaceLiteral`'s own table argument says it does not belong.
+  expect(claim("virgin islands")).toMatchObject({ unit: "vg" });
+  expect(claim("korea")).toBeNull();
+});
+
 test("returns null for anything it does not carry", () => {
   expect(claim("qwertz")).toBeNull();
   expect(claim("100")).toBeNull();
@@ -338,6 +432,18 @@ test("scopes a city by its country", () => {
   // the T1 floor, so no Toledo is Spanish: the city claims alone and "spain" is
   // left for a claim of its own rather than being eaten by a scope that failed.
   expect(city("toledo spain")).toMatchObject({ length: 6, unit: "us" });
+});
+
+test("a city scopes by the smaller country of a name that is two of them", () => {
+  // Brazzaville is in the Republic of the Congo, the runner-up of "congo" and
+  // unreachable while the node held one country: the scope asked the DRC for a
+  // Brazzaville, missed, and degraded to the unscoped city. It walks both now,
+  // in that same population order, so the largest Congo that actually holds a
+  // city of the name is the one that scopes.
+  expect(city("brazzaville congo")).toMatchObject({ length: 17, weight: 4, unit: "cg" });
+  expect(city("brazzaville congo")?.canonical.toNumber()).toBe(2260535);
+  expect(city("kinshasa congo")).toMatchObject({ length: 14, weight: 4, unit: "cd" });
+  expect(city("kinshasa congo")?.canonical.toNumber()).toBe(2314302);
 });
 
 test("paris texas is one literal, and paris alone is the French one", () => {
@@ -533,6 +639,9 @@ test("countries-only construction behaves exactly as it did in M6.1", () => {
     "toledo ohio",
     "kyiv to warsaw",
     "bosnia and herzegovina",
+    // Two readings rather than one, and `toEqual` covers both: a claim that
+    // grew a runner-up has to grow the same one either way it is constructed.
+    "congo",
   ];
   for (const probe of probes) {
     expect(empty(probe, 0, ctx())).toEqual(placeLiteral(probe, 0, ctx()));
