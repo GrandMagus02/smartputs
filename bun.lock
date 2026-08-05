@@ -43,6 +43,7 @@
       "version": "0.0.0",
       "dependencies": {
         "@smartput/core": "workspace:*",
+        "@smartput/validate": "workspace:*",
       },
       "devDependencies": {
         "@smartput/kinds": "workspace:*",
@@ -64,6 +65,7 @@
       "version": "0.0.0",
       "dependencies": {
         "@smartput/core": "workspace:*",
+        "@smartput/validate": "workspace:*",
       },
       "devDependencies": {
         "@smartput/kinds": "workspace:*",
@@ -87,6 +89,7 @@
       "version": "0.0.0",
       "dependencies": {
         "@smartput/core": "workspace:*",
+        "@smartput/validate": "workspace:*",
       },
     },
     "packages/kinds": {
@@ -113,6 +116,7 @@
       "version": "0.0.0",
       "dependencies": {
         "@smartput/core": "workspace:*",
+        "@smartput/validate": "workspace:*",
       },
     },
     "packages/mass": {
@@ -120,6 +124,7 @@
       "version": "0.0.0",
       "dependencies": {
         "@smartput/core": "workspace:*",
+        "@smartput/validate": "workspace:*",
       },
     },
     "packages/math": {
@@ -136,6 +141,7 @@
       "version": "0.0.0",
       "dependencies": {
         "@smartput/core": "workspace:*",
+        "@smartput/validate": "workspace:*",
       },
       "devDependencies": {
         "@smartput/kinds": "workspace:*",
@@ -146,6 +152,7 @@
       "version": "0.0.0",
       "dependencies": {
         "@smartput/core": "workspace:*",
+        "@smartput/validate": "workspace:*",
       },
     },
     "packages/percent": {
@@ -153,6 +160,7 @@
       "version": "0.0.0",
       "dependencies": {
         "@smartput/core": "workspace:*",
+        "@smartput/validate": "workspace:*",
       },
       "devDependencies": {
         "@smartput/kinds": "workspace:*",
@@ -174,6 +182,7 @@
       "version": "0.0.0",
       "dependencies": {
         "@smartput/core": "workspace:*",
+        "@smartput/validate": "workspace:*",
       },
       "devDependencies": {
         "@smartput/kinds": "workspace:*",
@@ -184,6 +193,7 @@
       "version": "0.0.0",
       "dependencies": {
         "@smartput/core": "workspace:*",
+        "@smartput/validate": "workspace:*",
       },
       "devDependencies": {
         "@smartput/kinds": "workspace:*",
@@ -198,6 +208,7 @@
       "version": "0.0.0",
       "dependencies": {
         "@smartput/core": "workspace:*",
+        "@smartput/validate": "workspace:*",
       },
       "devDependencies": {
         "@smartput/kinds": "workspace:*",
