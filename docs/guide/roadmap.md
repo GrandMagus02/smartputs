@@ -16,7 +16,8 @@ Each milestone is independently shippable and gets its own implementation plan.
 | **Word math** | `NumeralParser`, `cardinalNumerals`, numeral folding, word operators — `"twenty two kg"`, `"ten km plus five km"`. | **Shipped** |
 | **M4** | `@smartput/datetime`: datetime kind, chrono bridge, Temporal ops, timezones. Core's literal-matcher seam and opaque-kind units. | **Shipped** |
 | **M5** | `@smartput/color`, the Ukrainian locale across every package, `defineLocalePack`, analyzer helpers, `assertLocaleContract`. | Planned |
-| **M6** | `@smartput/http`, meta-package, npm release. | Planned |
+| **M6** | `@smartput/geo`: place kind, countries and cities, `kyiv to warsaw` as a distance, the datetime and rates bridges, GeoNames providers. | Planned |
+| **M7** | `@smartput/http`, meta-package, npm release. | Planned |
 
 M1 carried the only real invention risk. Everything after it is largely
 descriptor tables — M3 added a kind whose unit ratios come from an injected
@@ -51,6 +52,7 @@ Planned:
 
 ```
 @smartput/color       @urcolor adapter → color kind
+@smartput/geo         place kind: countries, cities, distance, zone and currency lookup
 @smartput/http        Hono on Bun, REST + OpenAPI
 smartputs             meta: core + datetime + rates, en preloaded
 ```
@@ -65,6 +67,7 @@ Every package that defines a kind ships that kind's translations beside it under
 | `datetime` | `temporal-polyfill`, `chrono-node`, `@smartput/core`, `decimal.js` |
 | `rates` | `decimal.js`, `@smartput/core`; provider adapters use `fetch` only |
 | `color` | `@urcolor/core`, `@urcolor/i18n` (peer) |
+| `geo` | `decimal.js`, `@smartput/core` — GeoNames data is vendored as generated TypeScript, not an npm package |
 | `http` | `hono` (peer), `@smartput/core` |
 
 `bun run check-deps` enforces this table rather than trusting it: a package

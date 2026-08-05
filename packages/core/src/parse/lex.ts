@@ -18,6 +18,8 @@ export type Token =
       canonical: Decimal;
       meta?: Readonly<Record<string, unknown>>;
       weight: number;
+      /** Carries `LiteralMatch.targetable` through to the parser. */
+      targetable?: boolean;
       text: string;
       start: number;
       end: number;

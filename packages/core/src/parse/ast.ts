@@ -49,6 +49,14 @@ export interface ConvertNode {
   span: Span;
   /** The span of the target unit token alone, distinct from `span`, which covers the whole conversion expression. */
   targetSpan: Span;
+  /**
+   * Present when a kind claimed the target outright — "japan to ukraine", where
+   * the target is a value rather than a unit label. The evaluator hands this to
+   * `apply` instead of the stand-in it synthesizes from `target`, because a
+   * stand-in carries no `meta`, and a signature that reads the right operand's
+   * `meta` is the whole point of a claimed target.
+   */
+  targetValue?: Value;
 }
 
 export type Node =

@@ -69,6 +69,7 @@ export function foldLiterals(
       canonical: match.canonical,
       ...(match.meta ? { meta: match.meta } : {}),
       weight: match.weight ?? 0,
+      ...(match.targetable ? { targetable: true } : {}),
       text: input.slice(token.start, end),
       start: token.start,
       end,

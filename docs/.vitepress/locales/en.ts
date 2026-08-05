@@ -47,6 +47,7 @@ export const en: LocaleSpecificConfig<DefaultTheme.Config> & {
           items: [
             { text: "Money and rates", link: "/guide/money" },
             { text: "Dates and time zones", link: "/guide/datetime" },
+            { text: "Places and distances", link: "/guide/places" },
             { text: "LaTeX math", link: "/guide/math" },
             { text: "Equations and matrices", link: "/guide/math-solving" },
           ],

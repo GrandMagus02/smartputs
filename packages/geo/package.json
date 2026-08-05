@@ -1,17 +1,16 @@
 {
-  "name": "@smartput/rates",
+  "name": "@smartput/geo",
   "version": "0.0.0",
   "type": "module",
   "exports": {
-    ".": "./src/index.ts",
-    "./locale/en": "./src/locale/en.ts"
+    ".": "./src/index.ts"
   },
   "dependencies": {
     "@smartput/core": "workspace:*",
     "decimal.js": "^10.6.0"
   },
   "devDependencies": {
-    "@smartput/geo": "workspace:*",
+    "@smartput/length": "workspace:*",
     "@smartput/number": "workspace:*"
   }
 }

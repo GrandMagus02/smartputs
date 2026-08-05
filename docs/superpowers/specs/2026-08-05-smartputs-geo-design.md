@@ -7,9 +7,14 @@ currency without rates knowing what a country is.
 
 The engine this extends is specified in `2026-08-04-smartputs-design.md`. The
 datetime plugin it borrows two seams from is specified by the M4 plan. This
-document adds one package, one kind, one generator script and four op
-signatures. The lexer, the Pratt parser, the resolver and the solver are
-untouched.
+document adds one package, one kind, one generator script and three op
+signatures. The lexer, the resolver and the solver are untouched.
+
+**Amended during M6.1.** The Pratt parser was *not* untouched, and the original
+claim that it would be was wrong. See §4.5: a conversion target that a kind
+claimed as a literal had no path through the parser at all, and the bridges in
+§3.1 are unreachable without one. The change is twenty lines behind an opt-in
+flag, and it is the only core change this milestone makes.
 
 ## 1. Why this exists
 
@@ -131,10 +136,21 @@ export const place: Kind = defineKind({
 
 ### 4.1 Units are countries
 
-`units` is the ISO 3166-1 alpha-2 set — `us`, `ua`, `jp` — with country names
-and alpha-3 codes as aliases. This mirrors datetime exactly, where a unit is an
-IANA zone rather than a ratio: an opaque unit is a label that is indexed,
-weighted, formatted and usable as an `in` target.
+`units` is the ISO 3166-1 alpha-2 set — `us`, `ua`, `jp` — with country names as
+aliases. This mirrors datetime exactly, where a unit is an IANA zone rather than
+a ratio: an opaque unit is a label that is indexed, weighted, formatted and
+usable as an `in` target.
+
+**Amended during M6.1: the codes themselves are not aliases.** The original text
+put alpha-2 and alpha-3 in the alias index too. That index is global, so doing it
+cost twelve existing corpus rows their reading: `km` is Comoros, `kg` is
+Kyrgyzstan, `lb` is Lebanon, `ml`/`mm`/`ms`/`gb`/`cm` likewise, and — worst —
+`pm` is Saint Pierre and `am` is Armenia, which made datetime's accept-gate
+refuse `3pm` and `10am` outright. Only aliases of four characters or more reach
+the index. The codes live in the matcher's trie instead, which is strictly
+better anyway: a code reached through the alias index produces a place Value
+with no `meta` and therefore throws in any bridge, while a trie claim produces a
+real one.
 
 Consequences that fall out rather than being designed:
 
@@ -169,6 +185,35 @@ The assumption is recorded because great-circle is defensible but not the only
 reading — driving distance is what a person often means, and no free dataset
 provides it.
 
+### 4.5 A claimed conversion target — the one core change
+
+**Added during M6.1.** `3pm in japan` could not parse. The `in` branch of the
+Pratt parser required its target to be a `word` token, and geo's matcher has
+already folded `japan` into a `literal` token by then, so the input threw
+`UnitParseError` before any signature was consulted.
+
+Nor is accepting the token enough. For an ordinary unit target the evaluator
+synthesizes a stand-in Value — canonical `0`, the target's unit, and *the left
+operand's* `meta` — because `in` signatures have only ever read `r.unit`. A
+bridge that reads `r.meta.zone` off that stand-in gets the datetime's meta and
+no zone. So the claimed Value has to travel on the node.
+
+Three files, about twenty lines: `ConvertNode` gains an optional `targetValue`,
+`pratt.ts` gains a branch that fills it, and `evaluate.ts` prefers it over the
+stand-in.
+
+The branch is gated on a new opt-in, `LiteralMatch.targetable`, rather than on
+`token.type === "literal"`. Gating on the token type alone was tried first and
+was wrong: datetime claims `tomorrow` as a literal, so `today in tomorrow`
+became a legal zone conversion that returned today's date, where it had always
+thrown `UnitParseError` — and it did so with geo absent, making it a regression
+in core for every existing consumer. Every literal is a value; only some values
+are conversion targets, and only the kind knows which. Geo's places opt in;
+datetime's dates do not.
+
+`engine.test.ts` covers both halves: a literal that does not opt in still throws
+on the right of `in`, and one that does reaches `apply` carrying its own meta.
+
 ## 5. Matching
 
 ### 5.1 Multi-word names need a matcher, not an alias
@@ -191,6 +236,19 @@ Two guards, both borrowed from datetime's ruling R4:
   and never collide.
 - A match that does not end on a token boundary is discarded by the fold, so
   `newark` is never read as `new` + `ark`.
+
+**Amended during M6.1: the guard is wider than `isUnitAlias`.** That predicate
+only sees words some kind registered as a unit, and the codes that do the most
+damage are not units of anything. `and` is Andorra, `ago` is Angola, `is` is
+Iceland, `it` is Italy — and because the literal fold is destructive, a claim has
+no second chance, so `two hundred and five g` and `3 days ago` were being eaten
+outright. A lowercase two- or three-letter code is therefore not claimed at all.
+A code written as a code still is: `japan to UA` resolves, `japan to ua` does
+not, and a lowercase query is expected to carry the country's name.
+
+The rejected alternative was a denylist of the ~60 short codes that are also
+English words. It fails destructively on the first word the list forgets, and
+the list would need re-deriving in every locale.
 
 ### 5.2 Scoping happens in the matcher
 
@@ -380,5 +438,30 @@ updated in M6.1 rather than left to drift.
   lifted in §8.1 is code, not a dependency.
 - `@smartput/geo` ships two: `@smartput/core` and `decimal.js`. No data package,
   no HTTP client, no polyfill.
-- A new ratio kind is still five lines. Geo adds no solver knowledge, no parser
-  stage and no new `OpSymbol`.
+- A new ratio kind is still five lines. Geo adds no solver knowledge, no lexer
+  or parser *stage*, and no new `OpSymbol`. It does add one gated branch to the
+  existing `in` parse — see §4.5, and note that the original claim of "no parser
+  change at all" did not survive contact with `3pm in japan`.
+
+## 12. What M6.1 actually shipped
+
+Recorded so the later sub-milestones start from the truth rather than from §2.
+
+| Shipped | Deferred |
+| --- | --- |
+| T0: 250 countries, generated and committed, body-hash checked | T1 cities (M6.2) — so `kyiv to warsaw` is `ukraine to poland` today |
+| `place` kind, trie matcher, multi-word names | admin1 scoping, `paris texas` (M6.2) |
+| `in \| place \| place` great-circle distance | postal literals, `90210` (M6.3) |
+| datetime and rates bridges, both dependency-free | providers, live engine, lifted cache facade (M6.3) |
+| Fact formatting: `japan` → `Japan — JPY, +81, Asia/Tokyo, 127M` | completion (M6.4) |
+
+Two things found during implementation that the later milestones inherit:
+
+- **Opaque kinds cannot complete.** `complete.ts:63` skips non-ratio kinds
+  outright, so M6.4's country completion has to go through the matcher's trie
+  rather than the alias index. This is not geo-specific — datetime has the same
+  hole and nobody had hit it.
+- **`§9`'s `ambiguity.test.ts` does not exist yet.** Every row of that table
+  needs T1 cities or the postal literal. The M6.1-reachable half lives in
+  `matcher.test.ts` and in two corpus-replay guards that run the whole datetime
+  and rates corpora through an engine with geo registered.

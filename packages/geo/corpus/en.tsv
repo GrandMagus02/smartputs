@@ -1,0 +1,32 @@
+# input	kind	canonical	formatted
+#
+# `canonical` is the GeoNames id for a place and canonical metres for a
+# distance. A bare place formats to its facts — name, currency, calling code,
+# zone, abbreviated population (spec §5.3) — and a distance formats as the
+# length kind already does, in km.
+#
+# A code is read as a code only when it is written as one: "ua" lowercase is a
+# word to the matcher (spec §5.1's guard, widened — "and" is Andorra and "ago"
+# is Angola), so "japan to UA" is the form that resolves, and the country's name
+# is what a lowercase query is expected to carry.
+japan	place	1861060	Japan — JPY, +81, Asia/Tokyo, 127M
+Japan	place	1861060	Japan — JPY, +81, Asia/Tokyo, 127M
+ukraine	place	690791	Ukraine — UAH, +380, Europe/Kyiv, 40M
+united kingdom	place	2635167	United Kingdom — GBP, +44, Europe/London, 66M
+great britain	place	2635167	United Kingdom — GBP, +44, Europe/London, 66M
+france	place	3017382	France — EUR, +33, Europe/Paris, 67M
+germany	place	2921044	Germany — EUR, +49, Europe/Berlin, 83M
+antarctica	place	6697173	Antarctica — Antarctica/Casey
+china	place	1814991	China — CNY, +86, Asia/Shanghai, 1.4B
+japan to ukraine	length	8198981	8,198.981 kilometres
+ukraine to japan	length	8198981	8,198.981 kilometres
+france to germany	length	878399	878.399 kilometres
+france in germany	length	878399	878.399 kilometres
+japan to UA	length	8198981	8,198.981 kilometres
+japan to japan	length	0	0 kilometres
+#
+# Rows that are not about places at all. Registering this kind must not cost
+# another one its reading: "km" is Comoros as well as a kilometre, and "and" is
+# Andorra. The fold is destructive, so a claim here has no second chance.
+10 km	length	10000	10 kilometres
+two hundred and five km	length	205000	205 kilometres

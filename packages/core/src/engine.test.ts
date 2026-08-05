@@ -7,12 +7,13 @@ import {
   DimensionMismatchError,
   MissingRateError,
   NoCandidateError,
+  UnitParseError,
 } from "./errors";
 import { createFacades } from "./facade/index";
 import { defineKind } from "./kind/define";
 import { defineLocale } from "./locale/define";
 import en from "./locale/en";
-import type { LiteralMatcher } from "./types";
+import type { LiteralMatcher, Value } from "./types";
 
 const engine = createEngine({ locales: [en], kinds: BUILTIN_KINDS });
 
@@ -447,4 +448,66 @@ test("completion offers nothing for an opaque kind", () => {
     kinds: [number, length, probe([])],
   });
   expect(engine.complete("1 ut").every((c) => c.kind !== "probe")).toBe(true);
+});
+
+/**
+ * A claim that carries a value but is not a conversion target — datetime's
+ * "tomorrow" is the real instance.
+ */
+const untargetable: LiteralMatcher = (input, offset) =>
+  input.slice(offset).startsWith("mark")
+    ? { kind: "probe", unit: "UTC", canonical: new Decimal(7), length: 4 }
+    : null;
+
+test("a literal that does not opt in cannot be a conversion target", () => {
+  const engine = createEngine({ locales: [en], kinds: [number, probe([untargetable])] });
+
+  // The claim still works on the left, where it is a value.
+  expect(engine.evaluate("mark").kind).toBe("probe");
+  // But not on the right of `in`. Accepting every literal there is what
+  // silently turned "today in tomorrow" into a zone conversion returning today.
+  expect(() => engine.evaluate("mark in mark")).toThrow(UnitParseError);
+});
+
+test("a targetable literal reaches apply with its own meta, not the stand-in's", () => {
+  let sawRight: Value | undefined;
+  const kind = defineKind({
+    id: "probe",
+    value: { mode: "opaque", units: { UTC: ["utc"], other: ["other"] } },
+    literals: [
+      (input, offset) =>
+        input.slice(offset).startsWith("mark")
+          ? {
+              kind: "probe",
+              unit: "other",
+              canonical: new Decimal(7),
+              meta: { tag: "claimed" },
+              length: 4,
+              targetable: true,
+            }
+          : null,
+    ],
+    ops: [
+      {
+        op: "in",
+        left: "probe",
+        right: "probe",
+        result: "probe",
+        apply: (l, r) => {
+          sawRight = r;
+          return l;
+        },
+      },
+    ],
+    format: (v) => v.canonical.toFixed(),
+  });
+  const engine = createEngine({ locales: [en], kinds: [number, kind] });
+
+  engine.evaluate("mark in mark");
+  // The stand-in core synthesizes for an ordinary unit target carries canonical
+  // 0 and the *left* operand's meta. A claimed target carries its own, which is
+  // the whole reason the datetime and rates bridges can read `meta.zone` and
+  // `meta.currency` off the right operand.
+  expect(sawRight?.canonical.toString()).toBe("7");
+  expect(sawRight?.meta?.tag).toBe("claimed");
 });

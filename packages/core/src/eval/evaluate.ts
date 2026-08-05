@@ -95,12 +95,19 @@ export function evaluateNode(opts: EvaluateOptions): EvalResult {
         if (sig === undefined)
           throw new DimensionMismatchError(input, "in", operand.kind, target.kind);
         noteSignature(sig);
-        const rhs: Value = deepFreeze({
-          kind: target.kind,
-          canonical: new Decimal(0),
-          unit: target.unit,
-          ...(operand.meta ? { meta: operand.meta } : {}),
-        });
+        // The stand-in exists because an ordinary conversion target is a unit
+        // label with no value behind it, and `in` signatures read `r.unit`
+        // alone. A claimed target does have a value — and its own meta, which
+        // the stand-in would replace with the *left* operand's.
+        const rhs: Value =
+          n.targetValue !== undefined && n.targetValue.kind === target.kind
+            ? n.targetValue
+            : deepFreeze({
+                kind: target.kind,
+                canonical: new Decimal(0),
+                unit: target.unit,
+                ...(operand.meta ? { meta: operand.meta } : {}),
+              });
         return deepFreeze(sig.apply(operand, rhs, ctxFor(operand)));
       }
 

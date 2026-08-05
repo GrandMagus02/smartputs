@@ -85,6 +85,32 @@ export interface RateLookup {
   get(from: string, to: string): Decimal | null;
 }
 
+/**
+ * What a `place` Value carries on `meta`, declared here for the same reason as
+ * `RateLookup`: `@smartput/geo` produces it and the datetime and money kinds
+ * read it, so the contract lives in the one package all three already depend on
+ * and none of them imports another.
+ *
+ * The rejected alternative was injecting a `PlaceLookup` into datetime, which
+ * would have made datetime's construction depend on geo being present to serve
+ * a case that a plain string on `meta` already covers: the datetime bridge
+ * reads `zone`, the money bridge reads `currency`, and neither needs to know
+ * what a city is.
+ */
+export interface PlaceMeta {
+  /** GeoNames feature id. Stable, and the Value's canonical. */
+  readonly geonameId: number;
+  /** IANA zone. Always present: a country carries its capital's zone. */
+  readonly zone: string;
+  /** ISO 4217. Present on countries; on a city, its country's. */
+  readonly currency: string;
+  readonly lat: number;
+  readonly lon: number;
+  readonly population: number;
+  /** ISO 3166-1 alpha-2, lowercased. Equals the Value's `unit`. */
+  readonly country: string;
+}
+
 export interface EvalCtx {
   readonly self: Value;
   readonly locale: string;
@@ -174,6 +200,19 @@ export interface LiteralMatch {
   readonly length: number;
   /** Summed into the candidate's score, exactly like an analyzer's weight. */
   readonly weight?: number;
+  /**
+   * Opt-in: this claim may stand as the *target* of a conversion — "3pm in
+   * japan", where the right operand is a claimed value rather than a unit
+   * label, and the signature that receives it reads its `meta`.
+   *
+   * Off by default, and deliberately not inferred from "the kind has a literal
+   * matcher". Datetime claims "tomorrow" as a value, so an inferred rule made
+   * `today in tomorrow` a legal zone conversion that quietly returned today
+   * instead of the `UnitParseError` it had always thrown. A target is a
+   * narrower thing than a value, and only the kind knows which of its claims
+   * are one.
+   */
+  readonly targetable?: boolean;
 }
 
 /**

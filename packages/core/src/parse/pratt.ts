@@ -104,7 +104,46 @@ export function parse(tokens: Token[], resolver: Resolver, input: string): Node 
         if (CONVERT_BINDING < minBinding) break;
         pos += 1;
         const unit = peek();
-        if (unit === undefined || unit.type !== "word") throw new UnitParseError(input);
+        if (unit === undefined) throw new UnitParseError(input);
+
+        // A kind claimed the target and marked the claim targetable: "japan to
+        // ukraine", "3pm in japan". The matcher already built the Value and
+        // already named a registered unit, so there is nothing to resolve — and
+        // the Value travels on the node, because the signature that receives it
+        // reads its `meta`.
+        //
+        // `targetable` is checked rather than `type === "literal"` alone. Every
+        // literal is a value, but only some values are conversion *targets*:
+        // datetime claims "tomorrow", and accepting that here made
+        // `today in tomorrow` a zone conversion returning today, where it had
+        // always thrown. A literal that does not opt in falls through to the
+        // UnitParseError below, exactly as before.
+        if (unit.type === "literal" && unit.targetable === true) {
+          pos += 1;
+          left = {
+            type: "convert",
+            operand: left,
+            target: [
+              resolver.literal({
+                kind: unit.kind,
+                unit: unit.unit,
+                surface: unit.text,
+                weight: unit.weight,
+              }),
+            ],
+            targetValue: Object.freeze({
+              kind: unit.kind,
+              canonical: unit.canonical,
+              unit: unit.unit,
+              ...(unit.meta ? { meta: unit.meta } : {}),
+            }),
+            span: span(left.span, unit),
+            targetSpan: { start: unit.start, end: unit.end },
+          };
+          continue;
+        }
+
+        if (unit.type !== "word") throw new UnitParseError(input);
         const target = resolver.resolve(unit.text);
         if (target.length === 0) {
           throw new NoCandidateError(input, unit.text, resolver.nearest(unit.text), [
