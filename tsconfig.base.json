@@ -3,6 +3,7 @@
     "target": "ES2023",
     "module": "Preserve",
     "moduleResolution": "bundler",
+    "customConditions": ["bun"],
     "lib": ["ES2023"],
     "strict": true,
     "exactOptionalPropertyTypes": true,

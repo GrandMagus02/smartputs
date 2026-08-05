@@ -2,8 +2,13 @@
   "name": "@smartput/volume",
   "version": "0.0.0",
   "type": "module",
+  "sideEffects": false,
   "exports": {
-    ".": "./src/index.ts"
+    ".": {
+      "bun": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
   },
   "dependencies": {
     "@smartput/core": "workspace:*"

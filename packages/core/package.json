@@ -2,10 +2,28 @@
   "name": "@smartput/core",
   "version": "0.0.0",
   "type": "module",
+  "sideEffects": [
+    "./src/decimal.ts",
+    "./dist/index.js",
+    "./dist/locale/en.js",
+    "./dist/testing/index.js"
+  ],
   "exports": {
-    ".": "./src/index.ts",
-    "./locale/en": "./src/locale/en.ts",
-    "./testing": "./src/testing/index.ts"
+    ".": {
+      "bun": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./locale/en": {
+      "bun": "./src/locale/en.ts",
+      "types": "./dist/locale/en.d.ts",
+      "default": "./dist/locale/en.js"
+    },
+    "./testing": {
+      "bun": "./src/testing/index.ts",
+      "types": "./dist/testing/index.d.ts",
+      "default": "./dist/testing/index.js"
+    }
   },
   "dependencies": {
     "decimal.js": "^10.6.0"
