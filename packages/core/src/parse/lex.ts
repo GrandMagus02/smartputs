@@ -1,23 +1,51 @@
 import type { Decimal } from "../decimal";
 import { numberSymbols, parseNumber } from "../locale/number";
-import type { Keyword, KindId, Locale, OpSymbol } from "../types";
+import type { Keyword, LiteralReading, Locale, OpSymbol } from "../types";
+
+export interface NumberToken {
+  type: "number";
+  value: Decimal;
+  text: string;
+  start: number;
+  end: number;
+}
+
+export interface WordToken {
+  type: "word";
+  text: string;
+  start: number;
+  end: number;
+}
 
 export type Token =
-  | { type: "number"; value: Decimal; text: string; start: number; end: number }
-  | { type: "word"; text: string; start: number; end: number }
+  | NumberToken
+  | WordToken
   | { type: "op"; op: OpSymbol; start: number; end: number }
   | { type: "keyword"; keyword: Keyword; start: number; end: number }
   | { type: "lparen"; start: number; end: number }
   | { type: "rparen"; start: number; end: number }
-  // Produced only by foldLiterals, never by lex(): a kind claimed this run of
-  // source and already built the value it stands for.
+  // Produced only by foldLiterals, never by lex(): one or more kinds claimed
+  // this run of source and already built the values it stands for.
   | {
       type: "literal";
-      kind: KindId;
-      unit: string;
-      canonical: Decimal;
-      meta?: Readonly<Record<string, unknown>>;
-      weight: number;
+      /**
+       * Every reading of this span, in the order the fold collected them — by
+       * kind id, then by the order the matcher listed its own. Never empty, and
+       * carrying more than one is the whole point: the runner-up Athens has to
+       * survive as far as the solver to be rankable against anything.
+       */
+      readings: readonly LiteralReading[];
+      /**
+       * The single source token this claim covered, when it covered exactly
+       * one. The claim is a reading of that token, not a replacement for it, so
+       * the ordinary reading — 90210 the number, "tokyo" the time zone — stays
+       * reachable and the fold stops being destructive.
+       *
+       * Absent for a multi-token claim: "new york" and "2026-01-15" have no
+       * single token underneath to fall back to, and reconstituting one would
+       * mean un-lexing the claim.
+       */
+      fallback?: NumberToken | WordToken;
       text: string;
       start: number;
       end: number;

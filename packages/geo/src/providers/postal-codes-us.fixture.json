@@ -1,0 +1,67 @@
+[
+  {
+    "country_code": "US",
+    "zipcode": "90210",
+    "place": "Beverly Hills",
+    "state": "California",
+    "state_code": "CA",
+    "province": "Los Angeles",
+    "province_code": "037",
+    "community": "",
+    "community_code": "",
+    "latitude": "34.0901",
+    "longitude": "-118.4065"
+  },
+  {
+    "country_code": "US",
+    "zipcode": "96860",
+    "place": "Jbphh",
+    "state": "Hawaii",
+    "state_code": "HI",
+    "province": "Honolulu",
+    "province_code": "003",
+    "community": "",
+    "community_code": "",
+    "latitude": "21.316",
+    "longitude": "-157.8677"
+  },
+  {
+    "country_code": "US",
+    "zipcode": "01001",
+    "place": "Agawam",
+    "state": "Massachusetts",
+    "state_code": "MA",
+    "province": "Hampden",
+    "province_code": "013",
+    "community": "",
+    "community_code": "",
+    "latitude": "42.0702",
+    "longitude": "-72.6227"
+  },
+  {
+    "country_code": "US",
+    "zipcode": "10001",
+    "place": "New York",
+    "state": "New York",
+    "state_code": "NY",
+    "province": "New York",
+    "province_code": "061",
+    "community": "",
+    "community_code": "",
+    "latitude": "40.7484",
+    "longitude": "-73.9967"
+  },
+  {
+    "country_code": "US",
+    "zipcode": "96860",
+    "place": "FPO AA",
+    "state": "",
+    "state_code": "",
+    "province": "",
+    "province_code": "",
+    "community": "",
+    "community_code": "",
+    "latitude": "21.3448",
+    "longitude": "-157.9774"
+  }
+]

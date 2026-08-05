@@ -1,6 +1,7 @@
 import { Decimal } from "../decimal";
 import { deepFreeze } from "../freeze";
 import type {
+  Completer,
   EvalCtx,
   FormatCtx,
   Kind,
@@ -29,6 +30,7 @@ export interface NormalizedKind {
   units: Map<string, NormalizedUnit>;
   literals: LiteralMatcher[];
   ops: OpSignature[];
+  completions?: Completer;
   format?: (v: Value, ctx: FormatCtx) => string;
 }
 
@@ -93,6 +95,11 @@ export function normalizeKind(k: Kind): NormalizedKind {
     // Copy, never alias: the descriptor's ops array is deep-frozen, and the
     // registry in Task 4 pushes generated signatures onto this one.
     ops: [...(k.ops ?? [])],
+    // Carried, not merged: a patch kind adds units and signatures to its base,
+    // but two completers over one kind would have to agree on ranking and on
+    // de-duplication keys, and neither is a thing the registry can arbitrate.
+    // The base's stands, which is also what `format` does one line below.
+    ...(k.completions ? { completions: k.completions } : {}),
     ...(k.format ? { format: k.format } : {}),
   };
 }

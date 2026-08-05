@@ -85,6 +85,43 @@ export interface RateLookup {
   get(from: string, to: string): Decimal | null;
 }
 
+/**
+ * What a `place` Value carries on `meta`, declared here for the same reason as
+ * `RateLookup`: `@smartput/geo` produces it and the datetime and money kinds
+ * read it, so the contract lives in the one package all three already depend on
+ * and none of them imports another.
+ *
+ * The rejected alternative was injecting a `PlaceLookup` into datetime, which
+ * would have made datetime's construction depend on geo being present to serve
+ * a case that a plain string on `meta` already covers: the datetime bridge
+ * reads `zone`, the money bridge reads `currency`, and neither needs to know
+ * what a city is.
+ */
+export interface PlaceMeta {
+  /** GeoNames feature id. Stable, and the Value's canonical. */
+  readonly geonameId: number;
+  /**
+   * The place's own display name — "Japan", "Athens", "Los Angeles".
+   *
+   * Here rather than left to the formatter to look up, because the lookup a
+   * formatter could do is by `country`, and that returns the *country's* name
+   * for a city: it rendered "athens" as "Greece — … 11M" while this same meta
+   * said 664,046. A city table big enough to answer the question properly is
+   * the one thing the formatter must not import, since reaching it statically
+   * links the whole gazetteer into every bundle.
+   */
+  readonly name: string;
+  /** IANA zone. Always present: a country carries its capital's zone. */
+  readonly zone: string;
+  /** ISO 4217. Present on countries; on a city, its country's. */
+  readonly currency: string;
+  readonly lat: number;
+  readonly lon: number;
+  readonly population: number;
+  /** ISO 3166-1 alpha-2, lowercased. Equals the Value's `unit`. */
+  readonly country: string;
+}
+
 export interface EvalCtx {
   readonly self: Value;
   readonly locale: string;
@@ -174,6 +211,19 @@ export interface LiteralMatch {
   readonly length: number;
   /** Summed into the candidate's score, exactly like an analyzer's weight. */
   readonly weight?: number;
+  /**
+   * Opt-in: this claim may stand as the *target* of a conversion — "3pm in
+   * japan", where the right operand is a claimed value rather than a unit
+   * label, and the signature that receives it reads its `meta`.
+   *
+   * Off by default, and deliberately not inferred from "the kind has a literal
+   * matcher". Datetime claims "tomorrow" as a value, so an inferred rule made
+   * `today in tomorrow` a legal zone conversion that quietly returned today
+   * instead of the `UnitParseError` it had always thrown. A target is a
+   * narrower thing than a value, and only the kind knows which of its claims
+   * are one.
+   */
+  readonly targetable?: boolean;
 }
 
 /**
@@ -195,15 +245,42 @@ export interface MatchCtx {
 }
 
 /**
+ * One reading of a span the fold has already settled.
+ *
+ * `LiteralMatch` without `length` — by the time the fold has grouped the
+ * matches that reach the same end, the span is a property of the group and no
+ * longer of the reading — and with `weight` defaulted, so nothing downstream
+ * has to spell `?? 0` again.
+ */
+export interface LiteralReading {
+  readonly kind: KindId;
+  readonly unit: string;
+  readonly canonical: Decimal;
+  readonly meta?: Readonly<Record<string, unknown>>;
+  readonly weight: number;
+  readonly targetable?: boolean;
+}
+
+/**
  * Offered the whole normalized input and an offset that is always a token
  * boundary. Returns null for "not mine". A match that does not end on a token
  * boundary is discarded by the fold, so a matcher never has to align itself.
+ *
+ * An array is several readings of the SAME text, not several spans: the other
+ * Athens, the other Springfield, both Congos. The fold keeps whichever readings
+ * reach the furthest end and hands all of them to the solver as candidates, so
+ * a matcher that has ranked its hits should return them ranked and stop there —
+ * returning only the winner is what made `suggest("springfield")` a list of
+ * one, and dropping the ranking would ask the solver to redo a decision it has
+ * no information for.
+ *
+ * Returning the single object stays legal and means exactly what it always did.
  */
 export type LiteralMatcher = (
   input: string,
   offset: number,
   ctx: MatchCtx,
-) => LiteralMatch | null;
+) => LiteralMatch | readonly LiteralMatch[] | null;
 
 export interface RatioSpec {
   mode: "ratio";
@@ -238,6 +315,92 @@ export interface OpaqueSpec {
   equals?: (a: unknown, b: unknown) => boolean;
 }
 
+/**
+ * Everything a completer may read about the keystroke. Deliberately not the
+ * whole input: a completer answers "what could this word become", and the words
+ * before it are the parser's business, not a lexicon's.
+ *
+ * The fragment arrives folded because completion has already folded it to search
+ * the alias index, and a completer that folded the raw text again would be a
+ * second answer to "does this alias match" — drifting the day one of the two
+ * learns about a script the other does not.
+ */
+export interface CompleteCtx {
+  readonly locale: string;
+  /** The trailing fragment, NFKC-folded and lowercased — what the user is typing. */
+  readonly fragment: string;
+  /** The number in front of the fragment, when there is one. */
+  readonly count?: Decimal;
+  /**
+   * The whole input, and where `fragment` sits in it.
+   *
+   * A completer needs both because the fragment is one word and a name is not:
+   * "san fran" hands over `fragment` "fran", and a completer that can see no
+   * further offers "France" — which core then splices back as "san France", a
+   * place that does not exist. Looking behind the fragment is the only way to
+   * know the word before it was part of the name being typed.
+   */
+  readonly input: string;
+  readonly span: Span;
+}
+
+/**
+ * One row a kind offers for the fragment being typed.
+ *
+ * `text` is the replacement and not a template, which is the whole difference
+ * from the alias-index path: that path splices "<the count already typed> <the
+ * unit's plural display form>", and a place is not a quantity. "Kyiv" is the
+ * answer; there is no count for it to agree with and no word to pluralize.
+ * Templating with an opt-out flag was the alternative, and it says the same
+ * thing twice — a kind that wants the templated form gets it by registering an
+ * alias, which is what the index is for.
+ */
+export interface KindCompletion {
+  /** What replaces the fragment. A place supplies a name; nothing is templated. */
+  readonly text: string;
+  /** The alias that matched, for display and for tie-breaking. */
+  readonly alias: string;
+  /** A registered unit of the kind. */
+  readonly unit: string;
+  /** Summed into the score exactly like a weight layer. */
+  readonly weight?: number;
+  /**
+   * De-duplication key within the kind. Defaults to `unit`. Places need it:
+   * every US city shares the unit "us", so a unit-keyed map keeps one of them.
+   */
+  readonly key?: string;
+  /**
+   * Replace from this offset instead of from the fragment's start, so a row may
+   * consume the words *before* what is being typed. "san fran" is one name and
+   * has to be replaced as one: without this the row can only rewrite "fran",
+   * and "San Francisco" spliced over it reads "san San Francisco".
+   *
+   * Must be a real offset at or before `ctx.span.start`; a row naming anything
+   * else is dropped, on the same reasoning as a row naming an unregistered unit.
+   * Core does not check that it falls on a word boundary — the completer chose
+   * it from `ctx.input`, and only the completer knows what a word is in its own
+   * vocabulary.
+   */
+  readonly start?: number;
+}
+
+/**
+ * Called once per keystroke for every registered kind that declares one, and
+ * the only way a vocabulary that must stay out of the global alias index can
+ * still be completed.
+ *
+ * That exclusion is not hypothetical: `km` is Comoros and `pm` is Saint Pierre,
+ * which is why nothing shorter than four characters is indexed at all, and
+ * @smartput/geo's gazetteer is six thousand more names of exactly that kind. A
+ * kind in that position keeps its own structure — geo keeps a trie — and this is
+ * how what it knows reaches the ranking without core learning what a city is.
+ *
+ * Return rows already ranked among themselves. Core scores them against every
+ * other row and re-sorts, but a tie falls back to this order, so a kind that has
+ * ranked its hits should say so here rather than hope the score preserves it.
+ */
+export type Completer = (ctx: CompleteCtx) => readonly KindCompletion[];
+
 export interface OpSignature {
   op: OpSymbol;
   left: KindId;
@@ -260,6 +423,12 @@ export interface Kind {
   prior?: number;
   lexicon?: Lexicon;
   literals?: LiteralMatcher[];
+  /**
+   * Beside `lexicon`, never instead of it. A unit's aliases keep completing
+   * through the global index; this is for the names that were never allowed in
+   * it, and a kind may declare both.
+   */
+  completions?: Completer;
   ops?: OpSignature[];
   format?: (v: Value, ctx: FormatCtx) => string;
 }

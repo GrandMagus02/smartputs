@@ -1,0 +1,10 @@
+GB.ENG	England	England	6269131
+JP.40	Tokyo	Tokyo	1850144
+PW.07	Melekeok	Melekeok	4037930
+UA.12	Kyiv City	Kyiv City	703447
+US.DC	District of Columbia	District of Columbia	4138106
+US.IN	Indiana	Indiana	4921868
+US.NY	New York	New York	5128638
+US.OR	Oregon	Oregon	5744337
+US.TX	Texas	Texas	4736286
+FR.11	Île-de-France	Ile-de-France	3012874

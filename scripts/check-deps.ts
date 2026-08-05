@@ -30,6 +30,11 @@ const ALLOWED: Record<string, string[]> = {
     "@smartput/core",
     "@smartput/number",
   ],
+  // No data package. GeoNames is vendored as generated TypeScript under
+  // src/data, committed and reviewable in a diff, so geo carries no npm data
+  // dependency and no upstream maintenance risk — an npm gazetteer would have
+  // been a second supply chain for a table that changes a few times a year.
+  "packages/geo/package.json": ["@smartput/core", "decimal.js"],
 
   // The micro-validation path. Zero runtime dependencies, enforced here: a
   // first one would mean decimal.js or core leaked into a 600-byte budget.
@@ -148,16 +153,33 @@ async function exportsRatioKind(dir: string): Promise<boolean> {
  * `import type` counts. It compiles away, but it survives into the emitted
  * `.d.ts`, and a published declaration naming a package absent from the
  * manifest is a dependency a consumer discovers on install.
+ *
+ * Both patterns are anchored to the start of a line, which is what keeps a
+ * documented example out of the answer. `@smartput/geo`'s `cities.ts` opens
+ * with the two-line snippet a consumer types, indented inside a doc comment —
+ * a bare `from "..."` search read that as geo importing itself and failed the
+ * package for a line that compiles to nothing. Comment bodies carry a leading
+ * `*`, and a statement never does, so requiring `import`/`export` to be the
+ * first thing on its line separates the two without parsing TypeScript.
+ * `[^;]*?` stops the multi-line form from running past its own semicolon into
+ * the next statement's specifier.
  */
+const IMPORT_FROM =
+  /^\s*(?:import|export)\b[^;]*?\bfrom\s+"(@smartput\/[a-z-]+)(?:\/[^"]*)?"/gm;
+/** `import "@smartput/x"` — for the side effect, no bindings, so no `from`. */
+const IMPORT_BARE = /^\s*import\s+"(@smartput\/[a-z-]+)(?:\/[^"]*)?"/gm;
+
 async function workspaceImportsOf(dir: string): Promise<Set<string>> {
   const out = new Set<string>();
   const glob = new Glob(`${dir}/src/**/*.ts`);
   for (const file of glob.scanSync(root.pathname)) {
     if (file.endsWith(".test.ts")) continue;
     const text = await Bun.file(new URL(file, root)).text();
-    for (const m of text.matchAll(/from\s+"(@smartput\/[a-z-]+)(?:\/[^"]*)?"/g)) {
-      const name = m[1];
-      if (name !== undefined) out.add(name);
+    for (const pattern of [IMPORT_FROM, IMPORT_BARE]) {
+      for (const m of text.matchAll(pattern)) {
+        const name = m[1];
+        if (name !== undefined) out.add(name);
+      }
     }
   }
   return out;

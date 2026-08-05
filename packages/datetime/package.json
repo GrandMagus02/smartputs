@@ -22,6 +22,7 @@
     "temporal-polyfill": "^0.3.0"
   },
   "devDependencies": {
+    "@smartput/geo": "workspace:*",
     "@smartput/kinds": "workspace:*"
   }
 }

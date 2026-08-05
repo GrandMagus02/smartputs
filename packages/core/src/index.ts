@@ -26,6 +26,15 @@ export { deriveValue, NUMBER_KIND, PERCENT_KIND } from "./kind/ratio-ops";
 // which is the only way to see an alias collision between two kinds at all.
 export type { AliasEntry, Registry } from "./kind/registry";
 export { buildRegistry } from "./kind/registry";
+// The provider path's caching half, shared by every package that fetches a
+// snapshot and rebuilds an engine from it — rates does, geo does (spec §8.1).
+export type {
+  CachedEngine,
+  CachedEngineOptions,
+  SnapshotCache,
+  SnapshotCacheOptions,
+} from "./live";
+export { createCachedEngine, createSnapshotCache } from "./live";
 export { createAnalyzerChain } from "./locale/analyze";
 export { defineLocale, defineLocalePack } from "./locale/define";
 export {
@@ -39,4 +48,10 @@ export type { Token } from "./parse/lex";
 // Exported so a plugin author can drive a literal matcher in isolation, without
 // standing up an engine just to see what their matcher claims.
 export { foldLiterals } from "./parse/literals";
+// The score the ordinary number under a claimed span gets, which a matcher that
+// claims bare digits has to weigh itself against: a postal code must sit below
+// it to leave "90210" a number. Public for the same reason the completion
+// constants above are — a plugin cannot pick a weight against a number it
+// cannot name, and this file is the only path out of the package.
+export { NUMBER_FALLBACK_WEIGHT } from "./parse/pratt";
 export type * from "./types";

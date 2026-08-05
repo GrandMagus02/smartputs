@@ -345,6 +345,27 @@ export const BUDGETS: EntrySpec[] = [
     min: 4700,
     gzip: 1950,
   },
+
+  // `@smartput/geo` is not a ratio kind and owes none of the subpaths above —
+  // a place has no ratios to convert. It gets a row for a different claim its
+  // own source makes: `geo/src/index.ts` says CITIES and ADMIN1 "live behind
+  // '@smartput/geo/cities' so that this module's import graph never reaches
+  // them", and until this row that sentence was the whole enforcement.
+  //
+  // Measured, the T1 tier is 1_011_415 B against the root's 128_435 B, so a
+  // leak is not a drift — it is an eightfold jump, and the ceiling here catches
+  // it on the first build. The floor is set explicitly because the T0 country
+  // table is ~99% of this number and would not move under any change to geo's
+  // code; the default 70% band would let two thirds of the gazetteer vanish
+  // silently.
+  {
+    label: "geo root, T0 only (T1 must not leak in)",
+    from: "@smartput/geo",
+    names: ["place"],
+    min: 132_000,
+    gzip: 46_000,
+    floor: 120_000,
+  },
 ];
 
 if (import.meta.main) {

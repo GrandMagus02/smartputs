@@ -1,4 +1,11 @@
-import { defineKind, type Kind, type LiteralMatcher } from "@smartput/core";
+import {
+  defineKind,
+  type EvalCtx,
+  type Kind,
+  type LiteralMatcher,
+  NoCandidateError,
+  type Value,
+} from "@smartput/core";
 import { parseDateTime } from "./chrono-bridge";
 import { Temporal } from "./temporal";
 import { addDuration, DATETIME_KIND, durationValue, unwrap, wrap } from "./value";
@@ -7,6 +14,14 @@ import { ZONES } from "./zones";
 /**
  * The one matcher this kind registers. Everything date-shaped enters the engine
  * through here — there is no other path, and core knows nothing about dates.
+ *
+ * One reading, though M6.3 widened `LiteralMatcher` to return several. A place
+ * name has homonyms — three Springfields, two Athenses — and a date does not:
+ * chrono resolves a span to one instant against one clock, and a second reading
+ * of "next friday" would be a second answer to a question that has one. What the
+ * widening does buy this kind is the other half of the same change: the word
+ * under a single-token claim now survives, so geo claiming "tokyo" the city no
+ * longer costs `Asia/Tokyo` the alias (spec §6.3).
  */
 const dateLiteral: LiteralMatcher = (input, offset, ctx) => {
   const match = parseDateTime(input, offset, ctx);
@@ -42,6 +57,29 @@ function formatDateTime(iso: string): string {
 const units: Record<string, { aliases: string[]; symbol: string }> = {};
 for (const [zone, def] of Object.entries(ZONES)) {
   units[zone] = { aliases: [...def.aliases], symbol: def.symbol };
+}
+
+/**
+ * A place does not always carry a zone. A country reached by its *unit alias*
+ * rather than by a claimed literal ("3pm in jp") gets `evaluate.ts`'s stand-in
+ * right-hand side, which has the unit, the left operand's meta, and no zone at
+ * all — so the miss is a real input, not a data bug to assert away.
+ *
+ * `NoCandidateError` rather than a new error type: a conversion target that
+ * resolves to no zone is an unknown unit, which is what the engine already
+ * reports for every other unreachable target. Temporal's own RangeError names
+ * neither the input nor the unit the user typed.
+ */
+function placeZone(target: Value, ctx: EvalCtx): string {
+  const zone = target.meta?.zone;
+  if (typeof zone !== "string" || zone === "")
+    throw new NoCandidateError(ctx.input ?? "", target.unit, []);
+  try {
+    Temporal.Instant.fromEpochMilliseconds(0).toZonedDateTimeISO(zone);
+  } catch {
+    throw new NoCandidateError(ctx.input ?? "", zone, []);
+  }
+  return zone;
 }
 
 /**
@@ -94,6 +132,29 @@ export const datetime: Kind = defineKind({
       right: DATETIME_KIND,
       result: DATETIME_KIND,
       apply: (l, r) => wrap(unwrap(l).withTimeZone(r.unit)),
+    },
+    {
+      // The geo bridge (geo spec §3.1). `place` is a kind this package neither
+      // imports nor depends on: the zone arrives as a plain string on `meta`,
+      // typed by core's `PlaceMeta`, so "3pm in new york" costs datetime one
+      // signature and no gazetteer.
+      //
+      // Declaring a signature over an absent kind is safe because registry
+      // pass 4 (`kind/registry.ts`) builds the op table without checking that
+      // `left` and `right` name registered kinds. With geo absent this entry is
+      // inert — no kind claims `place`, so the solver can never produce that
+      // operand and the key is never looked up. Pass 4 *does* refuse a second
+      // claimant of one signature, which is why datetime owns this one and geo
+      // owns `in | place | place`.
+      //
+      // The rejected alternative was injecting a `PlaceLookup` into datetime,
+      // which would make datetime's construction depend on geo being present to
+      // serve a case a string on `meta` already covers.
+      op: "in",
+      left: DATETIME_KIND,
+      right: "place",
+      result: DATETIME_KIND,
+      apply: (l, r, ctx) => wrap(unwrap(l).withTimeZone(placeZone(r, ctx))),
     },
   ],
   format: (value) => formatDateTime(String(value.meta?.iso ?? "")),

@@ -121,9 +121,23 @@ Excluded, with reasons:
 | --- | --- |
 | `money` (`@smartput/rates`) | Unit ratios come from an injected live rate table. A micro path with no engine has nowhere to inject it, and a stale hard-coded FX table is worse than no feature. |
 | `datetime` (`@smartput/datetime`) | Opaque kind. Its "units" are IANA zones and its recognition is `chrono-node`. Nothing here applies. |
-| `geo` | Not shipped. |
+| `geo` (`@smartput/geo`) | Opaque kind, like `datetime`. Its "units" are ISO 3166-1 country codes and its recognition is a trie over a vendored gazetteer, so there is no ratio to store and nothing to convert between. Amended 2026-08-06 — this row said "Not shipped", which stopped being a reason when M6 landed. |
 
 ### A collision that stops existing
+
+`@smartput/geo` still takes the parts of this spec that are not about ratios,
+because they are about packaging rather than about units: `sideEffects: false`,
+three-condition subpath exports for `.`, `./cities` and `./providers`, and a
+`check-size` row. `check-deps.ts` decides what a package owes by asking the
+module whether it exports a kind whose `value.mode` is `"ratio"`, so geo is
+exempt from `./units`, `./validate` and `./class` by the same test that requires
+them of `angle` — not by an entry in a list someone has to remember to write.
+
+The `check-size` row it does get enforces a claim geo already made in a comment:
+T1 city data lives behind `@smartput/geo/cities` "so that this module's import
+graph never reaches them". Measured, T1 is 1,011,415 B against the root's
+128,435 B. V8's rule applies to that sentence exactly as it applies to a byte
+budget — a claim nothing measures is a claim that stops being true quietly.
 
 `measure` is excluded from `BUILTIN_KINDS` because its `mm`/`cm` aliases collide
 with `length`, making `10 cm` ambiguous for every engine consumer.
