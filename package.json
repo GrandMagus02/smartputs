@@ -16,7 +16,8 @@
     "format": "biome format --write .",
     "typecheck": "bun run scripts/typecheck.ts",
     "check-deps": "bun run scripts/check-deps.ts",
-    "check": "bun run lint && bun run typecheck && bun run check-deps && bun test && bun run build"
+    "check-size": "bun run scripts/check-size.ts",
+    "check": "bun run lint && bun run typecheck && bun run check-deps && bun test && bun run build && bun run check-size"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.0.0",

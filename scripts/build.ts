@@ -47,8 +47,21 @@ export interface BuildResult {
   log: string;
 }
 
+export interface BuildOptions {
+  /**
+   * Emit `.d.ts` alongside the bundle. Off for callers that only need the
+   * JavaScript — check-size.ts measures bytes, and tsc is the slow half of a
+   * build it may have to run on demand.
+   */
+  declarations?: boolean;
+}
+
 /** Builds one package directory (e.g. `packages/core`): bundle, then declarations. */
-export async function buildPackage(dir: string): Promise<BuildResult> {
+export async function buildPackage(
+  dir: string,
+  options: BuildOptions = {},
+): Promise<BuildResult> {
+  const declarations = options.declarations ?? true;
   const pkg = await Bun.file(`${rootDir}/${dir}/package.json`).json();
   const entries = await entriesOf(dir);
 
@@ -69,6 +82,10 @@ export async function buildPackage(dir: string): Promise<BuildResult> {
   if (!bundled.success) {
     const logs = bundled.logs.map(String).join("\n");
     return { ok: false, log: `${pkg.name} build FAILED\n${logs}` };
+  }
+
+  if (!declarations) {
+    return { ok: true, log: `${pkg.name} built ${bundled.outputs.length} file(s)` };
   }
 
   const tsc = Bun.spawn(["tsc", "-p", `${rootDir}/${dir}/tsconfig.json`], {
