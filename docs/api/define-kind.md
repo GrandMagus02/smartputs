@@ -35,6 +35,7 @@ interface Kind {
   prior?: number;
   lexicon?: Lexicon;
   literals?: LiteralMatcher[];
+  completions?: Completer;
   ops?: OpSignature[];
   format?: (v: Value, ctx: FormatCtx) => string;
 }
@@ -111,9 +112,13 @@ const zone = defineKind({
 
 An opaque kind generates **no** ops — there are no ratios to generate them from
 — so every operation it supports is an explicit [`ops`](#ops) signature.
-`createFacade` refuses an opaque kind for the same reason, and `complete()`
-skips it, since a completion inserts `<number><unit>` and a time zone is not
-that.
+`createFacade` refuses an opaque kind for the same reason.
+
+`complete()`'s **alias-index path** skips it too, and for a third reason: that
+path inserts `<count> <plural display form>`, and a time zone is not a quantity
+of anything. What an opaque kind can do since M6.4 is answer for itself, through
+[`completions`](#completions) — which is how `@smartput/geo`, an opaque kind,
+completes `kyi` to `Kyiv`.
 
 ### extendsKind
 
@@ -124,6 +129,7 @@ its own id, registered through the same `createEngine({ kinds })` channel.
 | --- | --- |
 | `lexicon`, `units`, `literals`, `ops` | merged; the patch wins on key collision |
 | `prior`, `format`, `canonical` | replaced when present |
+| `completions` | **dropped** — the base's stands, and nothing warns |
 | `value.mode` mismatch | throws at registration, never at parse time |
 
 ### prior
@@ -249,6 +255,119 @@ for exactly that: `@smartput/datetime` refuses any match whose letter runs are
 
 `foldLiterals` is exported from the package root so a matcher can be tested in
 isolation, without an engine.
+
+### completions
+
+```ts
+type Completer = (ctx: CompleteCtx) => readonly KindCompletion[];
+
+interface CompleteCtx {
+  readonly locale: string;
+  readonly fragment: string;  // NFKC-folded, lowercased
+  readonly count?: Decimal;   // the number in front of the fragment
+}
+
+interface KindCompletion {
+  readonly text: string;    // what replaces the fragment
+  readonly alias: string;   // the alias that matched
+  readonly unit: string;    // a registered unit of this kind
+  readonly weight?: number;
+  readonly key?: string;    // de-duplication key, defaults to `unit`
+}
+```
+
+**Beside `lexicon`, never instead of it.** A unit's aliases keep completing
+through the global alias index; this is for a vocabulary that was never allowed
+into that index, and a kind may declare both.
+
+#### Which one to reach for
+
+Use `lexicon` unless one of these is true of your vocabulary:
+
+| Reach for `completions` when | Because |
+| --- | --- |
+| The names cannot go in the global alias index | It is one map for every kind at once. `km` as Comoros makes `10 km` ambiguous, so `@smartput/geo` indexes no name shorter than four characters and no city at all |
+| There are thousands of them | The index is built once per engine and lives for its lifetime. Geo's 45,000-node trie is built on the first keystroke and shared between engines |
+| The kind is opaque | The alias path takes ratio kinds only, since it inserts `<count> <plural display form>` |
+| The inserted text is not `<count> <unit>` | `Kyiv` is not a quantity of anything |
+
+None of that is about ranking — a unit alias completes perfectly well. It is
+about vocabularies the index would break if they entered it, which is the
+position `@smartput/geo` is in and the reason the seam exists at all.
+
+#### What core does with the rows
+
+`complete()` calls every registered completer once per keystroke and merges the
+rows into the **same ranking** the alias index feeds:
+
+```
+score = resolveWeight(kind, unit, alias, prior, layers)
+      + (row.weight ?? 0)
+      + prefixQuality(alias, fragment)     // only when alias startsWith fragment
+```
+
+Three summands where the alias path has four. `scaleFit` is the missing one: it
+reads the `typical` band off a ratio unit, and a place has none. A completer
+that does want the count to matter has it on `ctx` and can fold it into `weight`
+itself, where it is the kind's judgement rather than core's guess.
+
+`prefixQuality` charges `LENGTH_PENALTY` for every character of the alias still
+untyped and `EXACT_BONUS` when the alias *is* the fragment. It is withheld —
+scored `0`, never negative — from a row whose alias does not start with the
+fragment, because a completer may legitimately match by fold, by transliteration
+or by a second name, and the subtraction turns into a bonus the moment the alias
+is shorter than what was typed.
+
+| Rule | Behaviour |
+| --- | --- |
+| `opts.kinds` | Checked **before** the call. An excluded kind's completer never runs, so a gazetteer is never scanned for a caller who filtered it out |
+| Bad unit | A row naming a unit the kind did not register is dropped, silently and per row — the same way the alias path drops an entry whose unit has gone |
+| De-duplication | One row per `kind + (key ?? unit)`, in the same map the alias rows use. A ratio kind whose completer row lands on a unit it also has an alias for keeps the better-scoring of the two |
+| `limit` | Applied to the merged list, after ranking. Ten rows for every kind at once, not ten per kind |
+| Ties | The final sort is stable, so equal scores come out in the order you returned them |
+| `ctx` | Frozen, and one object is shared by every kind for one keystroke. Writing to it throws rather than silently changing the next kind's question |
+
+Return rows **already ranked among themselves**, and deterministically: that
+stable-sort fallback is your ranking, and it is the only tiebreak core has left
+for two rows of one kind that agree on score, unit and alias — which is reachable
+the moment two of your rows carry the same weight and the same name, as two
+places of one name and one population would.
+
+#### Two things core will not do for you
+
+**There is no cap and no name floor.** `MIN_NAME_LENGTH` belongs to the alias
+index and this path never touches it, so a completer over alpha-2 codes will
+offer `Comoros` above `kilometre` for the fragment `km` — the exact failure the
+index's floor exists to prevent, reintroduced through the back door. Apply your
+own floor, and your own row cap: an unfiltered 8,735-row scan costs 138 µs
+against a 20 µs baseline, on every keystroke.
+
+**A completer that throws takes down the whole call.** Every row from every
+other kind is lost for that keystroke. Consistent with `foldLiterals` and
+`format`, which have no guard around plugin code either — but a completer is on
+the keystroke path, so one that can throw on malformed input blanks the launcher
+rather than degrading it.
+
+#### Weights are not a private scale
+
+Weights here are the alias path's, where a plain unit contributes **zero**. A
+positive `weight` is a thumb on the scale against every unit in the engine, not
+merely a ranking among your own rows. Geo learnt this by measurement: carrying
+its matcher's `+3` for a country meant 56 of the 294 prefixes of a builtin unit
+alias lost their first row to a place — `me` completed Mesa rather than metre —
+so `completion.ts` rebases the same order onto a ceiling of `0` and keeps the
+spread underneath. See
+[a place among the units](/guide/places#a-place-is-not-a-quantity).
+
+```ts
+// The whole of what @smartput/geo registers:
+completions: new PlaceCompleter(COUNTRIES, opts.cities).completions,
+```
+
+One limit worth knowing before you build on it: a **patch** kind
+([`extendsKind`](#extendskind)) declaring `completions` is silently dropped — the
+base's completer stands, as it does for `format`. Nothing warns, and nothing
+tests it. Declare a completer on the base kind.
 
 ### ops
 

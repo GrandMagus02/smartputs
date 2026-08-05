@@ -1,0 +1,72 @@
+# input	kind	canonical	formatted
+#
+# `canonical` is the GeoNames id for a place and canonical metres for a
+# distance. A bare place formats to its facts — name, currency, calling code,
+# zone, abbreviated population (spec §5.3) — and a distance formats as the
+# length kind already does, in km.
+#
+# A code is read as a code only when it is written as one: "ua" lowercase is a
+# word to the matcher (spec §5.1's guard, widened — "and" is Andorra and "ago"
+# is Angola), so "japan to UA" is the form that resolves, and the country's name
+# is what a lowercase query is expected to carry.
+japan	place	1861060	Japan — JPY, +81, Asia/Tokyo, 127M
+Japan	place	1861060	Japan — JPY, +81, Asia/Tokyo, 127M
+ukraine	place	690791	Ukraine — UAH, +380, Europe/Kyiv, 40M
+united kingdom	place	2635167	United Kingdom — GBP, +44, Europe/London, 66M
+great britain	place	2635167	United Kingdom — GBP, +44, Europe/London, 66M
+france	place	3017382	France — EUR, +33, Europe/Paris, 67M
+germany	place	2921044	Germany — EUR, +49, Europe/Berlin, 83M
+antarctica	place	6697173	Antarctica — Antarctica/Casey
+china	place	1814991	China — CNY, +86, Asia/Shanghai, 1.4B
+japan to ukraine	length	8198981	8,198.981 kilometres
+ukraine to japan	length	8198981	8,198.981 kilometres
+france to germany	length	878399	878.399 kilometres
+france in germany	length	878399	878.399 kilometres
+japan to UA	length	8198981	8,198.981 kilometres
+japan to japan	length	0	0 kilometres
+#
+# T1 cities, from "@smartput/geo/cities". A city is never a unit — it is reached
+# only through the matcher's trie — so it borrows its country's alpha-2 as its
+# `unit`, and is qualified by that code in the answer. Everything else is the
+# city's own: its name, its zone, its population, and the GeoNames id that is its
+# canonical. Currency and calling code are the country's, because they are the
+# country's.
+kyiv	place	703448	Kyiv, UA — UAH, +380, Europe/Kyiv, 3M
+warsaw	place	756135	Warsaw, PL — PLN, +48, Europe/Warsaw, 1.7M
+paris	place	2988507	Paris, FR — EUR, +33, Europe/Paris, 2.1M
+kyiv to warsaw	length	688971	688.971 kilometres
+tokyo to kyoto	length	364743	364.743 kilometres
+# The same 878.399 km as "france to germany" above, and not a coincidence: a
+# country's position is its capital's, so reaching Paris and Berlin as cities
+# measures the identical pair of points by a different route through the trie.
+paris to berlin	length	878399	878.399 kilometres
+#
+# Spec §6.1's ranking, on the aliases the shipped table makes decide something.
+# Athens is the "paris texas" shape with a city T1 actually carries: the Greek
+# capital at +2 over Athens, Georgia at +1.70. San José is the same rule where
+# population would have gone the other way — 335K against San Jose, California's
+# 997K. Springfield has no capital among its three, so population is all there is
+# and Missouri's 170K wins.
+athens	place	264371	Athens, GR — EUR, +30, Europe/Athens, 664K
+san jose	place	3621849	San José, CR — CRC, +506, America/Costa_Rica, 335K
+springfield	place	4409896	Springfield, US — USD, +1, America/Chicago, 170K
+#
+# Spec §5.2's scope, which is a longer walk down the same trie and not an op.
+# Each of these names a division and gets the row the ranking above passed over.
+springfield illinois	place	4250542	Springfield, US — USD, +1, America/Chicago, 114K
+san jose california	place	5392171	San Jose, US — USD, +1, America/Los_Angeles, 997K
+cambridge massachusetts	place	4931972	Cambridge, US — USD, +1, America/New_York, 110K
+houston texas	place	4699066	Houston, US — USD, +1, America/Chicago, 2.3M
+#
+# Spec §9: the country outranks the US state, and the state is not a place at
+# all — a division has no id and no position, so there is nothing to rank it as.
+georgia	place	614540	Georgia — GEL, +995, Asia/Tbilisi, 3.7M
+#
+# Rows that are not about places at all. Registering this kind must not cost
+# another one its reading: "km" is Comoros as well as a kilometre, and "and" is
+# Andorra. The fold is destructive, so a claim here has no second chance.
+10 km	length	10000	10 kilometres
+two hundred and five km	length	205000	205 kilometres
+# Spec §6.2, asserted before the matcher that could break it exists: bare five
+# digits are a number, and postalLiteral is M6.3's to add without changing this.
+90210	number	90210	90,210

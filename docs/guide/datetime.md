@@ -254,9 +254,12 @@ Deliberate, and recorded in `docs/superpowers/m4-followups.md`:
 - **English only.** The bridge is `chrono.parse` with the English rules;
   `chrono` has no Ukrainian locale upstream.
 - **No multi-word zone aliases** — `nyc`, not `"new york"`.
-- **No completion for dates.** `complete()` inserts `<number><unit>`, which a
-  time zone is not, so it skips opaque kinds entirely rather than offering
-  `1 utc`.
+- **No completion for dates.** `complete()`'s alias-index path inserts
+  `<number><unit>`, which a time zone is not, so it offers no zone rather than
+  offering `1 utc`. The door out of that is
+  [`Kind.completions`](/api/define-kind#completions), added in M6.4 for exactly
+  this shape of vocabulary and used by `@smartput/geo`; this kind does not
+  declare one yet.
 - **No `DateTime` facade class.** `createFacade` generates `.to()` and `.scale()`
   from a ratio table an opaque kind does not have, so it refuses one outright.
 - **No recurrence, no durations-as-dates, no historical zone names.**

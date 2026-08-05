@@ -1,0 +1,593 @@
+{
+  "totalResultsCount": 12094,
+  "geonames": [
+    {
+      "timezone": {
+        "gmtOffset": 3,
+        "timeZoneId": "Africa/Dar_es_Salaam",
+        "dstOffset": 3
+      },
+      "bbox": {
+        "east": 39.57266268936059,
+        "south": -7.124675440362554,
+        "north": -6.5223023580139925,
+        "west": 38.96636547836402,
+        "accuracyLevel": 2
+      },
+      "asciiName": "Dar es Salaam",
+      "astergdem": 18,
+      "countryId": "149590",
+      "fcl": "P",
+      "srtm3": 24,
+      "score": 32.949554443359375,
+      "adminId2": "159239",
+      "adminId3": "11003931",
+      "countryCode": "TZ",
+      "adminCodes1": {
+        "ISO3166_2": "02"
+      },
+      "adminId1": "160260",
+      "lat": "-6.82349",
+      "fcode": "PPLA",
+      "continentCode": "AF",
+      "adminCode2": "0702",
+      "adminCode3": "0702132",
+      "adminCode1": "23",
+      "lng": "39.26951",
+      "geonameId": 160263,
+      "toponymName": "Dar es Salaam",
+      "population": 5383728,
+      "adminName5": "",
+      "adminName4": "",
+      "adminName3": "Gerezani",
+      "alternateNames": [
+        {
+          "name": "Dar-es-Salaam",
+          "lang": "af"
+        },
+        {
+          "name": "Daressalaam",
+          "lang": "als"
+        },
+        {
+          "name": "دار السلام",
+          "lang": "ar"
+        },
+        {
+          "name": "Dar əs Salam",
+          "lang": "az"
+        },
+        {
+          "name": "Дар-эс-Салам",
+          "lang": "be"
+        },
+        {
+          "name": "Дар ес-Салаам",
+          "lang": "bg"
+        },
+        {
+          "name": "ཏ་རེ་སི་ས་ལམ།",
+          "lang": "bo"
+        },
+        {
+          "name": "Dar es Salaam",
+          "lang": "ca"
+        },
+        {
+          "name": "Дар-эс-Салам",
+          "lang": "ce"
+        },
+        {
+          "name": "Dar es-Salaam",
+          "lang": "da"
+        },
+        {
+          "name": "Daressalam",
+          "lang": "de"
+        },
+        {
+          "name": "Νταρ ες Σαλάμ",
+          "lang": "el"
+        },
+        {
+          "name": "Dar es Salaam",
+          "lang": "en"
+        },
+        {
+          "name": "Daresalamo",
+          "lang": "eo"
+        },
+        {
+          "name": "Dar es-Salam",
+          "lang": "es"
+        },
+        {
+          "name": "Dar es Salaam",
+          "lang": "eu"
+        },
+        {
+          "name": "دارالسلام",
+          "lang": "fa"
+        },
+        {
+          "name": "Dar es Salaam",
+          "lang": "fi"
+        },
+        {
+          "isPreferredName": true,
+          "name": "Dar es Salam",
+          "lang": "fr"
+        },
+        {
+          "name": "Dar es Salam",
+          "lang": "frp"
+        },
+        {
+          "name": "Dárasalám",
+          "lang": "ga"
+        },
+        {
+          "name": "דאר א-סלאם",
+          "lang": "he"
+        },
+        {
+          "name": "दार अस सलाम",
+          "lang": "hi"
+        },
+        {
+          "name": "Dar-es-Salaam",
+          "lang": "hr"
+        },
+        {
+          "name": "Dar es-Salaam",
+          "lang": "hu"
+        },
+        {
+          "name": "DAR",
+          "lang": "iata"
+        },
+        {
+          "name": "Dar es Salaam",
+          "lang": "id"
+        },
+        {
+          "name": "Daressalaam",
+          "lang": "ie"
+        },
+        {
+          "name": "Dar es Salaam",
+          "lang": "is"
+        },
+        {
+          "name": "Dar es Salaam",
+          "lang": "it"
+        },
+        {
+          "name": "ダルエスサラーム",
+          "lang": "ja"
+        },
+        {
+          "name": "დარ-ეს-სალამი",
+          "lang": "ka"
+        },
+        {
+          "name": "다르에스살람",
+          "lang": "ko"
+        },
+        {
+          "name": "Дар-эс-Салам шаары",
+          "lang": "ky"
+        },
+        {
+          "name": "https://en.wikipedia.org/wiki/Dar_es_Salaam",
+          "lang": "link"
+        },
+        {
+          "name": "Dar es Salamas",
+          "lang": "lt"
+        },
+        {
+          "name": "Dāresalāma",
+          "lang": "lv"
+        },
+        {
+          "name": "Dar es Salam",
+          "lang": "mg"
+        },
+        {
+          "name": "Дар ес Салам",
+          "lang": "mk"
+        },
+        {
+          "name": "दार एस सलाम",
+          "lang": "mr"
+        },
+        {
+          "name": "Дар-эс-Салам",
+          "lang": "mrj"
+        },
+        {
+          "name": "ဒါအက်စ် ဆယ်လန်းမြို့",
+          "lang": "my"
+        },
+        {
+          "name": "Dar es Salaam",
+          "lang": "nl"
+        },
+        {
+          "name": "Dar-es-Salaam",
+          "lang": "nn"
+        },
+        {
+          "name": "Dar-es-Salaam",
+          "lang": "no"
+        },
+        {
+          "name": "Дар-эс-Салам",
+          "lang": "os"
+        },
+        {
+          "name": "ਦਾਰ ਅਸ ਸਲਾਮ",
+          "lang": "pa"
+        },
+        {
+          "name": "Dar Es Salaam",
+          "lang": "pap"
+        },
+        {
+          "name": "Dar es Salam",
+          "lang": "pl"
+        },
+        {
+          "name": "Dar es Salaam",
+          "lang": "pt"
+        },
+        {
+          "name": "Дар-эс-Салам",
+          "lang": "ru"
+        },
+        {
+          "name": "Dar es Salams",
+          "lang": "sgs"
+        },
+        {
+          "name": "Dar es Salám",
+          "lang": "sk"
+        },
+        {
+          "name": "Дар ес Салам",
+          "lang": "sr"
+        },
+        {
+          "name": "Dar es-Salaam",
+          "lang": "sv"
+        },
+        {
+          "name": "Dar es Salaam",
+          "lang": "sw"
+        },
+        {
+          "name": "தாருஸ்ஸலாம்",
+          "lang": "ta"
+        },
+        {
+          "name": "ดาร์-เอส-ซาลาม",
+          "lang": "th"
+        },
+        {
+          "name": "Darüsselam",
+          "lang": "tr"
+        },
+        {
+          "name": "دارېسسالام",
+          "lang": "ug"
+        },
+        {
+          "name": "Дар-ес-Салам",
+          "lang": "uk"
+        },
+        {
+          "name": "TZDAR",
+          "lang": "unlc"
+        },
+        {
+          "name": "دارالسلام",
+          "lang": "ur"
+        },
+        {
+          "name": "Dar Es Salam",
+          "lang": "vep"
+        },
+        {
+          "name": "达累斯萨拉姆",
+          "lang": "wuu"
+        },
+        {
+          "name": "דאר עס סאלאאם",
+          "lang": "yi"
+        },
+        {
+          "name": "三蘭港",
+          "lang": "yue"
+        },
+        {
+          "name": "达累斯萨拉姆",
+          "lang": "zh"
+        },
+        {
+          "name": "达累斯萨拉姆",
+          "lang": "zh-CN"
+        },
+        {
+          "name": "达累斯萨拉姆",
+          "lang": "zh-Hant"
+        }
+      ],
+      "adminName2": "Ilala District",
+      "name": "Dar es Salaam",
+      "fclName": "city, village,...",
+      "countryName": "Tanzania",
+      "fcodeName": "seat of a first-order administrative division",
+      "adminName1": "Dar es Salaam"
+    },
+    {
+      "timezone": {
+        "gmtOffset": 0,
+        "timeZoneId": "Africa/Dakar",
+        "dstOffset": 0
+      },
+      "bbox": {
+        "east": -15.45661123303501,
+        "south": 15.325960651531332,
+        "north": 15.370928895288468,
+        "west": -15.50324766131319,
+        "accuracyLevel": 2
+      },
+      "asciiName": "Dara",
+      "astergdem": 38,
+      "countryId": "2245662",
+      "fcl": "P",
+      "srtm3": 41,
+      "score": 32.80735778808594,
+      "countryCode": "SN",
+      "adminCodes1": {
+        "ISO3166_2": "LG"
+      },
+      "adminId1": "2249221",
+      "lat": "15.34844",
+      "fcode": "PPL",
+      "continentCode": "AF",
+      "adminCode1": "13",
+      "lng": "-15.47993",
+      "geonameId": 2253277,
+      "toponymName": "Dara",
+      "population": 30000,
+      "adminName5": "",
+      "adminName4": "",
+      "adminName3": "",
+      "alternateNames": [
+        {
+          "name": "https://en.wikipedia.org/wiki/Dahra",
+          "lang": "link"
+        },
+        {
+          "name": "Дар",
+          "lang": "ru"
+        },
+        {
+          "name": "Q3012013",
+          "lang": "wkdt"
+        }
+      ],
+      "adminName2": "",
+      "name": "Dara",
+      "fclName": "city, village,...",
+      "countryName": "Senegal",
+      "fcodeName": "populated place",
+      "adminName1": "Louga"
+    },
+    {
+      "timezone": {
+        "gmtOffset": 10,
+        "timeZoneId": "Pacific/Port_Moresby",
+        "dstOffset": 10
+      },
+      "bbox": {
+        "east": 143.2247043567701,
+        "south": -9.0934374565829,
+        "north": -9.0622825434171,
+        "west": 143.19315564322991,
+        "accuracyLevel": 2
+      },
+      "asciiName": "Daru",
+      "astergdem": 9,
+      "countryId": "2088628",
+      "fcl": "P",
+      "srtm3": 11,
+      "score": 29.78166961669922,
+      "countryCode": "PG",
+      "adminCodes1": {
+        "ISO3166_2": "WPD"
+      },
+      "adminId1": "2083549",
+      "lat": "-9.07786",
+      "fcode": "PPLA",
+      "continentCode": "OC",
+      "adminCode1": "06",
+      "lng": "143.20893",
+      "geonameId": 2098329,
+      "toponymName": "Daru",
+      "population": 15214,
+      "adminName5": "",
+      "adminName4": "",
+      "adminName3": "",
+      "alternateNames": [
+        {
+          "isShortName": true,
+          "isPreferredName": true,
+          "name": "Daru",
+          "lang": "en"
+        },
+        {
+          "name": "دارو",
+          "lang": "fa"
+        },
+        {
+          "name": "DAU",
+          "lang": "iata"
+        },
+        {
+          "name": "ダル",
+          "lang": "ja"
+        },
+        {
+          "name": "다루",
+          "lang": "ko"
+        },
+        {
+          "name": "https://en.wikipedia.org/wiki/Daru",
+          "lang": "link"
+        },
+        {
+          "name": "Дару",
+          "lang": "ru"
+        },
+        {
+          "name": "Дару",
+          "lang": "uk"
+        },
+        {
+          "name": "PGDAU",
+          "lang": "unlc"
+        },
+        {
+          "name": "دارو",
+          "lang": "ur"
+        },
+        {
+          "name": "達魯",
+          "lang": "zh"
+        },
+        {
+          "name": "達魯",
+          "lang": "zh-Hant"
+        }
+      ],
+      "adminName2": "",
+      "name": "Daru",
+      "fclName": "city, village,...",
+      "countryName": "Papua New Guinea",
+      "fcodeName": "seat of a first-order administrative division",
+      "adminName1": "Western Province"
+    },
+    {
+      "timezone": {
+        "gmtOffset": 3,
+        "timeZoneId": "Africa/Kampala",
+        "dstOffset": 3
+      },
+      "bbox": {
+        "east": 33.21128884736363,
+        "south": 0.409548250565115,
+        "north": 0.473775749434885,
+        "west": 33.14705915263637,
+        "accuracyLevel": 2
+      },
+      "asciiName": "Njeru",
+      "astergdem": 1143,
+      "countryId": "226074",
+      "fcl": "P",
+      "srtm3": 1152,
+      "score": 24.042346954345703,
+      "adminId2": "8030577",
+      "adminId3": "7732075",
+      "countryCode": "UG",
+      "adminId4": "8658276",
+      "adminCodes2": {
+        "ISO3166_2": "117"
+      },
+      "adminCodes1": {
+        "ISO3166_2": "C"
+      },
+      "adminId1": "234594",
+      "lat": "0.44166",
+      "fcode": "PPL",
+      "continentCode": "AF",
+      "adminCode2": "E7",
+      "adminCode3": "7732075",
+      "adminCode1": "C",
+      "lng": "33.17917",
+      "geonameId": 227812,
+      "toponymName": "Njeru",
+      "adminCode4": "8658276",
+      "population": 61952,
+      "adminName5": "",
+      "adminName4": "Njeru Town Council",
+      "adminName3": "Buikwe",
+      "alternateNames": [
+        {
+          "name": "https://en.wikipedia.org/wiki/Njeru",
+          "lang": "link"
+        }
+      ],
+      "adminName2": "Buikwe District",
+      "name": "Daru",
+      "fclName": "city, village,...",
+      "countryName": "Uganda",
+      "fcodeName": "populated place",
+      "adminName1": "Central Region"
+    },
+    {
+      "timezone": {
+        "gmtOffset": 3,
+        "timeZoneId": "Europe/Istanbul",
+        "dstOffset": 3
+      },
+      "bbox": {
+        "east": 40.9625344237498,
+        "south": 37.17266452998025,
+        "north": 37.185383470019744,
+        "west": 40.9465695762502,
+        "accuracyLevel": 2
+      },
+      "asciiName": "Oguz",
+      "astergdem": 560,
+      "countryId": "298795",
+      "fcl": "P",
+      "srtm3": 561,
+      "score": 22.318359375,
+      "countryCode": "TR",
+      "adminCodes1": {
+        "ISO3166_2": "47"
+      },
+      "adminId1": "304794",
+      "lat": "37.17902",
+      "fcode": "PPL",
+      "continentCode": "AS",
+      "adminCode1": "72",
+      "lng": "40.95455",
+      "geonameId": 303648,
+      "toponymName": "Oğuz",
+      "population": 2802,
+      "adminName5": "",
+      "adminName4": "",
+      "adminName3": "",
+      "alternateNames": [
+        {
+          "name": "https://en.wikipedia.org/wiki/Dara_%28Mesopotamia%29",
+          "lang": "link"
+        },
+        {
+          "name": "Oğuz",
+          "lang": "tr"
+        }
+      ],
+      "adminName2": "",
+      "name": "Dara",
+      "fclName": "city, village,...",
+      "countryName": "Turkey",
+      "fcodeName": "populated place",
+      "adminName1": "Mardin"
+    }
+  ]
+}

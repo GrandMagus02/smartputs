@@ -50,13 +50,18 @@ export function evaluateNode(opts: EvaluateOptions): EvalResult {
         return deepFreeze({ kind: NUMBER_KIND, canonical: n.value, unit: "one" });
 
       case "literal": {
-        // The matcher already built this. The choices lookup is not for the
-        // value — it is the assertion that this assignment actually selected
-        // the literal, so a filtered-out literal cannot be evaluated anyway.
+        // A matcher already built every one of these; the assignment says which
+        // one this reading of the input meant. Nothing is recomputed here — and
+        // nothing is picked here either, which is why "90210" can be a number
+        // under `evaluate` and a postal code under `suggest` without the two
+        // disagreeing about what the parser saw.
         const choice = assignment.choices.get(n);
-        if (choice === undefined)
-          throw new DimensionMismatchError(input, "literal", n.value.kind, "?");
-        return deepFreeze({ ...n.value });
+        const value = choice === undefined ? undefined : n.values.get(choice);
+        if (value === undefined) {
+          const kind = choice?.kind ?? n.candidates[0]?.kind ?? "?";
+          throw new DimensionMismatchError(input, "literal", kind, "?");
+        }
+        return deepFreeze({ ...value });
       }
 
       case "quantity": {
@@ -95,12 +100,22 @@ export function evaluateNode(opts: EvaluateOptions): EvalResult {
         if (sig === undefined)
           throw new DimensionMismatchError(input, "in", operand.kind, target.kind);
         noteSignature(sig);
-        const rhs: Value = deepFreeze({
-          kind: target.kind,
-          canonical: new Decimal(0),
-          unit: target.unit,
-          ...(operand.meta ? { meta: operand.meta } : {}),
-        });
+        // The stand-in exists because an ordinary conversion target is a unit
+        // label with no value behind it, and `in` signatures read `r.unit`
+        // alone. A claimed target does have a value — and its own meta, which
+        // the stand-in would replace with the *left* operand's. Which of the two
+        // applies is settled by whether the assigned candidate came from a
+        // claim, so the kinds cannot disagree the way they could when one value
+        // stood for a whole list of targets.
+        const claimed = n.targetValues?.get(target);
+        const rhs: Value =
+          claimed ??
+          deepFreeze({
+            kind: target.kind,
+            canonical: new Decimal(0),
+            unit: target.unit,
+            ...(operand.meta ? { meta: operand.meta } : {}),
+          });
         return deepFreeze(sig.apply(operand, rhs, ctxFor(operand)));
       }
 

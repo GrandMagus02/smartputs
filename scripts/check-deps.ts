@@ -25,6 +25,11 @@ const ALLOWED: Record<string, string[]> = {
     "@smartput/core",
     "@smartput/number",
   ],
+  // No data package. GeoNames is vendored as generated TypeScript under
+  // src/data, committed and reviewable in a diff, so geo carries no npm data
+  // dependency and no upstream maintenance risk — an npm gazetteer would have
+  // been a second supply chain for a table that changes a few times a year.
+  "packages/geo/package.json": ["@smartput/core", "decimal.js"],
 
   // Extracted built-in kinds. Each is a leaf: it defines one kind against the
   // machinery in core and depends on nothing else, which is what keeps the

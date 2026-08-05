@@ -6,6 +6,7 @@ import {
   type Kind,
   type Lexicon,
   MissingRateError,
+  SmartputError,
   type UnitDef,
   type Value,
 } from "@smartput/core";
@@ -109,6 +110,58 @@ export const money: Kind = defineKind({
           unit: r.unit,
           ...(r.meta ? { meta: r.meta } : {}),
         });
+      },
+    },
+    {
+      // The bridge to `@smartput/geo`, declared here and importing nothing:
+      // geo puts an ISO 4217 code on `meta.currency` (core's `PlaceMeta`, the
+      // same reason `RateLookup` lives there), so rates reads a string and
+      // gains no dependency in either direction.
+      //
+      // Naming a kind that may not exist is safe because registry pass 4
+      // (core's `kind/registry.ts`) keys the op table without checking that
+      // `left` and `right` are registered: with geo absent the solver can
+      // never produce a `place` operand, so this entry is unreachable rather
+      // than a build error. Pass 4 *does* refuse a second claimant of the same
+      // key, which is why the bridge lives on money and not on place.
+      op: "in",
+      left: "money",
+      right: "place",
+      result: "money",
+      apply: (l, r, ctx) => {
+        const currency = r.meta?.currency;
+        if (typeof currency !== "string" || currency === "") {
+          // Not DimensionMismatchError: the evaluator already raises exactly
+          // that for an absent signature, so this would be indistinguishable
+          // from "geo is not registered" — which is the one thing this
+          // signature exists to make distinguishable.
+          throw new SmartputError(
+            `Place ${JSON.stringify(r.unit)} carries no currency`,
+            ctx.input ?? "",
+          );
+        }
+        const unit = currency.toLowerCase();
+        // CURRENCIES is the ECB file's coverage, not all of ISO 4217, and its
+        // own header says a code with no rate behind it can only ever raise
+        // MissingRateError. Raising it here rather than letting `fromCanonical`
+        // reject an unregistered unit keeps that promise: the alternative is a
+        // bare `Error("Unknown unit vnd")` from core, thrown at format time.
+        if (CURRENCIES[unit] === undefined) {
+          throw new MissingRateError(
+            ctx.input ?? "",
+            currency.toUpperCase(),
+            CANONICAL.toUpperCase(),
+            ctx.rates?.asOf ?? "",
+          );
+        }
+        // Deliberately no meta. `in|money|money` sources it from the target
+        // currency's Value; here the target is a country, and its geonameId,
+        // zone and population describe a place, not an amount of money.
+        const converted: Value = { kind: l.kind, canonical: l.canonical, unit };
+        // Against the converted amount, not against `r`: the place's unit is a
+        // country code, and what was derived through the euro is USD to JPY.
+        noteCross(ctx, l, converted);
+        return Object.freeze(converted);
       },
     },
     // `30 usd - 10 gbp` derives USD/GBP through the euro exactly as

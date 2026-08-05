@@ -122,9 +122,9 @@ a lexing or parsing failure.
 complete(input: string, opts?: CompleteOptions): Completion[]
 ```
 
-Ranks the units the input's **trailing fragment** could still become, rewriting
-the whole input for each. Total: no input makes it throw, and a fragment that
-cannot be completed is an empty array.
+Ranks what the input's **trailing fragment** could still become, rewriting the
+whole input for each. Total: no input makes it throw, and a fragment that cannot
+be completed is an empty array.
 
 ```ts
 engine.complete("30 ho");
@@ -132,8 +132,26 @@ engine.complete("30 ho");
 //     kind: "duration", unit: "h", score: 13 } ]
 ```
 
+Rows come from **two sources**, ranked into one list:
+
+- the **global alias index**, which holds every ratio kind's unit aliases and
+  splices `<count> <plural display form>` — this is where `30 hours` comes from;
+- every kind that declares a [`completions`](/api/define-kind#completions)
+  hook, which answers for itself and supplies the replacement text whole. This
+  is how an opaque kind completes at all, and how `@smartput/geo` offers a city
+  that is in nobody's alias index.
+
+```ts
+// with @smartput/geo registered
+engine.complete("kyi").map((c) => c.text); // [ "Kyiv", "Kyivskyi", "Kyivskyi" ]
+```
+
+`opts.limit` cuts the merged list, not each source, so a kind with a large
+vocabulary is competing for the same ten rows as `kilometre`.
+
 Full reference, ranking terms and the rule that keeps the inserted text
-parseable: [`complete()`](/api/complete).
+parseable: [`complete()`](/api/complete). Writing a completer:
+[`completions`](/api/define-kind#completions).
 
 <SpComplete />
 

@@ -77,6 +77,7 @@
         "temporal-polyfill": "^0.3.0",
       },
       "devDependencies": {
+        "@smartput/geo": "workspace:*",
         "@smartput/kinds": "workspace:*",
       },
     },
@@ -85,6 +86,21 @@
       "version": "0.0.0",
       "dependencies": {
         "@smartput/core": "workspace:*",
+      },
+    },
+    "packages/geo": {
+      "name": "@smartput/geo",
+      "version": "0.0.0",
+      "dependencies": {
+        "@smartput/core": "workspace:*",
+        "decimal.js": "^10.6.0",
+      },
+      "devDependencies": {
+        "@smartput/datetime": "workspace:*",
+        "@smartput/kinds": "workspace:*",
+        "@smartput/length": "workspace:*",
+        "@smartput/number": "workspace:*",
+        "@smartput/rates": "workspace:*",
       },
     },
     "packages/kinds": {
@@ -164,6 +180,7 @@
         "decimal.js": "^10.6.0",
       },
       "devDependencies": {
+        "@smartput/geo": "workspace:*",
         "@smartput/number": "workspace:*",
       },
     },
@@ -474,6 +491,8 @@
     "@smartput/docs": ["@smartput/docs@workspace:docs"],
 
     "@smartput/duration": ["@smartput/duration@workspace:packages/duration"],
+
+    "@smartput/geo": ["@smartput/geo@workspace:packages/geo"],
 
     "@smartput/kinds": ["@smartput/kinds@workspace:packages/kinds"],
 
