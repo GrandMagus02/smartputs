@@ -32,7 +32,13 @@ try {
 | `KindConflictError` | registration: two kinds claim the same id or signature | both source ids |
 | `UnknownKindError` | registration: a `LocalePack` contributes vocabulary for an unregistered kind | `pack`, `kind` |
 | `DivideByZeroError` | explicit; wraps the `Decimal` throw | — |
-| `MissingRateError` | an FX pair is absent from the snapshot *(M3)* | `from`, `to`, `asOf` |
+| `MissingRateError` | an FX pair is absent from the snapshot, or no `rates` were supplied | `from`, `to`, `asOf` |
+| `RateProviderError` | a rate provider's fetch failed or returned something unusable | `provider` |
+| `RatesNotReadyError` | `LiveEngine.sync` was read before the first successful refresh | — |
+
+The last three are defined in `@smartput/core` and raised from
+[`@smartput/rates`](/api/rates), so one `catch (e) { if (e instanceof
+SmartputError) … }` covers both packages.
 
 ## Try them
 
@@ -46,6 +52,14 @@ try {
 **`suggest()` never throws on parse problems.** It returns `[]`, and the failure
 is visible through `explain()`. That is what makes it the right entry point for
 a live input.
+
+Three errors are deliberately *not* swallowed, because none of them means "this
+input has no interpretation": `MissingRateError` (a data problem — answering
+`[]` would report "no results" where the truth is "no rate for JPY"), and the
+two registration errors `KindConflictError` and `UnknownKindError`, which
+describe your wiring rather than your user's input. Anything that is not a
+`SmartputError` — a `TypeError` from a bug in the pipeline — keeps its stack
+instead of masquerading as an empty result.
 
 **Registration errors always throw at `createEngine()`.** Never lazily at parse
 time. A bad plugin fails on boot, where the stack trace still points at the

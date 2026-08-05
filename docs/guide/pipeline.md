@@ -154,7 +154,7 @@ no intermediate rounding, ever.
 <SpEvaluate
   model-value="1234567890123456789.0625 km"
   :examples="['1234567890123456789.0625 km', '100 g in oz', '0.1 kg + 0.2 kg']"
-  hint="23 significant digits survive intact. A JS number would have rounded the input before the parser saw it." />
+  hint="23 significant digits survive intact. A JS number would have rounded the input before the parser saw it. (The demos display at most four decimal places — a theme-level trim, not the engine's.)" />
 
 ## Stage 7 — Format
 

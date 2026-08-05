@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
+import { round4Text } from "../display";
 import { docsEngine, kindIcon } from "../engine";
 import DemoShell from "./DemoShell.vue";
 
@@ -55,7 +56,7 @@ const ranked = computed(() => {
       <li v-for="(candidate, i) in ranked" :key="`${candidate.kind}-${candidate.value.unit}-${i}`">
         <span class="sp-rank__pos">{{ i + 1 }}</span>
         <span :class="kindIcon(candidate.kind)" aria-hidden="true" />
-        <code class="sp-rank__formatted">{{ candidate.formatted }}</code>
+        <code class="sp-rank__formatted">{{ round4Text(candidate.formatted) }}</code>
         <span class="sp-rank__kind">{{ candidate.kind }}:{{ candidate.value.unit }}</span>
         <span class="sp-rank__bar" aria-hidden="true">
           <span :style="{ width: `${candidate.confidence * 100}%` }" />

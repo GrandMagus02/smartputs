@@ -37,9 +37,14 @@ export const en: LocaleSpecificConfig<DefaultTheme.Config> & {
           items: [
             { text: "Kinds and units", link: "/guide/kinds" },
             { text: "Ambiguity and weights", link: "/guide/weights" },
+            { text: "Completion", link: "/guide/completion" },
             { text: "Locales", link: "/guide/locales" },
             { text: "Errors", link: "/guide/errors" },
           ],
+        },
+        {
+          text: "Packages",
+          items: [{ text: "Money and rates", link: "/guide/money" }],
         },
         {
           text: "Extending",
@@ -51,15 +56,21 @@ export const en: LocaleSpecificConfig<DefaultTheme.Config> & {
       ],
       "/api/": [
         {
-          text: "API reference",
+          text: "@smartput/core",
           items: [
             { text: "Overview", link: "/api/" },
             { text: "createEngine", link: "/api/create-engine" },
             { text: "Engine", link: "/api/engine" },
+            { text: "complete", link: "/api/complete" },
             { text: "defineKind", link: "/api/define-kind" },
             { text: "defineLocale", link: "/api/define-locale" },
+            { text: "createFacade", link: "/api/facade" },
             { text: "Types", link: "/api/types" },
           ],
+        },
+        {
+          text: "@smartput/rates",
+          items: [{ text: "Overview", link: "/api/rates" }],
         },
       ],
     },

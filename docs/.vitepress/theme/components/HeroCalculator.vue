@@ -1,21 +1,31 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
+import { round4Text } from "../display";
 import { docsEngine, kindIcon } from "../engine";
+import { useCompletions } from "../useCompletions";
+import SpCompletionList from "./SpCompletionList.vue";
 
 /**
  * The launcher-style surface from the home hero. It is the same engine the
  * rest of the site uses, driven by `suggest()` so that ambiguous input shows a
- * ranking instead of throwing.
+ * ranking instead of throwing, and by `complete()` so a half-typed unit offers
+ * the units it could still become.
  */
-const input = ref("30 hours in seconds");
+const input = ref("30 hours in sec");
 
 const EXAMPLES = [
-  "30 hours in seconds",
+  "30 hours in sec",
   "1 kg + 500 g",
   "2 km in m",
   "10 m + 5 min",
   "12 inch in cm",
 ];
+
+const completions = useCompletions({ engine: docsEngine, input, limit: 5 });
+
+function onKeydown(event: KeyboardEvent) {
+  if (completions.onKeydown(event)) event.preventDefault();
+}
 
 /**
  * The left column shows what was asked, not what was typed: for a conversion
@@ -50,13 +60,37 @@ function pick(example: string) {
         spellcheck="false"
         autocomplete="off"
         autocapitalize="off"
+        role="combobox"
+        :aria-expanded="completions.open.value"
+        aria-controls="hero-calc-completions"
         aria-label="Expression"
-        placeholder="30 hours in seconds"
+        placeholder="30 hours in sec"
+        @keydown="onKeydown"
       />
       <kbd class="hero-calc__kbd">live</kbd>
     </div>
 
-    <ul v-if="rows.length" class="hero-calc__rows">
+    <!-- Completion and evaluation are one surface, not two modes: a half-typed
+         unit has no reading yet, so the rows it would occupy are exactly where
+         the units it could become belong. -->
+    <div
+      v-if="completions.open.value"
+      id="hero-calc-completions"
+      class="hero-calc__completions"
+    >
+      <SpCompletionList
+        dense
+        :rows="completions.rows.value"
+        :active="completions.active.value"
+        :input="input"
+        @pick="completions.accept"
+      />
+      <p class="hero-calc__tabhint">
+        <kbd>↑</kbd><kbd>↓</kbd> to move · <kbd>Tab</kbd> to complete
+      </p>
+    </div>
+
+    <ul v-else-if="rows.length" class="hero-calc__rows">
       <li
         v-for="(row, i) in rows"
         :key="`${row.kind}-${row.value.unit}-${i}`"
@@ -65,7 +99,7 @@ function pick(example: string) {
         <span :class="kindIcon(row.kind)" class="hero-calc__kindicon" aria-hidden="true" />
         <span class="hero-calc__src">{{ source }}</span>
         <span class="hero-calc__eq" aria-hidden="true">=</span>
-        <span class="hero-calc__out">{{ row.formatted }}</span>
+        <span class="hero-calc__out">{{ round4Text(row.formatted) }}</span>
       </li>
     </ul>
 
@@ -133,6 +167,27 @@ function pick(example: string) {
   border-radius: 999px;
   color: var(--vp-c-brand-1);
   background: var(--vp-c-brand-soft);
+}
+
+/* Matches the rows' min-height, so accepting a completion does not resize the
+   hero under the pointer. */
+.hero-calc__completions {
+  min-height: 64px;
+}
+
+.hero-calc__tabhint {
+  margin: 0;
+  padding: 0 12px 8px;
+  font-size: 11px;
+  color: var(--vp-c-text-3);
+}
+
+.hero-calc__tabhint kbd {
+  font-family: var(--vp-font-family-mono);
+  font-size: 10px;
+  padding: 1px 4px;
+  border-radius: 4px;
+  border: 1px solid var(--vp-c-divider);
 }
 
 .hero-calc__rows {

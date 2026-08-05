@@ -20,9 +20,24 @@ These ship in `@smartput/core` and are exported as `BUILTIN_KINDS`.
 | Kind | Canonical | Units |
 | --- | --- | --- |
 | `number` | `one` | *(dimensionless)* |
+| `percent` | `%` | `%` |
 | `length` | `m` | `mm` `cm` `m` `km` `in` `ft` `yd` `mi` |
 | `mass` | `g` | `mg` `g` `kg` `t` `oz` `lb` |
 | `duration` | `s` | `ms` `s` `min` `h` `d` `wk` |
+| `temperature` | `c` | `c` `f` `k` — affine, paired with `tempdelta` |
+| `tempdelta` | `c` | `c` `f` `k` — the *difference* between two temperatures |
+| `angle` | `rad` | `rad` `deg` `grad` `turn` |
+| `datasize` | `b` | `b` `kb` `mb` `gb` `tb` `kib` `mib` `gib` `tib` |
+| `speed` | `mps` | `mps` `kph` `mph` `knot` |
+| `area` | `m2` | `m2` `cm2` `km2` `hectare` `acre` |
+| `volume` | `l` | `l` `ml` `m3` `gal` `pint` |
+
+Two more kinds ship in the package but are **not** in `BUILTIN_KINDS`:
+
+| Kind | Where from | Why opt-in |
+| --- | --- | --- |
+| `measure` | `@smartput/core` | Typographic units — `inch` `mm` `cm` `pt` `pc` `px`. Its `mm`/`cm` aliases collide with `length`, so registering it by default would make `10 cm` ambiguous for everyone. Import it by name. |
+| `money` | [`@smartput/rates`](/api/rates) | Its unit ratios are not constants — they come from a rate table you inject. A currency with no rate behind it can only ever raise `MissingRateError`. |
 
 `duration` lives in core rather than in `@smartput/datetime` because it is a
 pure ratio kind — canonical seconds, no calendar. `30 hours - 10 minutes` needs
@@ -44,6 +59,7 @@ type RatioSpec = {
   canonical: string;                       // "m", "g", "b", "eur"
   units: Record<string, UnitDef | number>; // a bare number is shorthand for { ratio }
   affine?: { deltaKind: KindId };          // Temperature ↔ TempDelta
+  dpiUnit?: string;                        // the unit whose ratio reads meta.dpi
 };
 ```
 
@@ -52,6 +68,25 @@ readable and nothing downstream ever sees a float.
 
 Ratio kinds get `+ - * /` and `in` generated for free. You only write `ops` for
 cross-kind cases.
+
+**A ratio does not have to be a constant.** `ratio` may be
+`(ctx: EvalCtx) => Decimal`, resolved at conversion time against the context the
+engine threads in. That one allowance is what lets `money` read live FX out of
+an injected rate table, and `measure`'s `px` read a dpi off `Value.meta`,
+without either kind being a special case anywhere in the solver.
+
+### Affine kinds
+
+Temperature is not a ratio kind: 20 °C is not twice 10 °C, and `20 C + 5 C` is
+only meaningful if the right operand is a *difference*. So `temperature`
+declares `affine: { deltaKind: "tempdelta" }` and the two kinds ship as a pair —
+subtracting two temperatures yields a `tempdelta`, and adding a `tempdelta` to a
+temperature yields a temperature.
+
+<SpEvaluate
+  model-value="30 C - 20 C"
+  :examples="['212 F in C', '30 C - 20 C', '20 C + 5 C', '300 k in c']"
+  hint="Subtracting two temperatures changes the kind. The result is a difference of 10 degrees, not a reading of 10 degrees." />
 
 ### Opaque kinds
 

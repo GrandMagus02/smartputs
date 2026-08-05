@@ -23,13 +23,26 @@ features:
   - icon: '<span class="i-lucide-calculator"></span>'
     title: One expression, many kinds
     details: >-
-      "1 kg + 500 g", "30 h - 30 min", "2 km in m". Cross-kind operations are
-      declared as signatures, so the evaluator never hardcodes a domain.
+      "1 kg + 500 g", "30 h - 30 min", "212 F in C", "100 km / 2 h". Cross-kind
+      operations are declared as signatures, so the evaluator never hardcodes a
+      domain.
   - icon: '<span class="i-lucide-sliders-horizontal"></span>'
     title: Ambiguity is data, not a failure
     details: >-
       "10 m" is genuinely ambiguous. Candidates stay open until the solver runs,
       four layers of weights rank them, and explain() shows every term in the sum.
+  - icon: '<span class="i-lucide-text-cursor-input"></span>'
+    title: Completion, not just evaluation
+    details: >-
+      complete() ranks the units a half-typed fragment could become and rewrites
+      the whole input, so what it hands back always evaluates. Same weights, plus
+      a magnitude fit.
+  - icon: '<span class="i-lucide-banknote"></span>'
+    title: Money with the rates you supply
+    details: >-
+      @smartput/rates adds a currency kind whose ratios come from an injected,
+      dated table. A rate derived through the base currency is disclosed, never
+      implied.
   - icon: '<span class="i-lucide-puzzle"></span>'
     title: A new kind is five lines
     details: >-
@@ -70,12 +83,23 @@ features:
 
 ## Try it
 
-The demo below runs the real engine, compiled from the same source the test
+The demos below run the real engine, compiled from the same source the test
 suite imports. Nothing here is precomputed.
 
 <SpEvaluate
-  :examples="['1 kg + 500 g', '30 h - 30 min', '2 km in m', '10 m + 5 h', '12 inch in cm', '(1 + 2) * 3']"
+  :examples="['1 kg + 500 g', '30 h - 30 min', '2 km in m', '10 m + 5 h', '212 F in C', '100 km / 2 h', '(1 + 2) * 3']"
   hint="Every result carries a canonical value, a kind, and a confidence — not just a string." />
+
+## Complete as they type
+
+<SpComplete
+  model-value="30 ho"
+  :examples="['30 ho', '5 kilog', '2 km in mil', '10 kg + 5 gram']"
+  hint="complete() rewrites the whole input, so the row you accept is always something evaluate() will take." />
+
+## Money, with the rates you supply
+
+<SpMoney />
 
 ## Install
 
@@ -92,6 +116,26 @@ const engine = createEngine({ locales: [en], kinds: BUILTIN_KINDS });
 engine.evaluate("1 kg + 500 g").formatted; // "1.5 kilograms"
 engine.evaluate("10 m + 5 h").formatted; // "310 minutes"
 engine.suggest("10 m"); // both readings, ranked
+engine.complete("30 ho"); // "30 hours", ranked against every other unit
+```
+
+Currencies live next door, because their unit ratios come from a table you
+supply rather than from a constant:
+
+```sh
+bun add @smartput/rates
+```
+
+```ts
+import { money, snapshot } from "@smartput/rates";
+
+const engine = createEngine({
+  locales: [en],
+  kinds: [...BUILTIN_KINDS, money],
+  rates: snapshot("EUR", "2026-08-04", { USD: 1.1, GBP: 0.8412 }),
+});
+
+engine.evaluate("30 usd in gbp").formatted; // "£22.94"
 ```
 
 </div>
