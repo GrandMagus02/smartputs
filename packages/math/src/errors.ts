@@ -34,6 +34,14 @@ export class MathSolveError extends MathError {
   }
 }
 
+/** A matrix operation was asked for on something that is not a matrix. */
+export class NotAMatrixError extends MathError {
+  constructor(input: string) {
+    super(`${JSON.stringify(input)} is not a matrix`, input);
+    this.name = "NotAMatrixError";
+  }
+}
+
 /** A symbol was left without a value where a number was required. */
 export class UnboundSymbolError extends MathError {
   readonly symbols: string[];

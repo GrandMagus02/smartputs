@@ -1,11 +1,27 @@
-import type { ComputeEngine, Expression } from "@cortex-js/compute-engine";
+import type { ComputeEngine } from "@cortex-js/compute-engine";
 import { loadIntegrationRules } from "@cortex-js/compute-engine/integration-rules";
+import { analyzeFunction } from "./analyze/analyze";
+import { describeExpression } from "./describe/describe";
 import { MathSolveError, UnboundSymbolError } from "./errors";
+import { inspectMatrix, isMatrixNode, matrixLatex } from "./matrix/matrix";
 import { createComputeEngine, parseLatex } from "./parse";
 import { solveEquation } from "./solve/solve";
+import { type SystemOptions, solveSystem } from "./solve/system";
+import { explainedSteps } from "./steps/explained";
 import { titleForRule } from "./steps/label";
 import { traceEvaluate } from "./steps/trace";
-import type { Bindings, EvaluateResult, MathJson, SolveResult, Step } from "./types";
+import type {
+  AnalysisResult,
+  Bindings,
+  EvaluateResult,
+  MathJson,
+  MatrixResult,
+  SolveResult,
+  Step,
+  SystemResult,
+} from "./types";
+
+export type { SystemOptions };
 
 export interface EvaluateOptions {
   /** Values for free symbols, substituted before anything is evaluated. */
@@ -42,6 +58,14 @@ export interface MathEngine {
   differentiate(latex: string, options?: CalculusOptions): SimplifyResult;
   /** Antiderivative with respect to `variable`, with the rules it used. */
   integrate(latex: string, options?: CalculusOptions): SimplifyResult;
+  /** Roots, turning points, derivatives and symmetry of a function. */
+  analyze(latex: string, options?: CalculusOptions): AnalysisResult;
+  /** Several equations solved together, from a list, lines, or `cases`. */
+  solveSystem(input: string | readonly string[], options?: SystemOptions): SystemResult;
+  /** Shape, determinant, trace, transpose and inverse of a matrix. */
+  matrix(latex: string): MatrixResult;
+  /** The expression read out in English: `x^2+1` is "x squared plus 1". */
+  describe(latex: string): string;
 }
 
 /**
@@ -60,7 +84,21 @@ export function createMathEngine(): MathEngine {
     solve: (latex, options = {}) => solve(ce, latex, options),
     differentiate: (latex, options = {}) => calculus(ce, "D", latex, options),
     integrate: (latex, options = {}) => calculus(ce, "Integrate", latex, options),
+    analyze: (latex, options = {}) => analyze(ce, latex, options),
+    solveSystem: (input, options = {}) => solveSystem(ce, input, options),
+    matrix: (latex) => inspectMatrix(ce, parseLatex(ce, latex), latex),
+    describe: (latex) => describeExpression(ce, parseLatex(ce, latex)),
   };
+}
+
+function analyze(
+  ce: ComputeEngine,
+  latex: string,
+  options: CalculusOptions,
+): AnalysisResult {
+  const parsed = parseLatex(ce, latex);
+  const variable = options.variable ?? inferVariable(ce, parsed.json, latex);
+  return analyzeFunction(ce, parsed, variable, latex);
 }
 
 function evaluate(
@@ -100,7 +138,11 @@ function evaluate(
   const approx = traced.value.N().re;
   return {
     input: latex,
-    latex: traced.value.latex,
+    // A matrix computes into a nested list, which prints as `[[7,10],[15,22]]`
+    // — correct, and not what anyone typed. Put it back in matrix notation.
+    latex: isMatrixNode(traced.value)
+      ? matrixLatex(ce, traced.value)
+      : traced.value.latex,
     approx: Number.isFinite(approx) ? approx : null,
     steps,
   };
@@ -178,25 +220,6 @@ function loadIntegrationRulesOnce(ce: ComputeEngine): void {
   // and one cast here is cheaper than relaxing the flag for the package.
   loadIntegrationRules(ce as unknown as Parameters<typeof loadIntegrationRules>[0]);
   WITH_INTEGRATION_RULES.add(ce);
-}
-
-/**
- * Turn the engine's explanation into steps. It reports the state *after* each
- * rule; a reader needs both ends, so each step starts where the last one
- * finished.
- */
-function explainedSteps(
-  initial: string,
-  explained: readonly { id: string; description: string; value: Expression }[],
-): Step[] {
-  const steps: Step[] = [];
-  let before = initial;
-  for (const step of explained) {
-    const after = step.value.latex;
-    steps.push({ rule: step.id, title: step.description, before, after });
-    before = after;
-  }
-  return steps;
 }
 
 /**

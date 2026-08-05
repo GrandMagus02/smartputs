@@ -7,11 +7,19 @@ describe("public surface", () => {
       "MathError",
       "MathParseError",
       "MathSolveError",
+      "NotAMatrixError",
+      "OPERATOR_WORDS",
       "UnboundSymbolError",
       "createMathEngine",
+      "describeOperator",
       "ruleForOperator",
       "titleForRule",
     ]);
+  });
+
+  test("the operator words are reachable without an engine", () => {
+    expect(math.describeOperator("^")).toBe("power");
+    expect(math.OPERATOR_WORDS["+"]).toBe("plus");
   });
 
   test("an engine built from the entry point solves end to end", () => {

@@ -102,6 +102,57 @@ describe("solve", () => {
   });
 });
 
+describe("analyze", () => {
+  test("answers the usual questions about a function at once", () => {
+    const result = math.analyze("x^2-4");
+    expect(result.roots).toEqual(["-2", "2"]);
+    expect(result.derivative).toBe("2x");
+    expect(result.turningPoints).toEqual([{ at: "0", value: "-4", kind: "minimum" }]);
+    expect(result.parity).toBe("even");
+  });
+
+  test("infers the variable, and takes one when told", () => {
+    expect(math.analyze("t^2-9").variable).toBe("t");
+    expect(math.analyze("ax^2-a", { variable: "x" }).roots).toEqual(["-1", "1"]);
+  });
+});
+
+describe("solveSystem", () => {
+  test("solves several equations together", () => {
+    const result = math.solveSystem("x+y=2\nx-y=0");
+    expect(result.solutions).toEqual({ x: "1", y: "1" });
+    expect(result.consistent).toBe(true);
+  });
+
+  test("reports a contradictory system without throwing", () => {
+    const result = math.solveSystem(["x+y=2", "x+3=4", "y+1=8"]);
+    expect(result.consistent).toBe(false);
+    expect(result.solutions).toBeNull();
+  });
+});
+
+describe("matrix", () => {
+  test("reports what can be said about a matrix", () => {
+    const result = math.matrix("\\begin{pmatrix}1&2\\\\3&4\\end{pmatrix}");
+    expect(result.determinant).toBe("-2");
+    expect(result.inverse).toStartWith("\\begin{pmatrix}");
+  });
+
+  test("evaluates matrix arithmetic back into matrix notation", () => {
+    const product = math.evaluate(
+      "\\begin{pmatrix}1&2\\\\3&4\\end{pmatrix}\\cdot\\begin{pmatrix}1&0\\\\0&1\\end{pmatrix}",
+    );
+    expect(product.latex).toStartWith("\\begin{pmatrix}");
+    expect(product.latex).toContain("3 & 4");
+  });
+});
+
+describe("describe", () => {
+  test("reads an expression out in English", () => {
+    expect(math.describe("x^2+1")).toBe("x squared plus 1");
+  });
+});
+
 describe("engine isolation", () => {
   test("one engine's bindings do not leak into another's", () => {
     const first = createMathEngine();

@@ -1,5 +1,6 @@
 import type { ComputeEngine, Expression } from "@cortex-js/compute-engine";
 import { MathSolveError } from "../errors";
+import { explainedSteps } from "../steps/explained";
 import { titleForRule } from "../steps/label";
 import type { SolveResult, Step } from "../types";
 
@@ -37,13 +38,8 @@ export function solveEquation(
     equation.operator === "Equal" ? equation : ce.box(["Equal", equation, 0]);
 
   const explanation = asEquation.explain("solve", { variable });
-  const steps: Step[] = [];
-  let before = explanation.initial.latex;
-  for (const step of explanation.steps) {
-    const after = step.value.latex;
-    steps.push({ rule: step.id, title: step.description, before, after });
-    before = after;
-  }
+  const steps: Step[] = explainedSteps(explanation.initial.latex, explanation.steps);
+  const before = steps.at(-1)?.after ?? explanation.initial.latex;
 
   // `solve` answers a *system* with a map of variable to value; a single
   // equation always comes back as a list, and that is the only shape reachable
