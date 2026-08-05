@@ -25,10 +25,10 @@
 Adds the `NumeralParser` contract and a table-driven English implementation. Pure functions only — nothing calls them yet, so this task cannot change any existing behaviour.
 
 **Files:**
-- Modify: `packages/core/src/types.ts:137` (the `numerals` field) and the type exports above it
+- Modify: `packages/core/src/types.ts:214` (the `numerals` field) and the type declarations above the `Locale` interface
 - Modify: `packages/core/src/locale/helpers.ts`
 - Modify: `packages/core/src/locale/en.ts`
-- Modify: `packages/core/src/index.ts:38`
+- Modify: `packages/core/src/index.ts:40`
 - Test: `packages/core/src/locale/helpers.test.ts`
 
 **Interfaces:**
@@ -248,7 +248,7 @@ Nothing reads `locale.numerals` yet, so this changes no behaviour.
 
 - [ ] **Step 7: Export the helper from the package root**
 
-In `packages/core/src/index.ts`, change line 38 to:
+In `packages/core/src/index.ts`, change line 40 to:
 
 ```ts
 export { cardinalNumerals, identity, suffixStripper, tableAnalyzer } from "./locale/helpers";
@@ -724,7 +724,7 @@ git commit -m "feat(core): rewrite word operators into op tokens"
 The behaviour change lands here, driven by the corpus.
 
 **Files:**
-- Modify: `packages/core/src/engine.ts:102`
+- Modify: `packages/core/src/engine.ts:138`
 - Modify: `packages/core/corpus/en.tsv`
 - Test: `packages/core/src/corpus.test.ts` (no edit — it is table-driven over the `.tsv`)
 
@@ -764,7 +764,7 @@ import { foldNumerals } from "./parse/numerals";
 import { foldWordOps } from "./parse/wordops";
 ```
 
-Replace line 102 with:
+Replace line 138 with:
 
 ```ts
     const lexed = lex(normalized, locale as Locale);
@@ -799,8 +799,14 @@ git commit -m "feat(core): accept word operators and spelled-out numbers"
 `scaleFit` ranks `km` over `kB` for `"20 k"` by looking at the count. Spelled counts currently score 0 on that signal. This task makes `"twenty k"` rank like `"20 k"`.
 
 **Files:**
-- Modify: `packages/core/src/complete/fragment.ts:24-50`
+- Modify: `packages/core/src/complete/fragment.ts:33-50` (the body of `leadingCount`)
 - Test: `packages/core/src/complete/fragment.test.ts` (exists; append to it)
+
+**Watch out:** `fragment.test.ts:5` already declares a local `const en` — a bare
+`defineLocale({ id: "en", numberFormat: "intl", keywords: {} })` stub with no
+`numerals`. Do not shadow or replace it; the existing tests rely on it, and its
+missing `numerals` is exactly what proves the new branch degrades cleanly. Import
+the real locale under a different name, as the test code below does.
 
 **Interfaces:**
 - Consumes: `Locale.numerals` (Task 1), `Decimal`, the existing `parseNumber` from `locale/number.ts`.
@@ -809,12 +815,19 @@ git commit -m "feat(core): accept word operators and spelled-out numbers"
 - [ ] **Step 1: Write the failing tests**
 
 Append to `packages/core/src/complete/fragment.test.ts`. It already imports
-`expect` and `test` from `bun:test` and `leadingCount` from `./fragment`; add
-`import en from "../locale/en";` if it is not already there.
+`expect` and `test` from `bun:test` and `leadingCount` from `./fragment`. Add
+one import at the top, named `enLocale` so it does not collide with the file's
+existing bare `en` stub:
+
+```ts
+import enLocale from "../locale/en";
+```
+
+Then append:
 
 ```ts
 const count = (input: string, upto: number) => {
-  const d = leadingCount(input, upto, en);
+  const d = leadingCount(input, upto, enLocale);
   return d === null ? null : d.toString();
 };
 
@@ -840,6 +853,13 @@ test("leadingCount reads a multi-word spelled count after other text", () => {
 
 test("leadingCount ignores words that are not a count", () => {
   expect(count("kg + mil", 6)).toBeNull();
+});
+
+test("a locale without numerals still reads digits and nothing else", () => {
+  // The file's bare `en` stub declares no `numerals`, so the spelled branch
+  // must degrade to null rather than throw.
+  expect(leadingCount("20 k", 3, en)?.toString()).toBe("20");
+  expect(leadingCount("twenty k", 7, en)).toBeNull();
 });
 ```
 
