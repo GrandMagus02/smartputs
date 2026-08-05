@@ -34,7 +34,8 @@ export function foldWordOps(tokens: Token[]): Token[] {
     // "divided by" and "multiplied by" are one operator. A "by" anywhere else
     // is left alone and fails at the parser, exactly as a stray "as" does.
     const next = tokens[i + 1];
-    const phrasal = next !== undefined && next.type === "keyword" && next.keyword === "by";
+    const phrasal =
+      next !== undefined && next.type === "keyword" && next.keyword === "by";
 
     out.push({
       type: "op",
