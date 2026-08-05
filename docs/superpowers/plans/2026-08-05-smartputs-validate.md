@@ -4,7 +4,7 @@
 
 **Goal:** Give every ratio kind an engine-free entry point — a byte-minimal parser, free operation functions, and an immutable value class — each on its own subpath, each costing only what it imports.
 
-**Architecture:** A new zero-dependency package `@smartput/validate` holds a shared parser, op functions and a class factory. Each kind package gains `units.ts` (a `UnitTable` of decimal-string ratios plus a flat alias map), and thin `validate.ts` / `class.ts` wrappers that bind that table. The existing `defineKind` descriptor derives its lexicon aliases from the same table, so the micro path and the engine path cannot drift. A second new package `@smartput/input` binds a parser to a DOM input via the Constraint Validation API, with React and Vue adapters on their own subpaths.
+**Architecture:** A new zero-dependency package `@smartput/validate` holds a shared parser, op functions and a class factory. Each kind package gains `units.ts` (a `UnitTable` of decimal-string ratios plus a flat alias map), and thin `validate.ts` / `class.ts` wrappers that bind that table. The existing `defineKind` descriptor derives its lexicon aliases from the same table, so the micro path and the engine path cannot drift. No DOM code and no framework dependency: binding a parser to an `<input>` is deferred to its own spec, and this plan only guarantees the seams it will need (`ErrCode`, `Err.input`, `patternFor`, `format`, and a `parseX` that never throws).
 
 **Tech Stack:** Bun (test runner, bundler), TypeScript 5.7 (strict, `exactOptionalPropertyTypes`, `noUncheckedIndexedAccess`), Biome 2, `decimal.js` (engine path only — never in the micro path).
 
@@ -41,16 +41,6 @@
 | `src/pattern.ts` | `patternFor` |
 | `src/class.ts` | `createValueClass`, `ValueClass`, `ValueInstance` |
 | `src/index.ts` | barrel |
-
-**New package — `packages/input/`**
-
-| File | Responsibility |
-| --- | --- |
-| `src/messages.ts` | `messageFor`, `DEFAULT_MESSAGES` |
-| `src/bind.ts` | `bindInput` |
-| `src/index.ts` | DOM barrel |
-| `src/react.ts` | `useSmartInput` (React) |
-| `src/vue.ts` | `useSmartInput` (Vue) |
 
 **Per kind package — `packages/<kind>/src/`**
 
@@ -2931,12 +2921,11 @@ exercises these three kinds far harder than any new test does."
 
 ---
 
-Tasks 8 through 16 remain: `datasize`/`speed`/`area`/`volume` (Task 8),
+Tasks 8 through 13 remain: `datasize`/`speed`/`area`/`volume` (Task 8),
 `number`/`percent` (Task 9), `measure` with its dynamic `px` (Task 10),
 `temperature`/`tempdelta` with the affine pairing (Task 11), the
-`@smartput/kinds` barrels plus the repo-wide contract test (Task 12),
-`@smartput/input` DOM (Task 13), React (Task 14), Vue (Task 15), and the six doc
-pages (Task 16).
+`@smartput/kinds` barrels plus the repo-wide contract test (Task 12), and the
+five doc pages (Task 13).
 
 They follow Task 7's shape exactly, with these differences to carry over:
 
@@ -2946,7 +2935,8 @@ They follow Task 7's shape exactly, with these differences to carry over:
 | 9 | `number` has one unit `one` with no aliases — its wrapper hardcodes `defaultUnit: "one"`, so `missing-unit` is unreachable and a bare `"30"` parses in both modes. `percent` has one unit `%` with ratio `0.01`. |
 | 10 | `measure`'s `px` stays a closure in the descriptor, spread around `decimalRatios` of the other five units; `units.ts` declares it as `(ctx) => 1 / (ctx.dpi ?? 96)`. |
 | 11 | `temperature` gets `offset`, no `add`/`scale`, and `createValueClass(TEMP_UNITS, "temperature", { delta: () => TempDelta })`; both classes live in one `class.ts`. |
-| 12 | `@smartput/kinds/validate` and `/class` barrels; a repo-wide surface test asserting every ratio-kind package exports all three subpaths; `check-deps` extended to enforce it. |
+| 12 | `@smartput/kinds/validate` and `/class` barrels; a repo-wide surface test asserting every ratio-kind package exports all three subpaths; `check-deps` extended to enforce it; the `QuantitySnapshot.value` widening from §11 of the spec. |
+| 13 | `docs/api/validate.md`, `docs/api/value-classes.md`, `docs/guide/validating.md`, a validate column in `docs/guide/kinds.md`, a milestone row in `docs/guide/roadmap.md`. No `html-inputs.md` — that page belongs to the deferred DOM spec. |
 
 **Stop after Task 7 and check in** — the budget numbers measured in Tasks 6 and
 7 determine whether Tasks 8–12 proceed as written.
@@ -2956,11 +2946,13 @@ They follow Task 7's shape exactly, with these differences to carry over:
 **Spec coverage.** §3 layout → Tasks 3–12. §4 data layer → Task 6 Steps 6–8.
 §5 parser and the strict/loose table → Task 3. §6 ops → Task 4. §7.1–7.5 per-kind
 specifics → Tasks 9, 10, 11 and the Task 8 note. §8 classes → Tasks 5, 6, 11.
-§9 fuzzy seam → Task 3's `resolve` option and its test. §10 input adapters →
-Tasks 13–15. §11 the two class families → Task 6's cross-path test; the
-`QuantitySnapshot` widening it needs is a Task 12 step. §12 testing → the four
-test classes in Tasks 6 and 7, the immutability suite in Task 5. §13 build and
-budgets → Tasks 1, 2, 6, 7. §14 docs → Task 16.
+§9 fuzzy seam → Task 3's `resolve` option and its test. §10 is deferred to its
+own spec and has no task here; the four seams it lists are all delivered —
+`ErrCode` and `Err.input` in Task 3, `patternFor` and `format` in Task 4. §11
+the two class families → Task 6's cross-path test; the `QuantitySnapshot`
+widening it needs is a Task 12 step. §12 testing → the four test classes in
+Tasks 6 and 7, the immutability suite in Task 5. §13 build and budgets →
+Tasks 1, 2, 6, 7. §14 docs → Task 13.
 
 **Gap found and closed:** the spec's §11 requires widening
 `QuantitySnapshot.value` from `string` to `string | number` so

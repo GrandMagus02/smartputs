@@ -50,7 +50,7 @@ They interoperate. They are not merged — see §11.
 | V7 | `toString()` is compact (`"30deg"`), not pretty (`"30 degrees"`) | Round-tripping through `parseAngle` is the micro path's contract. Locale formatting stays engine-side. |
 | V8 | Size budgets are enforced by a CI test, not documented | The budget *is* the feature. `check-deps.ts` is the precedent: the repo already enforces a table rather than trusting it. |
 | V9 | Micro path is `en` aliases only | Locale vocabulary is an engine concern. Shipping Ukrainian aliases into a 600 B budget is not possible and not wanted. |
-| V10 | DOM and framework code live in `@smartput/input`, never in a kind package | Kind packages stay usable in Node, Bun and workers. |
+| V10 | No DOM type appears anywhere in this spec. Binding an input is deferred to its own spec — see §10 | Kind packages stay usable in Node, Bun and workers, and a DOM test environment plus two framework peer dependencies do not gate the twelve kinds behind them. |
 | V11 | Packages gain a build step, `sideEffects: false`, and subpath exports | Packages currently export raw `./src/index.ts`. Every byte claim in this document is unverifiable without this. It is a prerequisite, not a nice-to-have. |
 
 ### Rejected
@@ -67,11 +67,10 @@ They interoperate. They are not merged — see §11.
 
 ## 3. Package layout
 
-Two new packages:
+One new package:
 
 ```
 @smartput/validate     parser, ops, class factory, pattern generator. Zero deps.
-@smartput/input        DOM binding + React/Vue adapters. Peer deps only.
 ```
 
 Every ratio kind package gains three subpaths:
@@ -566,49 +565,32 @@ The class surface gets it through `ParseOptions` on `parse`/`tryParse`. It is
 deliberately not available on `new Angle(...)` — a constructor that
 approximately understands its arguments is a bad constructor.
 
-## 10. HTML and framework adapters
+## 10. DOM binding — deferred to its own spec
 
-`@smartput/input`, three subpaths, all optional, all opt-in.
+`@smartput/input` — a `bindInput(el, parseAngle, opts)` helper over the
+Constraint Validation API, plus React and Vue adapters — is **out of scope
+here** and gets its own spec.
 
-### `@smartput/input` — DOM
+Deferred rather than dropped, and the reason is that it is a different kind of
+work. Everything else in this document is byte-counting and table-driven
+rollout, verifiable with `bun test`. A DOM binding needs a DOM test environment,
+`setCustomValidity` semantics across browsers, and two framework peer
+dependencies with their own version matrices. Bundling that into this spec would
+mean its phase gates the twelve kinds behind it.
 
-```ts
-import { parseAngle } from "@smartput/angle/validate";
-import { bindInput } from "@smartput/input";
+What this spec ships so that binding stays a thin layer later, with no
+redesign:
 
-const unbind = bindInput(el, parseAngle, {
-  mode: "loose",
-  coerceOnBlur: true,       // rewrite el.value to the canonical form on blur
-  message: messageFor,      // (err, name) => string
-  name: "angle",
-});
-```
+| Provided here | What the later spec builds on it |
+| --- | --- |
+| `Err.code` — a stable `ErrCode`, not a string | maps to a message without parsing English |
+| `Err.input` — the offending text | quotes the input in that message |
+| `patternFor(table)` | `pattern` attribute for no-JS native validation, plus an `inputmode` hint |
+| `format(t, ok)` — the compact canonical form | coerce-on-blur rewrites `el.value` to it |
+| `parseX` returning a `Result`, never throwing | safe to call on every keystroke |
 
-Uses the Constraint Validation API: `setCustomValidity(message)` on failure,
-`setCustomValidity("")` on success, so `:invalid`, `form.reportValidity()` and
-native tooltips all work with no extra CSS or JS. Sets `inputmode` and
-`pattern` from `patternFor` unless already present. Returns an `unbind`
-function; listeners are removed and validity is cleared.
-
-`messageFor(err, name)` maps each `ErrCode` to a default English sentence
-(`unknown-unit` → `"\"smth\" is not a unit of angle"`). Overridable per call.
-The message table is a separate export so a caller supplying their own does not
-ship ours.
-
-### `@smartput/input/react`
-
-```tsx
-const { inputProps, result, value, setValue } = useSmartInput(parseAngle, { mode: "loose" });
-<input {...inputProps} />
-{!result.ok && <span>{messageFor(result, "angle")}</span>}
-```
-
-### `@smartput/input/vue`
-
-The same as a composable returning refs.
-
-React and Vue are **peer dependencies on their own subpaths**. The DOM entry
-imports neither, and a Node consumer of `@smartput/input` never resolves them.
+No DOM type appears in any package this spec touches, so a kind package stays
+usable in Node, Bun and workers regardless of what the later spec decides.
 
 ## 11. Two class families
 
@@ -688,7 +670,6 @@ functions at runtime, so it is a real dependency and must be declared:
 | Package | Runtime dependencies |
 | --- | --- |
 | `validate` | none |
-| `input` | none; `react` / `vue` are peer, on their own subpaths |
 | `<kind>` | `@smartput/core`, `@smartput/validate` |
 
 The standing target — **`@smartput/core` ships one runtime dependency** — is
@@ -711,7 +692,6 @@ The shared parser is paid once; per-kind cost is the table. Rough model:
 | `@smartput/angle/class` | < 1.4 KB | < 700 B |
 | `@smartput/datasize/validate` (9 units, widest table) | < 800 B | < 450 B |
 | each additional kind at the same entry | < 400 B | < 250 B |
-| `@smartput/input` (DOM only) | < 900 B | < 500 B |
 
 **These numbers are budgets, not measurements.** The first implementation task
 after the build lands is to measure the real figures and commit them; if a
@@ -738,7 +718,7 @@ regex — not that the regex was beaten on bytes.
 
 ## 14. Phasing
 
-Thirteen packages is too much to land at once. The plan runs in four phases, and
+Twelve kinds is too much to land at once. The plan runs in three phases, and
 each one is independently shippable and independently verifiable.
 
 | Phase | Scope | Done when |
@@ -746,29 +726,32 @@ each one is independently shippable and independently verifiable.
 | **P1 — Build** | Per-package build, `sideEffects: false`, subpath exports, `check-size.ts`, extended `check-deps.ts`. No new features. | `bun run check` passes and reports a measured byte figure for one existing entry. |
 | **P2 — Seam** | `@smartput/validate` in full: parser, ops, `createValueClass`, `patternFor`, `ValidationError`. `angle` as the sole consumer — `units.ts`, derived descriptor, `validate.ts`, `class.ts`. | Every test class in §12 passes for `angle`, and the §13 budgets for angle are measured and committed. |
 | **P3 — Rollout** | The other eleven kinds. Mechanical: a table, a derived descriptor, two wrappers, a corpus. `measure`'s dynamic `px` and `temperature`/`tempdelta`'s affine pairing are the only two that are not copy-shaped. | Contract, round-trip, conversion-identity and cross-path tests pass for all twelve. Barrels exported from `@smartput/kinds`. |
-| **P4 — Input** | `@smartput/input`, then the React and Vue subpaths. | A worked example per adapter in the docs, plus DOM tests. |
+
+P3 is the last phase here. DOM binding is §10's own spec and nothing in P1–P3
+waits on it.
 
 P2 is where the invention is. If the shared parser cannot hit the angle budget,
 that is discovered against one kind rather than twelve, and §13's amendment rule
 applies before the rollout multiplies the cost.
 
-Fuzzy resolution (§9) is a fifth phase, deliberately unscheduled. The seam
-lands in P2 so that it stays a pure addition.
+Fuzzy resolution (§9) is unscheduled. Its seam lands in P2 so that it stays a
+pure addition whenever it comes.
 
 ## 15. Documentation
 
 - `docs/guide/validating.md` — the micro path, the three-door table, when to use
   which.
-- `docs/guide/html-inputs.md` — `bindInput`, React, Vue, `patternFor`.
-- `docs/api/validate.md` — full `@smartput/validate` surface.
+- `docs/api/validate.md` — full `@smartput/validate` surface, `patternFor` included.
 - `docs/api/value-classes.md` — the class surface and the `Quantity` bridge.
 - `docs/guide/kinds.md` — a validate column in the kinds table.
 - `docs/guide/roadmap.md` — a milestone row for this work.
 
 ## 16. Out of scope
 
-Money and datetime validators (§3). Non-English aliases (V9). Locale decimal
-separators. Expressions of any kind — `"30deg + 15deg"` as a *string* is the
-engine's job; `addAngle("30deg", "15deg")` is this spec's. Number words
-(`"thirty deg"`). Ranges (`"10-20deg"`). Compound units (`"5ft 3in"`). Async
-anything. Fuzzy resolution ships later against the seam in §9.
+DOM binding, `bindInput`, and the React and Vue adapters — deferred to their own
+spec, with the seams they need listed in §10. Money and datetime validators
+(§3). Non-English aliases (V9). Locale decimal separators. Expressions of any
+kind — `"30deg + 15deg"` as a *string* is the engine's job;
+`addAngle("30deg", "15deg")` is this spec's. Number words (`"thirty deg"`).
+Ranges (`"10-20deg"`). Compound units (`"5ft 3in"`). Async anything. Fuzzy
+resolution ships later against the seam in §9.
