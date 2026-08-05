@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test";
+import { BUILTIN_KINDS } from "@smartput/kinds";
 import { Decimal } from "../decimal";
 import { DimensionMismatchError, KindConflictError, UnknownKindError } from "../errors";
-import { BUILTIN_KINDS } from "../kinds/index";
 import { defineLocalePack } from "../locale/define";
 import type { EvalCtx, Value } from "../types";
 import { defineKind } from "./define";

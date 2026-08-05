@@ -1,0 +1,23 @@
+{
+  "name": "@smartput/kinds",
+  "version": "0.0.0",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@smartput/angle": "workspace:*",
+    "@smartput/area": "workspace:*",
+    "@smartput/core": "workspace:*",
+    "@smartput/datasize": "workspace:*",
+    "@smartput/duration": "workspace:*",
+    "@smartput/length": "workspace:*",
+    "@smartput/mass": "workspace:*",
+    "@smartput/measure": "workspace:*",
+    "@smartput/number": "workspace:*",
+    "@smartput/percent": "workspace:*",
+    "@smartput/speed": "workspace:*",
+    "@smartput/temperature": "workspace:*",
+    "@smartput/volume": "workspace:*"
+  }
+}

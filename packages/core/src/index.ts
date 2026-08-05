@@ -15,26 +15,14 @@ export { createFacade, createFacades } from "./facade/index";
 export type { FormatOptions } from "./format/format";
 export { DISPLAY_PRECISION, formatNumber, formatValue } from "./format/format";
 export { defineKind } from "./kind/define";
-// Every built-in kind is exported by name, not only as an anonymous member of
-// BUILTIN_KINDS. `measure` in particular has no other route: it is deliberately
-// left out of BUILTIN_KINDS (its mm/cm aliases collide with `length`), so
-// opting in by name is the only way to use it at all.
-export {
-  angle,
-  area,
-  BUILTIN_KINDS,
-  datasize,
-  duration,
-  length,
-  mass,
-  measure,
-  number,
-  percent,
-  speed,
-  tempdelta,
-  temperature,
-  volume,
-} from "./kinds/index";
+// The seam the extracted kind packages build on: every @smartput/<kind> package
+// derives its values and names the number/percent kinds through these.
+export { deriveValue, NUMBER_KIND, PERCENT_KIND } from "./kind/ratio-ops";
+// The registry an engine is built on, exposed so a kind package can assert what
+// its own units and aliases resolve to without standing up a whole engine —
+// which is the only way to see an alias collision between two kinds at all.
+export type { AliasEntry, Registry } from "./kind/registry";
+export { buildRegistry } from "./kind/registry";
 export { createAnalyzerChain } from "./locale/analyze";
 export { defineLocale, defineLocalePack } from "./locale/define";
 export {

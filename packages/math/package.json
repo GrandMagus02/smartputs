@@ -7,6 +7,7 @@
   },
   "dependencies": {
     "@cortex-js/compute-engine": "^0.101.0",
-    "@smartput/core": "workspace:*"
+    "@smartput/core": "workspace:*",
+    "@smartput/number": "workspace:*"
   }
 }

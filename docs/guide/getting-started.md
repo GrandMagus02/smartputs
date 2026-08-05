@@ -32,8 +32,9 @@ optional weight overrides. Nothing is global, and engines with different options
 coexist in one process.
 
 ```ts
-import { BUILTIN_KINDS, createEngine } from "@smartput/core";
+import { createEngine } from "@smartput/core";
 import en from "@smartput/core/locale/en";
+import { BUILTIN_KINDS } from "@smartput/kinds";
 
 const engine = createEngine({
   locales: [en], // first is primary, rest are fallbacks

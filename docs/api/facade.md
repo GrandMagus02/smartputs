@@ -10,8 +10,9 @@ a mass, a `Quantity` class is a better surface than an expression: typed
 arithmetic, conversion, comparison and JSON, with no parser in the way.
 
 ```ts
-import { BUILTIN_KINDS, createFacades } from "@smartput/core";
+import { createFacades } from "@smartput/core";
 import en from "@smartput/core/locale/en";
+import { BUILTIN_KINDS } from "@smartput/kinds";
 
 // Keys are kind ids, so the classes are conventionally renamed on the way out.
 const { mass: Mass, temperature: Temperature } = createFacades({
@@ -163,7 +164,8 @@ declares `dpiUnit: "px"` to say so. That declaration — not inference — is wh
 gives its quantities the dpi surface:
 
 ```ts
-import { createFacades, measure } from "@smartput/core";
+import { createFacades } from "@smartput/core";
+import { measure } from "@smartput/kinds";
 
 const { measure: Measure } = createFacades({ kinds: [measure], locale: en });
 

@@ -1,9 +1,9 @@
 import { expect, test } from "bun:test";
+import { BUILTIN_KINDS } from "@smartput/kinds";
 import { createEngine } from "../engine";
 import { DivideByZeroError } from "../errors";
 import { defineKind } from "../kind/define";
 import { buildRegistry } from "../kind/registry";
-import { BUILTIN_KINDS } from "../kinds/index";
 import { defineLocale } from "../locale/define";
 import enLocale from "../locale/en";
 import { createResolver } from "../parse/candidates";

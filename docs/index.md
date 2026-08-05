@@ -114,8 +114,9 @@ bun add @smartput/core
 ```
 
 ```ts
-import { BUILTIN_KINDS, createEngine } from "@smartput/core";
+import { createEngine } from "@smartput/core";
 import en from "@smartput/core/locale/en";
+import { BUILTIN_KINDS } from "@smartput/kinds";
 
 const engine = createEngine({ locales: [en], kinds: BUILTIN_KINDS });
 

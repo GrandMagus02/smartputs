@@ -1,0 +1,14 @@
+{
+  "name": "@smartput/percent",
+  "version": "0.0.0",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@smartput/core": "workspace:*"
+  },
+  "devDependencies": {
+    "@smartput/kinds": "workspace:*"
+  }
+}

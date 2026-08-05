@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@smartput/core": "workspace:*",
+    "@smartput/kinds": "workspace:*",
     "@smartput/math": "workspace:*",
     "@smartput/rates": "workspace:*",
     "katex": "^0.18.1"

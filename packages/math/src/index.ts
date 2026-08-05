@@ -3,6 +3,7 @@
 export { describeOperator, OPERATOR_WORDS } from "./describe/describe";
 export type {
   CalculusOptions,
+  DescribeOptions,
   EvaluateOptions,
   MathEngine,
   SimplifyResult,
@@ -16,6 +17,7 @@ export {
   MathSolveError,
   NotAMatrixError,
   UnboundSymbolError,
+  WordParseError,
 } from "./errors";
 // Exported so a UI can translate a step: `rule` is the stable key, and
 // `titleForRule` is the English fallback for a locale that has no string yet.
@@ -34,3 +36,7 @@ export type {
   SystemResult,
   TurningPoint,
 } from "./types";
+// The way in for an expression that was spoken rather than written. It hands
+// back LaTeX, so nothing downstream of it needs to know words exist.
+export type { WordOptions } from "./words/words";
+export { latexFromWords } from "./words/words";

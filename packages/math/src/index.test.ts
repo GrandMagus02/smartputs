@@ -10,11 +10,18 @@ describe("public surface", () => {
       "NotAMatrixError",
       "OPERATOR_WORDS",
       "UnboundSymbolError",
+      "WordParseError",
       "createMathEngine",
       "describeOperator",
+      "latexFromWords",
       "ruleForOperator",
       "titleForRule",
     ]);
+  });
+
+  test("an expression said in words reaches the engine through the entry point", () => {
+    const latex = math.latexFromWords("one plus two in brackets power three");
+    expect(math.createMathEngine().evaluate(latex).latex).toBe("27");
   });
 
   test("the operator words are reachable without an engine", () => {

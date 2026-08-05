@@ -151,6 +151,13 @@ describe("describe", () => {
   test("reads an expression out in English", () => {
     expect(math.describe("x^2+1")).toBe("x squared plus 1");
   });
+
+  test("takes the reading options through to the description", () => {
+    expect(math.describe("x^2+1", { numbers: "words" })).toBe("x squared plus one");
+    expect(math.describe("(2+3)^2", { style: "short" })).toBe(
+      "2 plus 3 in brackets squared",
+    );
+  });
 });
 
 describe("engine isolation", () => {

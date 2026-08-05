@@ -9,5 +9,8 @@
   "dependencies": {
     "@smartput/core": "workspace:*",
     "decimal.js": "^10.6.0"
+  },
+  "devDependencies": {
+    "@smartput/number": "workspace:*"
   }
 }

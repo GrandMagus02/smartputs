@@ -24,6 +24,22 @@ export class MathParseError extends MathError {
   }
 }
 
+/**
+ * A spoken expression could not be read. Separate from MathParseError because
+ * the two fail at different distances from the user: MathParseError is about
+ * notation that a compute engine rejected, this one is about a word a person
+ * said, and `word` is the part of the sentence a UI can underline.
+ */
+export class WordParseError extends MathError {
+  /** The word the reading stopped at, or null when the sentence ran out. */
+  readonly word: string | null;
+  constructor(input: string, detail: string, word: string | null = null) {
+    super(`Cannot read ${JSON.stringify(input)} as math: ${detail}`, input);
+    this.name = "WordParseError";
+    this.word = word;
+  }
+}
+
 /** The expression parsed, but the requested operation does not apply to it. */
 export class MathSolveError extends MathError {
   readonly variable: string;

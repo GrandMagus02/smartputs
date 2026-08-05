@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test";
+import { BUILTIN_KINDS } from "@smartput/kinds";
 import { Decimal } from "../decimal";
 import { buildRegistry } from "../kind/registry";
-import { BUILTIN_KINDS } from "../kinds/index";
 import {
   EXACT_BONUS,
   LENGTH_PENALTY,

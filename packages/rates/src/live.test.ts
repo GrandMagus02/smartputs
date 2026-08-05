@@ -1,6 +1,7 @@
 import { expect, test } from "bun:test";
-import { number, RatesNotReadyError } from "@smartput/core";
+import { RatesNotReadyError } from "@smartput/core";
 import en from "@smartput/core/locale/en";
+import { number } from "@smartput/number";
 import { createLiveEngine } from "./live";
 import { money } from "./money";
 import type { RateProvider } from "./providers/ecb";

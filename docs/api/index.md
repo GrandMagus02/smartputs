@@ -1,20 +1,21 @@
 ---
 title: API overview
-description: Every symbol exported by @smartput/core, @smartput/rates and @smartput/math.
+description: Every symbol exported by @smartput/core, @smartput/kinds, @smartput/rates and @smartput/math.
 ---
 
 # API overview
 
-All three packages are ESM only. Everything below is exported from the package
+All four packages are ESM only. Everything below is exported from the package
 root unless stated otherwise.
 
 ## Entry points
 
 | Subpath | Contents |
 | --- | --- |
-| `@smartput/core` | The engine, the define functions, kinds, facades, errors, types |
+| `@smartput/core` | The engine, the define functions, facades, errors, types |
 | `@smartput/core/locale/en` | The English locale descriptor (default export) |
 | `@smartput/core/testing` | `assertKindContract` |
+| `@smartput/kinds` | The built-in kinds, by name and as `BUILTIN_KINDS` |
 | `@smartput/rates` | The `money` kind, snapshots, providers, `createLiveEngine` |
 | `@smartput/rates/locale/en` | Colloquial English currency words (default export) |
 | `@smartput/math` | `createMathEngine`, the LaTeX surface, the operator words |
@@ -41,9 +42,9 @@ root unless stated otherwise.
 
 | Export | Type |
 | --- | --- |
-| `BUILTIN_KINDS` | `Kind[]` — `number`, `percent`, `length`, `mass`, `duration`, `temperature`, `tempdelta`, `angle`, `datasize`, `speed`, `area`, `volume` |
-| each of those by name | the individual `Kind` descriptors |
-| `measure` | typographic units. Exported by name only — **not** in `BUILTIN_KINDS`, because its `mm`/`cm` collide with `length`. |
+| `BUILTIN_KINDS` | `Kind[]` — `number`, `percent`, `length`, `mass`, `duration`, `temperature`, `tempdelta`, `angle`, `datasize`, `speed`, `area`, `volume`. From `@smartput/kinds`. |
+| each of those by name | the individual `Kind` descriptors, also from `@smartput/kinds` |
+| `measure` | typographic units, from `@smartput/kinds`. Exported by name only — **not** in `BUILTIN_KINDS`, because its `mm`/`cm` collide with `length`. |
 | `DISPLAY_PRECISION` | `26` — significant digits in formatted output, two guard digits below the 28 `Decimal` computes at |
 | `EXACT_BONUS`, `LENGTH_PENALTY`, `SCALE_BONUS` | the [completion](/api/complete#scoring) scoring constants |
 | `Decimal` | re-exported from `decimal.js`, so callers need not add the dependency |
@@ -98,8 +99,9 @@ Full definitions: [Types](/api/types).
 ## Shape of a call
 
 ```ts
-import { BUILTIN_KINDS, createEngine } from "@smartput/core";
+import { createEngine } from "@smartput/core";
 import en from "@smartput/core/locale/en";
+import { BUILTIN_KINDS } from "@smartput/kinds";
 
 const engine = createEngine({ locales: [en], kinds: BUILTIN_KINDS });
 

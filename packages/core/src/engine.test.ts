@@ -1,4 +1,5 @@
 import { expect, test } from "bun:test";
+import { BUILTIN_KINDS, number } from "@smartput/kinds";
 import { Decimal } from "./decimal";
 import { createEngine } from "./engine";
 import {
@@ -8,7 +9,6 @@ import {
   NoCandidateError,
 } from "./errors";
 import { defineKind } from "./kind/define";
-import { BUILTIN_KINDS, number } from "./kinds/index";
 import { defineLocale } from "./locale/define";
 import en from "./locale/en";
 
