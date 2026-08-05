@@ -140,6 +140,32 @@ its operand rather than to the sentence: `the sine of x plus one` is
 quantity x plus one`. A word it does not know is a `WordParseError` naming the
 word, not a guess.
 
+### Reading through a typo
+
+`{ fuzzy: true }` mends a misspelled word into the closest one the vocabulary
+has — operators, phrases and number words alike:
+
+```ts
+latexFromWords("one plsu two", { fuzzy: true });          // "1+2"
+latexFromWords("twnty plus on", { fuzzy: true });         // "20+1"
+latexFromWords("x plus one all squred", { fuzzy: true }); // "(x+1)^2"
+```
+
+It is off by default, and deliberately so: a correction that guesses wrong
+still returns a number, and a number is not something a caller checks.
+
+Three rules keep it from guessing. A single letter is never touched — every one
+of them is a symbol. How far it will look depends on the length of the word:
+one edit, or two once the word is long enough that two still leave most of it
+standing. And the kinds of slip are not priced the same — a letter left out
+beats two letters swapped, which beats a letter typed twice, which beats a
+letter typed wrong. That ordering is what makes `sne` the sine rather than
+one, and `thre` three rather than the.
+
+Where two words are still equally near, it stops and reports the word instead
+of picking: `si` is a letter short of both `sin` and `six`, and neither is more
+likely than the other.
+
 ## Reading it out
 
 `describe` turns an expression into English, and `OPERATOR_WORDS` is the plain

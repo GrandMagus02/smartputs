@@ -220,7 +220,11 @@ solver already carry their description in `title`.
 ## latexFromWords()
 
 ```ts
-function latexFromWords(words: string): string
+function latexFromWords(words: string, options?: WordOptions): string
+
+interface WordOptions {
+  fuzzy?: boolean;  // default false
+}
 ```
 
 Reads an expression said in English into LaTeX. It needs no engine, and hands
@@ -251,6 +255,31 @@ quantity x plus one` available for the other reading.
 
 A word it does not know raises `WordParseError`, whose `word` is the one it
 stopped at, for a UI that wants to underline it.
+
+### fuzzy
+
+Mends a misspelled word into the closest one the vocabulary has — operators,
+phrase words and number words alike.
+
+```ts
+latexFromWords("one plsu two", { fuzzy: true });   // "1+2"
+latexFromWords("twnty plus on", { fuzzy: true });  // "20+1"
+latexFromWords("thre point five", { fuzzy: true }); // "3.5"
+```
+
+Off by default: a correction that guesses wrong still returns a number, and a
+number is not something a caller checks.
+
+| Rule | Why |
+| --- | --- |
+| A single letter is never corrected | Every one of them is already a symbol |
+| One edit up to four letters, two beyond | Two edits into a short word reach half the vocabulary |
+| A letter left out < swapped < typed twice < typed wrong | Ordered by how often each slip actually happens |
+| Two words equally near ⇒ `WordParseError` | `si` is a letter short of both `sin` and `six` |
+
+The last two together are what make `sne` the sine rather than one, and `thre`
+three rather than the: both are ties by edit count, and only the ordering of
+slips separates them.
 
 ## describe() and OPERATOR_WORDS
 

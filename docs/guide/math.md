@@ -198,6 +198,18 @@ as the expression it described:
 latexFromWords(math.describe("(2+3)^2")); // "(2+3)^2"
 ```
 
+Anything typed is eventually mistyped, so `{ fuzzy: true }` mends a word into
+the closest one the vocabulary has — numbers included:
+
+```ts
+latexFromWords("one plsu two", { fuzzy: true });   // "1+2"
+latexFromWords("twnty plus on", { fuzzy: true });  // "20+1"
+```
+
+It stays off unless asked for, because a wrong correction still returns a
+number and nobody double-checks a number. Where two words are equally likely it
+refuses instead of choosing: `si` is a letter short of both `sin` and `six`.
+
 ## Errors
 
 `MathParseError`, `WordParseError`, `MathSolveError`, `NotAMatrixError` and
