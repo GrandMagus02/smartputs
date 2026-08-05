@@ -154,6 +154,13 @@ const TENS = [
 /** Largest first, because that is the order the groups are spoken in. */
 const SCALES = ["trillion", "billion", "million", "thousand", ""];
 
+/**
+ * The one scale word that is not a group of its own: it multiplies inside a
+ * group rather than between them. Named rather than written twice, so it
+ * cannot go missing from the vocabulary below the way it once did.
+ */
+const HUNDRED = "hundred";
+
 /** Past a trillion the table runs out, and a wrong word is worse than digits. */
 const LIMIT = 1e15;
 
@@ -214,7 +221,7 @@ function spellGroup(value: number): string {
   const hundreds = Math.floor(value / 100);
   const rest = value % 100;
   if (hundreds === 0) return spellTens(rest);
-  const head = `${UNITS[hundreds]} hundred`;
+  const head = `${UNITS[hundreds]} ${HUNDRED}`;
   return rest === 0 ? head : `${head} and ${spellTens(rest)}`;
 }
 
@@ -224,3 +231,20 @@ function spellTens(value: number): string {
   const unit = value % 10;
   return unit === 0 ? tens : `${tens}-${UNITS[unit]}`;
 }
+
+/**
+ * Every word a number can be made of, for a caller that has to recognise one
+ * without reading it — spelling correction, a keyboard's word list, a grammar
+ * that needs to know which words are numbers. Taken from the same tables
+ * `spellNumber` says and `numberFromWords` reads, so the list cannot fall
+ * behind either of them.
+ */
+export const NUMBER_WORDS: readonly string[] = [
+  ...UNITS,
+  ...TENS.filter((word) => word !== ""),
+  ...SCALES.filter((word) => word !== ""),
+  HUNDRED,
+  "point",
+  // The connector inside a cardinal: "one hundred and five" is one number.
+  "and",
+];

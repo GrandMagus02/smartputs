@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { numberFromWords, spellNumber } from "./words";
+import { NUMBER_WORDS, numberFromWords, spellNumber } from "./words";
 
 describe("numberFromWords", () => {
   const read = (words: string) => numberFromWords(words.split(" "));
@@ -34,6 +34,14 @@ describe("numberFromWords", () => {
   test("returns null when the run does not start with a number", () => {
     expect(read("plus two")).toBeNull();
     expect(numberFromWords([])).toBeNull();
+  });
+
+  test("lists every word it can say, so a reader can recognise one", () => {
+    for (const value of [0, 7, 15, 22, 105, 342, 1234, 1_000_005, 2_000_000_000, 3.5]) {
+      for (const word of (spellNumber(value) as string).split(/[ -]/)) {
+        expect(NUMBER_WORDS).toContain(word);
+      }
+    }
   });
 
   test("reads back every number it spells", () => {

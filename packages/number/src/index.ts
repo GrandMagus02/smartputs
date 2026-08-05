@@ -4,7 +4,7 @@ import { defineKind } from "@smartput/core";
 // number *is*; these are what it is called — kept together because reading
 // "one hundred and five" and spelling 105 are one vocabulary.
 export type { NumberWords } from "./words";
-export { numberFromWords, spellNumber } from "./words";
+export { NUMBER_WORDS, numberFromWords, spellNumber } from "./words";
 
 export const number = defineKind({
   id: "number",
