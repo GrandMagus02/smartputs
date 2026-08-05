@@ -47,13 +47,15 @@ export default defineConfig({
         generateLLMFriendlyDocsForEachPage: true,
       }),
     ],
-    // `@smartput/core` and `@smartput/rates` are workspace symlinks whose
-    // exports point at TypeScript source, so the demos run the same code the
-    // tests do — no build step in between. Vite must transform them for the
-    // SSR pass too, and the dev server has to be allowed to read outside
-    // `docs/`.
-    ssr: { noExternal: ["@smartput/core", "@smartput/rates"] },
-    optimizeDeps: { exclude: ["@smartput/core", "@smartput/rates"] },
+    // `@smartput/core`, `@smartput/rates` and `@smartput/math` are workspace
+    // symlinks whose exports point at TypeScript source, so the demos run the
+    // same code the tests do — no build step in between. Vite must transform
+    // them for the SSR pass too, and the dev server has to be allowed to read
+    // outside `docs/`.
+    ssr: { noExternal: ["@smartput/core", "@smartput/rates", "@smartput/math"] },
+    optimizeDeps: {
+      exclude: ["@smartput/core", "@smartput/rates", "@smartput/math"],
+    },
     server: { fs: { allow: [repoRoot] } },
   },
 });

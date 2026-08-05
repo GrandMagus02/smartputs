@@ -1,12 +1,12 @@
 ---
 title: API overview
-description: Every symbol exported by @smartput/core and @smartput/rates.
+description: Every symbol exported by @smartput/core, @smartput/rates and @smartput/math.
 ---
 
 # API overview
 
-Both packages are ESM only. Everything below is exported from the package root
-unless stated otherwise.
+All three packages are ESM only. Everything below is exported from the package
+root unless stated otherwise.
 
 ## Entry points
 
@@ -17,6 +17,7 @@ unless stated otherwise.
 | `@smartput/core/testing` | `assertKindContract` |
 | `@smartput/rates` | The `money` kind, snapshots, providers, `createLiveEngine` |
 | `@smartput/rates/locale/en` | Colloquial English currency words (default export) |
+| `@smartput/math` | `createMathEngine`, the LaTeX surface, the operator words |
 
 ## Functions
 
@@ -58,6 +59,15 @@ unless stated otherwise.
 | [`custom(fn)`](/api/rates#custom) | Wrap any async source in the provider shape. |
 | [`CURRENCIES`](/api/rates#currencies) | The twelve currency descriptors, keyed by lowercase ISO code. |
 
+## @smartput/math
+
+| Export | Purpose |
+| --- | --- |
+| [`createMathEngine()`](/api/math#createmathengine) | The LaTeX engine: evaluate, simplify, solve, systems, analysis, matrices, calculus, descriptions. |
+| [`describeOperator(symbol)`](/api/math#describe-and-operator-words) | The English word for an operator, or `null`. |
+| [`OPERATOR_WORDS`](/api/math#describe-and-operator-words) | The symbol-to-word table itself. |
+| [`ruleForOperator(op)`](/api/math#step) · [`titleForRule(rule)`](/api/math#step) | Step rule ids and their English titles. |
+
 ## Errors
 
 Every error extends `SmartputError`. See [Errors](/guide/errors).
@@ -68,7 +78,9 @@ Every error extends `SmartputError`. See [Errors](/guide/errors).
 `RateProviderError` · `RatesNotReadyError`
 
 The last three are defined in core and raised from `@smartput/rates`, so
-`instanceof` works across the package boundary.
+`instanceof` works across the package boundary. `@smartput/math` defines its own
+— `MathError` and its four subclasses — which extend `SmartputError` for the
+same reason.
 
 ## Types
 

@@ -10,7 +10,9 @@
   },
   "dependencies": {
     "@smartput/core": "workspace:*",
-    "@smartput/rates": "workspace:*"
+    "@smartput/math": "workspace:*",
+    "@smartput/rates": "workspace:*",
+    "katex": "^0.18.1"
   },
   "devDependencies": {
     "@iconify-json/lucide": "^1.2.0",

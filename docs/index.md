@@ -43,6 +43,12 @@ features:
       @smartput/rates adds a currency kind whose ratios come from an injected,
       dated table. A rate derived through the base currency is disclosed, never
       implied.
+  - icon: '<span class="i-lucide-sigma"></span>'
+    title: LaTeX math, with the working
+    details: >-
+      @smartput/math evaluates, solves and analyses LaTeX — systems, matrices,
+      calculus — exactly, and hands back the steps that got there. It reads the
+      expression out in English too.
   - icon: '<span class="i-lucide-puzzle"></span>'
     title: A new kind is five lines
     details: >-
