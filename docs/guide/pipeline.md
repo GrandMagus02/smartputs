@@ -16,7 +16,8 @@ input string
   2. Lex            locale segmenter → NUMBER | WORD | OP | KEYWORD | PAREN.
   │                 Numbers read via the locale's numberFormat (1.000,50 vs 1,000.50)
   │
-  2b. Fold          spelled-number runs → one NUMBER; operator words → OP.
+  2b. Fold          kind-claimed runs → one LITERAL; spelled-number runs → one
+  │                 NUMBER; operator words → OP. "next week monday" → LITERAL,
   │                 "one thousand thirty two" → 1032, "divided by" → /
   │
   2c. Analyze       each WORD → lemma candidates via the locale's analyzer chain
@@ -65,8 +66,17 @@ word/op/word — which is what stage 2b's hyphen rule exists to undo.
 
 ## Stage 2b — Fold
 
-Two pure token rewrites, so the parser never learns that words can be numbers or
-operators.
+Three pure token rewrites, so the parser never learns that words can be values,
+numbers or operators.
+
+`foldLiterals` runs first and is the only pass that can see the source string.
+It offers every registered kind's [literal matchers](/api/define-kind#literals)
+each token boundary in turn, and collapses a claimed run of *characters* into a
+single `literal` token carrying a finished `Value`. That is what lets
+`next week monday` — three words, no number — and `2026-03-01` — which lexes as
+number-op-number-op-number — reach the solver as one operand. Core ships no
+matchers; [`@smartput/datetime`](/guide/datetime) supplies the only one that
+exists today.
 
 `foldNumerals` collapses a run of spelled-number words into a single `number`
 token by calling the locale's `numerals` hook, which claims a prefix of the run

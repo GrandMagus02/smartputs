@@ -1,6 +1,6 @@
 import type { Decimal } from "../decimal";
 import { numberSymbols, parseNumber } from "../locale/number";
-import type { Keyword, Locale, OpSymbol } from "../types";
+import type { Keyword, KindId, Locale, OpSymbol } from "../types";
 
 export type Token =
   | { type: "number"; value: Decimal; text: string; start: number; end: number }
@@ -8,7 +8,20 @@ export type Token =
   | { type: "op"; op: OpSymbol; start: number; end: number }
   | { type: "keyword"; keyword: Keyword; start: number; end: number }
   | { type: "lparen"; start: number; end: number }
-  | { type: "rparen"; start: number; end: number };
+  | { type: "rparen"; start: number; end: number }
+  // Produced only by foldLiterals, never by lex(): a kind claimed this run of
+  // source and already built the value it stands for.
+  | {
+      type: "literal";
+      kind: KindId;
+      unit: string;
+      canonical: Decimal;
+      meta?: Readonly<Record<string, unknown>>;
+      weight: number;
+      text: string;
+      start: number;
+      end: number;
+    };
 
 const OPS: Record<string, OpSymbol> = { "+": "+", "-": "-", "*": "*", "/": "/" };
 

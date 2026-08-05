@@ -32,6 +32,10 @@ export function createFacades(args: {
   const classes = new Map<KindId, QuantityClass>();
 
   for (const [id, kind] of registry.kinds) {
+    // A facade is generated from a ratio table: `.to()`, `.scale()` and
+    // `.equals()` all read unit ratios. An opaque kind has labels instead, so
+    // there is nothing to generate — see plan ruling R8. Date facades are M5.
+    if (kind.spec.mode !== "ratio") continue;
     classes.set(
       id,
       createFacade({

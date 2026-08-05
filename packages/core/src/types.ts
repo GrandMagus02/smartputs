@@ -155,6 +155,56 @@ export interface UnitDef {
   aliases?: string[];
 }
 
+/**
+ * What a kind's literal matcher claims from the source string.
+ *
+ * The matcher returns a finished `Value` rather than a payload the engine would
+ * have to interpret: the engine has no idea what a date is, and giving it one
+ * would be a second value model beside `Value`. `canonical` is whatever scalar
+ * the kind orders and subtracts by — epoch nanoseconds for `datetime` — and
+ * anything that is not a scalar rides on `meta`, which every value already has.
+ */
+export interface LiteralMatch {
+  readonly kind: KindId;
+  /** A unit registered by the kind. Never a free-form string. */
+  readonly unit: string;
+  readonly canonical: Decimal;
+  readonly meta?: Readonly<Record<string, unknown>>;
+  /** Characters consumed starting at the offered offset. Must be > 0. */
+  readonly length: number;
+  /** Summed into the candidate's score, exactly like an analyzer's weight. */
+  readonly weight?: number;
+}
+
+/**
+ * Everything a matcher may read about the call. Deliberately not the whole
+ * engine: a matcher that could reach the registry could rewrite it.
+ */
+export interface MatchCtx {
+  readonly locale: string;
+  /** Epoch milliseconds of "now", from `EngineOptions.now`. */
+  readonly now: number;
+  /** IANA time zone, from `EvalOptions.timeZone ?? EngineOptions.timeZone`. */
+  readonly timeZone: string;
+  /**
+   * True when `text` is a registered unit alias of any kind. The one piece of
+   * registry knowledge a matcher needs, and the reason `"10 m"` does not become
+   * a date — see the plan's ruling R4.
+   */
+  isUnitAlias(text: string): boolean;
+}
+
+/**
+ * Offered the whole normalized input and an offset that is always a token
+ * boundary. Returns null for "not mine". A match that does not end on a token
+ * boundary is discarded by the fold, so a matcher never has to align itself.
+ */
+export type LiteralMatcher = (
+  input: string,
+  offset: number,
+  ctx: MatchCtx,
+) => LiteralMatch | null;
+
 export interface RatioSpec {
   mode: "ratio";
   canonical: string;
@@ -177,8 +227,15 @@ export interface RatioSpec {
 
 export interface OpaqueSpec {
   mode: "opaque";
-  parse: (token: string, ctx: EvalCtx) => unknown | null;
-  equals: (a: unknown, b: unknown) => boolean;
+  /**
+   * The kind's units as a lexicon. An opaque unit is a *label*, not a ratio —
+   * `datetime`'s units are IANA time zones — but it is indexed, weighted,
+   * formatted and used as an `in` target exactly like a ratio kind's unit.
+   */
+  units?: Record<string, UnitLexeme | string[]>;
+  /** Single-token recognition. Superseded by `Kind.literals` for anything multi-token. */
+  parse?: (token: string, ctx: EvalCtx) => unknown | null;
+  equals?: (a: unknown, b: unknown) => boolean;
 }
 
 export interface OpSignature {
@@ -202,6 +259,7 @@ export interface Kind {
   extendsKind?: KindId;
   prior?: number;
   lexicon?: Lexicon;
+  literals?: LiteralMatcher[];
   ops?: OpSignature[];
   format?: (v: Value, ctx: FormatCtx) => string;
 }

@@ -10,6 +10,12 @@ import { Glob } from "bun";
  */
 const ALLOWED: Record<string, string[]> = {
   "packages/core/package.json": ["decimal.js"],
+  "packages/datetime/package.json": [
+    "@smartput/core",
+    "chrono-node",
+    "decimal.js",
+    "temporal-polyfill",
+  ],
   "packages/rates/package.json": ["decimal.js", "@smartput/core"],
   // The number package is here for its word vocabulary, not its kind: reading
   // "one hundred and five" and spelling 105 back are what `latexFromWords` and

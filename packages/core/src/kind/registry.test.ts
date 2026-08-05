@@ -3,7 +3,7 @@ import { BUILTIN_KINDS } from "@smartput/kinds";
 import { Decimal } from "../decimal";
 import { DimensionMismatchError, KindConflictError, UnknownKindError } from "../errors";
 import { defineLocalePack } from "../locale/define";
-import type { EvalCtx, Value } from "../types";
+import type { EvalCtx, LiteralMatcher, Value } from "../types";
 import { defineKind } from "./define";
 import { buildRegistry, opKey } from "./registry";
 
@@ -427,6 +427,70 @@ test("the built-in op table is exactly this, refusals included", () => {
     .map(([key, sig]) => (probe(registry, sig) === null ? `${key}  (refuses)` : key))
     .sort();
   expect(actual).toEqual(OP_TABLE);
+});
+
+// --- Opaque units and literal matchers -----------------------------------
+
+const noopMatcher: LiteralMatcher = () => null;
+
+const zone = defineKind({
+  id: "zone",
+  value: {
+    mode: "opaque",
+    units: {
+      UTC: ["utc", "z"],
+      "Asia/Tokyo": { aliases: ["tokyo", "jst"], symbol: "JST" },
+    },
+  },
+  literals: [noopMatcher],
+});
+
+test("an opaque kind's units reach the alias index", () => {
+  const registry = buildRegistry([zone], [], "en");
+  expect(registry.aliasIndex.get("tokyo")).toEqual([
+    { kind: "zone", unit: "Asia/Tokyo" },
+  ]);
+  expect(registry.aliasIndex.get("utc")).toEqual([{ kind: "zone", unit: "UTC" }]);
+});
+
+test("an opaque kind's unit carries its lexeme", () => {
+  const registry = buildRegistry([zone], [], "en");
+  expect(registry.kinds.get("zone")?.units.get("Asia/Tokyo")?.lexeme.symbol).toBe("JST");
+});
+
+test("an opaque kind generates no ops", () => {
+  const registry = buildRegistry([zone], [], "en");
+  expect(registry.kinds.get("zone")?.ops).toEqual([]);
+  expect([...registry.ops.keys()]).toEqual([]);
+});
+
+test("literal matchers are collected in kind-id order", () => {
+  const other = defineKind({
+    id: "aaa",
+    value: { mode: "opaque", units: { x: ["x"] } },
+    literals: [noopMatcher],
+  });
+  const registry = buildRegistry([zone, other], [], "en");
+  expect(registry.literals.map((l) => l.kind)).toEqual(["aaa", "zone"]);
+});
+
+test("a ratio kind without literals contributes none", () => {
+  const ratio = defineKind({
+    id: "r",
+    value: { mode: "ratio", canonical: "a", units: { a: 1 } },
+  });
+  expect(buildRegistry([ratio], [], "en").literals).toEqual([]);
+});
+
+test("an opaque unit's ratio is the identity, so conversion helpers never crash", () => {
+  const registry = buildRegistry([zone], [], "en");
+  const unit = registry.kinds.get("zone")?.units.get("UTC");
+  const ctx: EvalCtx = {
+    self: { kind: "zone", canonical: new Decimal(0), unit: "UTC" },
+    locale: "en",
+  };
+  expect(unit?.ratio(ctx).toString()).toBe("1");
+  expect(unit?.offset(ctx).toString()).toBe("0");
 });
 
 test("every signature that answers propagates its operand's meta", () => {

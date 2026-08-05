@@ -6,6 +6,7 @@ import type {
   Kind,
   KindId,
   Lexicon,
+  LiteralMatcher,
   OpaqueSpec,
   OpSignature,
   RatioSpec,
@@ -26,6 +27,7 @@ export interface NormalizedKind {
   spec: RatioSpec | OpaqueSpec;
   prior: number;
   units: Map<string, NormalizedUnit>;
+  literals: LiteralMatcher[];
   ops: OpSignature[];
   format?: (v: Value, ctx: FormatCtx) => string;
 }
@@ -67,6 +69,19 @@ export function normalizeKind(k: Kind): NormalizedKind {
         lexeme: toLexeme(unit, k.lexicon?.[unit]),
       });
     }
+  } else {
+    // An opaque unit has no scale, but it is still a unit: it is indexed by
+    // alias, chosen by the solver, named by `in`, and read by the formatter.
+    // The identity ratio keeps toCanonical/fromCanonical total, so generic code
+    // never has to branch on mode before touching a unit.
+    for (const [unit, entry] of Object.entries(k.value.units ?? {})) {
+      units.set(unit, {
+        unit,
+        ratio: toDecimalFn(1, 1),
+        offset: toDecimalFn(0, 0),
+        lexeme: toLexeme(unit, k.lexicon?.[unit] ?? entry),
+      });
+    }
   }
 
   return {
@@ -74,6 +89,7 @@ export function normalizeKind(k: Kind): NormalizedKind {
     spec: k.value,
     prior: k.prior ?? 0,
     units,
+    literals: [...(k.literals ?? [])],
     // Copy, never alias: the descriptor's ops array is deep-frozen, and the
     // registry in Task 4 pushes generated signatures onto this one.
     ops: [...(k.ops ?? [])],

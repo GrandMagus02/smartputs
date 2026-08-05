@@ -34,6 +34,7 @@ interface Kind {
   extendsKind?: KindId;
   prior?: number;
   lexicon?: Lexicon;
+  literals?: LiteralMatcher[];
   ops?: OpSignature[];
   format?: (v: Value, ctx: FormatCtx) => string;
 }
@@ -82,10 +83,37 @@ For color, datetime, and anything that is not a scalar on a ratio line.
 ```ts
 interface OpaqueSpec {
   mode: "opaque";
-  parse: (token: string, ctx: EvalCtx) => unknown | null;   // null = not mine
-  equals: (a: unknown, b: unknown) => boolean;
+  units?: Record<string, UnitLexeme | string[]>;            // labels, not ratios
+  parse?: (token: string, ctx: EvalCtx) => unknown | null;  // null = not mine
+  equals?: (a: unknown, b: unknown) => boolean;
 }
 ```
+
+An opaque unit is a **label**, not a position on a ratio line —
+[`datetime`](/guide/datetime)'s units are IANA time zones — but it is indexed by
+alias, weighted, chosen by the solver, named as an `in` target and read by the
+formatter exactly like a ratio kind's unit. Its ratio is the identity and its
+offset is zero, so generic code never has to branch on `mode` before touching a
+unit.
+
+```ts
+const zone = defineKind({
+  id: "zone",
+  value: {
+    mode: "opaque",
+    units: {
+      UTC: ["utc", "gmt", "z"],
+      "Asia/Tokyo": { aliases: ["tokyo", "jst"], symbol: "JST" },
+    },
+  },
+});
+```
+
+An opaque kind generates **no** ops — there are no ratios to generate them from
+— so every operation it supports is an explicit [`ops`](#ops) signature.
+`createFacade` refuses an opaque kind for the same reason, and `complete()`
+skips it, since a completion inserts `<number><unit>` and a time zone is not
+that.
 
 ### extendsKind
 
@@ -121,6 +149,106 @@ interface UnitLexeme {
 
 An array is shorthand for `{ aliases }`. Other languages arrive as
 [locale packs](/api/define-locale#definelocalepack), never in this field.
+
+### literals
+
+Recognition for anything that is not shaped like `<number><unit-word>`. A
+literal matcher is offered the whole normalized input and an offset that is
+always a token boundary, and it either claims a run of **characters** or returns
+`null`.
+
+```ts
+type LiteralMatcher = (
+  input: string,
+  offset: number,
+  ctx: MatchCtx,
+) => LiteralMatch | null;
+
+interface LiteralMatch {
+  readonly kind: KindId;
+  readonly unit: string;                                // registered by the kind
+  readonly canonical: Decimal;
+  readonly meta?: Readonly<Record<string, unknown>>;
+  readonly length: number;                              // characters consumed, > 0
+  readonly weight?: number;                             // summed into the score
+}
+
+interface MatchCtx {
+  readonly locale: string;
+  readonly now: number;        // epoch ms, from EngineOptions.now
+  readonly timeZone: string;   // IANA, from EvalOptions.timeZone ?? EngineOptions.timeZone
+  isUnitAlias(text: string): boolean;
+}
+```
+
+The matcher returns a finished value rather than a payload the engine would have
+to interpret — the engine has no idea what a date or a colour is, and giving it
+one would be a second value model beside `Value`. `canonical` is whatever scalar
+the kind orders and subtracts by; everything else rides on `meta`.
+
+The shortest matcher that works, and the kind that registers it:
+
+```ts
+import {
+  BUILTIN_KINDS,
+  createEngine,
+  Decimal,
+  defineKind,
+  type LiteralMatcher,
+} from "@smartput/core";
+import en from "@smartput/core/locale/en";
+
+const ISO_DATE = /^\d{4}-\d{2}-\d{2}/;
+
+const isoDate: LiteralMatcher = (input, offset) => {
+  const m = ISO_DATE.exec(input.slice(offset));
+  if (m === null) return null;
+  return {
+    kind: "day",
+    unit: "UTC",
+    canonical: new Decimal(Date.parse(`${m[0]}T00:00:00Z`)),
+    meta: { iso: m[0] },
+    length: m[0].length,
+  };
+};
+
+const day = defineKind({
+  id: "day",
+  value: { mode: "opaque", units: { UTC: ["utc", "z"] } },
+  literals: [isoDate],
+  format: (v) => String(v.meta?.iso),
+});
+
+createEngine({ locales: [en], kinds: [...BUILTIN_KINDS, day] })
+  .evaluate("2026-03-01").formatted; // "2026-03-01"
+```
+
+`2026-03-01` lexes as number-op-number-op-number, which is why offsets exist:
+the matcher slices the source, and `foldLiterals` collapses every token the run
+covers into a single `literal` token. From there it is an ordinary operand —
+scored through all four [weight layers](/guide/weights), dropped by
+`EvalOptions.kinds`, and listed by `explain()`.
+
+Rules the fold applies, so a matcher does not have to:
+
+| Rule | Behaviour |
+| --- | --- |
+| Boundary | A match that does not end exactly where some token ends is discarded, never split |
+| Longest wins | Across all matchers at one offset, the longest claim wins |
+| Ties | Broken by kind id, then declaration order — never map iteration order |
+| Bad unit | A `unit` the kind does not register drops the match |
+| `length <= 0` | Ignored, rather than looping |
+| Resume | Matching continues at the token after the claimed run |
+
+**The fold is destructive.** Once `10 m` has been claimed, the `10 metres`
+reading is gone before the solver ever runs — there is no lattice and no
+backtracking. So a matcher must be conservative, and `ctx.isUnitAlias` exists
+for exactly that: `@smartput/datetime` refuses any match whose letter runs are
+*all* registered unit aliases, which is what keeps `5 min` a duration. See
+[how it works](/guide/datetime#how-it-works).
+
+`foldLiterals` is exported from the package root so a matcher can be tested in
+isolation, without an engine.
 
 ### ops
 

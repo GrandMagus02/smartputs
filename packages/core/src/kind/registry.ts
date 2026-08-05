@@ -2,6 +2,7 @@ import { KindConflictError, UnknownKindError } from "../errors";
 import type {
   Kind,
   KindId,
+  LiteralMatcher,
   LocalePack,
   OpSignature,
   OpSymbol,
@@ -21,6 +22,12 @@ export interface Registry {
   kinds: Map<KindId, NormalizedKind>;
   ops: Map<string, OpSignature>;
   aliasIndex: Map<string, AliasEntry[]>;
+  /**
+   * Every registered matcher, ordered by kind id then declaration order.
+   * Ordered rather than a Map because the fold tries them all at each token
+   * boundary and ties break on this order — spec §8's determinism clause.
+   */
+  literals: Array<{ kind: KindId; matcher: LiteralMatcher }>;
 }
 
 export function opKey(op: OpSymbol, left: KindId, right: KindId): string {
@@ -74,6 +81,7 @@ export function buildRegistry(
       );
     }
     base.ops.push(...patch.ops);
+    base.literals.push(...patch.literals);
   }
 
   // Pass 3: locale packs.
@@ -135,5 +143,13 @@ export function buildRegistry(
     }
   }
 
-  return { kinds: normalized, ops, aliasIndex };
+  // Pass 6: literal matchers, deterministically ordered.
+  const literals: Array<{ kind: KindId; matcher: LiteralMatcher }> = [];
+  for (const kindId of kindIds) {
+    for (const matcher of normalized.get(kindId)?.literals ?? []) {
+      literals.push({ kind: kindId, matcher });
+    }
+  }
+
+  return { kinds: normalized, ops, aliasIndex, literals };
 }

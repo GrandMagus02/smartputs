@@ -1,10 +1,11 @@
 import type { Registry } from "../kind/registry";
 import { createAnalyzerChain } from "../locale/analyze";
 import { resolveWeight } from "../solve/weights";
-import type { Candidate, Locale, LocalePack, Weights } from "../types";
+import type { Candidate, KindId, Locale, LocalePack, Weights } from "../types";
 
 export interface Resolver {
   resolve(surface: string): Candidate[];
+  literal(m: { kind: KindId; unit: string; surface: string; weight: number }): Candidate;
   nearest(surface: string): string[];
 }
 
@@ -83,6 +84,29 @@ export function createResolver(args: {
           a.kind.localeCompare(b.kind) ||
           a.unit.localeCompare(b.unit),
       );
+    },
+
+    // A literal never went through the analyzer chain — its matcher already
+    // decided what the text means — but it must still be weighted by all four
+    // layers, or `weights: { datetime: 40 }` would silently not apply to a date.
+    literal(m) {
+      const foldedSurface = fold(m.surface);
+      return {
+        kind: m.kind,
+        unit: m.unit,
+        weight:
+          resolveWeight({
+            kind: m.kind,
+            unit: m.unit,
+            surface: foldedSurface,
+            prior: args.registry.kinds.get(m.kind)?.prior ?? 0,
+            layers: args.layers,
+          }) + m.weight,
+        surface: m.surface,
+        foldedSurface,
+        form: m.surface,
+        analyzerWeight: m.weight,
+      };
     },
 
     nearest(surface) {

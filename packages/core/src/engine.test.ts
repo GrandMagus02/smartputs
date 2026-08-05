@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { BUILTIN_KINDS, number } from "@smartput/kinds";
+import { BUILTIN_KINDS, length, number } from "@smartput/kinds";
 import { Decimal } from "./decimal";
 import { createEngine } from "./engine";
 import {
@@ -8,9 +8,11 @@ import {
   MissingRateError,
   NoCandidateError,
 } from "./errors";
+import { createFacades } from "./facade/index";
 import { defineKind } from "./kind/define";
 import { defineLocale } from "./locale/define";
 import en from "./locale/en";
+import type { LiteralMatcher } from "./types";
 
 const engine = createEngine({ locales: [en], kinds: BUILTIN_KINDS });
 
@@ -368,4 +370,81 @@ test("rounding does not perturb an ordinary kind's formatted output", () => {
 test("a result carries no ratesAsOf when no rates were supplied", () => {
   const e = createEngine({ locales: [en], kinds: BUILTIN_KINDS });
   expect(e.evaluate("1 km").meta.ratesAsOf).toBeUndefined();
+});
+
+/** Echoes the clock and zone it was handed, so the wiring is observable. */
+const clockProbe: LiteralMatcher = (input, offset, ctx) =>
+  input.startsWith("now", offset)
+    ? {
+        kind: "probe",
+        unit: ctx.timeZone === "UTC" ? "UTC" : "other",
+        canonical: new Decimal(ctx.now),
+        length: 3,
+      }
+    : null;
+
+/** Refuses anything whose letters are all unit aliases — the R4 accept-gate. */
+const gated: LiteralMatcher = (input, offset, ctx) => {
+  const rest = input.slice(offset);
+  const m = /^\d+ [a-z]+/.exec(rest);
+  if (m === null) return null;
+  const word = m[0].split(" ")[1] as string;
+  if (ctx.isUnitAlias(word)) return null;
+  return { kind: "probe", unit: "UTC", canonical: new Decimal(1), length: m[0].length };
+};
+
+const probe = (literals: LiteralMatcher[]) =>
+  defineKind({
+    id: "probe",
+    value: { mode: "opaque", units: { UTC: ["utc"], other: ["other"] } },
+    literals,
+    format: (v) => v.canonical.toFixed(),
+  });
+
+test("EngineOptions.now is what the matcher sees", () => {
+  const engine = createEngine({
+    locales: [en],
+    kinds: [number, probe([clockProbe])],
+    now: () => 1_768_478_400_000,
+    timeZone: "UTC",
+  });
+  expect(engine.evaluate("now").value.canonical.toString()).toBe("1768478400000");
+  expect(engine.evaluate("now").value.unit).toBe("UTC");
+});
+
+test("EvalOptions.timeZone overrides the engine's", () => {
+  const engine = createEngine({
+    locales: [en],
+    kinds: [number, probe([clockProbe])],
+    now: () => 1_768_478_400_000,
+    timeZone: "UTC",
+  });
+  expect(engine.evaluate("now", { timeZone: "Asia/Tokyo" }).value.unit).toBe("other");
+});
+
+test("isUnitAlias reports what the registry indexed", () => {
+  const engine = createEngine({
+    locales: [en],
+    kinds: [number, length, probe([gated])],
+    now: () => 0,
+    timeZone: "UTC",
+  });
+  // "10 km" — km is a length alias, so the matcher declines and the ordinary
+  // reading survives.
+  expect(engine.evaluate("10 km").kind).toBe("length");
+  // "10 zz" — not an alias, so the matcher claims it.
+  expect(engine.evaluate("10 zz").kind).toBe("probe");
+});
+
+test("createFacades skips opaque kinds rather than generating a broken class", () => {
+  const facades = createFacades({ kinds: [number, length, probe([])], locale: en });
+  expect(Object.keys(facades).sort()).toEqual(["length", "number"]);
+});
+
+test("completion offers nothing for an opaque kind", () => {
+  const engine = createEngine({
+    locales: [en],
+    kinds: [number, length, probe([])],
+  });
+  expect(engine.complete("1 ut").every((c) => c.kind !== "probe")).toBe(true);
 });

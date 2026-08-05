@@ -14,7 +14,7 @@ Each milestone is independently shippable and gets its own implementation plan.
 | **M2.5** | `Engine.complete()`, prefix completion, `typical` bands, `display` on every unit, consistent word-form output. | **Shipped** |
 | **M3** | Money kind, `@smartput/rates`, ECB provider, `createLiveEngine`. | **Shipped** |
 | **Word math** | `NumeralParser`, `cardinalNumerals`, numeral folding, word operators — `"twenty two kg"`, `"ten km plus five km"`. | **Shipped** |
-| **M4** | `@smartput/datetime`: datetime kind, chrono bridge, Temporal ops, timezones. | Planned |
+| **M4** | `@smartput/datetime`: datetime kind, chrono bridge, Temporal ops, timezones. Core's literal-matcher seam and opaque-kind units. | **Shipped** |
 | **M5** | `@smartput/color`, the Ukrainian locale across every package, `defineLocalePack`, analyzer helpers, `assertLocaleContract`. | Planned |
 | **M6** | `@smartput/http`, meta-package, npm release. | Planned |
 
@@ -29,6 +29,14 @@ number/op tokens run on every `evaluate()` call — see
 [Stage 2b — Fold](/guide/pipeline). `"twenty two kg"` and `"ten km plus five
 km"` evaluate the same as their digit-and-symbol equivalents.
 
+M4 shipped `@smartput/datetime` — see [Dates and time zones](/guide/datetime).
+It cost core one new capability and no date-specific code: a kind may now supply
+[literal matchers](/api/define-kind#literals), which claim a run of the source
+string and return a finished `Value`, and an opaque kind's `units` are indexed,
+weighted and usable as `in` targets like any other kind's. `today + 3 d` and
+`3pm in tokyo` fall out of those two additions plus four op signatures declared
+in the plugin.
+
 ## Packages
 
 Shipped:
@@ -36,12 +44,12 @@ Shipped:
 ```
 @smartput/core        registry, lexer, parser, solver, evaluator, ratio kinds
 @smartput/rates       money kind, RateSnapshot, ECB provider, async facade
+@smartput/datetime    datetime kind, chrono bridge, Temporal ops, time zones
 ```
 
 Planned:
 
 ```
-@smartput/datetime    datetime kind, chrono bridge
 @smartput/color       @urcolor adapter → color kind
 @smartput/http        Hono on Bun, REST + OpenAPI
 smartputs             meta: core + datetime + rates, en preloaded
@@ -54,7 +62,7 @@ Every package that defines a kind ships that kind's translations beside it under
 | --- | --- |
 | `core` | `decimal.js` — and nothing else |
 | `*/locale/*` | none — descriptors only |
-| `datetime` | `temporal-polyfill`, `chrono-node` |
+| `datetime` | `temporal-polyfill`, `chrono-node`, `@smartput/core`, `decimal.js` |
 | `rates` | `decimal.js`, `@smartput/core`; provider adapters use `fetch` only |
 | `color` | `@urcolor/core`, `@urcolor/i18n` (peer) |
 | `http` | `hono` (peer), `@smartput/core` |
@@ -64,9 +72,10 @@ whose `dependencies` gain an entry the map does not list fails CI, and so does a
 new package the map does not mention at all.
 
 `temporal-polyfill` and `chrono-node` together are several times the size of the
-engine, so datetime moves out rather than taxing every consumer. That split is
+engine, so datetime moved out rather than taxing every consumer. That split was
 only possible because datetime is an ordinary plugin — which is the strongest
-available evidence that the extension seam is real.
+available evidence that the extension seam is real, and M4 is where it was
+tested.
 
 ## Deliberately rejected
 

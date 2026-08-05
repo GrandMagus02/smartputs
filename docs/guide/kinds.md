@@ -38,6 +38,7 @@ Two more kinds ship but are **not** in `BUILTIN_KINDS`:
 | --- | --- | --- |
 | `measure` | `@smartput/kinds` | Typographic units — `inch` `mm` `cm` `pt` `pc` `px`. Its `mm`/`cm` aliases collide with `length`, so registering it by default would make `10 cm` ambiguous for everyone. Import it by name. |
 | `money` | [`@smartput/rates`](/api/rates) | Its unit ratios are not constants — they come from a rate table you inject. A currency with no rate behind it can only ever raise `MissingRateError`. |
+| `datetime` | [`@smartput/datetime`](/guide/datetime) | `temporal-polyfill` and `chrono-node` together are several times the size of the engine. An engine that never sees a date should not carry them. |
 
 `duration` lives in `@smartput/kinds` rather than in `@smartput/datetime`
 because it is a pure ratio kind — canonical seconds, no calendar.
@@ -96,10 +97,19 @@ For color, datetime, and anything that is not a scalar:
 ```ts
 type OpaqueSpec = {
   mode: "opaque";
-  parse: (token: string, ctx: EvalCtx) => unknown | null;   // null = not mine
-  equals: (a: unknown, b: unknown) => boolean;
+  units?: Record<string, UnitLexeme | string[]>;            // labels, not ratios
+  parse?: (token: string, ctx: EvalCtx) => unknown | null;  // null = not mine
+  equals?: (a: unknown, b: unknown) => boolean;
 };
 ```
+
+An opaque unit is a label rather than a position on a ratio line —
+[`datetime`](/guide/datetime)'s units are IANA time zones — but it is indexed,
+weighted, chosen by the solver and usable as an `in` target like any other. No
+ops are generated for an opaque kind, so every operation it supports is an
+explicit signature, and recognition of anything not shaped like
+`<number><unit-word>` goes through a
+[literal matcher](/api/define-kind#literals).
 
 ## The value model
 

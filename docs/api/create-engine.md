@@ -37,6 +37,8 @@ interface EngineOptions {
   formatPrecision?: number;
   rates?: RateLookup;
   rounding?: Decimal.Rounding;
+  now?: () => number;
+  timeZone?: string;
 }
 ```
 
@@ -161,6 +163,33 @@ Every `Result` from an engine with `rates` carries `meta.ratesAsOf`. See
 Rounding mode for money formatting. Default `Decimal.ROUND_HALF_EVEN`. It
 applies at the currency's minor unit and nowhere else — the AST keeps full
 precision, so `(1 usd / 3) * 3` is a dollar.
+
+### now
+
+Injectable clock, epoch **milliseconds**. Default `Date.now`. Handed to every
+[literal matcher](/api/define-kind#literals) as `MatchCtx.now`, which is what
+makes `"today"` and `"next week monday"` testable at all.
+
+Milliseconds rather than a `Temporal.Instant` so core keeps its single runtime
+dependency — [`@smartput/datetime`](/guide/datetime) does the conversion.
+
+```ts
+createEngine({
+  locales: [en],
+  kinds: [...BUILTIN_KINDS, datetime],
+  now: () => 1_768_478_400_000, // 2026-01-15T12:00:00Z
+  timeZone: "UTC",
+});
+```
+
+### timeZone
+
+IANA time zone every literal matcher resolves against, as `MatchCtx.timeZone`.
+Defaults to the host zone (`Intl.DateTimeFormat().resolvedOptions().timeZone`).
+
+It is not only a display setting: it decides what a bare `3pm` *is*.
+`EvalOptions.timeZone` overrides it per call, which is what a server handling
+requests from many places needs.
 
 ## Immutability
 
