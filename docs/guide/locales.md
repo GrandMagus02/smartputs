@@ -16,7 +16,7 @@ interface Locale {
   numberFormat: "intl" | NumberFormatSpec;
   segment?: (run: string) => string[];         // default: Intl.Segmenter
   analyze?: Analyzer[];                        // ordered chain, surface → lemmas
-  numerals?: (word: string) => Decimal | null; // "twenty", "двадцять", 二十, ٢٠
+  numerals?: NumeralParser;                    // "twenty", "двадцять", 二十, ٢٠
   keywords: Partial<Record<Keyword, string[]>>;
   weights?: Weights;
 }
@@ -126,6 +126,30 @@ while `1 kg + 500 g` formats as `1.5 kilograms`. Every built-in unit whose
 written-out form parses back declares `display`, so `2 km in m` formats as
 `2,000 metres`; the ones that do not — `m²`, `m/s`, `°C` — keep their symbol,
 because a display form the parser rejects is a dead end for completion.
+
+## Spelled-out numbers
+
+`numerals` is offered a run of consecutive words and claims a prefix of it, so a
+number written across several words — `"one thousand thirty two"` — is one
+match rather than four. `cardinalNumerals()` builds one from three tables:
+
+```ts
+numerals: cardinalNumerals({
+  units: { zero: 0, one: 1, /* … */ nineteen: 19 },
+  tens: { twenty: 20, /* … */ ninety: 90 },
+  scales: { hundred: 100, thousand: 1e3, million: 1e6, billion: 1e9 },
+  // "and" is a numeral connector here, not an operator. A locale cannot have
+  // it both ways, and "two hundred and five" is the commoner input.
+  connectors: ["and"],
+}),
+```
+
+Matching is greedy and `consumed` reports how much was claimed, so a trailing
+connector is never eaten: `["five","and","kg"]` returns `{ value: 5, consumed: 1 }`.
+
+English cardinals do not inflect, so the analyzer chain does not run on them.
+
+Full reference: [`numerals`](/api/define-locale#numerals).
 
 ## Number grammar
 
