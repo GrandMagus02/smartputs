@@ -30,21 +30,52 @@ export function trailingFragment(input: string): Fragment | null {
   };
 }
 
+/** Matches MAX_RUN in parse/numerals.ts, for the same reason. */
+const MAX_NUMERAL_WORDS = 32;
+
 export function leadingCount(
   input: string,
   upto: number,
   locale: Locale,
 ): Decimal | null {
-  const match = COUNT_RUN.exec(input.slice(0, upto));
-  if (match === null) return null;
-  const run = match[0].trim();
+  const head = input.slice(0, upto);
+  const match = COUNT_RUN.exec(head);
 
-  // Try the whole run first: a locale whose group separator is a space needs
-  // "1 500,5" kept intact. Fall back to the last whitespace-delimited token,
-  // which is what strips a binary operator's minus in "10 kg - 5 mil".
-  const whole = parseNumber(run, locale);
-  if (whole !== null) return whole;
+  if (match !== null) {
+    const run = match[0].trim();
 
-  const last = run.split(/\s+/).pop();
-  return last === undefined ? null : parseNumber(last, locale);
+    // Try the whole run first: a locale whose group separator is a space needs
+    // "1 500,5" kept intact. Fall back to the last whitespace-delimited token,
+    // which is what strips a binary operator's minus in "10 kg - 5 mil".
+    const whole = parseNumber(run, locale);
+    if (whole !== null) return whole;
+
+    const last = run.split(/\s+/).pop();
+    const parsed = last === undefined ? null : parseNumber(last, locale);
+    if (parsed !== null) return parsed;
+  }
+
+  return spelledCount(head, locale);
+}
+
+/**
+ * `NumeralParser` consumes from the front, but completion needs the count that
+ * ends where the fragment begins. So try successively shorter suffixes of the
+ * preceding words, longest first, and accept the first match that claims the
+ * whole suffix. Hyphens split like whitespace so "twenty-two k" reads as 22.
+ */
+function spelledCount(head: string, locale: Locale): Decimal | null {
+  const numerals = locale.numerals;
+  if (numerals === undefined) return null;
+
+  const words = head.split(/[\s-]+/).filter((w) => w.length > 0);
+  const start = Math.max(0, words.length - MAX_NUMERAL_WORDS);
+
+  for (let from = start; from < words.length; from += 1) {
+    const slice = words.slice(from);
+    const match = numerals(slice);
+    if (match !== null && match.consumed === slice.length) return match.value;
+  }
+
+  return null;
 }
