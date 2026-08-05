@@ -25,3 +25,14 @@
 1 kib in b	datasize	1024	1,024 bytes
 3 m * 4 m	area	12	12m²
 100 km / 2 h	speed	13.88888888888888888888888889	13.888888888888888888888889m/s
+# Word math: spelled-out cardinals and word operators.
+one kg	mass	1000	1 kilogram
+one thousand thirty two	number	1032	1,032
+two hundred and five g	mass	205	205 grams
+twenty-two km	length	22000	22 kilometres
+ten km plus five km	length	15000	15 kilometres
+twenty divided by four	number	5	5
+minus five kg	mass	-5000	-5 kilograms
+1.5 million km	length	1500000000	1,500,000 kilometres
+# A spaced dash is subtraction, not a hyphenated numeral.
+twenty - two	number	18	18
