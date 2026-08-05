@@ -1,5 +1,15 @@
 import type { Value } from "@smartput/core";
-import { type Decimal, defineKind, deriveValue } from "@smartput/core";
+import {
+  aliasesFor,
+  type Decimal,
+  decimalRatios,
+  defineKind,
+  deriveValue,
+} from "@smartput/core";
+import { VOLUME_UNITS, type VolumeUnit } from "./units";
+
+export type { VolumeUnit } from "./units";
+export { VOLUME_UNITS } from "./units";
 
 /**
  * A derived kind's result is a different kind and unit than either operand,
@@ -9,37 +19,39 @@ import { type Decimal, defineKind, deriveValue } from "@smartput/core";
 const make = (source: Value, kind: string, unit: string, canonical: Decimal): Value =>
   deriveValue(source, canonical, { kind, unit });
 
+const alias = (unit: VolumeUnit) => aliasesFor(VOLUME_UNITS, unit);
+
 /** Canonical litres. Produced by multiplying an area by a length. */
 export const volume = defineKind({
   id: "volume",
   value: {
     mode: "ratio",
-    canonical: "l",
-    units: { l: 1, ml: 0.001, m3: 1000, gal: 3.785411784, pint: 0.473176473 },
+    canonical: VOLUME_UNITS.canonical,
+    units: decimalRatios(VOLUME_UNITS),
   },
   lexicon: {
     l: {
-      aliases: ["l", "litre", "liter"],
+      aliases: alias("l"),
       symbol: "l",
       display: { one: "litre", other: "litres" },
       typical: [0.1, 100],
     },
     ml: {
-      aliases: ["ml", "millilitre", "milliliter"],
+      aliases: alias("ml"),
       symbol: "ml",
       display: { one: "millilitre", other: "millilitres" },
       typical: [1, 2000],
     },
     // m3 has no parseable word form ("cubic metres" is rejected), so no display.
-    m3: { aliases: ["m3"], symbol: "m³", typical: [0.1, 1000] },
+    m3: { aliases: alias("m3"), symbol: "m³", typical: [0.1, 1000] },
     gal: {
-      aliases: ["gal", "gallon"],
+      aliases: alias("gal"),
       symbol: "gal",
       display: { one: "gallon", other: "gallons" },
       typical: [0.1, 100],
     },
     pint: {
-      aliases: ["pint"],
+      aliases: alias("pint"),
       symbol: "pint",
       display: { one: "pint", other: "pints" },
       typical: [1, 20],

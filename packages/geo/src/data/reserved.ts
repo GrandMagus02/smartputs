@@ -6,14 +6,14 @@
 // and the literal fold is destructive, so that failure has no second chance.
 // Regenerate after any of these packages changes what it recognises.
 //
-// sha256 body                  4d4674f7580e9452c154ef78c27714ccd5dc179c62d0cefb03a79654ccd31f3f
+// sha256 body                  885bee30772c5b746230fa139d0f6554bbeff0f334ce3c94fde03ba2cb59b26f
 //
-// 804 derived words. What each source contributed, before overlap:
+// 817 derived words. What each source contributed, before overlap:
 //   core locale/en keywords         11
 //   number NUMBER_WORDS             35
 //   Intl months and weekdays        38
 //   chrono en.casual patterns     1027
-//   kinds BUILTIN_KINDS aliases    338
+//   kinds BUILTIN_KINDS aliases    393
 //   geo COUNTRIES short codes      508
 //
 // Plus 1 no source produces; each says below why it is here.
@@ -139,6 +139,7 @@ export const RESERVED_WORDS: ReadonlySet<string> = new Set([
   "celsius",
   "centigrade",
   "centimeter",
+  "centimeters",
   "centimetre",
   "centimetres",
   "cf",
@@ -374,6 +375,7 @@ export const RESERVED_WORDS: ReadonlySet<string> = new Set([
   "kb",
   "ke",
   "kelvin",
+  "kelvins",
   "ken",
   "kg",
   "kgz",
@@ -389,8 +391,10 @@ export const RESERVED_WORDS: ReadonlySet<string> = new Set([
   "kilogram",
   "kilograms",
   "kilometer",
+  "kilometers",
   "kilometre",
   "kilometres",
+  "kilos",
   "kir",
   "km",
   "kmh",
@@ -422,6 +426,7 @@ export const RESERVED_WORDS: ReadonlySet<string> = new Set([
   "li",
   "lie",
   "liter",
+  "liters",
   "litre",
   "litres",
   "lk",
@@ -456,6 +461,7 @@ export const RESERVED_WORDS: ReadonlySet<string> = new Set([
   "megabyte",
   "megabytes",
   "meter",
+  "meters",
   "metre",
   "metres",
   "mex",
@@ -472,9 +478,11 @@ export const RESERVED_WORDS: ReadonlySet<string> = new Set([
   "milligram",
   "milligrams",
   "milliliter",
+  "milliliters",
   "millilitre",
   "millilitres",
   "millimeter",
+  "millimeters",
   "millimetre",
   "millimetres",
   "million",
@@ -581,9 +589,11 @@ export const RESERVED_WORDS: ReadonlySet<string> = new Set([
   "past",
   "pcn",
   "pct",
+  "pcts",
   "pe",
   "per",
   "percent",
+  "percents",
   "pf",
   "pg",
   "ph",
@@ -625,6 +635,7 @@ export const RESERVED_WORDS: ReadonlySet<string> = new Set([
   "reu",
   "rev",
   "revolution",
+  "revolutions",
   "ro",
   "rou",
   "roughly",
@@ -647,6 +658,7 @@ export const RESERVED_WORDS: ReadonlySet<string> = new Set([
   "sec",
   "second",
   "seconds",
+  "secs",
   "sen",
   "sep",
   "sept",
@@ -814,6 +826,7 @@ export const RESERVED_WORDS: ReadonlySet<string> = new Set([
   "wf",
   "within",
   "wk",
+  "wks",
   "wlf",
   "ws",
   "wsm",

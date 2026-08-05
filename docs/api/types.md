@@ -513,7 +513,8 @@ interface Quantity {
 }
 
 interface QuantitySnapshot {
-  readonly value: string;   // decimal string — survives JSON intact
+  readonly value: string | number;  // toJSON emits a decimal string; a
+                                    // micro-path ValueInstance carries a double
   readonly unit: string;
   readonly meta?: Readonly<Record<string, unknown>>;
 }

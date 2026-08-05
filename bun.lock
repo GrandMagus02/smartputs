@@ -32,6 +32,7 @@
       "version": "0.0.0",
       "dependencies": {
         "@smartput/core": "workspace:*",
+        "@smartput/validate": "workspace:*",
       },
       "devDependencies": {
         "@smartput/kinds": "workspace:*",
@@ -42,6 +43,7 @@
       "version": "0.0.0",
       "dependencies": {
         "@smartput/core": "workspace:*",
+        "@smartput/validate": "workspace:*",
       },
       "devDependencies": {
         "@smartput/kinds": "workspace:*",
@@ -55,6 +57,7 @@
       },
       "devDependencies": {
         "@smartput/kinds": "workspace:*",
+        "@smartput/validate": "workspace:*",
       },
     },
     "packages/datasize": {
@@ -62,6 +65,7 @@
       "version": "0.0.0",
       "dependencies": {
         "@smartput/core": "workspace:*",
+        "@smartput/validate": "workspace:*",
       },
       "devDependencies": {
         "@smartput/kinds": "workspace:*",
@@ -86,6 +90,7 @@
       "version": "0.0.0",
       "dependencies": {
         "@smartput/core": "workspace:*",
+        "@smartput/validate": "workspace:*",
       },
     },
     "packages/geo": {
@@ -127,6 +132,7 @@
       "version": "0.0.0",
       "dependencies": {
         "@smartput/core": "workspace:*",
+        "@smartput/validate": "workspace:*",
       },
     },
     "packages/mass": {
@@ -134,6 +140,7 @@
       "version": "0.0.0",
       "dependencies": {
         "@smartput/core": "workspace:*",
+        "@smartput/validate": "workspace:*",
       },
     },
     "packages/math": {
@@ -150,6 +157,7 @@
       "version": "0.0.0",
       "dependencies": {
         "@smartput/core": "workspace:*",
+        "@smartput/validate": "workspace:*",
       },
       "devDependencies": {
         "@smartput/kinds": "workspace:*",
@@ -160,6 +168,7 @@
       "version": "0.0.0",
       "dependencies": {
         "@smartput/core": "workspace:*",
+        "@smartput/validate": "workspace:*",
       },
     },
     "packages/percent": {
@@ -167,6 +176,7 @@
       "version": "0.0.0",
       "dependencies": {
         "@smartput/core": "workspace:*",
+        "@smartput/validate": "workspace:*",
       },
       "devDependencies": {
         "@smartput/kinds": "workspace:*",
@@ -189,6 +199,7 @@
       "version": "0.0.0",
       "dependencies": {
         "@smartput/core": "workspace:*",
+        "@smartput/validate": "workspace:*",
       },
       "devDependencies": {
         "@smartput/kinds": "workspace:*",
@@ -199,16 +210,22 @@
       "version": "0.0.0",
       "dependencies": {
         "@smartput/core": "workspace:*",
+        "@smartput/validate": "workspace:*",
       },
       "devDependencies": {
         "@smartput/kinds": "workspace:*",
       },
+    },
+    "packages/validate": {
+      "name": "@smartput/validate",
+      "version": "0.0.0",
     },
     "packages/volume": {
       "name": "@smartput/volume",
       "version": "0.0.0",
       "dependencies": {
         "@smartput/core": "workspace:*",
+        "@smartput/validate": "workspace:*",
       },
       "devDependencies": {
         "@smartput/kinds": "workspace:*",
@@ -513,6 +530,8 @@
     "@smartput/speed": ["@smartput/speed@workspace:packages/speed"],
 
     "@smartput/temperature": ["@smartput/temperature@workspace:packages/temperature"],
+
+    "@smartput/validate": ["@smartput/validate@workspace:packages/validate"],
 
     "@smartput/volume": ["@smartput/volume@workspace:packages/volume"],
 

@@ -2,10 +2,23 @@
   "name": "@smartput/geo",
   "version": "0.0.0",
   "type": "module",
+  "sideEffects": false,
   "exports": {
-    ".": "./src/index.ts",
-    "./cities": "./src/cities.ts",
-    "./providers": "./src/providers/index.ts"
+    ".": {
+      "bun": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./cities": {
+      "bun": "./src/cities.ts",
+      "types": "./dist/cities.d.ts",
+      "default": "./dist/cities.js"
+    },
+    "./providers": {
+      "bun": "./src/providers/index.ts",
+      "types": "./dist/providers/index.d.ts",
+      "default": "./dist/providers/index.js"
+    }
   },
   "dependencies": {
     "@smartput/core": "workspace:*",

@@ -1,25 +1,25 @@
-import { Decimal, defineKind } from "@smartput/core";
+import { aliasesFor, decimalRatios, defineKind } from "@smartput/core";
+import { ANGLE_UNITS, type AngleUnit } from "./units";
 
-// A literal rather than a computed arctangent: decimal.js's trigonometric
-// precision depends on its own config, and this value must not drift with it.
-// 30 significant digits, well past the configured 28.
-const PI = new Decimal("3.14159265358979323846264338328");
+export type { AngleUnit } from "./units";
+export { ANGLE_UNITS } from "./units";
+
+const alias = (unit: AngleUnit) => aliasesFor(ANGLE_UNITS, unit);
 
 export const angle = defineKind({
   id: "angle",
   value: {
     mode: "ratio",
-    canonical: "rad",
-    units: {
-      rad: 1,
-      deg: PI.div(180),
-      grad: PI.div(200),
-      turn: PI.times(2),
-    },
+    canonical: ANGLE_UNITS.canonical,
+    units: decimalRatios(ANGLE_UNITS),
   },
+  // Aliases are derived, never restated: `units.ts` is the one place a new
+  // alias is added, and it reaches both the engine and the micro path.
+  // `symbol`, `display` and `typical` stay here — the micro path has no use
+  // for any of them and should not carry their bytes.
   lexicon: {
     rad: {
-      aliases: ["rad", "radian"],
+      aliases: alias("rad"),
       symbol: "rad",
       display: { one: "radian", other: "radians" },
       // A full circle is 2pi, and nobody writes an angle in radians much past
@@ -27,19 +27,19 @@ export const angle = defineKind({
       typical: [0.1, 7],
     },
     deg: {
-      aliases: ["deg", "degree"],
+      aliases: alias("deg"),
       symbol: "deg",
       display: { one: "degree", other: "degrees" },
       typical: [1, 360],
     },
     grad: {
-      aliases: ["grad", "gradian", "gon"],
+      aliases: alias("grad"),
       symbol: "grad",
       display: { one: "gradian", other: "gradians" },
       typical: [1, 400],
     },
     turn: {
-      aliases: ["turn", "rev", "revolution"],
+      aliases: alias("turn"),
       symbol: "turn",
       display: { one: "turn", other: "turns" },
       typical: [0.1, 10],

@@ -8,14 +8,16 @@
   ],
   "scripts": {
     "test": "bun test",
-    "docs:dev": "bun run --cwd docs dev",
-    "docs:build": "bun run --cwd docs build",
+    "build": "bun run scripts/build.ts",
+    "docs:dev": "bun run build && bun run --cwd docs dev",
+    "docs:build": "bun run build && bun run --cwd docs build",
     "docs:preview": "bun run --cwd docs preview",
     "lint": "biome check .",
     "format": "biome format --write .",
     "typecheck": "bun run scripts/typecheck.ts",
     "check-deps": "bun run scripts/check-deps.ts",
-    "check": "bun run lint && bun run typecheck && bun run check-deps && bun test"
+    "check-size": "bun run scripts/check-size.ts",
+    "check": "bun run lint && bun run typecheck && bun run check-deps && bun test && bun run build && bun run check-size"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.0.0",

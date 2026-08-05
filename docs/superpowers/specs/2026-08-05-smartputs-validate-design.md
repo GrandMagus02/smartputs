@@ -121,9 +121,23 @@ Excluded, with reasons:
 | --- | --- |
 | `money` (`@smartput/rates`) | Unit ratios come from an injected live rate table. A micro path with no engine has nowhere to inject it, and a stale hard-coded FX table is worse than no feature. |
 | `datetime` (`@smartput/datetime`) | Opaque kind. Its "units" are IANA zones and its recognition is `chrono-node`. Nothing here applies. |
-| `geo` | Not shipped. |
+| `geo` (`@smartput/geo`) | Opaque kind, like `datetime`. Its "units" are ISO 3166-1 country codes and its recognition is a trie over a vendored gazetteer, so there is no ratio to store and nothing to convert between. Amended 2026-08-06 — this row said "Not shipped", which stopped being a reason when M6 landed. |
 
 ### A collision that stops existing
+
+`@smartput/geo` still takes the parts of this spec that are not about ratios,
+because they are about packaging rather than about units: `sideEffects: false`,
+three-condition subpath exports for `.`, `./cities` and `./providers`, and a
+`check-size` row. `check-deps.ts` decides what a package owes by asking the
+module whether it exports a kind whose `value.mode` is `"ratio"`, so geo is
+exempt from `./units`, `./validate` and `./class` by the same test that requires
+them of `angle` — not by an entry in a list someone has to remember to write.
+
+The `check-size` row it does get enforces a claim geo already made in a comment:
+T1 city data lives behind `@smartput/geo/cities` "so that this module's import
+graph never reaches them". Measured, T1 is 1,011,415 B against the root's
+128,435 B. V8's rule applies to that sentence exactly as it applies to a byte
+budget — a claim nothing measures is a claim that stops being true quietly.
 
 `measure` is excluded from `BUILTIN_KINDS` because its `mm`/`cm` aliases collide
 with `length`, making `10 cm` ambiguous for every engine consumer.
@@ -536,7 +550,32 @@ export const Angle = /*#__PURE__*/ createValueClass(ANGLE_UNITS, "angle");
 ```
 
 One factory call per kind (V6). The `/*#__PURE__*/` annotation is what lets an
-unused kind's class drop out of a barrel import.
+unused kind's class drop out of a barrel import — enforced by a `check-size`
+row against `@smartput/kinds/class`, not by this sentence (§13's 2026-08-06
+amendment).
+
+A kind that needs more than the table says passes it as the third argument:
+
+```ts
+export const Number = /*#__PURE__*/ createValueClass(NUMBER_UNITS, "number", {
+  defaults: { defaultUnit: "one" },   // §7.1: a bare "30" is the input
+});
+```
+
+`defaults` are applied *after* the caller's own options, exactly as the free
+wrappers apply them, so the two paths cannot answer the same string differently.
+`delta` is temperature's paired class (§7.4). Nothing else is configurable: what
+methods exist is still decided by the table.
+
+Instance context — `dpi`, for `measure` — is the third *constructor* argument
+and rides along through `as`, the arithmetic and `valueOf`, so a document's dpi
+survives a chain rather than reverting at the first conversion:
+
+```ts
+new Measure(10, "px", { dpi: 144 }).to("mm");        // 1.7638...
+Measure.parse("10px", { ctx: { dpi: 144 } });
+Measure.parse("10px").withDpi(144).as("inch");
+```
 
 ## 9. Fuzzy resolution
 
@@ -631,8 +670,23 @@ the precedent.
 "compact `toString`" a contract rather than a preference.
 
 **Conversion identity.** For every kind and every pair of units,
-`to(to(v, a), b)` returns to within `1e-9` relative of `v`. Catches a transposed
-ratio in any of the twelve tables.
+`to(to(v, a), b)` returns to within `1e-9` relative of `v`.
+
+> Amendment, 2026-08-06 — this does **not** catch a transposed ratio, as this
+> section claimed. A→B→A multiplies and divides by the same number, so a wrong
+> ratio cancels itself out and the round trip is exact. Neither does
+> cross-path agreement: both paths read the same string out of the same table,
+> so a truncated constant agrees with itself perfectly. `speed.knot` shipped as
+> 1852/3600 truncated to six decimals — 8.6e-7 low, `1 knot in kph` = 1.8519984
+> — through 1133 passing tests. The missing test compares each ratio against an
+> **external authority**: `packages/kinds/src/ratios.test.ts` re-derives all
+> sixty constants from their definitions (an inch is 25.4 mm exactly, a
+> nautical mile 1852 m, an acre 4840 square yards) with an independent
+> `Decimal` at precision 60, and requires each stored string to be that value
+> correctly rounded to the digit count it claims *and*, when the value does not
+> terminate, to carry at least the engine's 28 digits. The second half is the
+> one that catches truncation: `"0.514444"` is a correct rounding — to six
+> digits, and six digits is the bug.
 
 **Cross-path agreement.** For every kind, a sample of inputs must produce the
 same canonical magnitude through the micro path and through `createEngine()`,
@@ -645,7 +699,14 @@ descriptor's `units` have identical key sets; every lexicon alias appears in
 `alias`; every `alias` value is a real unit. Extends
 `packages/kinds/src/surface.test.ts`.
 
-**Immutability suite.** Shared, run against every class (§8).
+**Immutability suite.** Shared, run against every class (§8). Lives in
+`packages/kinds/src/contract.test.ts`, driven off the same thirteen-row table as
+the contract test: frozen instances, mutation throwing, no method returning
+`this`, the table deciding which methods exist, and — the one that was missing
+in every sense — the class and the free function agreeing input for input. Ten
+of the thirteen classes were instantiated by no test at all until this landed,
+which is how `Number.parse("30")` shipped throwing on the input §7.1 names as
+the reason the kind exists.
 
 **Size budget.** §13.
 
@@ -676,6 +737,19 @@ The standing target — **`@smartput/core` ships one runtime dependency** — is
 untouched. Core does not import `@smartput/validate`; the dependency runs the
 other way.
 
+> Amendment, 2026-08-06 — this was violated for a milestone and is now
+> enforced. `@smartput/core` declared `@smartput/validate` in `dependencies` so
+> that `kind/from-table.ts` could `import type { UnitTable }`, and
+> `check-deps.ts`'s allowlist was widened to permit it. An `import type`
+> compiles away but survives into the emitted `.d.ts`, so the published package
+> named a dependency it did not otherwise have. Core now declares the shape it
+> reads structurally, as `RatioTable`, which every real `UnitTable` satisfies;
+> `@smartput/validate` is a devDependency of core, used by one test that
+> asserts exactly that assignability. `check-deps.ts` gained the check that was
+> missing in the other direction: every `@smartput/*` package a package's
+> shipping source imports must appear in its own `dependencies`. A manifest
+> allowlist alone only says what a package *may* depend on.
+
 ### Budgets
 
 `scripts/check-size.ts` builds each entry with `bun build --minify`, measures
@@ -686,18 +760,206 @@ The shared parser is paid once; per-kind cost is the table. Rough model:
 
 | Entry | Minified | Gzip |
 | --- | --- | --- |
-| `@smartput/number/validate` — `parseNumber` only | < 350 B | < 220 B |
-| `@smartput/angle/validate` — `parseAngle` only | < 600 B | < 350 B |
-| `@smartput/angle/validate` — `+ addAngle`, `toAngle` | < 900 B | < 500 B |
-| `@smartput/angle/class` | < 1.4 KB | < 700 B |
-| `@smartput/datasize/validate` (9 units, widest table) | < 800 B | < 450 B |
+| `@smartput/number/validate` — `parseNumber` only | < 1.3 KB | < 750 B |
+| `@smartput/angle/validate` — `parseAngle` only | < 1.3 KB | < 750 B |
+| `@smartput/angle/validate` — `+ addAngle`, `toAngle` | < 2.3 KB | < 1.1 KB |
+| `@smartput/angle/class` | < 4.25 KB | < 1.8 KB |
+| `@smartput/datasize/validate` (9 units, widest table) | < 1.5 KB | < 850 B |
 | each additional kind at the same entry | < 400 B | < 250 B |
+
+> Both rows above are superseded by the 2026-08-06 amendment below: the
+> marginal-kind figure is not a constant, and `datasize` is not the widest
+> table.
 
 **These numbers are budgets, not measurements.** The first implementation task
 after the build lands is to measure the real figures and commit them; if a
 budget proves wrong, the spec is amended with the measured value and the reason,
 not quietly raised. A budget nobody can hit was a bad budget; a budget that
 drifts upward silently is a broken feature.
+
+#### Amendment, 2026-08-06 — the angle rows, measured
+
+The three `angle` rows above were revised upward when `angle` landed. What they
+originally said, and what `scripts/check-size.ts` actually measures:
+
+| Entry | Was | Measured | Committed budget |
+| --- | --- | --- | --- |
+| `parseAngle` only | < 600 B / < 350 B | 1270 B / 722 B | 1300 B / 750 B |
+| `+ addAngle`, `toAngle` | < 900 B / < 500 B | 2254 B / 1065 B | 2300 B / 1100 B |
+| `@smartput/angle/class` | < 1.4 KB / < 700 B | 4218 B / 1759 B | 4250 B / 1800 B |
+
+The reason is not the table. Measured on their own:
+
+| Piece | Minified | Gzip |
+| --- | --- | --- |
+| shared `parse` (no table) | 883 B | 521 B |
+| shared `parse` + `add` + `convert` | 1815 B | 843 B |
+| shared `createValueClass` | 3834 B | 1550 B |
+| `ANGLE_UNITS` alone (4 units, 15 aliases) | 392 B | 235 B |
+
+Each entry is the shared code plus 392 B, to within a dozen bytes of minifier
+noise — so the per-kind model in this section survives intact, and is if
+anything pessimistic: it predicted ~460 B for angle's table and the real figure
+is 392 B. What was wrong is the *shared* baseline this section never stated. The
+600 B row implied a shared parser of roughly 140 B. The real one is 883 B, and
+the plan's own §5 table is why: `strict`/`loose`, six distinct error codes, a
+whitespace policy, exponent and sign handling, a unit-charset check, an
+`opts.unit` and `defaultUnit` path, and a `resolve` hook. That is a specified
+surface, not accidental weight — the bundle was read line by line and contains
+no dead code.
+
+Two consequences, both accepted rather than worked around:
+
+- **The shared parser now dominates, so the marginal kind is what matters.** The
+  400 B per additional kind row is unchanged and is the number that decides
+  whether a page importing six kinds is affordable. A second kind at the same
+  entry costs its table, not another parser.
+- **The claim in "the honest comparison" below is weakened, not withdrawn.** 1.3
+  KB is not 600 B. It is still small enough that the argument holds for anything
+  that already ships a framework, and it is now stated at its true size.
+
+Deliberately **not** traded away for bytes: the 30-significant-digit ratio
+strings (~90 B of the 392 B table, and the reason `90 deg in rad` is correct to
+28 digits on both paths), the unit-charset check that makes `"30,5deg"` a `nan`
+rather than an `unknown-unit`, and the strict-mode `trailing` check. Each is a
+row in this spec's own §5 table.
+
+The `number` and `datasize` rows are re-stated as the shared parser plus a
+projected table (~50 B and ~200 B respectively) and remain **unmeasured** until
+those kinds land.
+
+#### Amendment, 2026-08-06 — all twelve kinds, measured
+
+The remaining eleven kinds landed, so every row above is now a measurement.
+`scripts/check-size.ts` carries one parse-only row per kind, each the measured
+figure rounded up to the next 50 B.
+
+| Kind (`parse` only) | units | aliases | Minified | Gzip |
+| --- | --- | --- | --- | --- |
+| `percent` | 1 | 5 | 1000 B | 585 B |
+| `number` | 1 | 1 | 1029 B | 595 B |
+| `speed` | 4 | 7 | 1091 B | 626 B |
+| `tempdelta` | 3 | 11 | 1115 B | 637 B |
+| `temperature` | 3 | 11 | 1140 B | 658 B |
+| `area` | 5 | 14 | 1181 B | 663 B |
+| `volume` | 5 | 17 | 1206 B | 675 B |
+| `mass` | 6 | 20 | 1216 B | 687 B |
+| `duration` | 6 | 25 | 1242 B | 682 B |
+| `angle` | 4 | 15 | 1270 B | 722 B |
+| `measure` | 6 | 21 | 1396 B | 733 B |
+| `datasize` | 9 | 27 | 1402 B | 720 B |
+| `length` | 8 | 32 | 1408 B | 732 B |
+
+**The two named rows held.** `number` measured 1029 B / 595 B against < 1.3 KB /
+< 750 B, and `datasize` 1402 B / 720 B against < 1.5 KB / < 850 B. The
+projections in the amendment above were close: `number`'s table is ~146 B rather
+than ~50 B, `datasize`'s ~519 B rather than ~200 B.
+
+**The marginal-kind row did not hold, and is replaced.** "< 400 B per additional
+kind" was a constant, and the real figure scales with the table. Measured as a
+delta — one kind through `@smartput/kinds/validate`, then two:
+
+| Second kind | units | aliases | Minified | Gzip |
+| --- | --- | --- | --- | --- |
+| `percent` | 1 | 5 | +119 B | +46 B |
+| `datasize` | 9 | 27 | +521 B | +170 B |
+| `length` | 8 | 32 | +527 B | +184 B |
+
+So the marginal cost runs from **~120 B to ~530 B minified**, averaging **330 B**
+across all twelve (4898 B for the full set against 1270 B for one). The gzip half
+of the old row survives untouched: the worst case measured is +184 B against a
+budget of < 250 B, because aliases of the same kind share long substrings and
+compress well. Restated:
+
+| Entry | Minified | Gzip |
+| --- | --- | --- |
+| each additional kind at the same entry | < 550 B | < 250 B |
+
+This is a raise, so it is written down rather than absorbed: nothing regressed,
+the original number was set before any table existed and was simply too low for a
+wide one. The per-unit/per-alias model in this section is *pessimistic* rather
+than optimistic — it predicts 940 B for `length` against a measured 527 B —
+because the minifier interns the shared substrings across an alias table.
+
+**`datasize` is not the widest table.** `length` costs more at every entry (1408 B
+against 1402 B parse-only, +527 B against +521 B marginal): 32 aliases against 27
+outweighs 9 units against 8. The label in the table above is wrong and the row is
+kept only because the budget it states is still correct.
+
+**The barrels shake.** Importing one kind through `@smartput/kinds/validate`
+measures 1270 B — byte for byte what `@smartput/angle/validate` costs — while all
+twelve through the same barrel measure 4898 B. `check-size.ts` carries that
+one-kind barrel import as a permanent row, so if the barrel ever stops shaking
+the number jumps by ~3.6 KB and fails, rather than the doc comment on
+`packages/kinds/src/validate.ts` quietly becoming false. This holds for Bun's
+bundler; the doc comment still warns that a bundler which does not follow
+re-exports pays for all twelve, which is why the per-kind subpath remains the
+recommended entry point.
+
+#### Amendment, 2026-08-06 — the class rows, and two-sided budgets
+
+Three changes, all measured before being committed.
+
+**1. `@smartput/angle/class` rises from 4250 B / 1800 B to 4700 B / 1950 B.**
+
+Two defects in §7.1 and §8 were fixed in the one factory every class shares, so
+every class pays for both:
+
+| | Minified | Gzip |
+| --- | --- | --- |
+| `@smartput/angle/class`, was | 4218 B | 1759 B |
+| after both fixes, measured | 4671 B | 1900 B |
+| committed budget | 4700 B | 1950 B |
+
+- §7.1 says `defaultUnit: "one"` is baked in "so a bare number parses in both
+  modes". It was baked into the free wrappers only, so `parseNumber("30")`
+  returned 30 while `Number.parse("30")` threw `missing-unit` — the class
+  rejected the one input the kind exists for. `createValueClass` now takes the
+  kind's own parse defaults and applies them after the caller's, the same
+  spread order the free wrappers use.
+- §8 says "a `Measure` additionally takes a `dpi` in its constructor options and
+  exposes `.withDpi(n)`". Neither existed: a third constructor argument was
+  accepted and ignored, and every `Measure` was permanently 96 dpi while the
+  free path honoured `ctx.dpi`. The factory now threads a `Ctx` through the
+  constructor, `parse`, `to`, `as`, `valueOf` and the arithmetic, and adds
+  `withDpi` to a kind whose table has a dynamic ratio.
+
+The `Ctx` threading is the larger share of the 453 B and is paid by all twelve
+classes, of which only `measure` can use it. Accepted for the same reason §7.3
+accepts the `typeof r === "function"` branch in the parser: the alternative is a
+second implementation of the class for one kind. The parse-only rows are
+untouched — none of this is in the parser.
+
+**2. `speed/validate` rises from 1100 B to 1150 B (measured 1113 B).** `knot`
+shipped as `"0.514444"`: the true 1852/3600 truncated at six decimals, 8.6e-7
+low, which made `1 knot in kph` 1.8519984 rather than the definitional 1.852 on
+both paths. The correct 28-digit string is 22 characters longer. A wrong
+constant is not a smaller one.
+
+**3. Budgets are two-sided, and the class barrel gains a row.** Both are guards
+that were missing rather than numbers that moved:
+
+- A budget was `measured <= budget` with a 32-byte "nothing was kept" floor
+  underneath it. A bundle shaken to `export const parseAngle = () => {};`
+  measures 36 B, cleared that floor, and printed `OK` against 1300 B — a row
+  can pass while containing none of what it claims to measure. Each row now
+  also carries a floor, 70% of its minified budget by default; every ceiling
+  here is a measurement rounded up to the next 50 B, so a healthy row sits far
+  inside that band. A genuine optimisation large enough to trip the floor is
+  meant to fail: re-measure and amend, which is the same rule that governs
+  raising one.
+- `check-size` rebuilt only packages whose dist file was *missing*, never ones
+  older than their source, so `bun run check-size` reported three green `angle`
+  rows for source 2.4 KB over budget. Only the ordering inside `bun run check`
+  (build, then check-size) hid it. It now compares each dist file's mtime
+  against the newest non-test source in its package and rebuilds what is stale.
+- §8's `/*#__PURE__*/` claim had a row for `@smartput/kinds/validate` and none
+  for `@smartput/kinds/class`. Stripping the annotation from the twelve built
+  class modules takes one `Angle` through the class barrel from 4218 B to
+  7975 B (+89%) — the same magnitude the validate row exists to catch — and
+  nothing measured it. The per-kind subpath cannot catch it, holding one class.
+  `kinds/class barrel, one kind (shake check)` now measures 4671 B, byte for
+  byte what `@smartput/angle/class` costs.
 
 ### The honest comparison
 
@@ -707,14 +969,16 @@ A hand-written single-unit check is about 40 bytes:
 const isAngle = (s) => /^-?\d+(\.\d+)?deg$/.test(s);
 ```
 
-`parseAngle` will not match that, and this spec does not claim it will. What
-600 bytes buys over 40: four units instead of one, aliases and plurals, a typed
-error code instead of `false`, exponent and sign handling, `strict`/`loose`,
-`opts.unit`, and a conversion, arithmetic, class and fuzzy path that are each one
-import away rather than a rewrite away.
+`parseAngle` will not match that, and this spec does not claim it will. What the
+measured 1270 bytes buys over 40: four units instead of one, aliases and plurals,
+a typed error code instead of `false`, exponent and sign handling,
+`strict`/`loose`, `opts.unit`, and a conversion, arithmetic, class and fuzzy path
+that are each one import away rather than a rewrite away.
 
-The claim is that 600 bytes is *close enough to free* that nobody reaches for the
-regex — not that the regex was beaten on bytes.
+The claim is that 1.3 KB — 722 B over the wire — is *close enough to free* that
+nobody reaches for the regex, not that the regex was beaten on bytes. The
+comparison that decides a real page is the second kind, which costs its table
+alone: about 400 B minified, because the parser is already paid for.
 
 ## 14. Phasing
 
