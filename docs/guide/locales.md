@@ -146,6 +146,9 @@ numerals: cardinalNumerals({
 
 Matching is greedy and `consumed` reports how much was claimed, so a trailing
 connector is never eaten: `["five","and","kg"]` returns `{ value: 5, consumed: 1 }`.
+A run of cardinal words always *adds*, never concatenates digit-by-digit, so
+`"twenty twenty five"` reads as 45 and `"nineteen eighty four"` as 103 rather
+than erroring.
 
 English cardinals do not inflect, so the analyzer chain does not run on them.
 

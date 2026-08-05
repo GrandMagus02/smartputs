@@ -36,3 +36,6 @@ minus five kg	mass	-5000	-5 kilograms
 1.5 million km	length	1500000000	1,500,000 kilometres
 # A spaced dash is subtraction, not a hyphenated numeral.
 twenty - two	number	18	18
+ten plus two times three	number	16	16
+ten minus two times three	number	4	4
+(ten plus two) times three	number	36	36

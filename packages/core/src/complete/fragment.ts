@@ -1,5 +1,8 @@
 import type { Decimal } from "../decimal";
 import { parseNumber } from "../locale/number";
+// Completion re-walks the same spelled-out runs foldNumerals folds, so it
+// needs the identical cap on how far back to search.
+import { MAX_RUN } from "../parse/numerals";
 import type { Locale, Span } from "../types";
 
 export interface Fragment {
@@ -30,9 +33,6 @@ export function trailingFragment(input: string): Fragment | null {
   };
 }
 
-/** Matches MAX_RUN in parse/numerals.ts, for the same reason. */
-const MAX_NUMERAL_WORDS = 32;
-
 export function leadingCount(
   input: string,
   upto: number,
@@ -55,6 +55,12 @@ export function leadingCount(
     if (parsed !== null) return parsed;
   }
 
+  // COUNT_RUN matches on trailing whitespace and separators alone, so it can
+  // match without either parseNumber attempt above producing a value — e.g.
+  // the trailing space in "5 kg + one thousand thirty two ". That is the
+  // normal path whenever a spelled count precedes the fragment, not a failure
+  // case: falling through to spelledCount is what makes the spelled branch
+  // reachable at all, so returning null here would disable it entirely.
   return spelledCount(head, locale);
 }
 
@@ -69,7 +75,7 @@ function spelledCount(head: string, locale: Locale): Decimal | null {
   if (numerals === undefined) return null;
 
   const words = head.split(/[\s-]+/).filter((w) => w.length > 0);
-  const start = Math.max(0, words.length - MAX_NUMERAL_WORDS);
+  const start = Math.max(0, words.length - MAX_RUN);
 
   for (let from = start; from < words.length; from += 1) {
     const slice = words.slice(from);

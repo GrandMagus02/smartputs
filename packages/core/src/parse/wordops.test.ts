@@ -38,6 +38,10 @@ test("multiplied by is one operator spanning both words", () => {
   expect(shape("20 multiplied by 4")[1]).toEqual(["op", "*", 3, 16]);
 });
 
+test("an operator keyword at end of input still becomes an op token", () => {
+  expect(shape("10 divided")[1]).toEqual(["op", "/", 3, 10]);
+});
+
 test("a stray by is left for the parser to reject", () => {
   expect(shape("20 by 4")[1]).toEqual(["keyword", "by", 3, 5]);
 });

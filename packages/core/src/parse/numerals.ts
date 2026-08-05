@@ -7,7 +7,7 @@ import type { Token } from "./lex";
  * up to trillions, each "nine hundred and ninety nine" plus its scale word, is
  * 29 words. Rounded up for headroom.
  */
-const MAX_RUN = 32;
+export const MAX_RUN = 32;
 
 interface Run {
   words: string[];
@@ -108,7 +108,11 @@ export function foldNumerals(tokens: Token[], locale: Locale): Token[] {
           type: "number",
           value: match.value,
           // Informational only — `explain()` reads it, the parser reads `value`.
-          // Joined rather than sliced because the pass never sees the input.
+          // This is a normalized rendering of the claimed words, not a slice of
+          // the source: for "twenty-two km" it reads "twenty two", not "twenty-two",
+          // because the pass never sees the input, only the token words it joins
+          // with a single space. The span above is the authoritative source
+          // range; a consumer that needs the exact substring must use it, not `text`.
           text: run.words.slice(0, match.consumed).join(" "),
           start: token.start,
           end: last.end,

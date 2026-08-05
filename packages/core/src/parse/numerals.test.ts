@@ -1,6 +1,5 @@
 import { expect, test } from "bun:test";
 import en from "../locale/en";
-import type { Locale } from "../types";
 import { lex } from "./lex";
 import { normalize } from "./normalize";
 import { foldNumerals } from "./numerals";
@@ -80,7 +79,7 @@ test("a numeral run stops at a unit word and resumes after it", () => {
 });
 
 test("a locale without numerals is passed through unchanged", () => {
-  const bare = { ...en, numerals: undefined } as unknown as Locale;
+  const { numerals: _drop, ...bare } = en;
   const tokens = lex(normalize("one kg"), bare);
   expect(foldNumerals(tokens, bare)).toBe(tokens);
 });
