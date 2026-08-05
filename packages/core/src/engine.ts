@@ -15,7 +15,9 @@ import { buildRegistry, NUMBER_KIND } from "./kind/registry";
 import { createResolver } from "./parse/candidates";
 import { lex, type Token } from "./parse/lex";
 import { normalize } from "./parse/normalize";
+import { foldNumerals } from "./parse/numerals";
 import { parse } from "./parse/pratt";
+import { foldWordOps } from "./parse/wordops";
 import { type Assignment, solve } from "./solve/solver";
 import { weightBreakdown } from "./solve/weights";
 import type {
@@ -135,7 +137,8 @@ export function createEngine(opts: EngineOptions): Engine {
       packs,
       layers: layersFor(call?.weights),
     });
-    const tokens = lex(normalized, locale as Locale);
+    const lexed = lex(normalized, locale as Locale);
+    const tokens = foldWordOps(foldNumerals(lexed, locale as Locale));
     const node = parse(tokens, resolver, input);
     const assignments = solve(node, registry, {
       maxCandidates,
