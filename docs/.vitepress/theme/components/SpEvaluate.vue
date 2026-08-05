@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
-import { docsEngine, evaluateSafely } from "../engine";
+import { docsEngine, type Engine, evaluateSafely, moneyEngine } from "../engine";
 import DemoShell from "./DemoShell.vue";
 import SpResult from "./SpResult.vue";
 
@@ -11,17 +11,21 @@ const props = withDefaults(
     hint?: string;
     modelValue?: string;
     examples?: string[];
+    /** Register `money` and its rate snapshot alongside the built-in kinds. */
+    withMoney?: boolean;
   }>(),
   {
     title: "engine.evaluate(input)",
     icon: "i-lucide-calculator",
     modelValue: "1 kg + 500 g",
     examples: () => [],
+    withMoney: false,
   },
 );
 
+const engine: Engine = props.withMoney ? moneyEngine : docsEngine;
 const input = ref(props.modelValue);
-const outcome = computed(() => evaluateSafely(docsEngine, input.value));
+const outcome = computed(() => evaluateSafely(engine, input.value));
 </script>
 
 <template>

@@ -279,8 +279,8 @@ longest first — accepting the first match whose `consumed` covers the whole
 suffix. `"5 kg + one thousand thirty two k"` offers
 `["one","thousand","thirty","two"]` and matches on the first try; `"weighs twenty k"`
 fails on `["weighs","twenty"]` and succeeds on `["twenty"]`. The list is capped at
-the longest numeral phrase worth scanning, eight words, so a long sentence costs a
-bounded number of calls.
+the longest cardinal the table can express — 32 words, see §5.3 — so a long
+sentence costs a bounded number of calls.
 
 No match returns `null`, which is what `leadingCount` already returns for
 unparseable input, and `scaleFit` already scores `0`.

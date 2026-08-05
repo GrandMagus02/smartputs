@@ -31,6 +31,15 @@ export default defineConfig({
     "i-lucide-weight",
     "i-lucide-timer",
     "i-lucide-hash",
+    "i-lucide-percent",
+    "i-lucide-thermometer",
+    "i-lucide-thermometer-sun",
+    "i-lucide-triangle",
+    "i-lucide-hard-drive",
+    "i-lucide-gauge",
+    "i-lucide-square",
+    "i-lucide-beaker",
+    "i-lucide-banknote",
     // Fallback icon for a kind with no entry in KIND_ICONS — the custom-kind
     // demo registers kinds that cannot be known at build time.
     "i-lucide-shapes",

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from "vue";
+import { round4, round4Text } from "../display";
 import { type EvalOutcome, kindIcon } from "../engine";
 
 const props = defineProps<{
@@ -12,6 +13,16 @@ const confidencePercent = computed(() =>
   props.outcome.status === "ok"
     ? `${Math.round(props.outcome.result.confidence * 100)}%`
     : "",
+);
+
+// Display trims, not engine output: the Result carries full precision either
+// way, and both of these are the same value at four decimal places.
+const formatted = computed(() =>
+  props.outcome.status === "ok" ? round4Text(props.outcome.result.formatted) : "",
+);
+
+const canonical = computed(() =>
+  props.outcome.status === "ok" ? round4(props.outcome.result.value.canonical) : "",
 );
 </script>
 
@@ -32,14 +43,14 @@ const confidencePercent = computed(() =>
   <div v-else class="sp-result sp-result--ok">
     <div class="sp-result__line">
       <span :class="kindIcon(outcome.result.kind)" aria-hidden="true" />
-      <strong class="sp-result__formatted">{{ outcome.result.formatted }}</strong>
+      <strong class="sp-result__formatted">{{ formatted }}</strong>
       <span class="sp-result__kind">{{ outcome.result.kind }}</span>
     </div>
 
     <dl v-if="!compact" class="sp-result__grid">
       <div>
         <dt>canonical</dt>
-        <dd><code>{{ outcome.result.value.canonical.toString() }}</code></dd>
+        <dd><code>{{ canonical }}</code></dd>
       </div>
       <div>
         <dt>unit</dt>

@@ -37,7 +37,12 @@ export {
 } from "./kinds/index";
 export { createAnalyzerChain } from "./locale/analyze";
 export { defineLocale, defineLocalePack } from "./locale/define";
-export { identity, suffixStripper, tableAnalyzer } from "./locale/helpers";
+export {
+  cardinalNumerals,
+  identity,
+  suffixStripper,
+  tableAnalyzer,
+} from "./locale/helpers";
 // Explanation.tokens is Token[]; without this the type is unnameable downstream.
 export type { Token } from "./parse/lex";
 export type * from "./types";

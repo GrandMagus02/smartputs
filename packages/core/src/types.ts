@@ -7,8 +7,13 @@ export type OpSymbol = "+" | "-" | "*" | "/" | "in" | "of";
  * word that means conversion under `in` (English: "in", "to", "as"), and
  * `keywordFor` returns the key — so "to" and "as" are values, never keys, and
  * a `Keyword` of "to" is unreachable by construction.
+ *
+ * `plus`, `minus`, `times` and `over` are rewritten into op tokens before the
+ * parser runs. `by` exists only to be swallowed by one of those four, so that
+ * "divided by" is a single operator; anywhere else it reaches the parser
+ * unconsumed and fails, exactly as a stray "as" does.
  */
-export type Keyword = "in" | "of";
+export type Keyword = "in" | "of" | "plus" | "minus" | "times" | "over" | "by";
 
 export interface Span {
   start: number;
@@ -206,12 +211,25 @@ export interface NumberFormatSpec {
   decimal: string;
 }
 
+export interface NumeralMatch {
+  value: Decimal;
+  /** How many of the offered words the parser claimed, counting from the front. */
+  consumed: number;
+}
+
+/**
+ * Offered a run of consecutive words, claims a prefix of it. The single-word
+ * signature this replaced could not express "one thousand thirty two": it saw
+ * one word and had no way to ask for more.
+ */
+export type NumeralParser = (words: string[]) => NumeralMatch | null;
+
 export interface Locale {
   id: string;
   numberFormat: "intl" | NumberFormatSpec;
   segment?: (run: string) => string[];
   analyze?: Analyzer[];
-  numerals?: (word: string) => Decimal | null;
+  numerals?: NumeralParser;
   keywords: Partial<Record<Keyword, string[]>>;
   weights?: Weights;
 }

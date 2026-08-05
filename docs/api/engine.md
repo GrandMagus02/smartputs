@@ -1,6 +1,6 @@
 ---
 title: Engine
-description: evaluate, suggest, coerce and explain.
+description: evaluate, suggest, coerce, explain and complete.
 ---
 
 # Engine
@@ -11,13 +11,15 @@ interface Engine {
   suggest(input: string, opts?: EvalOptions): Result[];
   coerce(kind: KindId, input: string, opts?: EvalOptions): Value;
   explain(input: string, opts?: EvalOptions): Explanation;
+  complete(input: string, opts?: CompleteOptions): Completion[];
 }
 ```
 
-Four entry points over one pipeline. They differ in what they do with
+Five entry points over one pipeline. The first four differ in what they do with
 ambiguity, not in how they parse — `coerce()` injects a hard constraint into the
 solver rather than running a second code path, so every solver behaviour is
-shared.
+shared. `complete()` answers a different question entirely, but ranks its
+answers with the same weights.
 
 ## evaluate()
 
@@ -114,6 +116,27 @@ a lexing or parsing failure.
 
 <SpExplain />
 
+## complete()
+
+```ts
+complete(input: string, opts?: CompleteOptions): Completion[]
+```
+
+Ranks the units the input's **trailing fragment** could still become, rewriting
+the whole input for each. Total: no input makes it throw, and a fragment that
+cannot be completed is an empty array.
+
+```ts
+engine.complete("30 ho");
+// [ { alias: "hour", span: { start: 3, end: 5 }, text: "30 hours",
+//     kind: "duration", unit: "h", score: 13 } ]
+```
+
+Full reference, ranking terms and the rule that keeps the inserted text
+parseable: [`complete()`](/api/complete).
+
+<SpComplete />
+
 ## EvalOptions
 
 ```ts
@@ -140,11 +163,30 @@ interface Result {
   kind: KindId;
   confidence: number;   // 0..1, softmax over raw solver scores
   spans: Span[];        // token → source offsets
-  meta: { assumptions: Assumption[] };
+  meta: {
+    ratesAsOf?: string;         // present when the engine was given a rate table
+    assumptions: Assumption[];
+  };
+}
+
+interface Assumption {
+  readonly code: string;        // stable, machine-readable — branch on this
+  readonly message: string;     // human-facing, may be reworded
+  readonly detail?: Readonly<Record<string, string>>;
 }
 ```
 
 `spans` exist so a caller can underline the tokens a result came from without
-re-parsing. `meta.assumptions` records anything the engine inferred rather than
-read — cross-rate FX paths and delta-temperature readings land here in later
-milestones.
+re-parsing.
+
+`meta.assumptions` records anything the engine inferred rather than read. Two
+kinds populate it today:
+
+| `code` | Raised by | Means |
+| --- | --- | --- |
+| `cross-rate` | `money` | the FX rate was derived through the snapshot's base currency, not quoted directly |
+| `temperature-delta` | `temperature` | `20 C + 5 C` read the right operand as a difference, because the alternative is meaningless |
+
+`meta.ratesAsOf` is the date of the rate table the result was computed against —
+absent on an engine with no `rates`. A converted amount without one is a number
+pretending to be a fact.

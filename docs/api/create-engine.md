@@ -32,6 +32,10 @@ interface EngineOptions {
   tiebreak?: "error" | "first";
   ambiguityEpsilon?: number;
   maxCandidates?: number;
+  kindMeta?: Readonly<Record<KindId, Readonly<Record<string, unknown>>>>;
+  formatPrecision?: number;
+  rates?: RateLookup;
+  rounding?: Decimal.Rounding;
 }
 ```
 
@@ -45,12 +49,16 @@ the primary locale scores higher.
 ### kinds
 
 Appended to the engine's vocabulary. **Nothing is registered implicitly** — pass
-`BUILTIN_KINDS`, or a subset of `number` / `length` / `mass` / `duration`, or the
-engine has no units at all and every word raises `NoCandidateError`.
+`BUILTIN_KINDS`, or the subset you want, or the engine has no units at all and
+every word raises `NoCandidateError`.
 
 ```ts
-createEngine({ locales: [en], kinds: [...BUILTIN_KINDS, dataSize, myTicker] });
+createEngine({ locales: [en], kinds: [...BUILTIN_KINDS, measure, myTicker] });
 ```
+
+Two shipped kinds are not in `BUILTIN_KINDS` and must be named: `measure`, whose
+`mm`/`cm` aliases collide with `length`, and `money` from
+[`@smartput/rates`](/api/rates), which needs a `rates` table to convert at all.
 
 Two kinds claiming the same id, or the same op signature, raise
 `KindConflictError` naming both sources. Registration order is irrelevant.
@@ -99,6 +107,58 @@ its meaning no matter how large the weights get.
 
 Default `10_000`. Guards the exhaustive search over consistent assignments.
 Exceeding it raises `TooAmbiguousError` with the count.
+
+### kindMeta
+
+Default `Value.meta` per kind, attached to every quantity of that kind. One
+consumer today: `measure` reads `{ dpi }` from it.
+
+```ts
+createEngine({
+  locales: [en],
+  kinds: [...BUILTIN_KINDS, measure],
+  kindMeta: { measure: { dpi: 96 } },
+});
+```
+
+### formatPrecision
+
+Default `26` (`DISPLAY_PRECISION`) — two guard digits below the 28 `Decimal`
+computes at, which is what stops a round trip through a non-terminating ratio
+from surfacing as trailing noise.
+
+### rates
+
+An FX table for kinds whose unit ratios are not constants.
+`@smartput/rates`'s `RateSnapshot` satisfies the shape structurally; core never
+imports that package.
+
+```ts
+interface RateLookup {
+  readonly base: string;
+  readonly asOf: string;
+  get(from: string, to: string): Decimal | null;
+}
+```
+
+```ts
+import { money, snapshot } from "@smartput/rates";
+
+createEngine({
+  locales: [en],
+  kinds: [...BUILTIN_KINDS, money],
+  rates: snapshot("EUR", "2026-08-04", { USD: 1.1, GBP: 0.8412 }),
+});
+```
+
+Every `Result` from an engine with `rates` carries `meta.ratesAsOf`. See
+[Money and rates](/guide/money).
+
+### rounding
+
+Rounding mode for money formatting. Default `Decimal.ROUND_HALF_EVEN`. It
+applies at the currency's minor unit and nowhere else — the AST keeps full
+precision, so `(1 usd / 3) * 3` is a dollar.
 
 ## Immutability
 

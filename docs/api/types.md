@@ -12,11 +12,16 @@ this codebase, so import them with `import type`.
 
 ```ts
 type KindId = string;
-type OpSymbol = "+" | "-" | "*" | "/" | "in";
-type Keyword = "in" | "to" | "as" | "plus" | "minus" | "of";
+type OpSymbol = "+" | "-" | "*" | "/" | "in" | "of";
+type Keyword = "in" | "of" | "plus" | "minus" | "times" | "over" | "by";
 type Selector = string;              // "token:m" | "duration:min" | "duration"
 type Weights = Record<Selector, number>;
 ```
+
+`Keyword` names the **keys** of `Locale.keywords`, not the surface words. A
+locale lists every word that means conversion under `in` — English has `"in"`,
+`"to"`, `"as"` — so `"to"` is a value, never a key, and a `Keyword` of `"to"` is
+unreachable by construction.
 
 ## Value
 
@@ -53,8 +58,14 @@ interface Kind {
 interface RatioSpec {
   mode: "ratio";
   canonical: string;
-  units: Record<string, UnitDef | number>;
+  units: Record<string, UnitDef | number | Decimal>;
   affine?: { deltaKind: KindId };
+  /**
+   * The unit whose ratio reads `meta.dpi`. Declaring it is what gives this
+   * kind's facade a `.dpi` getter and `withDpi()`; a kind that does not
+   * declare it gets neither.
+   */
+  dpiUnit?: string;
 }
 
 interface OpaqueSpec {
@@ -74,6 +85,8 @@ interface OpSignature {
   left: KindId;
   right: KindId;
   result: KindId;
+  /** Recorded on the Result whenever this signature is applied. */
+  assumption?: Assumption;
   apply: (l: Value, r: Value, ctx: EvalCtx) => Value;
 }
 ```
@@ -85,6 +98,12 @@ interface UnitLexeme {
   aliases: string[];
   symbol?: string;
   display?: Partial<Record<Intl.LDMLPluralRule, string>>;
+  /**
+   * The magnitude band people actually type this unit in, inclusive at both
+   * ends. Read only by completion's `scaleFit`. Omitting it scores 0 — the
+   * same as being out of band, so declaring one is never a penalty.
+   */
+  typical?: [number, number];
 }
 
 type Lexicon = Record<string, UnitLexeme | string[]>;
@@ -98,9 +117,22 @@ interface Locale {
   numberFormat: "intl" | NumberFormatSpec;
   segment?: (run: string) => string[];
   analyze?: Analyzer[];
-  numerals?: (word: string) => Decimal | null;
+  numerals?: NumeralParser;
   keywords: Partial<Record<Keyword, string[]>>;
   weights?: Weights;
+}
+
+/**
+ * Offered a run of consecutive words, claims a prefix of it. The single-word
+ * signature this replaced could not express "one thousand thirty two": it saw
+ * one word and had no way to ask for more.
+ */
+type NumeralParser = (words: string[]) => NumeralMatch | null;
+
+interface NumeralMatch {
+  value: Decimal;
+  /** How many of the offered words the parser claimed, from the front. */
+  consumed: number;
 }
 
 interface NumberFormatSpec {
@@ -133,12 +165,58 @@ interface AnalyzeCtx {
 interface EvalCtx {
   readonly self: Value;
   readonly locale: string;
+  /** The source expression. Absent during a standalone conversion. */
+  readonly input?: string;
+  /** The engine's injected rate table, when one was supplied. */
+  readonly rates?: RateLookup;
+  /** Records an assumption made while converting. Absent where there is no Result. */
+  readonly note?: (a: Assumption) => void;
 }
 
-interface FormatCtx {
+interface FormatOptions {
+  readonly precision?: number;          // significant digits. Default 26
+  readonly rounding?: Decimal.Rounding;
+  readonly rates?: RateLookup;
+  /** Pad the fraction to at least this many digits — money needs "30.00". */
+  readonly minFractionDigits?: number;
+}
+
+interface FormatCtx extends FormatOptions {
   readonly locale: string;
+  /** `value.canonical` already converted into `value.unit`. */
+  readonly authored: Decimal;
+  /** Locale-aware, pre-bound. A `format` hook MUST render through it. */
+  formatNumber(value: Decimal, opts?: FormatOptions): string;
 }
 ```
+
+A `format` hook gets `authored` so it never has to resolve a unit ratio itself —
+which, for money, would mean reaching the rate table from inside the formatter.
+
+## Rates and assumptions
+
+```ts
+/**
+ * The shape the engine needs from a rate table. `@smartput/rates`'s
+ * RateSnapshot satisfies it structurally; core imports nothing.
+ */
+interface RateLookup {
+  readonly base: string;
+  readonly asOf: string;
+  get(from: string, to: string): Decimal | null;
+}
+
+/** A defensible-but-not-unique reading of the input, surfaced on the Result. */
+interface Assumption {
+  readonly code: string;     // stable and machine-readable
+  readonly message: string;  // human-facing, may be reworded
+  readonly detail?: Readonly<Record<string, string>>;
+}
+```
+
+`get` returns `null` for an unknown pair rather than throwing, so the kind that
+asked decides what a missing rate means — `money` raises `MissingRateError`; a
+different kind might fall back.
 
 ## Engine surface
 
@@ -151,6 +229,10 @@ interface EngineOptions {
   tiebreak?: "error" | "first";
   ambiguityEpsilon?: number;
   maxCandidates?: number;
+  kindMeta?: Readonly<Record<KindId, Readonly<Record<string, unknown>>>>;
+  formatPrecision?: number;
+  rates?: RateLookup;
+  rounding?: Decimal.Rounding;
 }
 
 interface EvalOptions {
@@ -164,7 +246,7 @@ interface Result {
   kind: KindId;
   confidence: number;
   spans: Span[];
-  meta: { assumptions: Assumption[] };
+  meta: { ratesAsOf?: string; assumptions: Assumption[] };
 }
 
 interface Engine {
@@ -172,8 +254,69 @@ interface Engine {
   suggest(input: string, opts?: EvalOptions): Result[];
   coerce(kind: KindId, input: string, opts?: EvalOptions): Value;
   explain(input: string, opts?: EvalOptions): Explanation;
+  complete(input: string, opts?: CompleteOptions): Completion[];
 }
 ```
+
+## Completion
+
+```ts
+interface Completion {
+  alias: string;   // the alias that matched, e.g. "hour"
+  span: Span;      // the fragment it replaces, as offsets into the input
+  text: string;    // the whole input rewritten
+  kind: KindId;
+  unit: string;    // registry unit key, e.g. "h"
+  score: number;
+}
+
+interface CompleteOptions {
+  kinds?: KindId[];
+  weights?: Weights;
+  limit?: number;  // applied after ranking. Default 10
+}
+```
+
+See [`complete()`](/api/complete).
+
+## Facade
+
+```ts
+interface Quantity {
+  readonly value: Decimal;
+  readonly unit: string;
+  readonly meta?: Readonly<Record<string, unknown>>;
+  readonly dpi?: number | undefined;
+  to(unit: string): Decimal;
+  as(unit: string): Quantity;
+  equals(other: QuantityInput, epsilon?: Decimal | number | string): boolean;
+  toString(): string;
+  toJSON(): QuantitySnapshot;
+  add?(other: QuantityInput): Quantity;      // ratio kinds only
+  sub?(other: QuantityInput): Quantity;
+  scale?(factor: Decimal | number | string): Quantity;
+  negate?(): Quantity;
+  diff?(other: QuantityInput): Quantity;     // affine kinds only
+  withDpi?(dpi: number): Quantity;           // kinds declaring dpiUnit only
+}
+
+interface QuantitySnapshot {
+  readonly value: string;   // decimal string — survives JSON intact
+  readonly unit: string;
+  readonly meta?: Readonly<Record<string, unknown>>;
+}
+
+type QuantityInput = Quantity | QuantitySnapshot | number | string;
+
+interface QuantityClass {
+  new (value: Decimal | number | string, unit: string, meta?: Record<string, unknown>): Quantity;
+  from(input: QuantityInput): Quantity;
+  parse(text: string): Quantity;
+  readonly kindId: KindId;
+}
+```
+
+See [createFacade](/api/facade).
 
 ## Introspection
 

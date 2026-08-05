@@ -16,7 +16,10 @@ input string
   2. Lex            locale segmenter → NUMBER | WORD | OP | KEYWORD | PAREN.
   │                 Numbers read via the locale's numberFormat (1.000,50 vs 1,000.50)
   │
-  2b. Analyze       each WORD → lemma candidates via the locale's analyzer chain
+  2b. Fold          spelled-number runs → one NUMBER; operator words → OP.
+  │                 "one thousand thirty two" → 1032, "divided by" → /
+  │
+  2c. Analyze       each WORD → lemma candidates via the locale's analyzer chain
   │                 "kilograms" → [kilograms(0), kilogram(-2)]
   │
   3. Candidates     each analyzed form → Set<{kind, unit, weight}>
@@ -56,9 +59,31 @@ folding happens per locale, since Turkish dotted/dotless `i` makes a global
 `numberFormat`, which is why `1,500` is 1500 in `en` and 1.5 in `de` — and why
 both candidates are emitted when the locale list contains both.
 
-Token types: `number`, `word`, `op`, `keyword`, `lparen`, `rparen`.
+Token types: `number`, `word`, `op`, `keyword`, `lparen`, `rparen`. `-` is
+emitted as an op token even between letters, so `"twenty-two"` lexes as
+word/op/word — which is what stage 2b's hyphen rule exists to undo.
 
-## Stage 2b — Analyze
+## Stage 2b — Fold
+
+Two pure token rewrites, so the parser never learns that words can be numbers or
+operators.
+
+`foldNumerals` collapses a run of spelled-number words into a single `number`
+token by calling the locale's `numerals` hook, which claims a prefix of the run
+and reports how much it took. A hyphen between two numeral words is absorbed
+only when nothing separates it from either side, so `twenty-two` is 22 while
+`twenty - two` is 18.
+
+`foldWordOps` rewrites the `plus`, `minus`, `times` and `over` keywords into
+`+`, `-`, `*` and `/`, swallowing a following `by` so that `divided by` is one
+operator.
+
+Because both run before parsing, `"ten plus five"` and `"10 + 5"` reach the
+parser as identical token streams. Word operators get the existing precedence
+table for free, with no second table to keep in sync:
+`ten plus two times three` is 16.
+
+## Stage 2c — Analyze
 
 A flat list of alias strings works for English and fails for most of the world.
 Ukrainian declines `кілограм` seven ways in two numbers; Turkish and Finnish
@@ -129,7 +154,7 @@ no intermediate rounding, ever.
 <SpEvaluate
   model-value="1234567890123456789.0625 km"
   :examples="['1234567890123456789.0625 km', '100 g in oz', '0.1 kg + 0.2 kg']"
-  hint="23 significant digits survive intact. A JS number would have rounded the input before the parser saw it." />
+  hint="23 significant digits survive intact. A JS number would have rounded the input before the parser saw it. (The demos display at most four decimal places — a theme-level trim, not the engine's.)" />
 
 ## Stage 7 — Format
 

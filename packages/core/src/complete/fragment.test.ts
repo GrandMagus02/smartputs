@@ -1,5 +1,6 @@
 import { expect, test } from "bun:test";
 import { defineLocale } from "../locale/define";
+import enLocale from "../locale/en";
 import { leadingCount, trailingFragment } from "./fragment";
 
 const en = defineLocale({ id: "en", numberFormat: "intl", keywords: {} });
@@ -68,4 +69,40 @@ test("honours a locale whose group separator is a space", () => {
     keywords: {},
   });
   expect(leadingCount("1 500,5 ho", 8, fr)?.toString()).toBe("1500.5");
+});
+
+const count = (input: string, upto: number) => {
+  const d = leadingCount(input, upto, enLocale);
+  return d === null ? null : d.toString();
+};
+
+test("leadingCount still reads digits", () => {
+  expect(count("20 k", 3)).toBe("20");
+});
+
+test("leadingCount still strips a binary operator's minus", () => {
+  expect(count("10 kg - 5 mil", 10)).toBe("5");
+});
+
+test("leadingCount reads a single spelled count", () => {
+  expect(count("twenty k", 7)).toBe("20");
+});
+
+test("leadingCount reads a hyphenated spelled count", () => {
+  expect(count("twenty-two k", 11)).toBe("22");
+});
+
+test("leadingCount reads a multi-word spelled count after other text", () => {
+  expect(count("5 kg + one thousand thirty two k", 31)).toBe("1032");
+});
+
+test("leadingCount ignores words that are not a count", () => {
+  expect(count("kg + mil", 6)).toBeNull();
+});
+
+test("a locale without numerals still reads digits and nothing else", () => {
+  // The file's bare `en` stub declares no `numerals`, so the spelled branch
+  // must degrade to null rather than throw.
+  expect(leadingCount("20 k", 3, en)?.toString()).toBe("20");
+  expect(leadingCount("twenty k", 7, en)).toBeNull();
 });

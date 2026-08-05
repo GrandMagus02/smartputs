@@ -4,10 +4,12 @@ import { h } from "vue";
 import DemoShell from "./components/DemoShell.vue";
 import HeroCalculator from "./components/HeroCalculator.vue";
 import PageActions from "./components/PageActions.vue";
+import SpComplete from "./components/SpComplete.vue";
 import SpConvert from "./components/SpConvert.vue";
 import SpCustomKind from "./components/SpCustomKind.vue";
 import SpEvaluate from "./components/SpEvaluate.vue";
 import SpExplain from "./components/SpExplain.vue";
+import SpMoney from "./components/SpMoney.vue";
 import SpResult from "./components/SpResult.vue";
 import SpSuggest from "./components/SpSuggest.vue";
 import SpWeights from "./components/SpWeights.vue";
@@ -34,5 +36,7 @@ export default {
     app.component("SpWeights", SpWeights);
     app.component("SpConvert", SpConvert);
     app.component("SpCustomKind", SpCustomKind);
+    app.component("SpComplete", SpComplete);
+    app.component("SpMoney", SpMoney);
   },
 } satisfies Theme;

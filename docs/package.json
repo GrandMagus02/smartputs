@@ -9,7 +9,8 @@
     "preview": "vitepress preview"
   },
   "dependencies": {
-    "@smartput/core": "workspace:*"
+    "@smartput/core": "workspace:*",
+    "@smartput/rates": "workspace:*"
   },
   "devDependencies": {
     "@iconify-json/lucide": "^1.2.0",

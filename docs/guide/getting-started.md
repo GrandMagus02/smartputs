@@ -37,14 +37,18 @@ import en from "@smartput/core/locale/en";
 
 const engine = createEngine({
   locales: [en], // first is primary, rest are fallbacks
-  kinds: BUILTIN_KINDS, // number, length, mass, duration
+  kinds: BUILTIN_KINDS, // number, percent, length, mass, duration, temperature,
+  //                       tempdelta, angle, datasize, speed, area, volume
 });
 ```
 
 ::: tip Kinds are not implicit
-`createEngine` registers nothing on your behalf. Pass `BUILTIN_KINDS` (or a
-subset of `number`, `length`, `mass`, `duration`) or the engine will have no
-vocabulary and every unit raises `NoCandidateError`.
+`createEngine` registers nothing on your behalf. Pass `BUILTIN_KINDS`, or the
+subset you want, or the engine will have no vocabulary and every unit raises
+`NoCandidateError`. Two kinds are deliberately left out of `BUILTIN_KINDS` and
+must be named: `measure` (its `mm`/`cm` collide with `length`) and `money`,
+which lives in [`@smartput/rates`](/guide/money) because it needs a rate table
+you supply.
 :::
 
 ## Evaluate
@@ -64,7 +68,7 @@ result.confidence; // 1
   :examples="['1 kg + 500 g', '2 wk', '3 lbs', '1,500 g', '90 min in h', '(1 + 2) * 3']"
   hint="The canonical value is always in the kind's base unit; the displayed unit follows the left operand." />
 
-## Three entry points
+## Five entry points
 
 `evaluate()` is strict and throws. It is the wrong choice for a keystroke-rate
 input, where ambiguity is normal — use `suggest()` there, and reach for
@@ -76,6 +80,7 @@ input, where ambiguity is normal — use `suggest()` there, and reach for
 | `suggest(input)` | ranks | `Result[]`, possibly empty; never throws |
 | `coerce(kind, input)` | resolved by the hard kind constraint | a `Value` |
 | `explain(input)` | shows the scoring | an `Explanation` |
+| `complete(input)` | ranks the units the fragment could become | `Completion[]` |
 
 ```ts
 engine.evaluate("10 m");
@@ -87,9 +92,23 @@ engine.suggest("10 m");
 
 engine.coerce("mass", "1 kg");
 // { kind: "mass", canonical: Decimal(1000), unit: "kg" }
+
+engine.complete("30 ho");
+// [ { alias: "hour", text: "30 hours", kind: "duration", unit: "h", … } ]
 ```
 
 <SpSuggest hint="suggest() never throws. Unparseable input is an empty ranking, not an exception." />
+
+## Complete as they type
+
+`complete()` answers the other half of a live input: not "what does this mean?"
+but "what could this half-typed word still become?". It rewrites the whole
+input, so the returned `text` goes straight back into the box.
+
+<SpComplete
+  model-value="30 ho"
+  :examples="['30 ho', '5 kilog', '2 km in mil', '10 kg + 5 gram', '90 minu']"
+  hint="Ranked by the same weights that rank readings, plus a prefix-quality term and a magnitude fit — 30 of something is far likelier to be hours than hectares." />
 
 ## Resolve the ambiguity yourself
 
@@ -108,8 +127,37 @@ engine.evaluate("10 m").formatted; // "10 metres"
 
 <SpWeights />
 
+## Add money
+
+Currencies are a kind like any other, except that their unit ratios are not
+constants. They live in `@smartput/rates`, which you register alongside the
+built-ins and hand a rate table:
+
+```sh
+bun add @smartput/rates
+```
+
+```ts
+import { money, snapshot } from "@smartput/rates";
+import moneyEn from "@smartput/rates/locale/en";
+
+const engine = createEngine({
+  locales: [en],
+  kinds: [...BUILTIN_KINDS, money],
+  packs: [moneyEn], // "quid", "bucks" — colloquial English currency words
+  rates: snapshot("EUR", "2026-08-04", { USD: 1.1, GBP: 0.8412 }),
+});
+
+engine.evaluate("30 usd in gbp").formatted; // "£22.94"
+```
+
+See [Money and rates](/guide/money) for live rates, providers, and how a
+derived cross-rate is disclosed.
+
 ## Where to go next
 
 - [The pipeline](/guide/pipeline) — what happens between the string and the result.
 - [Ambiguity and weights](/guide/weights) — the full four-layer model.
+- [Completion](/guide/completion) — `complete()` in full.
+- [Money and rates](/guide/money) — `@smartput/rates`, providers, `createLiveEngine`.
 - [API reference](/api/) — every exported symbol.
