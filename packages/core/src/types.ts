@@ -206,12 +206,25 @@ export interface NumberFormatSpec {
   decimal: string;
 }
 
+export interface NumeralMatch {
+  value: Decimal;
+  /** How many of the offered words the parser claimed, counting from the front. */
+  consumed: number;
+}
+
+/**
+ * Offered a run of consecutive words, claims a prefix of it. The single-word
+ * signature this replaced could not express "one thousand thirty two": it saw
+ * one word and had no way to ask for more.
+ */
+export type NumeralParser = (words: string[]) => NumeralMatch | null;
+
 export interface Locale {
   id: string;
   numberFormat: "intl" | NumberFormatSpec;
   segment?: (run: string) => string[];
   analyze?: Analyzer[];
-  numerals?: (word: string) => Decimal | null;
+  numerals?: NumeralParser;
   keywords: Partial<Record<Keyword, string[]>>;
   weights?: Weights;
 }
