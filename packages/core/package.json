@@ -26,10 +26,10 @@
     }
   },
   "dependencies": {
-    "@smartput/validate": "workspace:*",
     "decimal.js": "^10.6.0"
   },
   "devDependencies": {
-    "@smartput/kinds": "workspace:*"
+    "@smartput/kinds": "workspace:*",
+    "@smartput/validate": "workspace:*"
   }
 }

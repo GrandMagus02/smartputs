@@ -35,14 +35,12 @@ export interface TemperatureInstance extends ValueInstance<TemperatureUnit> {
   add(delta: DeltaInput): TemperatureInstance;
 }
 
-export interface TemperatureClass extends ValueClass<TemperatureUnit> {
-  new (value: number | string, unit: TemperatureUnit): TemperatureInstance;
-  parse(
-    input: string,
-    opts?: Parameters<ValueClass<TemperatureUnit>["parse"]>[1],
-  ): TemperatureInstance;
-  from(input: ReadingInput): TemperatureInstance;
-}
+/**
+ * `ValueClass`'s second parameter is the instance type, so the statics come
+ * back narrowed without restating one of them — the three overrides that used
+ * to live here said only what the parameter now says.
+ */
+export type TemperatureClass = ValueClass<TemperatureUnit, TemperatureInstance>;
 
 /**
  * Patching the prototype rather than subclassing: the factory's statics close

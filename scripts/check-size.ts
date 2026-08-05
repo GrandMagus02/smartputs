@@ -1,5 +1,5 @@
 import { unlink } from "node:fs/promises";
-import type { BunPlugin } from "bun";
+import { type BunPlugin, Glob } from "bun";
 import { buildPackage, packageManifests, rootDir } from "./build";
 
 /**
@@ -22,7 +22,34 @@ export interface EntrySpec {
   min: number;
   /** Budget in gzipped bytes. */
   gzip: number;
+  /**
+   * Lower bound in minified bytes. Defaults to `FLOOR_RATIO * min`; set it
+   * explicitly when a row's real measurement sits further below its ceiling
+   * than the default band allows.
+   */
+  floor?: number;
 }
+
+/**
+ * How far below its ceiling a row may measure before the number stops being
+ * believable.
+ *
+ * A budget used to be one-sided, and the only guard against measuring nothing
+ * was "the bundle is at least 32 bytes" — which `export const parseAngle = ()
+ * => {};` clears at 36 B. That row printed OK while containing none of the
+ * thing it claimed to measure, so a regression that shook a symbol's whole
+ * graph away read as a pass.
+ *
+ * Every ceiling here is a measurement rounded up to the next 50 B, so a healthy
+ * row sits just under its ceiling. Thirty percent of headroom is far more than
+ * any of them uses and far less than "the graph vanished". A genuine
+ * optimisation that big is supposed to fail here: re-measure, and amend §13
+ * with the new pair, which is the same rule that governs raising one.
+ */
+const FLOOR_RATIO = 0.7;
+
+export const floorOf = (spec: EntrySpec): number =>
+  spec.floor ?? Math.floor(spec.min * FLOOR_RATIO);
 
 export interface Sizes {
   min: number;
@@ -52,13 +79,32 @@ const SELF = Bun.fileURLToPath(import.meta.url);
  */
 let resolutions: Promise<Map<string, string>> | undefined;
 
+/**
+ * When a package's shipping source was last touched. Test files are excluded:
+ * they are never built, so editing one must not trigger a rebuild.
+ *
+ * `0` for a package with no source, which reads as "older than any dist" and so
+ * never forces a build.
+ */
+async function newestSourceMtime(dir: string): Promise<number> {
+  let newest = 0;
+  for (const file of new Glob(`${dir}/src/**/*.ts`).scanSync(rootDir)) {
+    if (file.endsWith(".test.ts")) continue;
+    const at = Bun.file(`${rootDir}/${file}`).lastModified;
+    if (at > newest) newest = at;
+  }
+  return newest;
+}
+
 async function computeResolutions(): Promise<Map<string, string>> {
   const map = new Map<string, string>();
-  const unbuilt = new Set<string>();
+  const rebuild = new Set<string>();
 
   for (const manifest of packageManifests()) {
     const dir = manifest.replace(/\/package\.json$/, "");
     const pkg = await Bun.file(`${rootDir}/${manifest}`).json();
+    // Asked once per package, not once per subpath.
+    const sourceAt = await newestSourceMtime(dir);
     for (const [subpath, target] of Object.entries(pkg.exports ?? {})) {
       const file = (target as Record<string, string>).default;
       if (file === undefined) continue;
@@ -66,7 +112,14 @@ async function computeResolutions(): Promise<Map<string, string>> {
         subpath === "." ? pkg.name : `${pkg.name}/${subpath.replace(/^\.\//, "")}`;
       const absolute = `${rootDir}/${dir}/${file.replace(/^\.\//, "")}`;
       map.set(specifier, absolute);
-      if (!(await Bun.file(absolute).exists())) unbuilt.add(dir);
+      const dist = Bun.file(absolute);
+      // Missing *or* older than the source it was built from. Only the first
+      // half used to be checked, so a budget could be measured against a dist
+      // built before the change under review: `bun run check-size` printed
+      // three green angle rows for source that was 2.4 KB over budget, and
+      // only the accident of `bun run check` building first hid it. A budget
+      // measured against a stale artefact is not a budget.
+      if (!(await dist.exists()) || dist.lastModified < sourceAt) rebuild.add(dir);
     }
   }
 
@@ -74,7 +127,7 @@ async function computeResolutions(): Promise<Map<string, string>> {
   // fresh clone running `bun test` would otherwise fail on a missing file that
   // has nothing to do with the budget being measured. Declarations are skipped
   // — bytes are the question, and tsc is most of a build's wall clock.
-  for (const dir of unbuilt) {
+  for (const dir of rebuild) {
     const result = await buildPackage(dir, { declarations: false });
     if (!result.ok) throw new Error(result.log);
   }
@@ -140,7 +193,8 @@ async function measureHere(spec: EntrySpec): Promise<Sizes> {
 
     const text = await output.text();
     // A tree-shaken-to-nothing bundle means the symbol did not exist or the
-    // keep-alive failed. Either way the number would be a lie.
+    // keep-alive failed. This catches only the degenerate case; the floor in
+    // the runner below is what catches a bundle that is merely far too small.
     if (text.length < 32) {
       throw new Error(`${spec.label}: bundle is ${text.length} bytes — nothing was kept`);
     }
@@ -221,12 +275,18 @@ export const BUDGETS: EntrySpec[] = [
     min: 2300,
     gzip: 1100,
   },
+  // 4218 B until 2026-08-06, when the shared factory learned to carry a `Ctx`
+  // (so a `Measure` can hold a dpi, spec §8) and to bake a kind's own parse
+  // defaults in (so `Number.parse("30")` works, spec §7.1). Both live in the
+  // one factory every class shares, so every class pays: +453 B minified,
+  // +141 B gzipped. Measured, then committed, then §13 amended — see the
+  // 2026-08-06 amendment there for the reason.
   {
     label: "angle/class",
     from: "@smartput/angle/class",
     names: ["Angle"],
-    min: 4250,
-    gzip: 1800,
+    min: 4700,
+    gzip: 1950,
   },
 
   // The parse-only entry for every remaining kind. Each is the shared 883 B
@@ -245,7 +305,10 @@ export const BUDGETS: EntrySpec[] = [
   // working, not a mistake — any growth in the shared parser shows up here
   // first, which is the earliest warning the repo has.
   parseOnly("percent", "parsePercent", 1000, 600),
-  parseOnly("speed", "parseSpeed", 1100, 650),
+  // 1096 B until the knot ratio was corrected: "0.514444" was the true value
+  // truncated, and the 28-digit string that replaced it is 22 characters
+  // longer. A wrong constant is not a smaller one.
+  parseOnly("speed", "parseSpeed", 1150, 650),
   parseOnly("temperature", "parseTemperature", 1150, 700),
   parseOnly("volume", "parseVolume", 1250, 700),
   // tempdelta shares temperature's package and its ratios, so this row exists
@@ -266,6 +329,22 @@ export const BUDGETS: EntrySpec[] = [
     min: 1300,
     gzip: 750,
   },
+
+  // The same claim for the class barrel, which had no row at all. Spec §8 says
+  // the `/*#__PURE__*/` annotation "is what lets an unused kind's class drop
+  // out of a barrel import", and that sentence was the entire enforcement:
+  // stripping the annotation from the twelve built class modules takes one
+  // `Angle` imported through this barrel from 4218 B to 7975 B, +89%, and
+  // nothing measured it. The subpath row above is unaffected by the annotation
+  // — one class per module — so this barrel is the only place it can be
+  // caught, which makes it exactly the place a row was missing.
+  {
+    label: "kinds/class barrel, one kind (shake check)",
+    from: "@smartput/kinds/class",
+    names: ["Angle"],
+    min: 4700,
+    gzip: 1950,
+  },
 ];
 
 if (import.meta.main) {
@@ -278,13 +357,22 @@ if (import.meta.main) {
     let failed = false;
     for (const spec of BUDGETS) {
       const { min, gzip } = await measureEntry(spec);
-      const ok = min <= spec.min && gzip <= spec.gzip;
-      const line = `${spec.label}: ${min} B min (budget ${spec.min}), ${gzip} B gzip (budget ${spec.gzip})`;
-      if (ok) {
-        console.log(`OK   ${line}`);
-      } else {
+      const floor = floorOf(spec);
+      const over = min > spec.min || gzip > spec.gzip;
+      const under = min < floor;
+      const line = `${spec.label}: ${min} B min (budget ${spec.min}, floor ${floor}), ${gzip} B gzip (budget ${spec.gzip})`;
+      if (over) {
         console.error(`OVER ${line}`);
         failed = true;
+      } else if (under) {
+        // Not a pass. Either the measured graph stopped being included — the
+        // shake-to-nothing case a one-sided budget reports as a triumph — or
+        // something got genuinely much smaller and the row needs re-measuring
+        // and §13 needs amending.
+        console.error(`UNDER ${line} — re-measure and amend the budget`);
+        failed = true;
+      } else {
+        console.log(`OK   ${line}`);
       }
     }
     if (BUDGETS.length === 0) console.log("check-size: no budgets registered yet");

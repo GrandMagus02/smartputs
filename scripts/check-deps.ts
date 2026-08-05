@@ -9,11 +9,12 @@ import { Glob } from "bun";
  * dependency at all.
  */
 const ALLOWED: Record<string, string[]> = {
-  // @smartput/validate is type-and-adapter only and itself has zero runtime
-  // dependencies, so the standing "core ships one runtime dependency" target
-  // is unchanged in substance. The dependency runs core -> validate; validate
-  // must never import core.
-  "packages/core/package.json": ["decimal.js", "@smartput/validate"],
+  // Spec §4 and §13: core ships exactly one runtime dependency and does not
+  // depend on @smartput/validate — the dependency runs the other way. It was
+  // listed here for a while so that `from-table.ts` could `import type
+  // { UnitTable }`; that type is now declared structurally in core as
+  // `RatioTable`, so nothing in core names the package outside a dev-only test.
+  "packages/core/package.json": ["decimal.js"],
   "packages/datetime/package.json": [
     "@smartput/core",
     "chrono-node",
@@ -132,6 +133,36 @@ async function exportsRatioKind(dir: string): Promise<boolean> {
   });
 }
 
+/**
+ * Every `@smartput/*` package this package's shipping source names, test files
+ * excluded.
+ *
+ * This is the check that runs in the direction the manifest cannot: a manifest
+ * says what a package *may* depend on, and this says what it actually does.
+ * Core listing `@smartput/validate` as a runtime dependency passed the manifest
+ * check for a milestone because someone widened the allowlist; what nothing
+ * asked was whether core's source imports it at all. It does not, and §4 says
+ * it must not — so the two halves together are the invariant, and either alone
+ * is a rubber stamp.
+ *
+ * `import type` counts. It compiles away, but it survives into the emitted
+ * `.d.ts`, and a published declaration naming a package absent from the
+ * manifest is a dependency a consumer discovers on install.
+ */
+async function workspaceImportsOf(dir: string): Promise<Set<string>> {
+  const out = new Set<string>();
+  const glob = new Glob(`${dir}/src/**/*.ts`);
+  for (const file of glob.scanSync(root.pathname)) {
+    if (file.endsWith(".test.ts")) continue;
+    const text = await Bun.file(new URL(file, root)).text();
+    for (const m of text.matchAll(/from\s+"(@smartput\/[a-z-]+)(?:\/[^"]*)?"/g)) {
+      const name = m[1];
+      if (name !== undefined) out.add(name);
+    }
+  }
+  return out;
+}
+
 const found = [...new Glob("packages/*/package.json").scanSync(root.pathname)]
   .map((p) => p.replaceAll("\\", "/"))
   .sort();
@@ -165,6 +196,20 @@ for (const path of found) {
   }
 
   const dir = path.replace(/\/package\.json$/, "");
+
+  // Both directions, so neither half is a rubber stamp: what the source imports
+  // must be declared, and what is declared must be allowed.
+  const imported = [...(await workspaceImportsOf(dir))].sort();
+  const undeclared = imported.filter((name) => !deps.includes(name));
+  if (undeclared.length > 0) {
+    console.error(
+      `${pkg.name} imports ${undeclared.join(", ")} from its shipping source but does not declare ${undeclared.length === 1 ? "it" : "them"} in "dependencies". Either declare it (and add it to ALLOWED above with the reason) or stop importing it.`,
+    );
+    failed = true;
+  } else if (imported.length > 0) {
+    console.log(`${pkg.name} source imports OK: ${imported.join(", ")}`);
+  }
+
   if (!(await exportsRatioKind(dir))) continue;
 
   const exportsMap: Record<string, Record<string, string>> = pkg.exports ?? {};
