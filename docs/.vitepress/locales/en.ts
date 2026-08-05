@@ -36,6 +36,7 @@ export const en: LocaleSpecificConfig<DefaultTheme.Config> & {
           text: "Core concepts",
           items: [
             { text: "Kinds and units", link: "/guide/kinds" },
+            { text: "Validating without the engine", link: "/guide/validating" },
             { text: "Ambiguity and weights", link: "/guide/weights" },
             { text: "Completion", link: "/guide/completion" },
             { text: "Locales", link: "/guide/locales" },
@@ -71,6 +72,13 @@ export const en: LocaleSpecificConfig<DefaultTheme.Config> & {
             { text: "defineLocale", link: "/api/define-locale" },
             { text: "createFacade", link: "/api/facade" },
             { text: "Types", link: "/api/types" },
+          ],
+        },
+        {
+          text: "@smartput/validate",
+          items: [
+            { text: "Overview", link: "/api/validate" },
+            { text: "Value classes", link: "/api/value-classes" },
           ],
         },
         {

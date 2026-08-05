@@ -17,28 +17,32 @@ registered through the same `defineKind` a third-party package would call.
 
 These ship in `@smartput/kinds` and are exported as `BUILTIN_KINDS`.
 
-| Kind | Canonical | Units |
-| --- | --- | --- |
-| `number` | `one` | *(dimensionless)* |
-| `percent` | `%` | `%` |
-| `length` | `m` | `mm` `cm` `m` `km` `in` `ft` `yd` `mi` |
-| `mass` | `g` | `mg` `g` `kg` `t` `oz` `lb` |
-| `duration` | `s` | `ms` `s` `min` `h` `d` `wk` |
-| `temperature` | `c` | `c` `f` `k` — affine, paired with `tempdelta` |
-| `tempdelta` | `c` | `c` `f` `k` — the *difference* between two temperatures |
-| `angle` | `rad` | `rad` `deg` `grad` `turn` |
-| `datasize` | `b` | `b` `kb` `mb` `gb` `tb` `kib` `mib` `gib` `tib` |
-| `speed` | `mps` | `mps` `kph` `mph` `knot` |
-| `area` | `m2` | `m2` `cm2` `km2` `hectare` `acre` |
-| `volume` | `l` | `l` `ml` `m3` `gal` `pint` |
+The **Validate** column is the engine-free micro path: a parser, an operation
+algebra and an immutable class, none of which needs a registry or `decimal.js`
+— see [Validating without the engine](/guide/validating).
+
+| Kind | Canonical | Units | Validate |
+| --- | --- | --- | --- |
+| `number` | `one` | *(dimensionless)* | `@smartput/number/validate` |
+| `percent` | `%` | `%` | `@smartput/percent/validate` |
+| `length` | `m` | `mm` `cm` `m` `km` `in` `ft` `yd` `mi` | `@smartput/length/validate` |
+| `mass` | `g` | `mg` `g` `kg` `t` `oz` `lb` | `@smartput/mass/validate` |
+| `duration` | `s` | `ms` `s` `min` `h` `d` `wk` | `@smartput/duration/validate` |
+| `temperature` | `c` | `c` `f` `k` — affine, paired with `tempdelta` | `@smartput/temperature/validate` |
+| `tempdelta` | `c` | `c` `f` `k` — the *difference* between two temperatures | `@smartput/temperature/validate` |
+| `angle` | `rad` | `rad` `deg` `grad` `turn` | `@smartput/angle/validate` |
+| `datasize` | `b` | `b` `kb` `mb` `gb` `tb` `kib` `mib` `gib` `tib` | `@smartput/datasize/validate` |
+| `speed` | `mps` | `mps` `kph` `mph` `knot` | `@smartput/speed/validate` |
+| `area` | `m2` | `m2` `cm2` `km2` `hectare` `acre` | `@smartput/area/validate` |
+| `volume` | `l` | `l` `ml` `m3` `gal` `pint` | `@smartput/volume/validate` |
 
 Two more kinds ship but are **not** in `BUILTIN_KINDS`:
 
-| Kind | Where from | Why opt-in |
-| --- | --- | --- |
-| `measure` | `@smartput/kinds` | Typographic units — `inch` `mm` `cm` `pt` `pc` `px`. Its `mm`/`cm` aliases collide with `length`, so registering it by default would make `10 cm` ambiguous for everyone. Import it by name. |
-| `money` | [`@smartput/rates`](/api/rates) | Its unit ratios are not constants — they come from a rate table you inject. A currency with no rate behind it can only ever raise `MissingRateError`. |
-| `datetime` | [`@smartput/datetime`](/guide/datetime) | `temporal-polyfill` and `chrono-node` together are several times the size of the engine. An engine that never sees a date should not carry them. |
+| Kind | Where from | Validate | Why opt-in |
+| --- | --- | --- | --- |
+| `measure` | `@smartput/kinds` | `@smartput/measure/validate` | Typographic units — `inch` `mm` `cm` `pt` `pc` `px`. Its `mm`/`cm` aliases collide with `length`, so registering it by default would make `10 cm` ambiguous for everyone. Import it by name — and note the micro path has no such conflict: `parseLength` and `parseMeasure` are two functions someone called deliberately. |
+| `money` | [`@smartput/rates`](/api/rates) | — | Its unit ratios are not constants — they come from a rate table you inject. The micro path has no engine to inject one into, so there is nowhere for a hard-coded FX table to live that would not be worse than no feature. |
+| `datetime` | [`@smartput/datetime`](/guide/datetime) | — | `temporal-polyfill` and `chrono-node` together are several times the size of the engine. An engine that never sees a date should not carry them, and its recognition needs both — nothing on this path applies. |
 
 `duration` lives in `@smartput/kinds` rather than in `@smartput/datetime`
 because it is a pure ratio kind — canonical seconds, no calendar.
@@ -190,5 +194,7 @@ on the first keystroke.
 
 ## Next
 
+- [Validating without the engine](/guide/validating) — the micro path in the
+  table above, at engine-free weight.
 - [Defining a kind](/guide/defining-a-kind) — build one interactively.
 - [Ambiguity and weights](/guide/weights) — how competing candidates are ranked.
