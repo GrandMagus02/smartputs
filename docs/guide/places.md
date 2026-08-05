@@ -596,8 +596,7 @@ present — reaching for it today gets an error, not a wrong answer:
   matcher cannot take it silently. The `postalRegex` is already on every country
   row, unused, waiting for the postal literal in M6.3 — along with
   `PlaceProvider`, the lifted cache facade and the GeoNames providers for the
-  long tail the vendored data does not carry. M6.3 also owns the
-  `athens georgia` fix and a city's formatted output.
+  long tail the vendored data does not carry.
 - **No completion.** `complete("kyi")` returns nothing. Core's completion inserts
   `<number><unit>` and skips non-ratio kinds outright, so place completion needs
   to go through the matcher's trie rather than the alias index. That is M6.4,
@@ -605,11 +604,12 @@ present — reaching for it today gets an error, not a wrong answer:
 - **No geocoding, no reverse geocoding, no street addresses.** Not a milestone —
   a different product, and no free dataset carries them at quality.
 
-Three limits of the shipped tier are described above rather than here, because
-they are behaviour and not absence: a city
-[formats to its country's facts](#what-a-city-formats-to),
-[17 city names yield to datetime](#cities-datetime-already-owns), and
-[`suggest()` returns one place](#ranking).
+Two limits of the shipped tier are described above rather than here, because
+they are behaviour and not absence:
+[17 city names yield to datetime](#cities-datetime-already-owns) and
+[`suggest()` returns one place](#ranking). Both are the same root cause — one
+claim per offset, and a fold that consumes the token — so both wait on the same
+core change.
 
 ## Next
 

@@ -116,6 +116,11 @@ interface LiteralMatch {
   readonly length: number;
   /** Summed into the candidate's score, exactly like an analyzer's weight. */
   readonly weight?: number;
+  /**
+   * Opt-in: this claim may stand as the *target* of a conversion, the right
+   * operand of `in`. Off by default.
+   */
+  readonly targetable?: boolean;
 }
 
 interface MatchCtx {
