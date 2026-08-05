@@ -693,6 +693,10 @@ The shared parser is paid once; per-kind cost is the table. Rough model:
 | `@smartput/datasize/validate` (9 units, widest table) | < 1.5 KB | < 850 B |
 | each additional kind at the same entry | < 400 B | < 250 B |
 
+> Both rows above are superseded by the 2026-08-06 amendment below: the
+> marginal-kind figure is not a constant, and `datasize` is not the widest
+> table.
+
 **These numbers are budgets, not measurements.** The first implementation task
 after the build lands is to measure the real figures and commit them; if a
 budget proves wrong, the spec is amended with the measured value and the reason,
@@ -749,6 +753,74 @@ row in this spec's own §5 table.
 The `number` and `datasize` rows are re-stated as the shared parser plus a
 projected table (~50 B and ~200 B respectively) and remain **unmeasured** until
 those kinds land.
+
+#### Amendment, 2026-08-06 — all twelve kinds, measured
+
+The remaining eleven kinds landed, so every row above is now a measurement.
+`scripts/check-size.ts` carries one parse-only row per kind, each the measured
+figure rounded up to the next 50 B.
+
+| Kind (`parse` only) | units | aliases | Minified | Gzip |
+| --- | --- | --- | --- | --- |
+| `percent` | 1 | 5 | 1000 B | 585 B |
+| `number` | 1 | 1 | 1029 B | 595 B |
+| `speed` | 4 | 7 | 1091 B | 626 B |
+| `tempdelta` | 3 | 11 | 1115 B | 637 B |
+| `temperature` | 3 | 11 | 1140 B | 658 B |
+| `area` | 5 | 14 | 1181 B | 663 B |
+| `volume` | 5 | 17 | 1206 B | 675 B |
+| `mass` | 6 | 20 | 1216 B | 687 B |
+| `duration` | 6 | 25 | 1242 B | 682 B |
+| `angle` | 4 | 15 | 1270 B | 722 B |
+| `measure` | 6 | 21 | 1396 B | 733 B |
+| `datasize` | 9 | 27 | 1402 B | 720 B |
+| `length` | 8 | 32 | 1408 B | 732 B |
+
+**The two named rows held.** `number` measured 1029 B / 595 B against < 1.3 KB /
+< 750 B, and `datasize` 1402 B / 720 B against < 1.5 KB / < 850 B. The
+projections in the amendment above were close: `number`'s table is ~146 B rather
+than ~50 B, `datasize`'s ~519 B rather than ~200 B.
+
+**The marginal-kind row did not hold, and is replaced.** "< 400 B per additional
+kind" was a constant, and the real figure scales with the table. Measured as a
+delta — one kind through `@smartput/kinds/validate`, then two:
+
+| Second kind | units | aliases | Minified | Gzip |
+| --- | --- | --- | --- | --- |
+| `percent` | 1 | 5 | +119 B | +46 B |
+| `datasize` | 9 | 27 | +521 B | +170 B |
+| `length` | 8 | 32 | +527 B | +184 B |
+
+So the marginal cost runs from **~120 B to ~530 B minified**, averaging **330 B**
+across all twelve (4898 B for the full set against 1270 B for one). The gzip half
+of the old row survives untouched: the worst case measured is +184 B against a
+budget of < 250 B, because aliases of the same kind share long substrings and
+compress well. Restated:
+
+| Entry | Minified | Gzip |
+| --- | --- | --- |
+| each additional kind at the same entry | < 550 B | < 250 B |
+
+This is a raise, so it is written down rather than absorbed: nothing regressed,
+the original number was set before any table existed and was simply too low for a
+wide one. The per-unit/per-alias model in this section is *pessimistic* rather
+than optimistic — it predicts 940 B for `length` against a measured 527 B —
+because the minifier interns the shared substrings across an alias table.
+
+**`datasize` is not the widest table.** `length` costs more at every entry (1408 B
+against 1402 B parse-only, +527 B against +521 B marginal): 32 aliases against 27
+outweighs 9 units against 8. The label in the table above is wrong and the row is
+kept only because the budget it states is still correct.
+
+**The barrels shake.** Importing one kind through `@smartput/kinds/validate`
+measures 1270 B — byte for byte what `@smartput/angle/validate` costs — while all
+twelve through the same barrel measure 4898 B. `check-size.ts` carries that
+one-kind barrel import as a permanent row, so if the barrel ever stops shaking
+the number jumps by ~3.6 KB and fails, rather than the doc comment on
+`packages/kinds/src/validate.ts` quietly becoming false. This holds for Bun's
+bundler; the doc comment still warns that a bundler which does not follow
+re-exports pays for all twelve, which is why the per-kind subpath remains the
+recommended entry point.
 
 ### The honest comparison
 

@@ -190,16 +190,23 @@ export async function measureEntry(spec: EntrySpec): Promise<Sizes> {
   return sizes;
 }
 
+/** A parse-only row for one kind: the entry a consumer pays to validate input. */
+const parseOnly = (pkg: string, fn: string, min: number, gzip: number): EntrySpec => ({
+  label: `${pkg}/validate ${fn} only`,
+  from: `@smartput/${pkg}/validate`,
+  names: [fn],
+  min,
+  gzip,
+});
+
 export const BUDGETS: EntrySpec[] = [
-  // Rows are added by later tasks as each entry lands. Every number here was
-  // measured first and then committed — see the plan's Global Constraints.
+  // Every number here was measured first and then committed, rounded up to the
+  // next 50 B — see the plan's Global Constraints. Raising one means amending
+  // spec §13 in the same commit, never quietly.
   //
-  // The three angle rows are the measured figures rounded up to the next 50 B.
-  // They are well over the spec's original §13 budgets, which is why §13 now
-  // carries a dated amendment stating the measured numbers and the reason: the
-  // table costs what the spec predicted (392 B), the shared parser costs six
-  // times what §13 implicitly assumed. Raising one of these again means
-  // amending §13 again.
+  // The three angle rows are well over §13's *original* budgets, which is why
+  // §13 carries a dated amendment: the table costs what the spec predicted
+  // (392 B), the shared parser costs six times what §13 implicitly assumed.
   {
     label: "angle/validate parseAngle only",
     from: "@smartput/angle/validate",
@@ -220,6 +227,44 @@ export const BUDGETS: EntrySpec[] = [
     names: ["Angle"],
     min: 4250,
     gzip: 1800,
+  },
+
+  // The parse-only entry for every remaining kind. Each is the shared 883 B
+  // parser plus that kind's table and wrapper, so the spread across these rows
+  // — 1000 B for percent's single unit to 1408 B for length's eight units and
+  // thirty-two aliases — is the table cost, and nothing else.
+  parseOnly("area", "parseArea", 1200, 700),
+  parseOnly("datasize", "parseDatasize", 1450, 750),
+  parseOnly("duration", "parseDuration", 1250, 700),
+  parseOnly("length", "parseLength", 1450, 750),
+  parseOnly("mass", "parseMass", 1250, 700),
+  parseOnly("measure", "parseMeasure", 1400, 750),
+  parseOnly("number", "parseNumber", 1050, 600),
+  // Measured at exactly 1000 B, so this row has no headroom at all: the
+  // smallest table in the repo is also the tightest budget. That is the rule
+  // working, not a mistake — any growth in the shared parser shows up here
+  // first, which is the earliest warning the repo has.
+  parseOnly("percent", "parsePercent", 1000, 600),
+  parseOnly("speed", "parseSpeed", 1100, 650),
+  parseOnly("temperature", "parseTemperature", 1150, 700),
+  parseOnly("volume", "parseVolume", 1250, 700),
+  // tempdelta shares temperature's package and its ratios, so this row exists
+  // to catch the offset table leaking into the delta entry: it should cost
+  // less than the reading, and it does (1115 B against 1140 B).
+  parseOnly("temperature", "parseTempDelta", 1150, 650),
+
+  // The barrel's whole claim is that a bundler which follows re-exports shakes
+  // it to one kind. Measured, importing one kind through `@smartput/kinds/
+  // validate` costs exactly what the subpath costs — 1270 B, delta zero — while
+  // all twelve through the same barrel cost 4898 B. If the barrel ever stops
+  // shaking, this row jumps by ~3.6 KB and fails loudly, rather than the doc
+  // comment quietly becoming false.
+  {
+    label: "kinds/validate barrel, one kind (shake check)",
+    from: "@smartput/kinds/validate",
+    names: ["parseAngle"],
+    min: 1300,
+    gzip: 750,
   },
 ];
 
