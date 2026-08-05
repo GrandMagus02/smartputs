@@ -1,3 +1,5 @@
+export type { ValueClass, ValueInstance } from "./class";
+export { createValueClass } from "./class";
 export {
   canonicalOf,
   coerce,
