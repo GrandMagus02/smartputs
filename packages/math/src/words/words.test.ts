@@ -154,6 +154,11 @@ describe("latexFromWords", () => {
     expect(latexFromWords("two three")).toBe("5");
   });
 
+  test("reads a word it knows exactly, fuzzy or not", () => {
+    expect(latexFromWords("cos x", { fuzzy: true })).toBe("\\cos(x)");
+    expect(latexFromWords("two x", { fuzzy: true })).toBe("2x");
+  });
+
   test("carries the word it stopped at, for a caller that wants to point at it", () => {
     try {
       latexFromWords("one plus banana");
@@ -162,5 +167,60 @@ describe("latexFromWords", () => {
       expect((error as WordParseError).word).toBe("banana");
       expect((error as WordParseError).input).toBe("one plus banana");
     }
+  });
+});
+
+describe("latexFromWords, reading through a typo", () => {
+  test("refuses one by default, rather than guessing unasked", () => {
+    expect(() => latexFromWords("one plsu two")).toThrow(WordParseError);
+  });
+
+  test("corrects a mistyped operator when asked to", () => {
+    expect(latexFromWords("one plsu two", { fuzzy: true })).toBe("1+2");
+    expect(latexFromWords("two tiems three", { fuzzy: true })).toBe("2\\times3");
+  });
+
+  test("corrects a word inside a phrase, which then matches as a phrase", () => {
+    expect(latexFromWords("one plus two in brakcets power three", { fuzzy: true })).toBe(
+      "(1+2)^3",
+    );
+    expect(latexFromWords("x squred plus one", { fuzzy: true })).toBe("x^2+1");
+  });
+
+  test("corrects a mistyped number word", () => {
+    expect(latexFromWords("on plus two", { fuzzy: true })).toBe("1+2");
+    expect(latexFromWords("twnty plus one", { fuzzy: true })).toBe("20+1");
+    expect(latexFromWords("twety two plus one", { fuzzy: true })).toBe("22+1");
+    expect(latexFromWords("one hundered and five", { fuzzy: true })).toBe("105");
+  });
+
+  test("counts a letter left out as the likelier slip", () => {
+    // "sne" is one letter short of "sine" and one letter wrong from "one".
+    // Leaving a letter out is the commoner slip, so it decides the match
+    // rather than tying with the other and being refused.
+    expect(latexFromWords("the sne of x", { fuzzy: true })).toBe("\\sin(x)");
+    // "thre" is a letter short of "three" and a letter long on "the", and the
+    // same ordering settles it.
+    expect(latexFromWords("thre point five", { fuzzy: true })).toBe("3.5");
+  });
+
+  test("leaves a single letter alone, because every one of them is a symbol", () => {
+    expect(latexFromWords("x plus y", { fuzzy: true })).toBe("x+y");
+    expect(latexFromWords("e power n", { fuzzy: true })).toBe("e^n");
+  });
+
+  test("still refuses a word that is close to nothing it knows", () => {
+    expect(() => latexFromWords("one plus banana", { fuzzy: true })).toThrow(
+      WordParseError,
+    );
+  });
+
+  test("refuses rather than pick between two words it is equally near", () => {
+    // "tine" is one wrong letter from "sine" and one from "nine". Either would
+    // be a guess, so the reading stops instead of choosing one.
+    expect(() => latexFromWords("tine of x", { fuzzy: true })).toThrow(WordParseError);
+    // Same slip, not different ones: "si" is a letter short of both "sin" and
+    // "six", so weighting the kinds of slip cannot separate them either.
+    expect(() => latexFromWords("si x", { fuzzy: true })).toThrow(WordParseError);
   });
 });

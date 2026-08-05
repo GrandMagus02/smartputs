@@ -1,5 +1,17 @@
-import { numberFromWords } from "@smartput/number";
+import { NUMBER_WORDS, numberFromWords } from "@smartput/number";
 import { WordParseError } from "../errors";
+import { nearestWord } from "./fuzzy";
+
+/** How a sentence should be read. */
+export interface WordOptions {
+  /**
+   * Read through a typo: an unknown word is replaced by the one word in the
+   * vocabulary closest to it, when there is exactly one close enough. Off by
+   * default, because a correction that guesses wrong still returns a number,
+   * and a number is not something a caller checks.
+   */
+  fuzzy?: boolean;
+}
 
 /**
  * A word token is already the notation it stands for: `plus` arrives as `+`,
@@ -229,8 +241,8 @@ function split(input: string): string[] {
  * Words in, notation out. Nothing here knows about precedence or grouping —
  * this pass only decides what each run of words *is*.
  */
-export function lexWords(input: string): WordToken[] {
-  const words = split(input);
+export function lexWords(input: string, options: WordOptions = {}): WordToken[] {
+  const words = options.fuzzy === true ? corrected(split(input)) : split(input);
   const tokens: WordToken[] = [];
   let i = 0;
 
@@ -290,6 +302,34 @@ function matchPhrase(
     if (spec !== undefined) return { spec, word, length };
   }
   return null;
+}
+
+/**
+ * Every word the reader knows, whatever it means: the words the phrases are
+ * built from, the ones a sentence carries for grammar, the letter names, and
+ * the number package's own vocabulary. Correction works one word at a time
+ * against all of them, so a mended word goes on to match as part of a phrase
+ * exactly as a correctly typed one would — "in brakcets" becomes "in
+ * brackets", which is then the one bracket token, not two words.
+ */
+const VOCABULARY: ReadonlySet<string> = new Set(
+  [
+    ...Object.keys(PHRASES).flatMap((phrase) => phrase.split(" ")),
+    ...FILLER,
+    ...GREEK,
+    ...NUMBER_WORDS,
+    // The punctuation in the table above ("(", "^", ",") is dropped: nothing is
+    // a near miss for a bracket, and a mistyped letter must never become one.
+  ].filter((word) => /^\p{L}+$/u.test(word)),
+);
+
+function corrected(words: string[]): string[] {
+  return words.map((word) => {
+    // A single letter is already a symbol, and a run of digits is already a
+    // number. Neither can be a misspelling of anything.
+    if (word.length <= 1 || /^\d/.test(word) || VOCABULARY.has(word)) return word;
+    return nearestWord(word, VOCABULARY) ?? word;
+  });
 }
 
 function matchSymbol(word: string): string | null {

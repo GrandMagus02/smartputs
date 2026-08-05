@@ -1,5 +1,13 @@
 import { WordParseError } from "../errors";
-import { type BinaryOp, type FunctionId, lexWords, type WordToken } from "./lex";
+import {
+  type BinaryOp,
+  type FunctionId,
+  lexWords,
+  type WordOptions,
+  type WordToken,
+} from "./lex";
+
+export type { WordOptions };
 
 type Node =
   | { kind: "atom"; latex: string }
@@ -53,9 +61,12 @@ const BINARY_PRECEDENCE: Readonly<Record<BinaryOp, number>> = {
  *
  * It is the inverse of `describe`, and deliberately reads that function's own
  * output back — "the quantity 2 plus 3, squared" returns `(2+3)^2`.
+ *
+ * `options.fuzzy` turns on reading through a typo — off by default, so a word
+ * it does not know is an error rather than a correction nobody asked for.
  */
-export function latexFromWords(words: string): string {
-  const tokens = lexWords(words);
+export function latexFromWords(words: string, options: WordOptions = {}): string {
+  const tokens = lexWords(words, options);
   if (tokens.length === 0) {
     throw new WordParseError(words, "there is nothing in it to read");
   }

@@ -38,4 +38,5 @@ export type {
 } from "./types";
 // The way in for an expression that was spoken rather than written. It hands
 // back LaTeX, so nothing downstream of it needs to know words exist.
+export type { WordOptions } from "./words/words";
 export { latexFromWords } from "./words/words";
