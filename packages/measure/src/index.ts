@@ -1,6 +1,32 @@
-import { Decimal, defineKind } from "@smartput/core";
+import { aliasesFor, Decimal, decimalRatios, defineKind } from "@smartput/core";
+import {
+  DEFAULT_DPI,
+  MEASURE_UNITS,
+  type MeasureUnit,
+  type StaticMeasureUnit,
+} from "./units";
 
-const DEFAULT_DPI = 96;
+export type { MeasureUnit, StaticMeasureUnit } from "./units";
+export { DEFAULT_DPI, MEASURE_UNITS } from "./units";
+
+const alias = (unit: MeasureUnit) => aliasesFor(MEASURE_UNITS, unit);
+
+/**
+ * `decimalRatios` refuses a dynamic ratio by design rather than coercing a
+ * function to NaN, so `px` is lifted out here and re-declared below as the
+ * closure the engine wants. Every other ratio still comes from `units.ts`,
+ * which is the whole point of the split.
+ */
+const { px: _dynamic, ...constantRatio } = MEASURE_UNITS.ratio;
+
+const constantUnits = decimalRatios<StaticMeasureUnit>({
+  // `decimalRatios` reads `ratio` and nothing else. `canonical` is spelled out
+  // because narrowing the unit union narrows its type too; the contract test
+  // in `validate.test.ts` asserts it still matches `MEASURE_UNITS.canonical`.
+  canonical: "inch",
+  ratio: constantRatio,
+  alias: {},
+});
 
 /**
  * Typographic measurement. `px` is the only dpi-relative unit, and it reads its
@@ -14,16 +40,12 @@ export const measure = defineKind({
   id: "measure",
   value: {
     mode: "ratio",
-    canonical: "inch",
+    canonical: MEASURE_UNITS.canonical,
     // Opt in to the facade's dpi surface — `.dpi` and `withDpi()`. See
     // RatioSpec.dpiUnit.
     dpiUnit: "px",
     units: {
-      inch: 1,
-      mm: new Decimal(1).div(25.4),
-      cm: new Decimal(1).div(2.54),
-      pt: new Decimal(1).div(72),
-      pc: new Decimal(1).div(6),
+      ...constantUnits,
       px: {
         ratio: (ctx) => {
           const dpi = ctx.self.meta?.dpi;
@@ -32,39 +54,43 @@ export const measure = defineKind({
       },
     },
   },
+  // Aliases are derived, never restated: `units.ts` is the one place a new
+  // alias is added, and it reaches both the engine and the micro path.
+  // `symbol`, `display` and `typical` stay here — the micro path has no use
+  // for any of them and should not carry their bytes.
   lexicon: {
     inch: {
-      aliases: ["inch"],
+      aliases: alias("inch"),
       symbol: "inch",
       display: { one: "inch", other: "inches" },
       typical: [1, 120],
     },
     mm: {
-      aliases: ["mm", "millimetre", "millimeter"],
+      aliases: alias("mm"),
       symbol: "mm",
       display: { one: "millimetre", other: "millimetres" },
       typical: [1, 1000],
     },
     cm: {
-      aliases: ["cm", "centimetre", "centimeter"],
+      aliases: alias("cm"),
       symbol: "cm",
       display: { one: "centimetre", other: "centimetres" },
       typical: [1, 300],
     },
     pt: {
-      aliases: ["pt", "point"],
+      aliases: alias("pt"),
       symbol: "pt",
       display: { one: "point", other: "points" },
       typical: [1, 1000],
     },
     pc: {
-      aliases: ["pc", "pica"],
+      aliases: alias("pc"),
       symbol: "pc",
       display: { one: "pica", other: "picas" },
       typical: [1, 100],
     },
     px: {
-      aliases: ["px", "pixel"],
+      aliases: alias("px"),
       symbol: "px",
       display: { one: "pixel", other: "pixels" },
       typical: [1, 4000],

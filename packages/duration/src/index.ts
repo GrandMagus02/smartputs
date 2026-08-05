@@ -1,45 +1,51 @@
-import { defineKind } from "@smartput/core";
+import { aliasesFor, decimalRatios, defineKind } from "@smartput/core";
+import { DURATION_UNITS, type DurationUnit } from "./units";
+
+export type { DurationUnit } from "./units";
+export { DURATION_UNITS } from "./units";
+
+const alias = (unit: DurationUnit) => aliasesFor(DURATION_UNITS, unit);
 
 export const duration = defineKind({
   id: "duration",
   value: {
     mode: "ratio",
-    canonical: "s",
-    units: { ms: 0.001, s: 1, min: 60, h: 3600, d: 86400, wk: 604800 },
+    canonical: DURATION_UNITS.canonical,
+    units: decimalRatios(DURATION_UNITS),
   },
   lexicon: {
     ms: {
-      aliases: ["ms", "millisecond"],
+      aliases: alias("ms"),
       symbol: "ms",
       display: { one: "millisecond", other: "milliseconds" },
       typical: [1, 5000],
     },
     s: {
-      aliases: ["s", "sec", "second"],
+      aliases: alias("s"),
       symbol: "s",
       display: { one: "second", other: "seconds" },
       typical: [1, 300],
     },
     min: {
-      aliases: ["min", "m", "minute"],
+      aliases: alias("min"),
       symbol: "min",
       display: { one: "minute", other: "minutes" },
       typical: [1, 180],
     },
     h: {
-      aliases: ["h", "hr", "hour"],
+      aliases: alias("h"),
       symbol: "h",
       display: { one: "hour", other: "hours" },
       typical: [1, 72],
     },
     d: {
-      aliases: ["d", "day"],
+      aliases: alias("d"),
       symbol: "d",
       display: { one: "day", other: "days" },
       typical: [1, 90],
     },
     wk: {
-      aliases: ["wk", "week"],
+      aliases: alias("wk"),
       symbol: "wk",
       display: { one: "week", other: "weeks" },
       typical: [1, 52],

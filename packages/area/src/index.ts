@@ -1,5 +1,15 @@
 import type { Value } from "@smartput/core";
-import { type Decimal, defineKind, deriveValue } from "@smartput/core";
+import {
+  aliasesFor,
+  type Decimal,
+  decimalRatios,
+  defineKind,
+  deriveValue,
+} from "@smartput/core";
+import { AREA_UNITS, type AreaUnit } from "./units";
+
+export type { AreaUnit } from "./units";
+export { AREA_UNITS } from "./units";
 
 /**
  * A derived kind's result is a different kind and unit than either operand,
@@ -9,29 +19,31 @@ import { type Decimal, defineKind, deriveValue } from "@smartput/core";
 const make = (source: Value, kind: string, unit: string, canonical: Decimal): Value =>
   deriveValue(source, canonical, { kind, unit });
 
+const alias = (unit: AreaUnit) => aliasesFor(AREA_UNITS, unit);
+
 /** Canonical square metres. Produced by multiplying two lengths. */
 export const area = defineKind({
   id: "area",
   value: {
     mode: "ratio",
-    canonical: "m2",
-    units: { m2: 1, cm2: 0.0001, km2: 1e6, hectare: 1e4, acre: 4046.8564224 },
+    canonical: AREA_UNITS.canonical,
+    units: decimalRatios(AREA_UNITS),
   },
   lexicon: {
     // The squared units carry no `display` for the same reason as the speeds:
     // "square metres" is not a string the parser accepts, so completion would
     // hand back text that fails to evaluate.
-    m2: { aliases: ["m2", "sqm"], symbol: "m²", typical: [1, 10000] },
-    cm2: { aliases: ["cm2", "sqcm"], symbol: "cm²", typical: [1, 10000] },
-    km2: { aliases: ["km2", "sqkm"], symbol: "km²", typical: [0.1, 10000] },
+    m2: { aliases: alias("m2"), symbol: "m²", typical: [1, 10000] },
+    cm2: { aliases: alias("cm2"), symbol: "cm²", typical: [1, 10000] },
+    km2: { aliases: alias("km2"), symbol: "km²", typical: [0.1, 10000] },
     hectare: {
-      aliases: ["hectare", "ha"],
+      aliases: alias("hectare"),
       symbol: "ha",
       display: { one: "hectare", other: "hectares" },
       typical: [0.1, 1000],
     },
     acre: {
-      aliases: ["acre"],
+      aliases: alias("acre"),
       symbol: "acre",
       display: { one: "acre", other: "acres" },
       typical: [0.1, 1000],
