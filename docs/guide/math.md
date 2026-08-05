@@ -147,12 +147,62 @@ describeOperator("+");    // "plus"
 OPERATOR_WORDS["\\leq"];  // "less than or equal to"
 ```
 
+How it reads is an option, in the shape `Intl` uses — `style` for how much
+sentence there is, `numbers` for figures or words:
+
+```ts
+math.describe("(2+3)^2", { style: "short" }); // "2 plus 3 in brackets squared"
+math.describe("x^2+1", { numbers: "words" }); // "x squared plus one"
+```
+
 <SpMathSpeech />
+
+## Saying it
+
+The same words go back the other way. `latexFromWords` reads an expression said
+in English into LaTeX, so dictation, a chat message or a voice assistant
+reaches the engine without the engine knowing words exist:
+
+```ts
+import { latexFromWords } from "@smartput/math";
+
+latexFromWords("one plus two power three");             // "1+2^3"
+latexFromWords("one plus two in brackets power three"); // "(1+2)^3"
+
+math.evaluate(latexFromWords("one plus two in brackets power three")).latex; // "27"
+```
+
+The awkward part of saying mathematics out loud is where the brackets go, and
+English has three ways of doing it — all three work:
+
+| Said | Means |
+| ---- | ----- |
+| `one plus two in brackets power three` | `(1+2)^3` |
+| `x plus one all squared` | `(x+1)^2` |
+| `the quantity x plus one, squared` | `(x+1)^2` |
+| `open bracket x plus one close bracket squared` | `(x+1)^2` |
+
+Marked afterwards — `in brackets`, `all` — the bracket takes everything said
+since the last one opened, which is what a speaker who marks a bracket after
+the fact means by it. Marked beforehand, `the quantity` runs to the comma, the
+same pause `describe` puts there when it reads a bracket out.
+
+Everything else is generous on purpose: `power`, `to the power of` and `raised
+to` are one operator, `divided by` and `over` another, and numbers come as
+digits or words in the same breath — `twenty-two plus one hundred and five`.
+
+Because it is the same vocabulary `describe` speaks, a description reads back
+as the expression it described:
+
+```ts
+latexFromWords(math.describe("(2+3)^2")); // "(2+3)^2"
+```
 
 ## Errors
 
-`MathParseError`, `MathSolveError`, `NotAMatrixError` and `UnboundSymbolError`
-all extend `MathError`, which extends core's `SmartputError`. One
+`MathParseError`, `WordParseError`, `MathSolveError`, `NotAMatrixError` and
+`UnboundSymbolError` all extend `MathError`, which extends core's
+`SmartputError`. One
 `instanceof SmartputError` guard therefore catches input problems from every
 package in this repo — which is exactly what the demos on this page do to render
 a failure instead of blanking.

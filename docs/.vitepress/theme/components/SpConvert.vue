@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { BUILTIN_KINDS } from "@smartput/core";
+import { BUILTIN_KINDS } from "@smartput/kinds";
 import { computed, ref } from "vue";
 import { docsEngine, evaluateSafely } from "../engine";
 import DemoShell from "./DemoShell.vue";

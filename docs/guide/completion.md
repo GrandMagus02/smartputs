@@ -46,7 +46,7 @@ that ranks readings:
 Bands are declared per unit as `typical: [min, max]` in the lexicon:
 
 ```ts
-// packages/core/src/kinds/length.ts
+// packages/length/src/index.ts
 mi: {
   aliases: ["mi", "mile"],
   symbol: "mi",

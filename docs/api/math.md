@@ -15,10 +15,12 @@ bun add @smartput/math
 
 | Subpath | Contents |
 | --- | --- |
-| `@smartput/math` | `createMathEngine`, `describeOperator`, `OPERATOR_WORDS`, `ruleForOperator`, `titleForRule`, the error classes, and the result types |
+| `@smartput/math` | `createMathEngine`, `latexFromWords`, `describeOperator`, `OPERATOR_WORDS`, `ruleForOperator`, `titleForRule`, the error classes, and the result types |
 
-Runtime dependencies: `@cortex-js/compute-engine` and `@smartput/core` — the
-first does the mathematics, the second supplies the error base class.
+Runtime dependencies: `@cortex-js/compute-engine`, `@smartput/core` and
+`@smartput/number` — the first does the mathematics, the second supplies the
+error base class, the third the number vocabulary the word layer reads and
+spells.
 
 <SpMathEvaluate
   model-value="1+2\times3"
@@ -52,7 +54,7 @@ const math = createMathEngine();
 | `matrix(latex)` | `MatrixResult` — shape, determinant, trace, transpose, inverse |
 | `differentiate(latex, options?)` | `SimplifyResult` |
 | `integrate(latex, options?)` | `SimplifyResult` |
-| `describe(latex)` | `string` — the expression in English |
+| `describe(latex, options?)` | `string` — the expression in English |
 
 ### evaluate()
 
@@ -215,9 +217,51 @@ titleForRule("power");      // "Raise to the power"
 `titleForRule` answers for this package's own rules; steps that came from the
 solver already carry their description in `title`.
 
+## latexFromWords()
+
+```ts
+function latexFromWords(words: string): string
+```
+
+Reads an expression said in English into LaTeX. It needs no engine, and hands
+back ordinary notation, so everything above it stays LaTeX-only.
+
+```ts
+latexFromWords("one plus two power three");             // "1+2^3"
+latexFromWords("one plus two in brackets power three"); // "(1+2)^3"
+latexFromWords("x plus one all squared");               // "(x+1)^2"
+latexFromWords("the quantity two plus three, squared"); // "(2+3)^2"
+```
+
+A bracket may be marked after what it holds (`in brackets`, `all`) or before it
+(`the quantity`, closed by a comma; `open bracket` … `close bracket`). Marked
+after, it groups everything said since the last bracket opened — which is what
+a person marking a bracket after the fact means by it.
+
+Each operator answers to every ordinary spelling of it: `power`, `to the
+power`, `to the power of`, `raised to`; `divided by` and `over`; `equals`, `is
+equal to`. Numbers arrive as digits or as words in the same sentence
+(`twenty-two plus one hundred and five`, `three point five`), and `two x` is a
+product.
+
+Precedence is the precedence the symbols have. A power binds tighter than the
+arithmetic around it, and a function binds to its operand rather than to the
+sentence — `the sine of x plus one` is `\sin(x)+1`, with `the sine of the
+quantity x plus one` available for the other reading.
+
+A word it does not know raises `WordParseError`, whose `word` is the one it
+stopped at, for a UI that wants to underline it.
+
 ## describe() and OPERATOR_WORDS
 
 ```ts
+describe(latex: string, options?: DescribeOptions): string
+
+interface DescribeOptions {
+  style?: "long" | "short";      // default "long"
+  numbers?: "digits" | "words";  // default "digits"
+}
+
 function describeOperator(symbol: string): string | null;
 const OPERATOR_WORDS: Readonly<Record<string, string>>;
 ```
@@ -227,6 +271,29 @@ const OPERATOR_WORDS: Readonly<Record<string, string>>;
 `describeOperator` returns `null` for a symbol with no word, rather than echoing
 the symbol back as if it were one.
 
+The options follow `Intl`: what varies is named, and each default is what the
+reading was before the option existed.
+
+| `(2+3)^2` read | Result |
+| --- | --- |
+| `{}` | `the quantity 2 plus 3, squared` |
+| `{ style: "short" }` | `2 plus 3 in brackets squared` |
+| `{ numbers: "words" }` | `the quantity two plus three, squared` |
+| `{ style: "short", numbers: "words" }` | `two plus three in brackets squared` |
+
+`"short"` is the caption reading: no articles, no "of" after a function name,
+no copula in a relation (`x less than 3`), and a bracket marked after what it
+holds. `numbers: "words"` spells numbers out; one too large for the scale words
+keeps its digits.
+
+The vocabulary is the one `latexFromWords` reads, so an ordinary description —
+no matrices, no operator the table has no phrasing for — returns to the
+expression it came from:
+
+```ts
+latexFromWords(math.describe("(2+3)^2")); // "(2+3)^2"
+```
+
 <SpMathSpeech />
 
 ## Errors
@@ -235,6 +302,7 @@ the symbol back as if it were one.
 SmartputError            (@smartput/core)
 └── MathError
     ├── MathParseError       LaTeX that cannot be read; `detail` lists why
+    ├── WordParseError       words that cannot be read; `word` is where it stopped
     ├── MathSolveError       no such unknown, several unknowns, empty system
     ├── NotAMatrixError      a matrix operation on something that is not one
     └── UnboundSymbolError   a number was required, a symbol was left unbound

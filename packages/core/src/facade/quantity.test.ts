@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test";
+import { BUILTIN_KINDS, measure } from "@smartput/kinds";
 import { UnitParseError } from "../errors";
 import { buildRegistry } from "../kind/registry";
-import { BUILTIN_KINDS, measure } from "../kinds/index";
 import en from "../locale/en";
 import { createFacade, type Quantity, type QuantityClass } from "./quantity";
 

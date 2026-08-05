@@ -15,7 +15,7 @@ registered through the same `defineKind` a third-party package would call.
 
 ## The built-in kinds
 
-These ship in `@smartput/core` and are exported as `BUILTIN_KINDS`.
+These ship in `@smartput/kinds` and are exported as `BUILTIN_KINDS`.
 
 | Kind | Canonical | Units |
 | --- | --- | --- |
@@ -32,17 +32,18 @@ These ship in `@smartput/core` and are exported as `BUILTIN_KINDS`.
 | `area` | `m2` | `m2` `cm2` `km2` `hectare` `acre` |
 | `volume` | `l` | `l` `ml` `m3` `gal` `pint` |
 
-Two more kinds ship in the package but are **not** in `BUILTIN_KINDS`:
+Two more kinds ship but are **not** in `BUILTIN_KINDS`:
 
 | Kind | Where from | Why opt-in |
 | --- | --- | --- |
-| `measure` | `@smartput/core` | Typographic units — `inch` `mm` `cm` `pt` `pc` `px`. Its `mm`/`cm` aliases collide with `length`, so registering it by default would make `10 cm` ambiguous for everyone. Import it by name. |
+| `measure` | `@smartput/kinds` | Typographic units — `inch` `mm` `cm` `pt` `pc` `px`. Its `mm`/`cm` aliases collide with `length`, so registering it by default would make `10 cm` ambiguous for everyone. Import it by name. |
 | `money` | [`@smartput/rates`](/api/rates) | Its unit ratios are not constants — they come from a rate table you inject. A currency with no rate behind it can only ever raise `MissingRateError`. |
 
-`duration` lives in core rather than in `@smartput/datetime` because it is a
-pure ratio kind — canonical seconds, no calendar. `30 hours - 10 minutes` needs
-no Temporal and no timezone. Only `datetime`, where DST and calendar arithmetic
-are genuinely hard, pulls the heavy dependencies.
+`duration` lives in `@smartput/kinds` rather than in `@smartput/datetime`
+because it is a pure ratio kind — canonical seconds, no calendar.
+`30 hours - 10 minutes` needs no Temporal and no timezone. Only `datetime`,
+where DST and calendar arithmetic are genuinely hard, pulls the heavy
+dependencies.
 
 <SpConvert />
 

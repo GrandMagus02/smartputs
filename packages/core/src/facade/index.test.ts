@@ -1,9 +1,7 @@
 import { expect, test } from "bun:test";
+import { BUILTIN_KINDS, measure, temperature } from "@smartput/kinds";
 import { KindConflictError } from "../errors";
 import { buildRegistry } from "../kind/registry";
-import { BUILTIN_KINDS } from "../kinds/index";
-import { measure } from "../kinds/measure";
-import { temperature } from "../kinds/temperature";
 import en from "../locale/en";
 import { createFacades } from "./index";
 import { createFacade, type Quantity, type QuantityClass } from "./quantity";

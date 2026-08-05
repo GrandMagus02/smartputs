@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
+import { BUILTIN_KINDS } from "@smartput/kinds";
 import { buildRegistry } from "../kind/registry";
-import { BUILTIN_KINDS } from "../kinds/index";
 import en from "../locale/en";
 import type { Weights } from "../types";
 import { complete } from "./complete";

@@ -15,8 +15,9 @@ process, and every registration error is raised here rather than lazily at parse
 time.
 
 ```ts
-import { BUILTIN_KINDS, createEngine } from "@smartput/core";
+import { createEngine } from "@smartput/core";
 import en from "@smartput/core/locale/en";
+import { BUILTIN_KINDS } from "@smartput/kinds";
 
 const engine = createEngine({ locales: [en], kinds: BUILTIN_KINDS });
 ```
@@ -49,16 +50,17 @@ the primary locale scores higher.
 ### kinds
 
 Appended to the engine's vocabulary. **Nothing is registered implicitly** — pass
-`BUILTIN_KINDS`, or the subset you want, or the engine has no units at all and
-every word raises `NoCandidateError`.
+`BUILTIN_KINDS` from [`@smartput/kinds`](/guide/kinds), or the subset you want,
+or the engine has no units at all and every word raises `NoCandidateError`.
 
 ```ts
 createEngine({ locales: [en], kinds: [...BUILTIN_KINDS, measure, myTicker] });
 ```
 
-Two shipped kinds are not in `BUILTIN_KINDS` and must be named: `measure`, whose
-`mm`/`cm` aliases collide with `length`, and `money` from
-[`@smartput/rates`](/api/rates), which needs a `rates` table to convert at all.
+Two shipped kinds are not in `BUILTIN_KINDS` and must be named: `measure`, also
+from `@smartput/kinds`, whose `mm`/`cm` aliases collide with `length`, and
+`money` from [`@smartput/rates`](/api/rates), which needs a `rates` table to
+convert at all.
 
 Two kinds claiming the same id, or the same op signature, raise
 `KindConflictError` naming both sources. Registration order is irrelevant.

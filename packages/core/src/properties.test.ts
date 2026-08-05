@@ -1,9 +1,9 @@
 import { expect, test } from "bun:test";
+import { BUILTIN_KINDS } from "@smartput/kinds";
 import { Decimal } from "./decimal";
 import { fromCanonical, toCanonical } from "./eval/convert";
 import { formatValue } from "./format/format";
 import { buildRegistry, NUMBER_KIND } from "./kind/registry";
-import { BUILTIN_KINDS } from "./kinds/index";
 import en from "./locale/en";
 import { parseNumber } from "./locale/number";
 
@@ -176,7 +176,7 @@ test("every kind satisfies the kind contract", async () => {
   const { assertKindContract } = await import("./testing/index");
   // NUMBER_KIND is the engine's internal identity kind for bare numeric
   // literals: evaluateNode's "number" case constructs it directly and it is
-  // never reached through the alias index (see kinds/number.ts, which
+  // never reached through the alias index (see @smartput/number, which
   // deliberately overrides the default lexeme to `{ aliases: [], symbol: "" }`
   // instead of the auto-derived `{ aliases: ["one"], symbol: "one" }`).
   // assertKindContract's "every unit must have an alias" rule exists to prove

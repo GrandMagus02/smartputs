@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
+import { BUILTIN_KINDS } from "@smartput/kinds";
 import { createEngine } from "./engine";
-import { BUILTIN_KINDS } from "./kinds/index";
 import en from "./locale/en";
 
 const engine = createEngine({ locales: [en], kinds: BUILTIN_KINDS });

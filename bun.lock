@@ -14,6 +14,7 @@
       "version": "0.0.0",
       "dependencies": {
         "@smartput/core": "workspace:*",
+        "@smartput/kinds": "workspace:*",
         "@smartput/math": "workspace:*",
         "@smartput/rates": "workspace:*",
         "katex": "^0.18.1",
@@ -26,11 +27,84 @@
         "vue": "^3.5.0",
       },
     },
+    "packages/angle": {
+      "name": "@smartput/angle",
+      "version": "0.0.0",
+      "dependencies": {
+        "@smartput/core": "workspace:*",
+      },
+      "devDependencies": {
+        "@smartput/kinds": "workspace:*",
+      },
+    },
+    "packages/area": {
+      "name": "@smartput/area",
+      "version": "0.0.0",
+      "dependencies": {
+        "@smartput/core": "workspace:*",
+      },
+      "devDependencies": {
+        "@smartput/kinds": "workspace:*",
+      },
+    },
     "packages/core": {
       "name": "@smartput/core",
       "version": "0.0.0",
       "dependencies": {
         "decimal.js": "^10.6.0",
+      },
+      "devDependencies": {
+        "@smartput/kinds": "workspace:*",
+      },
+    },
+    "packages/datasize": {
+      "name": "@smartput/datasize",
+      "version": "0.0.0",
+      "dependencies": {
+        "@smartput/core": "workspace:*",
+      },
+      "devDependencies": {
+        "@smartput/kinds": "workspace:*",
+      },
+    },
+    "packages/duration": {
+      "name": "@smartput/duration",
+      "version": "0.0.0",
+      "dependencies": {
+        "@smartput/core": "workspace:*",
+      },
+    },
+    "packages/kinds": {
+      "name": "@smartput/kinds",
+      "version": "0.0.0",
+      "dependencies": {
+        "@smartput/angle": "workspace:*",
+        "@smartput/area": "workspace:*",
+        "@smartput/core": "workspace:*",
+        "@smartput/datasize": "workspace:*",
+        "@smartput/duration": "workspace:*",
+        "@smartput/length": "workspace:*",
+        "@smartput/mass": "workspace:*",
+        "@smartput/measure": "workspace:*",
+        "@smartput/number": "workspace:*",
+        "@smartput/percent": "workspace:*",
+        "@smartput/speed": "workspace:*",
+        "@smartput/temperature": "workspace:*",
+        "@smartput/volume": "workspace:*",
+      },
+    },
+    "packages/length": {
+      "name": "@smartput/length",
+      "version": "0.0.0",
+      "dependencies": {
+        "@smartput/core": "workspace:*",
+      },
+    },
+    "packages/mass": {
+      "name": "@smartput/mass",
+      "version": "0.0.0",
+      "dependencies": {
+        "@smartput/core": "workspace:*",
       },
     },
     "packages/math": {
@@ -39,6 +113,34 @@
       "dependencies": {
         "@cortex-js/compute-engine": "^0.101.0",
         "@smartput/core": "workspace:*",
+        "@smartput/number": "workspace:*",
+      },
+    },
+    "packages/measure": {
+      "name": "@smartput/measure",
+      "version": "0.0.0",
+      "dependencies": {
+        "@smartput/core": "workspace:*",
+      },
+      "devDependencies": {
+        "@smartput/kinds": "workspace:*",
+      },
+    },
+    "packages/number": {
+      "name": "@smartput/number",
+      "version": "0.0.0",
+      "dependencies": {
+        "@smartput/core": "workspace:*",
+      },
+    },
+    "packages/percent": {
+      "name": "@smartput/percent",
+      "version": "0.0.0",
+      "dependencies": {
+        "@smartput/core": "workspace:*",
+      },
+      "devDependencies": {
+        "@smartput/kinds": "workspace:*",
       },
     },
     "packages/rates": {
@@ -47,6 +149,39 @@
       "dependencies": {
         "@smartput/core": "workspace:*",
         "decimal.js": "^10.6.0",
+      },
+      "devDependencies": {
+        "@smartput/number": "workspace:*",
+      },
+    },
+    "packages/speed": {
+      "name": "@smartput/speed",
+      "version": "0.0.0",
+      "dependencies": {
+        "@smartput/core": "workspace:*",
+      },
+      "devDependencies": {
+        "@smartput/kinds": "workspace:*",
+      },
+    },
+    "packages/temperature": {
+      "name": "@smartput/temperature",
+      "version": "0.0.0",
+      "dependencies": {
+        "@smartput/core": "workspace:*",
+      },
+      "devDependencies": {
+        "@smartput/kinds": "workspace:*",
+      },
+    },
+    "packages/volume": {
+      "name": "@smartput/volume",
+      "version": "0.0.0",
+      "dependencies": {
+        "@smartput/core": "workspace:*",
+      },
+      "devDependencies": {
+        "@smartput/kinds": "workspace:*",
       },
     },
   },
@@ -313,13 +448,39 @@
 
     "@shikijs/vscode-textmate": ["@shikijs/vscode-textmate@10.0.2", "", {}, "sha512-83yeghZ2xxin3Nj8z1NMd/NCuca+gsYXswywDy5bHvwlWL8tpTQmzGeUuHd9FC3E/SBEMvzJRwWEOz5gGes9Qg=="],
 
+    "@smartput/angle": ["@smartput/angle@workspace:packages/angle"],
+
+    "@smartput/area": ["@smartput/area@workspace:packages/area"],
+
     "@smartput/core": ["@smartput/core@workspace:packages/core"],
+
+    "@smartput/datasize": ["@smartput/datasize@workspace:packages/datasize"],
 
     "@smartput/docs": ["@smartput/docs@workspace:docs"],
 
+    "@smartput/duration": ["@smartput/duration@workspace:packages/duration"],
+
+    "@smartput/kinds": ["@smartput/kinds@workspace:packages/kinds"],
+
+    "@smartput/length": ["@smartput/length@workspace:packages/length"],
+
+    "@smartput/mass": ["@smartput/mass@workspace:packages/mass"],
+
     "@smartput/math": ["@smartput/math@workspace:packages/math"],
 
+    "@smartput/measure": ["@smartput/measure@workspace:packages/measure"],
+
+    "@smartput/number": ["@smartput/number@workspace:packages/number"],
+
+    "@smartput/percent": ["@smartput/percent@workspace:packages/percent"],
+
     "@smartput/rates": ["@smartput/rates@workspace:packages/rates"],
+
+    "@smartput/speed": ["@smartput/speed@workspace:packages/speed"],
+
+    "@smartput/temperature": ["@smartput/temperature@workspace:packages/temperature"],
+
+    "@smartput/volume": ["@smartput/volume@workspace:packages/volume"],
 
     "@tybys/wasm-util": ["@tybys/wasm-util@0.10.3", "", { "dependencies": { "tslib": "^2.4.0" } }, "sha512-F3fo1MYrRJYL3zER0OUOmkutjr1Vp23m7OsSgp7nq4SP6OqX6C/56XFIPAl5bt3zaBRjmW7SGz3u/6LwFpYcOg=="],
 

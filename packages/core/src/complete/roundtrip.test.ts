@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
+import { BUILTIN_KINDS, measure } from "@smartput/kinds";
 import { createEngine } from "../engine";
-import { BUILTIN_KINDS, measure } from "../kinds/index";
 import en from "../locale/en";
 import { lex } from "../parse/lex";
 import { normalize } from "../parse/normalize";

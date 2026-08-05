@@ -1,12 +1,7 @@
 import { expect, test } from "bun:test";
-import {
-  createEngine,
-  createFacades,
-  Decimal,
-  number,
-  UnitParseError,
-} from "@smartput/core";
+import { createEngine, createFacades, Decimal, UnitParseError } from "@smartput/core";
 import en from "@smartput/core/locale/en";
+import { number } from "@smartput/number";
 import { CURRENCIES } from "./currencies";
 import { money } from "./money";
 import { snapshot } from "./snapshot";

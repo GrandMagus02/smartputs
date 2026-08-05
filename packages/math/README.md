@@ -28,7 +28,10 @@ math.solve("x^2-5x+6=0");
 | `matrix(latex)`              | Shape, determinant, trace, transpose, inverse  |
 | `differentiate(latex, o?)`   | The derivative                                 |
 | `integrate(latex, o?)`       | The antiderivative                             |
-| `describe(latex)`            | The expression read out in English             |
+| `describe(latex, o?)`        | The expression read out in English             |
+
+Plus one function that needs no engine: `latexFromWords`, which reads an
+expression said in words into the LaTeX the rest of the package takes.
 
 Arithmetic is exact: `\frac{1}{2}+\frac{1}{3}` is `\frac{5}{6}`, not `0.8333`.
 `approx` carries the decimal when one is wanted, and is `null` when the result
@@ -101,6 +104,42 @@ come back in `pmatrix` notation rather than as nested lists. A singular matrix
 reports `inverse: null` instead of echoing the request back. Matrix arithmetic
 goes through `evaluate` and comes back as a matrix too.
 
+## Saying it
+
+`latexFromWords` reads an expression spoken in English into LaTeX, so anything
+that arrives as words — dictation, a chat message, a voice assistant — reaches
+`evaluate` and `solve` without those knowing words exist:
+
+```ts
+import { latexFromWords } from "@smartput/math";
+
+latexFromWords("one plus two power three"); // "1+2^3"
+latexFromWords("one plus two in brackets power three"); // "(1+2)^3"
+math.evaluate(latexFromWords("x plus one all squared")).latex; // "(x+1)^2"
+```
+
+A bracket can be said either way round, because both are things people say:
+
+| Said | Means |
+| ---- | ----- |
+| `one plus two in brackets power three` | `(1+2)^3` — it groups everything said since the last bracket |
+| `x plus one all squared` | `(x+1)^2` — "all" is the everyday form of the same marker |
+| `four times the quantity one plus two` | `4\times(1+2)` — a comma closes it: `the quantity x plus 1, squared` |
+| `open bracket one plus two close bracket` | `(1+2)` — said around it, for when neither of the above fits |
+
+The vocabulary is deliberately generous — `power`, `to the power`, `to the
+power of`, `raised to` are one operator, and `divided by` and `over` are
+another — because a caller who has to learn which spelling is the supported one
+has gained nothing over typing `^`. Numbers arrive as digits or as words in the
+same sentence: `twenty-two plus one hundred and five` is `22+105`, and
+`three point five` is `3.5`.
+
+A power binds tighter than the arithmetic around it, and a function binds to
+its operand rather than to the sentence: `the sine of x plus one` is
+`\sin(x)+1`, and the other reading is available by saying it — `the sine of the
+quantity x plus one`. A word it does not know is a `WordParseError` naming the
+word, not a guess.
+
 ## Reading it out
 
 `describe` turns an expression into English, and `OPERATOR_WORDS` is the plain
@@ -111,6 +150,27 @@ math.describe("(2+3)^2"); // "the quantity 2 plus 3, squared"
 describeOperator("^"); // "power"
 describeOperator("+"); // "plus"
 OPERATOR_WORDS["\\leq"]; // "less than or equal to"
+```
+
+How it reads is an option, in the shape `Intl` uses — what varies is named, and
+every default is what the reading was before the option existed:
+
+```ts
+math.describe("(2+3)^2", { style: "short" }); // "2 plus 3 in brackets squared"
+math.describe("x^2+1", { numbers: "words" }); // "x squared plus one"
+```
+
+`style: "long"` (the default) reads as a sentence; `"short"` reads as a
+caption — no articles, no "of" after a function, and a bracket marked after
+what it holds rather than before. `numbers: "words"` spells numbers out;
+`"digits"` (the default) leaves them as figures, as does a number too large for
+the scale words.
+
+The words `describe` uses are the words `latexFromWords` reads, so an ordinary
+description returns to the expression it came from:
+
+```ts
+latexFromWords(math.describe("(2+3)^2")); // "(2+3)^2"
 ```
 
 ## Steps
@@ -150,3 +210,8 @@ mathematics: LaTeX parsing, exact arithmetic, simplification, equation solving,
 derivatives and integrals, and the rule traces behind the algebraic steps.
 Symbolic integration rules are loaded on first `integrate` call, not at engine
 construction.
+
+[`@smartput/number`](../number) supplies the number vocabulary both directions
+of the word layer need: `numberFromWords` reads "one hundred and five", and
+`spellNumber` says 105 back. Keeping the pair in one package is what stops a
+word this one learns to read from being a word the other cannot say.

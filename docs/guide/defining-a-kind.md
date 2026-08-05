@@ -11,8 +11,9 @@ too, which is what makes the extension seam real rather than aspirational.
 ## A minimal kind is five lines
 
 ```ts
-import { BUILTIN_KINDS, createEngine, defineKind } from "@smartput/core";
+import { createEngine, defineKind } from "@smartput/core";
 import en from "@smartput/core/locale/en";
+import { BUILTIN_KINDS } from "@smartput/kinds";
 
 const dataSize = defineKind({
   id: "datasize",

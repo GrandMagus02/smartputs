@@ -1,6 +1,7 @@
 import { expect, test } from "bun:test";
-import { createEngine, number } from "@smartput/core";
+import { createEngine } from "@smartput/core";
 import en from "@smartput/core/locale/en";
+import { number } from "@smartput/number";
 import { money } from "./money";
 import { snapshot } from "./snapshot";
 

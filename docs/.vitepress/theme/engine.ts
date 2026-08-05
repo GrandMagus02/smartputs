@@ -6,8 +6,9 @@ import type {
   Result,
   Weights,
 } from "@smartput/core";
-import { BUILTIN_KINDS, createEngine, SmartputError } from "@smartput/core";
+import { createEngine, SmartputError } from "@smartput/core";
 import en from "@smartput/core/locale/en";
+import { BUILTIN_KINDS } from "@smartput/kinds";
 import { CURRENCIES, money, snapshot } from "@smartput/rates";
 import moneyEn from "@smartput/rates/locale/en";
 

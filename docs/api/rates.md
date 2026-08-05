@@ -35,8 +35,9 @@ engine a `rates` table — without one, every non-euro unit raises
 `MissingRateError` on conversion.
 
 ```ts
-import { BUILTIN_KINDS, createEngine } from "@smartput/core";
+import { createEngine } from "@smartput/core";
 import en from "@smartput/core/locale/en";
+import { BUILTIN_KINDS } from "@smartput/kinds";
 import { money, snapshot } from "@smartput/rates";
 import moneyEn from "@smartput/rates/locale/en";
 

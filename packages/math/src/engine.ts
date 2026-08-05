@@ -1,7 +1,7 @@
 import type { ComputeEngine } from "@cortex-js/compute-engine";
 import { loadIntegrationRules } from "@cortex-js/compute-engine/integration-rules";
 import { analyzeFunction } from "./analyze/analyze";
-import { describeExpression } from "./describe/describe";
+import { type DescribeOptions, describeExpression } from "./describe/describe";
 import { MathSolveError, UnboundSymbolError } from "./errors";
 import { inspectMatrix, isMatrixNode, matrixLatex } from "./matrix/matrix";
 import { createComputeEngine, parseLatex } from "./parse";
@@ -21,7 +21,7 @@ import type {
   SystemResult,
 } from "./types";
 
-export type { SystemOptions };
+export type { DescribeOptions, SystemOptions };
 
 export interface EvaluateOptions {
   /** Values for free symbols, substituted before anything is evaluated. */
@@ -64,8 +64,12 @@ export interface MathEngine {
   solveSystem(input: string | readonly string[], options?: SystemOptions): SystemResult;
   /** Shape, determinant, trace, transpose and inverse of a matrix. */
   matrix(latex: string): MatrixResult;
-  /** The expression read out in English: `x^2+1` is "x squared plus 1". */
-  describe(latex: string): string;
+  /**
+   * The expression read out in English: `x^2+1` is "x squared plus 1".
+   * `options` chooses how it is read — as a sentence or as a caption, with
+   * numbers in digits or in words.
+   */
+  describe(latex: string, options?: DescribeOptions): string;
 }
 
 /**
@@ -87,7 +91,8 @@ export function createMathEngine(): MathEngine {
     analyze: (latex, options = {}) => analyze(ce, latex, options),
     solveSystem: (input, options = {}) => solveSystem(ce, input, options),
     matrix: (latex) => inspectMatrix(ce, parseLatex(ce, latex), latex),
-    describe: (latex) => describeExpression(ce, parseLatex(ce, latex)),
+    describe: (latex, options = {}) =>
+      describeExpression(ce, parseLatex(ce, latex), options),
   };
 }
 
