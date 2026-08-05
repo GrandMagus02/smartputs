@@ -1,4 +1,4 @@
-import { Decimal, type FormatCtx, type Value } from "@smartput/core";
+import { Decimal, type FormatCtx, type PlaceMeta, type Value } from "@smartput/core";
 import { COUNTRIES } from "./data/countries";
 import type { CountryRow } from "./types";
 
@@ -39,23 +39,44 @@ function callingCode(phone: string): string {
  * this function. No op, no grammar and no parser change — "population of japan"
  * would have cost a prefix-attribute grammar for four attributes.
  *
- * The facts come from the country row rather than from `meta`, because `meta`
- * is the bridge contract that datetime and rates read (spec §3.1) and carries
- * no display name. Widening it to carry one would make every reader pay for a
- * field only the formatter wants.
+ * The figures come from `meta`, not from the country row. Reading them off the
+ * row is what M6.2 shipped and it was wrong for every city: `athens` rendered
+ * as "Greece — EUR, +30, Europe/Athens, 11M" while its own meta said Athens,
+ * 664,046, and all three Springfields rendered as "United States". The country
+ * row survives only for the two facts a city genuinely borrows — currency and
+ * calling code — which is also why `PlaceMeta` carries a name (see core).
+ *
+ * A country is told apart from a city by its id rather than by a flag: §4.2
+ * makes the canonical the GeoNames id, and a country's row carries the
+ * country's own. Nothing new has to be stored to answer the question.
  */
 export function formatPlace(value: Value, ctx: FormatCtx): string {
   const row = BY_A2.get(value.unit);
   if (row === undefined) return value.unit;
 
+  const meta = value.meta as Partial<PlaceMeta> | undefined;
+  const name = meta?.name ?? row.name;
+  const zone = meta?.zone ?? row.zone;
+  const population = meta?.population ?? row.population;
+  const isCountry = (meta?.geonameId ?? row.geonameId) === row.geonameId;
+
+  // A city is qualified by its country, "Kyiv, UA" — the alpha-2 rather than
+  // the country's name, because the line is already four facts long and the
+  // code is what the Value's unit actually is.
+  const title = isCountry ? name : `${name}, ${row.a2.toUpperCase()}`;
+
   const facts = [
+    // Currency and calling code belong to the country. A city shows them too:
+    // "what currency does Osaka use" is the same question as for Japan, and
+    // dropping them would make a city answer thinner than the country line for
+    // no reason a user would recognise.
     row.currency,
     callingCode(row.phone),
-    row.zone,
+    zone,
     // GeoNames writes 0 for the uninhabited territories, which is "no figure"
     // rather than "nobody lives there"; printing it would state the wrong one.
-    row.population > 0 ? abbreviate(row.population, ctx) : "",
+    population > 0 ? abbreviate(population, ctx) : "",
   ].filter((fact) => fact !== "");
 
-  return facts.length === 0 ? row.name : `${row.name} — ${facts.join(", ")}`;
+  return facts.length === 0 ? title : `${title} — ${facts.join(", ")}`;
 }

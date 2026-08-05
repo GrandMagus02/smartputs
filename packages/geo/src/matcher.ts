@@ -1,10 +1,12 @@
 import {
   Decimal,
+  type LiteralMatch,
   type LiteralMatcher,
   type MatchCtx,
   type PlaceMeta,
 } from "@smartput/core";
-import type { CountryRow } from "./types";
+import { RESERVED_WORDS } from "./data/reserved";
+import type { Admin1Row, CityRow, CountryRow } from "./types";
 
 const PLACE_KIND = "place";
 
@@ -12,11 +14,20 @@ const PLACE_KIND = "place";
  * Spec §5.1. The generator emits no alias longer than this, so the bound is not
  * a filter on the data: it is what stops the walk from reading a whole sentence
  * looking for a fifth word that can never complete a name.
+ *
+ * It bounds the *whole* claim, scope included, so "sydney new south wales" is
+ * the longest scoped form there is. Giving the scope a budget of its own was
+ * the alternative and it buys nothing: no division name is four words, and one
+ * bound is one thing to reason about when a claim comes out longer than a user
+ * expected.
  */
 const MAX_WORDS = 4;
 
-/** Spec §6.1. Cities arrive in M6.2 with population-scaled weights. */
+/** Spec §6.1, in full. Every weight this file emits is one of these four. */
 const COUNTRY_WEIGHT = 3;
+const CAPITAL_WEIGHT = 2;
+const CITY_WEIGHT_CAP = 2;
+const SCOPED_WEIGHT = 4;
 
 /**
  * Below this, a single-word alias is an ISO code rather than a name — see
@@ -51,9 +62,29 @@ const KEYWORDS = new Set([
   "divided",
 ]);
 
-interface PlaceHit {
+/**
+ * Spec §6.1's population scale. Ten times the people is a third of a point, so
+ * a city rises smoothly out of the noise instead of stepping between tiers, and
+ * the cap keeps the largest of them below a country.
+ *
+ * A capital is flat rather than scaled because that is what the row of the table
+ * says, and because the reason it is weighted at all is that it is a seat of
+ * government: Nuku'alofa is 22 000 people and is still what "nuku'alofa" means.
+ */
+function cityWeight(row: CityRow): number {
+  if (row.capital) return CAPITAL_WEIGHT;
+  // GeoNames writes 0 where it has no figure, and log10(0) is -Infinity.
+  if (row.population <= 0) return 0;
+  return Math.min(Math.log10(row.population) / 3, CITY_WEIGHT_CAP);
+}
+
+interface CountryHit {
   readonly row: CountryRow;
-  /** Spec §6.1's table lives on the node, so M6.2 adds rows and not a branch. */
+  readonly weight: number;
+}
+
+interface CityHit {
+  readonly row: CityRow;
   readonly weight: number;
 }
 
@@ -63,38 +94,100 @@ interface TrieNode {
    * be: core's own alias index is keyed on a single segmented word and that is
    * exactly why "new zealand" cannot be an alias (spec §5.1).
    *
-   * M6.2's `paris texas` is another edge on this same map — a scoped match is a
-   * walk, not an operation (spec §5.2) — so admin1 and country children need no
-   * new structure here.
+   * "paris texas" is another edge on this same map — a scoped match is a walk,
+   * not an operation (spec §5.2) — so admin1 needed no new structure, only a
+   * third payload beside the two below.
    */
   readonly next: Map<string, TrieNode>;
-  hit?: PlaceHit;
+  /** The largest country of this alias. At most one; §6.1 ranks the rest away. */
+  country?: CountryHit;
+  /** Every city of this alias, heaviest first. */
+  cities?: CityHit[];
+  /**
+   * `Admin1Row.key` for every division of this alias, read only in the scoped
+   * position. Kept as keys rather than rows because that is the whole of what
+   * the scope test needs — a division is deliberately not a place (see
+   * `Admin1Row`), so there is nothing else on the row worth carrying here.
+   */
+  admin1?: string[];
 }
 
-function buildTrie(rows: readonly CountryRow[]): TrieNode {
+/** The division a city sits in, in `Admin1Row.key`'s spelling. */
+function admin1Key(row: CityRow): string | null {
+  return row.admin1 === "" ? null : `${row.country.toUpperCase()}.${row.admin1}`;
+}
+
+/** Descends, creating as it goes. Null for an alias the walk could never reach. */
+function nodeFor(root: TrieNode, alias: string): TrieNode | null {
+  const words = alias.split(" ");
+  if (words.length > MAX_WORDS || words.some((w) => w.length === 0)) return null;
+
+  let node = root;
+  for (const word of words) {
+    let next = node.next.get(word);
+    if (next === undefined) {
+      next = { next: new Map() };
+      node.next.set(word, next);
+    }
+    node = next;
+  }
+  return node;
+}
+
+function buildTrie(
+  countries: readonly CountryRow[],
+  cities: readonly CityRow[],
+  admin1: readonly Admin1Row[],
+): TrieNode {
   const root: TrieNode = { next: new Map() };
+  const registered = new Set(countries.map((c) => c.a2));
 
-  for (const row of rows) {
+  for (const row of countries) {
     for (const alias of row.aliases) {
-      const words = alias.split(" ");
-      if (words.length > MAX_WORDS || words.some((w) => w.length === 0)) continue;
-
-      let node = root;
-      for (const word of words) {
-        let next = node.next.get(word);
-        if (next === undefined) {
-          next = { next: new Map() };
-          node.next.set(word, next);
-        }
-        node = next;
-      }
-
+      const node = nodeFor(root, alias);
+      if (node === null) continue;
       // "congo" is both Congos and "soudan" is both Mali and Sudan. §6.1 ranks
       // by population everywhere else it has a choice, so it ranks here too;
-      // the runner-up is suggest()'s to surface once M6.2 gives it one.
-      if (node.hit === undefined || node.hit.row.population < row.population) {
-        node.hit = { row, weight: COUNTRY_WEIGHT };
+      // the runner-up is suggest()'s to surface once M6.4 gives it one.
+      if (node.country === undefined || node.country.row.population < row.population) {
+        node.country = { row, weight: COUNTRY_WEIGHT };
       }
+    }
+  }
+
+  const populated: TrieNode[] = [];
+  for (const row of cities) {
+    // `LiteralMatch.unit` has to name a unit the kind registered, and the kind
+    // registers one per country (spec §4.1). A city whose country is missing
+    // from this table has no unit to be claimed under, so it is not carried at
+    // all — a claim naming an unregistered unit fails later and less legibly.
+    if (!registered.has(row.country)) continue;
+    const hit: CityHit = { row, weight: cityWeight(row) };
+    for (const alias of row.aliases) {
+      const node = nodeFor(root, alias);
+      if (node === null) continue;
+      if (node.cities === undefined) {
+        node.cities = [];
+        populated.push(node);
+      }
+      node.cities.push(hit);
+    }
+  }
+  // Sorted once here rather than searched at match time: the order is the
+  // answer to both "which unscoped city is this" and "which of the ones in the
+  // named division", so both readings are a first-match on the same array.
+  for (const node of populated) {
+    node.cities?.sort(
+      (a, b) => b.weight - a.weight || b.row.population - a.row.population,
+    );
+  }
+
+  for (const row of admin1) {
+    for (const alias of row.aliases) {
+      const node = nodeFor(root, alias);
+      if (node === null) continue;
+      if (node.admin1 === undefined) node.admin1 = [];
+      node.admin1.push(row.key);
     }
   }
 
@@ -187,58 +280,242 @@ function claimable(word: string, surface: string, ctx: MatchCtx): boolean {
 }
 
 /**
+ * The same question for a city, and answered far more strictly.
+ *
+ * A country name is a proper noun that no locale uses for anything else, which
+ * is what earns countries the exemption above. City names are not: Nice, Mobile
+ * and Reading are all over 100 000 people, and a table that reaches down to the
+ * towns finds March, Boring and Why. So a single-word city is refused whenever
+ * the word belongs to something else — a keyword or numeral or unit, via
+ * `RESERVED_WORDS`; a registered unit of a kind loaded at runtime, via
+ * `isUnitAlias`; or nothing at all, if it is too short to be a name.
+ *
+ * `RESERVED_WORDS` is imported rather than passed in with the tables, even
+ * though it costs the countries-only build a few kilobytes it never reads. The
+ * guard is a property of the matcher and not of the data a caller supplies: as
+ * a parameter it is one forgotten argument away from a table that eats "march",
+ * and the fold gives that mistake no second chance. The generator applies the
+ * same set to CITIES before emitting, so this is the second of two nets.
+ *
+ * No keyword check: `RESERVED_WORDS` is derived from core's keyword list among
+ * its sources, and `reserved.test.ts` asserts every one of them is in it.
+ */
+function cityClaimable(word: string, ctx: MatchCtx): boolean {
+  if (word.length < MIN_NAME_LENGTH) return false;
+  if (RESERVED_WORDS.has(word)) return false;
+  return !ctx.isUnitAlias(word);
+}
+
+interface Scoped {
+  readonly hit: CityHit;
+  readonly end: number;
+}
+
+/**
+ * Spec §5.2. Having matched a city, keep walking: a division of its country or
+ * the country itself, starting from the root at word `from`.
+ *
+ * Deliberately not an op. Making `paris in us` a scope filter would have
+ * overloaded `in | place | place` with two intents — distance and filtering —
+ * and forced a runtime branch on feature class inside one `apply`. Here scope is
+ * a longer walk down the map already being walked, and the signature keeps
+ * meaning exactly one thing.
+ *
+ * The scope's first word is guarded, and by two different rules, because the two
+ * tables were filtered differently. ADMIN1 has been through `RESERVED_WORDS`,
+ * which contains every country short code and every keyword, so "oh" and "wa"
+ * are safe to read while Oregon's "or" is already gone. The country table has
+ * not been through anything — it carries every alpha-2 raw — so a country scope
+ * has to answer `claimable`, the same rule the first word of any claim answers.
+ * Without it "nuku'alofa to japan" scopes the Tongan capital by Tonga's own `to`
+ * and swallows the conversion keyword.
+ */
+function scopeFrom(
+  root: TrieNode,
+  cities: readonly CityHit[],
+  words: readonly string[],
+  ends: readonly number[],
+  from: number,
+  input: string,
+  ctx: MatchCtx,
+): Scoped | null {
+  if (from >= words.length) return null;
+  const first = words[from] as string;
+  const start = (ends[from - 1] as number) + 1;
+  const surface = input.slice(start, ends[from] as number);
+
+  const path: TrieNode[] = [];
+  let node = root;
+  for (let i = from; i < words.length; i += 1) {
+    const next = node.next.get(words[i] as string);
+    if (next === undefined) break;
+    node = next;
+    path.push(next);
+  }
+
+  // Longest scope first, for the reason the base walk prefers the longest name:
+  // "nova scotia" is a division and "nova" is not one the user meant.
+  for (let i = path.length - 1; i >= 0; i -= 1) {
+    const at = path[i] as TrieNode;
+    const end = ends[from + i] as number;
+
+    // `isUnitAlias` is deliberately NOT consulted here, though it is on every
+    // other branch. In the scoped position the word is the second half of a
+    // two-word claim, and the `find` below already proves the scope: it only
+    // succeeds when one of the candidate cities really is in that division, so a
+    // word that is also a unit alias cannot produce a false claim. Guarding on
+    // it instead cost §9's headline row — "georgia" is a country alias, so
+    // `athens georgia` skipped this branch, asked the country branch for an
+    // Athens in Georgia-the-country, and threw.
+    if (at.admin1 !== undefined && !KEYWORDS.has(first)) {
+      const keys = at.admin1;
+      const hit = cities.find((c) => {
+        const key = admin1Key(c.row);
+        return key !== null && keys.includes(key);
+      });
+      if (hit !== undefined) return { hit, end };
+    }
+
+    if (at.country !== undefined && claimable(first, surface, ctx)) {
+      const a2 = at.country.row.a2;
+      const hit = cities.find((c) => c.row.country === a2);
+      if (hit !== undefined) return { hit, end };
+    }
+  }
+
+  return null;
+}
+
+/**
  * The one matcher this kind registers for names (spec §5.1). Longest match
  * wins, and a match is always a whole number of words, which is what makes
  * "newark" impossible to read as "new" — the fold's token-boundary check is a
  * second net, not the first one.
+ *
+ * `cities` and `admin1` are optional and default to empty, so the one-argument
+ * call is not a special case of the three-argument one: with no cities the trie
+ * has no city payload, `scopeFrom` is never reached, and `place` — which is
+ * built from countries alone — behaves as it did before cities existed.
  */
-export function createPlaceLiteral(rows: readonly CountryRow[]): LiteralMatcher {
-  const root = buildTrie(rows);
+export function createPlaceLiteral(
+  countries: readonly CountryRow[],
+  cities: readonly CityRow[] = [],
+  admin1: readonly Admin1Row[] = [],
+): LiteralMatcher {
+  const root = buildTrie(countries, cities, admin1);
+  // A city has no currency of its own (see `CityRow`); it borrows its country's,
+  // because `PlaceMeta.currency` is what rates reads and it must not be blank
+  // for "100 usd in chicago".
+  const currencyOf = new Map(countries.map((c) => [c.a2, c.currency]));
+
+  // Everything that distinguishes a country claim from a city one is already in
+  // `meta`: §4.1 says the unit is the country and §4.2 says the canonical is the
+  // GeoNames id, and both are fields of it.
+  const claim = (meta: PlaceMeta, length: number, weight: number): LiteralMatch => ({
+    kind: PLACE_KIND,
+    unit: meta.country,
+    canonical: new Decimal(meta.geonameId),
+    meta: Object.freeze(meta),
+    length,
+    weight,
+    // A place is a conversion target: it is the right operand of
+    // "japan to ukraine", "3pm in japan" and "100 usd in japan", and all three
+    // signatures read the `meta` above. Opting in is what carries this Value to
+    // `apply` instead of core's meta-less stand-in.
+    targetable: true,
+  });
+
+  const cityClaim = (hit: CityHit, offset: number, end: number, weight: number) =>
+    claim(
+      {
+        geonameId: hit.row.geonameId,
+        name: hit.row.name,
+        // The city's own zone, not its country's: "3pm in chicago" is not
+        // "3pm in washington", which is the entire reason T1 exists.
+        zone: hit.row.zone,
+        currency: currencyOf.get(hit.row.country) ?? "",
+        lat: hit.row.lat,
+        lon: hit.row.lon,
+        population: hit.row.population,
+        country: hit.row.country,
+      },
+      end - offset,
+      weight,
+    );
 
   return (input, offset, ctx) => {
     const { words, ends } = scan(input, offset);
 
+    const path: TrieNode[] = [];
     let node = root;
-    let best: { hit: PlaceHit; end: number; words: number } | null = null;
-
-    for (let i = 0; i < words.length; i += 1) {
-      const next = node.next.get(words[i] as string);
+    for (const word of words) {
+      const next = node.next.get(word);
       if (next === undefined) break;
       node = next;
-      if (node.hit !== undefined) {
-        best = { hit: node.hit, end: ends[i] as number, words: i + 1 };
-      }
+      path.push(next);
+    }
+    if (path.length === 0) return null;
+
+    // A scoped claim is both longer and heavier than every unscoped one, so it
+    // is tried first and never has to be compared against them. Longest city
+    // name first: "san francisco california" scopes San Francisco, and the
+    // question of whether "san" alone scopes better never arises.
+    for (let i = path.length - 1; i >= 0; i -= 1) {
+      const carried = (path[i] as TrieNode).cities;
+      if (carried === undefined) continue;
+      const scoped = scopeFrom(root, carried, words, ends, i + 1, input, ctx);
+      // No guard on the city word here. A scoped claim is two words at minimum
+      // and two words in a row are nobody's unit and nobody's keyword — the same
+      // exemption a multi-word name has had since M6.1.
+      if (scoped !== null)
+        return cityClaim(scoped.hit, offset, scoped.end, SCOPED_WEIGHT);
     }
 
-    if (best === null) return null;
-    // Only a one-word claim can be another kind's token: two words in a row are
-    // nobody's unit and nobody's keyword.
-    if (best.words === 1) {
+    for (let i = path.length - 1; i >= 0; i -= 1) {
+      const at = path[i] as TrieNode;
+      if (at.country === undefined && at.cities === undefined) continue;
+
+      // Only a one-word claim can be another kind's token: two words in a row
+      // are nobody's unit and nobody's keyword.
+      const single = i === 0;
+      const word = words[0] as string;
       const surface = input.slice(offset, ends[0] as number);
-      if (!claimable(words[0] as string, surface, ctx)) return null;
+      const end = ends[i] as number;
+
+      // Country before city, which is §6.1's +3 against at most +2 read as
+      // control flow rather than as a comparison — the two never tie, so
+      // scoring them and picking the maximum would be a longer way to write
+      // this line.
+      if (at.country !== undefined && (!single || claimable(word, surface, ctx))) {
+        const { row } = at.country;
+        return claim(
+          {
+            geonameId: row.geonameId,
+            name: row.name,
+            zone: row.zone,
+            currency: row.currency,
+            lat: row.lat,
+            lon: row.lon,
+            population: row.population,
+            country: row.a2,
+          },
+          end - offset,
+          at.country.weight,
+        );
+      }
+
+      const best = at.cities?.[0];
+      if (best !== undefined && (!single || cityClaimable(word, ctx))) {
+        return cityClaim(best, offset, end, best.weight);
+      }
+
+      // Longest match wins, and a refused claim does not fall back to a shorter
+      // one. Backtracking would mean "chicago" refused as a city could still be
+      // read as some prefix, and a prefix is exactly the reading §5.1 spends
+      // MAX_WORDS and the token-boundary rule making impossible.
+      return null;
     }
 
-    const { row } = best.hit;
-    return {
-      kind: PLACE_KIND,
-      unit: row.a2,
-      canonical: new Decimal(row.geonameId),
-      meta: Object.freeze({
-        geonameId: row.geonameId,
-        zone: row.zone,
-        currency: row.currency,
-        lat: row.lat,
-        lon: row.lon,
-        population: row.population,
-        country: row.a2,
-      } satisfies PlaceMeta),
-      length: best.end - offset,
-      weight: best.hit.weight,
-      // A place is a conversion target: it is the right operand of
-      // "japan to ukraine", "3pm in japan" and "100 usd in japan", and all
-      // three signatures read the `meta` above. Opting in is what carries this
-      // Value to `apply` instead of core's meta-less stand-in.
-      targetable: true,
-    };
+    return null;
   };
 }

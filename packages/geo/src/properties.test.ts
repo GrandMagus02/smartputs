@@ -8,11 +8,14 @@ import {
 } from "@smartput/core";
 import { length } from "@smartput/length";
 import { number } from "@smartput/number";
+import { ADMIN1 } from "./data/admin1";
+import { CITIES } from "./data/cities";
 import { COUNTRIES } from "./data/countries";
+import { RESERVED_WORDS } from "./data/reserved";
 import { distance } from "./distance";
 import { createPlaceLiteral } from "./matcher";
 import { place } from "./place";
-import type { CountryRow } from "./types";
+import type { CityRow, CountryRow } from "./types";
 
 const registry = buildRegistry([number, length, place], [], "en");
 const units = registry.kinds.get("place")?.units;
@@ -103,4 +106,95 @@ test("every place Value's meta.country equals its unit", () => {
     }
   }
   expect(claimed).toBeGreaterThan(COUNTRIES.length);
+});
+
+// ---- the same properties over T1, where six thousand rows can break them ----
+
+const CURRENCY = new Map(COUNTRIES.map((row) => [row.a2, row.currency]));
+
+/**
+ * What the matcher builds for a city, built here instead so the properties below
+ * hold for every row rather than only for the rows a claim happens to reach: a
+ * city whose alias the matcher refuses still has a position, and a distance
+ * property that skipped it would be silent about exactly the rows most likely to
+ * be wrong.
+ */
+function cityValue(row: CityRow): Value {
+  return Object.freeze({
+    kind: "place",
+    // Spec §4.1: a city is not a unit, so it borrows the one thing about it that
+    // is registered. This line is the invariant the next test asserts.
+    unit: row.country,
+    canonical: new Decimal(row.geonameId),
+    meta: {
+      geonameId: row.geonameId,
+      zone: row.zone,
+      currency: CURRENCY.get(row.country) ?? "",
+      lat: row.lat,
+      lon: row.lon,
+      population: row.population,
+      country: row.country,
+    },
+  });
+}
+
+function cityMetres(a: CityRow, b: CityRow): number {
+  const l = cityValue(a);
+  const ctx = { self: l, locale: "en" } as EvalCtx;
+  return distance.apply(l, cityValue(b), ctx).canonical.toNumber();
+}
+
+const CITY_PAIRS: Array<[CityRow, CityRow]> = CITIES.map((row, i) => [
+  row,
+  CITIES[(i + 1) % CITIES.length] as CityRow,
+]);
+
+test("distance between cities is symmetric and zero for a city against itself", () => {
+  // The T0 version of this walks capitals, which are one position per country and
+  // all of them well inside the temperate latitudes. T1 reaches Longyearbyen and
+  // Ushuaia and every antipodal pair between them, which is where the clamped
+  // asin in `metresBetween` earns its comment.
+  for (const [a, b] of CITY_PAIRS) {
+    expect(cityMetres(a, b)).toBe(cityMetres(b, a));
+    expect(cityMetres(a, a)).toBe(0);
+  }
+});
+
+test("every city's unit is its country's alpha-2, and the kind registers it", () => {
+  // Asserted over the table rather than over claims, which is the stronger of the
+  // two: `LiteralMatch.unit` naming something the kind never registered is a
+  // resolver error the fold reports as a dropped match, so a single bad row would
+  // show up as a name that silently stopped resolving.
+  for (const row of CITIES) {
+    const value = cityValue(row);
+    const meta = value.meta as Record<string, unknown>;
+    expect(value.unit).toBe(row.country);
+    expect(meta.country).toBe(value.unit);
+    expect(units?.has(value.unit)).toBe(true);
+  }
+});
+
+const cityMatcher = createPlaceLiteral(COUNTRIES, CITIES, ADMIN1);
+
+test("no reserved word is claimable, as a city or as anything else", () => {
+  // The second of the two nets described in `cityClaimable`. The generator
+  // already filtered CITIES and ADMIN1 by this set — data/cities.test.ts asserts
+  // that — so this asserts the other end: that the matcher refuses the word even
+  // if a future table arrives carrying it.
+  //
+  // Run against a context that knows only this kind's own aliases, which is the
+  // harshest reading of the property: `isUnitAlias` would refuse most of these
+  // words for the matcher in any engine that registered the kinds they came from,
+  // and a net that only holds while its neighbours are loaded is not a net.
+  const bare = buildRegistry([place], [], "en");
+  const ctx: MatchCtx = {
+    locale: "en",
+    now: 0,
+    timeZone: "UTC",
+    isUnitAlias: (text) => bare.aliasIndex.has(text.toLowerCase()),
+  };
+  const claimed = [...RESERVED_WORDS].filter(
+    (word) => cityMatcher(word, 0, ctx) !== null,
+  );
+  expect(claimed).toEqual([]);
 });

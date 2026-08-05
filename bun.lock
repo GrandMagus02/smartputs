@@ -96,8 +96,11 @@
         "decimal.js": "^10.6.0",
       },
       "devDependencies": {
+        "@smartput/datetime": "workspace:*",
+        "@smartput/kinds": "workspace:*",
         "@smartput/length": "workspace:*",
         "@smartput/number": "workspace:*",
+        "@smartput/rates": "workspace:*",
       },
     },
     "packages/kinds": {

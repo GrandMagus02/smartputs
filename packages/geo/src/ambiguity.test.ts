@@ -1,0 +1,448 @@
+import { expect, test } from "bun:test";
+import {
+  buildRegistry,
+  createEngine,
+  type Engine,
+  type Kind,
+  type LiteralMatch,
+  type LiteralMatcher,
+  type MatchCtx,
+  NoCandidateError,
+  UnitParseError,
+} from "@smartput/core";
+import coreEn from "@smartput/core/locale/en";
+import { datetime } from "@smartput/datetime";
+import datetimeEn from "@smartput/datetime/locale/en";
+import { BUILTIN_KINDS } from "@smartput/kinds";
+import { length } from "@smartput/length";
+import { number } from "@smartput/number";
+import { money, snapshot } from "@smartput/rates";
+import { Glob } from "bun";
+import { ADMIN1 } from "./data/admin1";
+import { CITIES } from "./data/cities";
+import { definePlace } from "./place";
+import type { CityRow } from "./types";
+
+/**
+ * Spec §9's ambiguity table, which M6.1 recorded as unwritable: every row of it
+ * needs either the T1 gazetteer or the postal literal, and M6.1 shipped neither.
+ *
+ * Cities make the table reachable, and three of its rows turn out not to hold.
+ * Each of those is asserted here as it actually behaves, with the reason beside
+ * it, rather than dropped or softened into something that passes: `suggest()`
+ * cannot return a second place at all, "paris texas" wants a city below the
+ * tier's floor, and "tokyo" is a place only in an engine without datetime. The
+ * postal row is M6.3's and is asserted in its pre-M6.3 form so that milestone
+ * cannot move it in silence.
+ *
+ * The file is also the regression net for the whole tier. Six thousand names
+ * entered a trie that sits in front of a *destructive* fold, so the only honest
+ * proof that no other kind lost a reading is to replay every corpus in the repo
+ * with this kind registered — see "the corpora" below, which is the half of this
+ * file that matters more than any single ambiguity row.
+ */
+const geo = definePlace({ cities: CITIES, admin1: ADMIN1 });
+
+/**
+ * Geo and the two kinds its own op needs. Deliberately not the engine `full`
+ * builds: the two disagree about "tokyo", and which of them is right depends
+ * entirely on what else is loaded — see "tokyo" below.
+ */
+const places = createEngine({ locales: [coreEn], kinds: [number, length, geo] });
+
+/** datetime's test clock, copied rather than imported — `temporal.ts` is not a
+ * published entry point of that package and adding one for a neighbour's test
+ * would widen its API for a constant. Kept honest by the corpus replay, which
+ * fails on any drift. */
+const TEST_NOW = 1_768_478_400_000;
+const TEST_ZONE = "UTC";
+
+/** Everything a real consumer registers at once, which is where a name that
+ * belongs to two kinds actually has to be decided. */
+const full = createEngine({
+  locales: [coreEn],
+  kinds: [...BUILTIN_KINDS, datetime, geo],
+  packs: [datetimeEn],
+  now: () => TEST_NOW,
+  timeZone: TEST_ZONE,
+});
+
+/** The same, with geo left out — the control for every "registering geo costs
+ * nothing" claim below. */
+const without = createEngine({
+  locales: [coreEn],
+  kinds: [...BUILTIN_KINDS, datetime],
+  packs: [datetimeEn],
+  now: () => TEST_NOW,
+  timeZone: TEST_ZONE,
+});
+
+const registry = buildRegistry([number, length, geo], [], "en");
+const matchCtx: MatchCtx = {
+  locale: "en",
+  now: 0,
+  timeZone: "UTC",
+  isUnitAlias: (text) => registry.aliasIndex.has(text.toLowerCase()),
+};
+
+/** Narrowed through a function because a module-level `const` does not stay
+ * narrowed inside the closure below. */
+function matcherOf(kind: Kind): LiteralMatcher {
+  const m = kind.literals?.[0];
+  if (m === undefined) throw new Error("the kind registers no matcher");
+  return m;
+}
+
+const literal = matcherOf(geo);
+
+/** What the trie claims for `input`, read straight rather than through an
+ * engine: a weight is what §6.1 is written in, and the engine reports a
+ * confidence instead. */
+function claim(input: string): LiteralMatch {
+  const match = literal(input, 0, matchCtx);
+  if (match === null) throw new Error(`nothing claimed "${input}"`);
+  return match;
+}
+
+const rows = (alias: string) => CITIES.filter((c) => c.aliases.includes(alias));
+const id = (match: LiteralMatch) => Number(match.canonical.toString());
+
+// ---- §9: "paris" ranks France, and the ranking is §6.1's ----
+
+test("paris is the French one", () => {
+  const r = places.evaluate("paris");
+  expect(r.kind).toBe("place");
+  // The city's id, not France's 3017382: "paris" reaches the capital through the
+  // trie, and the country only lends it the unit it renders under.
+  expect(r.value.canonical.toString()).toBe("2988507");
+  expect(r.value.unit).toBe("fr");
+});
+
+test("a capital outranks a city many times its size", () => {
+  // §6.1's two-and-a-half lines of weight table, on the three aliases where the
+  // shipped table makes each of them decide something.
+  //
+  // Athens is the "paris texas" shape the spec names, with a Paris the tier does
+  // carry: the Greek capital at a flat +2 against Athens, Georgia at +1.70, both
+  // present, one chosen.
+  expect(claim("athens").weight).toBe(2);
+  expect(id(claim("athens"))).toBe(264371);
+  expect(
+    rows("athens")
+      .map((c) => c.country)
+      .sort(),
+  ).toEqual(["gr", "us"]);
+
+  // San José is the case that proves the capital rule is not population in
+  // disguise: 335 007 people against San Jose, California's 997 368, and the
+  // capital still wins — by 0.0004, which is exactly how close §6.1 puts them.
+  expect(claim("san jose").weight).toBe(2);
+  expect(id(claim("san jose"))).toBe(3621849);
+  const sanJoseCa = rows("san jose").find((c) => c.country === "us") as CityRow;
+  expect(sanJoseCa.population).toBeGreaterThan(900_000);
+  expect(Math.log10(sanJoseCa.population) / 3).toBeLessThan(2);
+});
+
+test("between cities that are nobody's capital, population is the whole ranking", () => {
+  // Three Springfields, none of them a seat of government, so §6.1's log10 scale
+  // is the only thing separating them and the biggest wins. The spec's own row
+  // predicts Illinois; the table says Missouri is 170 188 to Illinois' 114 394,
+  // and the weight is a function of the data, not of the example.
+  const springfields = rows("springfield");
+  expect(springfields.map((c) => c.admin1).sort()).toEqual(["IL", "MA", "MO"]);
+  expect(id(claim("springfield"))).toBe(4409896);
+  expect(claim("springfield").weight).toBeCloseTo(Math.log10(170188) / 3, 12);
+});
+
+test("suggest() reports the winner and cannot report the runners-up", () => {
+  // Spec §9 wants both Parises back from suggest(). They do not survive, and the
+  // reason is structural rather than a missing weight: `LiteralMatcher` returns
+  // `LiteralMatch | null`, so the fold receives one claim per offset and the
+  // alternatives never become candidates the solver could rank. Asserted as it
+  // stands, with the count, so that whoever widens the matcher contract sees this
+  // fail rather than discovers the gap from a user.
+  expect(rows("springfield")).toHaveLength(3);
+  const suggested = places.suggest("springfield");
+  expect(suggested).toHaveLength(1);
+  expect(suggested[0]?.value.canonical.toString()).toBe("4409896");
+});
+
+// ---- §9: "paris texas" resolves to the Texan one ----
+
+test("a scope reaches the city the ranking passed over", () => {
+  // §5.2's walk, which is what "paris texas" is asking for. Each of these picks
+  // a row the unscoped claim ranked below the winner, and each is +4 — the user
+  // named a division, so the weight stops being a guess.
+  for (const [input, geonameId] of [
+    ["springfield illinois", 4250542],
+    ["springfield massachusetts", 4951788],
+    ["san jose california", 5392171],
+    ["cambridge massachusetts", 4931972],
+  ] as const) {
+    const match = claim(input);
+    expect(`${input} -> ${id(match)} @${match.weight}`).toBe(
+      `${input} -> ${geonameId} @4`,
+    );
+    expect(match.length).toBe(input.length);
+  }
+  // A country scopes by the same walk. Naming the winner's own country changes
+  // nothing about the answer, which is the point: a scope narrows, it does not
+  // re-rank, so an explicit "athens greece" and a bare "athens" agree.
+  expect(id(claim("athens greece"))).toBe(264371);
+  // And the unscoped Cambridge is the English one, which is what makes the
+  // Massachusetts row above a scope doing work rather than restating a default.
+  expect(id(claim("cambridge"))).toBe(2653941);
+});
+
+test("paris texas needs a Paris this tier does not carry", () => {
+  // The spec row itself, and it fails on data rather than on matching. T1 is
+  // "over 100 000 people, plus every seat of government"; Paris, Texas is 25 171
+  // and neither. So the trie has one Paris, the scope finds no US row to select,
+  // and the claim falls back to the unscoped French city — leaving "texas"
+  // dangling as a word nothing parses.
+  expect(rows("paris").map((c) => c.country)).toEqual(["fr"]);
+  expect(claim("paris texas").length).toBe("paris".length);
+  expect(() => places.evaluate("paris texas")).toThrow();
+  // Nothing is wrong with Texas: a city the tier does carry scopes by it.
+  expect(id(claim("houston texas"))).toBe(4699066);
+});
+
+test("a division whose name is also a country still scopes", () => {
+  // §9's headline row. It failed while `scopeFrom` refused a division whose
+  // first word is a registered unit alias — and every country name is one, so
+  // Georgia the state was unreachable and "athens georgia" degraded to the Greek
+  // Athens with "georgia" left over.
+  //
+  // That guard is right for the country branch and redundant here: a scope is by
+  // construction the second word of a multi-word claim, and the division only
+  // wins when one of the candidate cities really is in it, which is a stronger
+  // check than the guard was.
+  expect(rows("athens").some((c) => c.admin1 === "GA")).toBe(true);
+  expect(id(claim("athens georgia"))).toBe(4180386);
+  expect(claim("athens georgia").length).toBe("athens georgia".length);
+  // Unscoped, and scoped by the country instead, both still reach Greece.
+  expect(id(claim("athens"))).toBe(264371);
+  expect(id(claim("athens greece"))).toBe(264371);
+  // Ohio's name is nobody's country, so the same input shape works.
+  expect(id(claim("columbus ohio"))).toBe(4509177);
+  // And the country reading of "georgia" alone is untouched by any of it.
+  expect(places.evaluate("georgia").value.unit).toBe("ge");
+});
+
+test("a keyword is never eaten as a scope", () => {
+  // The one thing the removed guard was load-bearing for is covered by the
+  // KEYWORDS check beside it: "in" has to survive as the conversion keyword, or
+  // "paris in ukraine" claims "paris in" as a city in Indiana.
+  const r = places.evaluate("paris in ukraine");
+  expect(r.kind).toBe("length");
+});
+
+// ---- §9: "georgia" ranks the country above the state ----
+
+test("georgia is the country, and the state is not a place at all", () => {
+  const r = places.evaluate("georgia");
+  expect(r.value.canonical.toString()).toBe("614540");
+  expect(r.value.unit).toBe("ge");
+  expect(claim("georgia").weight).toBe(3);
+  // Not a ranking that happens to come out right: a division is deliberately not
+  // a place (see `Admin1Row`), so US.GA has no id, no position and nothing for
+  // the country's +3 to be compared against.
+  expect(ADMIN1.some((a) => a.key === "US.GA" && a.aliases.includes("georgia"))).toBe(
+    true,
+  );
+  expect(rows("georgia")).toEqual([]);
+});
+
+// ---- §9: "tokyo" is a zone in one sentence and a place in the other ----
+
+test("tokyo is a zone under datetime and a place without it", () => {
+  // §6.3 predicts both readings reaching the solver. They do not, and the reason
+  // is the destructive fold again, one layer earlier: `cityClaimable` refuses any
+  // single word that `isUnitAlias` reports, and "tokyo" is an alias of datetime's
+  // Asia/Tokyo unit. So with datetime loaded geo never claims it — which is what
+  // keeps "3pm in tokyo" working, and what costs "tokyo to kyoto" its distance.
+  expect(full.evaluate("3pm in tokyo").formatted).toBe("2026-01-16 00:00 JST");
+  expect(full.evaluate("3pm in tokyo").formatted).toBe(
+    without.evaluate("3pm in tokyo").formatted,
+  );
+  expect(() => full.evaluate("tokyo to kyoto")).toThrow();
+
+  // Without datetime nothing else owns the word, and the same input is a
+  // distance. Both engines are legitimate builds of this library, so the row is
+  // half satisfied and the half that fails is a design consequence, not a bug in
+  // this tier: yielding is the only non-destructive answer a matcher has.
+  const r = places.evaluate("tokyo to kyoto");
+  expect(r.kind).toBe("length");
+  expect(r.value.canonical.toString()).toBe("364743");
+
+  // datetime's eighteen zones and their aliases are the whole cost — some forty
+  // words. A city datetime has never heard of is a place in either engine.
+  expect(full.evaluate("kyoto to osaka").kind).toBe("length");
+});
+
+// ---- §9: "90210" stays a number ----
+
+test("90210 is a number, in every engine this package can be part of", () => {
+  // §6.2, asserted before the matcher that could break it exists. `postalLiteral`
+  // is M6.3's, and the first thing it will be tempted to do is claim five digits.
+  for (const engine of [places, full]) {
+    const r = engine.evaluate("90210");
+    expect(r.kind).toBe("number");
+    expect(r.value.canonical.toString()).toBe("90210");
+    expect(r.formatted).toBe("90,210");
+  }
+  // And nothing beneath it yet. §6.2 promises suggest() will offer the place
+  // reading; today there is none, so this line is what M6.3 changes on purpose.
+  expect(places.suggest("90210").map((r) => r.kind)).toEqual(["number"]);
+});
+
+// ---- the regression net ----
+
+/**
+ * Every corpus in the repo, replayed through the engine its owning package
+ * builds *plus* this kind. Cheaper than a second corpus per package and stricter
+ * than a sample: a trie in front of a destructive fold can only be shown
+ * harmless input by input.
+ */
+interface Suite {
+  /** Repo-relative, so the discovery check below can compare paths directly. */
+  readonly file: string;
+  readonly engine: Engine;
+  /** en-complete.tsv records completions, so it is replayed through complete(). */
+  readonly completion?: true;
+}
+
+const rates = snapshot("EUR", "2026-08-04", { USD: 1.1, UAH: 45.5 });
+
+const SUITES: readonly Suite[] = [
+  {
+    file: "packages/core/corpus/en.tsv",
+    engine: createEngine({ locales: [coreEn], kinds: [...BUILTIN_KINDS, geo] }),
+  },
+  {
+    file: "packages/core/corpus/en-complete.tsv",
+    engine: createEngine({ locales: [coreEn], kinds: [...BUILTIN_KINDS, geo] }),
+    completion: true,
+  },
+  { file: "packages/datetime/corpus/en.tsv", engine: full },
+  {
+    file: "packages/rates/corpus/en.tsv",
+    engine: createEngine({ locales: [coreEn], kinds: [number, money, geo], rates }),
+  },
+  { file: "packages/geo/corpus/en.tsv", engine: places },
+];
+
+const ROOT = new URL("../../../", import.meta.url);
+
+async function corpusRows(file: string): Promise<string[][]> {
+  const raw = await Bun.file(new URL(file, ROOT)).text();
+  return raw
+    .split("\n")
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0 && !line.startsWith("#"))
+    .map((line) => line.split("\t"));
+}
+
+test("every corpus in the repo is replayed", () => {
+  // Discovered from the filesystem rather than listed, for the reason
+  // check-deps.ts discovers packages: a corpus added in a later milestone would
+  // otherwise be absent from this net and nobody would notice until it broke.
+  const found = [...new Glob("packages/*/corpus/*.tsv").scanSync(ROOT.pathname)]
+    .map((p) => p.replaceAll("\\", "/"))
+    .sort();
+  expect(found).toEqual(SUITES.map((s) => s.file).sort());
+});
+
+for (const { file, engine, completion } of SUITES) {
+  const rows = await corpusRows(file);
+
+  test(`${file} reads the same with 6000 city names registered`, () => {
+    expect(rows.length).toBeGreaterThan(10);
+    for (const [input, kind, second, text] of rows) {
+      // The whole row in one string, so a failure names the input that moved
+      // instead of reporting a bare "expected X received Y".
+      const actual = completion
+        ? (() => {
+            const top = engine.complete(input as string)[0];
+            return `${top?.kind}:${top?.unit} ${top?.text}`;
+          })()
+        : (() => {
+            const r = engine.evaluate(input as string);
+            return `${r.kind} ${r.value.canonical.toString()} ${r.formatted}`;
+          })();
+      const expected = completion
+        ? `${kind}:${second} ${text}`
+        : `${kind} ${second} ${text}`;
+      expect(`${input} => ${actual}`).toBe(`${input} => ${expected}`);
+    }
+  });
+}
+
+/**
+ * The readings most exposed to a place claim, spelled out beside the corpus
+ * rather than trusted to it.
+ *
+ * Word math is where a destructive claim does the most damage, because the words
+ * are ordinary: "and" is Andorra, "ago" is Angola, "to" is Tonga, "km" is
+ * Comoros, "nice" and "mobile" and "reading" are cities of over 100 000 people.
+ * A corpus row that stopped covering one of these would just disappear; a row
+ * here has to be deleted on purpose.
+ */
+const EXPOSED: ReadonlyArray<readonly [string, string]> = [
+  ["two hundred and five km", "205 kilometres"],
+  ["ten km plus five km", "15 kilometres"],
+  ["twenty two kg", "22 kilograms"],
+  ["3 days ago", "2026-01-12 00:00 UTC"],
+  ["in 3 days", "2026-01-18 00:00 UTC"],
+  ["3pm", "2026-01-15 15:00 UTC"],
+  ["10 km", "10 kilometres"],
+  ["2 km + 300 m", "2.3 kilometres"],
+  ["100 gb in mb", "100,000 megabytes"],
+  ["march", "2026-03-01 00:00 UTC"],
+  ["20% of 50", "10"],
+  ["one hundred and twenty three", "123"],
+];
+
+test("the readings a city name could have eaten are untouched", () => {
+  for (const [input, formatted] of EXPOSED) {
+    // Against the geo-free engine as well as against the literal, because the
+    // claim being *made* is what this file is about: a row that changed in both
+    // engines at once would still be a regression, just not geo's.
+    const before = (() => {
+      try {
+        return without.evaluate(input).formatted;
+      } catch (e) {
+        return `throws ${(e as Error).constructor.name}`;
+      }
+    })();
+    const after = (() => {
+      try {
+        return full.evaluate(input).formatted;
+      } catch (e) {
+        return `throws ${(e as Error).constructor.name}`;
+      }
+    })();
+    expect(`${input} => ${after}`).toBe(`${input} => ${before}`);
+    expect(`${input} => ${after}`).toBe(`${input} => ${formatted}`);
+  }
+});
+
+test("what a city name changes is only ever nothing into something", () => {
+  // The general form of the claim above, and the reason "march" survives while
+  // "nice" does not need to. Every ordinary English word T1 adds — Nice, Mobile,
+  // Reading, Split, all four over 100 000 people — was input the engine had no
+  // reading for at all, so a destructive claim destroys nothing.
+  for (const word of ["nice", "mobile", "reading", "split"]) {
+    expect(() => without.evaluate(word)).toThrow();
+    expect(full.evaluate(word).kind).toBe("place");
+  }
+  // Beside a quantity the word is still unreadable, and the only thing geo
+  // changes is which SmartputError says so: a claimed place where a unit was
+  // expected is a parse failure rather than a missing candidate. Recorded
+  // because it is the one observable difference the corpora cannot show, and
+  // because a caller that switches on the error class deserves to know.
+  for (const input of ["5 nice", "10 mobile"]) {
+    expect(() => without.evaluate(input)).toThrow(NoCandidateError);
+    expect(() => full.evaluate(input)).toThrow(UnitParseError);
+  }
+});

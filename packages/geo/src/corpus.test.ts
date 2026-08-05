@@ -3,11 +3,23 @@ import { createEngine } from "@smartput/core";
 import en from "@smartput/core/locale/en";
 import { length } from "@smartput/length";
 import { number } from "@smartput/number";
-import { place } from "./place";
+import { ADMIN1 } from "./data/admin1";
+import { CITIES } from "./data/cities";
+import { definePlace } from "./place";
 
 // `length` is registered because the distance op resolves to it, and `number`
 // because length's generated scaling ops name it.
-const engine = createEngine({ locales: [en], kinds: [number, length, place] });
+//
+// The fully loaded kind rather than the T0 `place`: the corpus is what this
+// package answers when a consumer has taken everything it publishes, and half
+// the rows below are cities. That the T0 build is a working package on its own —
+// same country readings, no city — is place.test.ts's claim, asserted there
+// against both builds side by side rather than implied by which import this
+// file happens to use.
+const engine = createEngine({
+  locales: [en],
+  kinds: [number, length, definePlace({ cities: CITIES, admin1: ADMIN1 })],
+});
 const raw = await Bun.file(new URL("../corpus/en.tsv", import.meta.url)).text();
 
 const rows = raw

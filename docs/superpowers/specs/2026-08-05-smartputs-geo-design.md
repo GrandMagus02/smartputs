@@ -61,6 +61,21 @@ Not recognised, deliberately:
 `springfield` alone resolves to Illinois by population weight, not by any claim
 about which Springfield the user meant. `suggest()` returns the ranking.
 
+**Amended during M6.2, three corrections to this section.** `springfield`
+resolves to **Missouri**, 170,188 against Illinois' 114,394 — the weight is a
+function of the data, not of the example (§6.1). `suggest()` does **not** return
+the ranking; it returns one result, for the structural reason in §6.1. And
+`paris texas` does not resolve — Paris, Texas is 25,171 people and T1's floor is
+100,000, so there is no second Paris for `texas` to select. `athens georgia`,
+`springfield illinois` and `houston texas` are the same shape with data behind
+them; see §5.2.
+
+The `kyiv` row renders as promised: `Kyiv, UA — UAH, +380, Europe/Kyiv, 3M`. It
+did not at first — a city rendered its *country's* facts, so `athens` came back
+"Greece — … 11M" while the same Value's meta said Athens, 664,046, and all three
+Springfields rendered one string. Fixed by carrying the name in `PlaceMeta`;
+see §5.3.
+
 ## 3. Package boundaries
 
 New package `@smartput/geo`. Runtime dependencies: `@smartput/core`,
@@ -80,6 +95,22 @@ Three entry points, so a consumer who wants countries does not pay for cities:
 @smartput/geo/cities    T1 cities, registered on demand      ~180 KB gz
 @smartput/geo/providers GeoNames + postal-code providers     no data
 ```
+
+**Amended during M6.2: the split is real, and the second figure is wrong.**
+Measured with a bundler rather than by reading imports — `bun build --minify
+--target=browser`, gzipped, each row cumulative on the one above it:
+
+| Bundle | gzip | what that row added |
+| --- | --- | --- |
+| core + `BUILTIN_KINDS` | 24.4 KB | — the floor |
+| `+ place` | 51.5 KB | **+27 KB** — §3's ~25 KB is accurate |
+| `+ definePlace({ cities, admin1 })` | 285.1 KB | **+234 KB** — §3 says ~180 KB |
+
+The miss is row count, not waste; see §7.1. The tiering claim the figure
+supports does hold: the countries-only bundle was probed for `chelyabinsk`,
+`fukuoka`, `texas`, `bavaria` and `springfield` and contains none of them, while
+all five are in the other one. `@smartput/geo/providers` does not exist yet and
+is M6.3's.
 
 ### 3.1 Nothing imports anything
 
@@ -134,6 +165,9 @@ export const place: Kind = defineKind({
 });
 ```
 
+**Amended during M6.2: there are two of these, and one of them is a function.**
+See §4.4.
+
 ### 4.1 Units are countries
 
 `units` is the ISO 3166-1 alpha-2 set — `us`, `ua`, `jp` — with country names as
@@ -184,6 +218,48 @@ formatter's existing `typical` bands pick km.
 The assumption is recorded because great-circle is defensible but not the only
 reading — driving distance is what a person often means, and no free dataset
 provides it.
+
+### 4.4 Two ways to get the kind
+
+**Added during M6.2.** §4 above shows one `const`, which is what M6.1 shipped.
+T1 makes that impossible on its own: a `const` built at module scope has to
+decide at import time whether it carries six thousand city names, and no bundler
+can prove `CITIES` unused once a kind has closed over it. §3's tiering is only
+real if the dependency edge runs from the consumer inwards.
+
+```ts
+export interface PlaceOptions {
+  readonly cities?: readonly CityRow[];
+  readonly admin1?: readonly Admin1Row[];
+}
+export function definePlace(opts?: PlaceOptions): Kind;
+export const place: Kind = definePlace();
+```
+
+- `place` stays a `const` and stays exported, unchanged. Existing consumers and
+  every M6.1 test import it and must keep working; a factory-only API would have
+  made the countries-only case a call nobody needed to make, and would have
+  broken every import in the repo to buy nothing.
+- `place.ts` does not import `data/cities.ts` — asserted at source level in
+  `place.test.ts`, not merely by convention, because that single import is the
+  whole mechanism. `@smartput/geo/cities` is the only module in the package that
+  names it.
+- The two options are independent. `{ cities }` without `{ admin1 }` is a
+  gazetteer with no scoped names, which is a smaller table and a strictly
+  smaller feature — hence two fields rather than one bundle of "T1".
+- Each call returns an independent `Kind`, and two of them cannot share a
+  registry: both are `id: "place"`. That is intended. A build is a choice made
+  once.
+- `@smartput/geo/cities` deliberately exports data and no code. A ready-made
+  `cityPlace` Kind would have been the shorter usage, but it decides `admin1`
+  for the caller and gives the package two same-id kinds a bundler has to keep
+  apart. `RESERVED_WORDS` is not re-exported either — see §5.4.
+
+The one cost, recorded because §3's tiering table does not show it:
+`matcher.ts` imports `data/reserved.ts` unconditionally, so the countries-only
+build pays ~1.9 KB gz for a table it never reads. Deliberate — a guard passed in
+as a parameter is one forgotten argument away from a table that eats `march`,
+and the fold gives that mistake no second chance.
 
 ### 4.5 A claimed conversion target — the one core change
 
@@ -250,6 +326,27 @@ The rejected alternative was a denylist of the ~60 short codes that are also
 English words. It fails destructively on the first word the list forgets, and
 the list would need re-deriving in every locale.
 
+**Amended during M6.2: a city answers a stricter question, and there is a third
+guard the spec never named.**
+
+The exemption above is a country's alone. A single-word *city* claim must be four
+characters or more, absent from `RESERVED_WORDS` (§5.4), and unclaimed by any
+registered unit — in every case, with no capital-letter escape hatch. `new york`
+and `big apple` resolve; `nyc` does not, and capitalising it changes nothing.
+Multi-word claims keep the M6.1 exemption unchanged, because two words in a row
+are nobody's unit and nobody's keyword.
+
+The third guard is a hardcoded `KEYWORDS` set in `matcher.ts`, holding the
+locale's eleven keyword surface forms. `MatchCtx` exposes `isUnitAlias` and
+nothing for keywords, and a keyword is not a unit — so without it `in` is India,
+`to` is Tonga, `as` is American Samoa and `by` is Belarus, and `japan to france`
+loses its conversion keyword to a country and never parses. Hardcoded rather than
+adding `isKeyword` to `MatchCtx`, which is a change to core's matcher contract
+for one plugin's two-letter codes; it is the same trade datetime makes when it
+hardcodes English plural suffixes in `chrono-bridge.ts`.
+
+`MAX_WORDS = 4` bounds the *whole* claim, scope included — see §5.2.
+
 ### 5.2 Scoping happens in the matcher
 
 `paris texas` is claimed as **one** literal. The trie's leaves carry admin1 and
@@ -260,6 +357,52 @@ This is a deliberate rejection of the alternative, which was to make
 `in | place | place` with two intents — distance and filtering — and forced a
 runtime branch on feature class inside one `apply`. Keeping scope in the matcher
 leaves the signature meaning exactly one thing.
+
+**Amended during M6.2: what a scope actually matches.** The mechanism is the
+walk this section describes. The details it leaves open were all decided by the
+data.
+
+- **A scope is a division or a country**, tried longest-first from the trie root
+  at the word after the city. `springfield illinois` and `athens greece` are the
+  same operation. A scope *narrows*, it does not re-rank: `athens greece` and a
+  bare `athens` return the same row, because the scope selects among the rows the
+  node already carries in weight order.
+- **A division is not a place.** `Admin1Row` carries a key, a name and aliases —
+  no GeoNames id, no coordinates, no population. `texas` alone never resolves,
+  and there is nothing for §6.1 to rank it as. Divisions exist only to be walked
+  into.
+- **The abbreviation form works for 26 of the 1,664 divisions.** `houston tx`
+  resolves; `springfield il` does not. A division alias below `MIN_NAME_LENGTH`
+  is safe only in the scoped position — as the second word of a two-word claim,
+  which is nobody's unit and nobody's keyword — so the two-letter codes are
+  allowed there and nowhere else. What removes the rest is §5.4:
+  `in` is a conversion keyword, `il` is Israel, `ca` is Canada, `or` is a
+  conjunction. `tx`, `ny`, `oh`, `wa`, `fl` and 21 others survive.
+- **The whole claim is bounded at four words, scope included.**
+  `sydney new south wales` is the longest scoped form there is. Giving the scope
+  a budget of its own buys nothing — no division name is four words — and one
+  bound is one thing to reason about.
+- **A scope that selects nothing is not applied.** `paris texas` finds no US
+  Paris in the node, so the claim falls back to the unscoped French city and
+  `texas` is left dangling, which throws. There is no partial claim and no
+  backtracking into a shorter one.
+
+Two failures, both recorded in `ambiguity.test.ts` as passing assertions of the
+current behaviour so that fixing either one fails loudly:
+
+- **`paris texas` does not resolve** — the spec's own worked example, and it
+  fails on data rather than on matching. Paris, Texas is 25,171 people, below
+  T1's floor, so `CITIES` holds exactly one `paris`. `houston texas` proves
+  nothing is wrong with Texas. A T2 tier flips this.
+- **A division whose name is also a country name cannot scope.** `athens
+  georgia` and `columbus georgia` throw. `scopeFrom` guards the division branch
+  with `ctx.isUnitAlias(first)`, and every country name is a registered unit
+  alias. The guard is correct on the *country* branch and wrong on this one: a
+  scope is by construction the second word of a multi-word claim, and two words
+  in a row are nobody's unit — which is the exemption the matcher already grants
+  the city word beside it. Dropping `isUnitAlias` from the division branch alone
+  is the fix; it was left for M6.3 because touching `scopeFrom` sits in front of
+  the destructive fold and M6.2 had already spent its risk budget there.
 
 ### 5.3 Facts render, they do not compute
 
@@ -273,6 +416,109 @@ SW1A 1AA    →  London SW1A 1AA, GB — Europe/London
 
 `format` reads `meta`. No op, no grammar, no parser change, and the launcher
 gets its lookup answer from the same path that renders every other Value.
+
+**Amended during M6.2: a city renders its country's row, and the `kyiv` line
+above is not what ships.** `formatPlace` does `BY_A2.get(value.unit)`, and a
+city's unit is its country, so:
+
+```
+kyiv            →  Ukraine — UAH, +380, Europe/Kyiv, 40M
+vancouver       →  Canada — CAD, +1, America/Toronto, 37M
+houston texas   →  United States — USD, +1, America/New_York, 327M
+```
+
+Two consequences, and the second is the one that matters. Every city of a country
+renders the same string, so `houston texas` and `springfield illinois` are
+indistinguishable. And the rendered zone actively contradicts the zone the same
+Value hands the datetime bridge: Vancouver prints `America/Toronto` while its
+`meta.zone` is `America/Vancouver`, which is what `noon in vancouver` uses.
+
+Everything a program reads is right — the canonical is the city's own GeoNames
+id, and `meta.zone`, `meta.lat`, `meta.lon` and `meta.population` are the city's.
+Only the formatted string is wrong.
+
+This is unfixable without a decision this section does not contain, which is why
+M6.2 shipped it rather than guessing. `format` reads `meta` because §3.1 keeps
+`PlaceMeta` display-name-free — it is the bridge contract, and widening it makes
+datetime and rates pay for a field only the formatter wants. The alternatives are
+to widen it anyway, or to close `formatPlace` over `opts.cities` so the kind
+carries its own display table. Either way every city row of
+`packages/geo/corpus/en.tsv` changes its expected text, which is a deliberate
+commit and not an integrator's edit. **M6.3 owns this.**
+
+### 5.4 `RESERVED_WORDS` — the words a place may not eat
+
+**Added during M6.2, and the most important thing this milestone discovered.**
+The spec as written has no answer to it, because §5.1's two guards were designed
+against *countries* and countries are the easy case.
+
+A country name is a proper noun no locale uses for anything else. That is what
+earns §5.1's exemption, and it does not transfer. City names are ordinary words:
+Nice, Mobile, Reading and Split are all over 100,000 people, and a T2 tier
+reaching down to the towns finds March, Boring and Why. `isUnitAlias` does not
+help — the words that do the most damage are nobody's unit — and §5.1's
+lowercase-code rule does not either, because these are full-length names.
+
+The literal fold is destructive. A claim has no second chance: no weight and no
+solver ranking can give a word back once the matcher has eaten it. So the answer
+cannot be a ranking, and it cannot be a guard that fires "usually". It has to be
+a set, applied before the data ships.
+
+```ts
+// packages/geo/src/data/reserved.ts — generated, committed, body-hash checked
+export const RESERVED_WORDS: ReadonlySet<string>   // 805 words
+```
+
+**Derived, never transcribed.** `buildReserved()` reads six vocabularies out of
+the packages that own them:
+
+| Source | Contributed |
+| --- | --- |
+| core `locale/en` keyword surface forms | 11 |
+| `@smartput/number`'s `NUMBER_WORDS` | 35 |
+| `Intl` months and weekdays for `en`, long and short | 38 |
+| chrono's `en.casual` patterns, off `parser.pattern(ctx).source` | 1,027 |
+| `BUILTIN_KINDS` unit ids, aliases, symbols and display forms | 338 |
+| geo's own `COUNTRIES` aliases below `MIN_NAME_LENGTH` | 508 |
+
+Plus exactly one hand-written entry — `or`, for Oregon's admin1 code. No kind,
+keyword or numeral produces the conjunction, so no source can derive it; it
+carries its justification in the generated header and is pruned automatically if
+any source ever starts producing it. That is the whole of the hand-written part,
+which is what stops this being a hand list wearing a generator's clothes. A hand
+list fails on the word it forgets; a derived one fails only when a package
+changes its vocabulary without regenerating, and the body hash catches that.
+
+Three rulings about where it applies:
+
+- **The generator applies it, not the matcher.** `CITIES` and `ADMIN1` ship
+  containing none of it. `cityClaimable` consults it again at match time anyway —
+  two nets, because the set is a property of the matcher and not of the tables a
+  caller supplies.
+- **`COUNTRIES` is deliberately not filtered by it.** §5.1's `claimable` already
+  refuses every lowercase short code by surface, and filtering the country table
+  would take `japan to UA` with it. `reserved.test.ts` asserts no country alias
+  of four characters or more is in the set, so the separation costs nothing
+  today.
+- **It is not re-exported from `@smartput/geo/cities`.** It is the generator's
+  refusal list, already applied; a consumer who could see it would have no
+  operation to perform with it, and publishing it invites a second filter that
+  drifts.
+
+Where it actually earns its keep is divisions, not cities. **Zero city aliases
+were refused by it** — `MIN_NAME_LENGTH` removes every name short enough to be a
+keyword first, and no city of 100,000 people is called March. On `ADMIN1` it
+takes `in` from Indiana, `or` from Oregon, `ca` from California and `il` from
+Illinois, leaving 26 of 1,664 divisions with a two-letter alias. Without it
+`paris in ukraine` claims `paris in` as a city in Indiana and swallows the
+conversion keyword.
+
+**The hole it leaves**, named here because it is the cause of §6.3's failure:
+`@smartput/datetime` is not among the sources. Its zone aliases are therefore
+still in the tables, and the collision has to be fought at match time by
+`isUnitAlias` instead of being absent from the data. Adding datetime as a seventh
+source is not obviously right — it would delete `paris` and `london` from the
+gazetteer for every consumer, including those who never register datetime.
 
 ## 6. Weights and ambiguity
 
@@ -294,6 +540,44 @@ analyzer's. Geo emits:
 So `paris` ranks France's Paris over Texas's, `springfield` ranks Illinois, and
 `georgia` ranks the country over the state. Each is a ranking, not a decision:
 `suggest()` returns the alternatives.
+
+**Amended during M6.2: the four numbers are exactly as tabled. The sentence
+under the table is wrong in three places.**
+
+The weights shipped unchanged — `+3`, `+2`, `min(log10(pop) / 3, 2)`, `+4` — with
+two details the table does not state. A capital is flat rather than scaled,
+because the reason it is weighted at all is that it is a seat of government:
+Nuku'alofa is 22,400 people and is still what `nuku'alofa` means. And a row with
+population `0` scores `0` rather than `-Infinity`.
+
+What is wrong is where the ranking happens and what it decides.
+
+- **The ranking is inside the matcher, not in the solver.** A `LiteralMatcher`
+  returns `LiteralMatch | null`, so exactly one claim per offset escapes to the
+  fold. The weights above sort the rows at a trie node and choose which one that
+  is; the winner's weight then reaches the solver, where it competes with other
+  *kinds* and never with another place. "`suggest()` returns the alternatives"
+  therefore cannot be true — `suggest("springfield")` returns one result where
+  `CITIES` holds three Springfields. Fixing it needs the matcher contract widened
+  to return an array, which is a change to core, not to geo. Asserted with the
+  count in `ambiguity.test.ts`.
+- **Country beats city as control flow, not as a comparison.** The matcher tries
+  the country payload of a node first and returns on a hit. `+3` against a `+2`
+  cap means the two can never tie, so scoring both and taking the maximum would
+  be a longer way to write the same line.
+- **A guard outranks every weight.** `claimable`, `cityClaimable` and
+  `RESERVED_WORDS` run before any weight is computed, and a refused claim does
+  not fall back to a lighter one. This is what §6.3 turns on.
+
+The rows the shipped data actually decides, with the ids, since `paris texas`
+is not among them (§5.2):
+
+| Input | Winner | Over | Why |
+| --- | --- | --- | --- |
+| `athens` | Athens, GR `264371` `+2` | Athens, GA `+1.70` | capital |
+| `san jose` | San José, CR `3621849` `+2` | San Jose, CA `+1.9996` | capital, and by 0.0004 — 335,007 people beating 997,368 is what proves the rule is not population in disguise |
+| `springfield` | Springfield, MO `4409896` | IL, MA | no capital among them, so `log10(pop)/3` is the whole ranking; the spec's own text predicted Illinois and the data says Missouri, 170,188 to 114,394 |
+| `georgia` | the country `614540` `+3` | — | US.GA is a division, and a division is not a place, so there is nothing to outrank |
 
 ### 6.2 Place against number
 
@@ -327,6 +611,41 @@ to the solver, which is the engine's whole thesis. The first has a
 an IANA zone genuinely is one — and its display symbols live there. What geo
 removes is the pressure to grow that table into a city gazetteer.
 
+**Amended during M6.2: both readings do not survive. Only one ever does, and
+which one depends on what else is registered.**
+
+`cityClaimable` refuses any single word `ctx.isUnitAlias` reports, so in an
+engine with datetime the trie never claims `tokyo` at all. Seventeen single-word
+city aliases are lost this way, each one an alias of one of datetime's eighteen
+zones:
+
+```
+auckland  beijing  berlin  chicago  delhi  denver  dubai  kiev  kolkata
+kyiv  london  moscow  mumbai  paris  shanghai  sydney  tokyo
+```
+
+Measured by diffing matcher claims between a geo-only registry and a
+`BUILTIN_KINDS + datetime + money + geo` one, over every single-word alias in
+`CITIES`: 17 lost, 0 changed. So in the engine a real consumer builds,
+`tokyo to kyoto`, `kyiv to warsaw`, `paris to berlin`, `london to paris` and
+`chicago to denver` all throw, and `3pm in tokyo` works and is byte-identical to
+the same engine without geo. Without datetime, every one of them is a distance.
+`kyoto to osaka` works in both, because datetime has never heard of Kyoto.
+
+This is not a tuning failure. The paragraph above assumes a claim and a unit
+reading can both reach the solver to be ranked; the fold makes that impossible,
+because a claim that is made is the only claim there is. Yielding is the only
+non-destructive answer a matcher has. The real fix is at core level — letting a
+literal claim and a unit reading coexist as candidates — and it is the same core
+change §6.1's `suggest()` gap needs. Recorded honestly in `ambiguity.test.ts`,
+which asserts both halves.
+
+Note the consequence for the package's own corpus: `packages/geo/corpus/en.tsv`
+asserts `kyiv`, `paris`, `kyiv to warsaw`, `tokyo to kyoto` and `paris to berlin`
+and passes because `corpus.test.ts` builds an engine of `[number, length, place]`
+that never registers datetime. Those rows are true of that engine and not of
+every engine.
+
 ## 7. Data
 
 ### 7.1 Tiers
@@ -339,6 +658,26 @@ removes is the pressure to grow that table into a city gazetteer.
 
 T0 alone is a working package. T1 is where `kyiv to warsaw` starts working, and
 it is a separate import so the cost is opted into.
+
+**Amended during M6.2: T1's row and size are both understated.** Shipped is
+**6,247 cities** at **+234 KB gz**, not ~5.1k at ~180 KB. The rule is "over
+100,000 people **plus every seat of government, whatever its size**" — the
+second clause covers all 241 capitals, 78 of which are below the floor and would
+otherwise be missing, and Nuku'alofa at 22,400 is why it exists. The size miss is
+the row count, not waste. Each table
+bundled and gzipped on its own: `CITIES` 210.6 KB, `ADMIN1` 22.7 KB, `COUNTRIES`
+22.9 KB, `RESERVED_WORDS` 1.9 KB.
+
+T1 also ships **1,664 `Admin1Row` divisions**, which this table does not list at
+all. They are what §5.2's scope walks into, and they are deliberately not places.
+
+Sixty-five cities over 100,000 people are **absent**, because every alias they
+had was refused: under four characters (`Ufa` 1.1M, `Fes` 1.19M, `Jos` 1.04M,
+`Qom` 900k, `Huế` 1.38M), over four words (`São José do Rio Preto` 480k), or a
+shape the alias rule will not take — a dot, a comma, a leading digit, a leading
+apostrophe. Each is named with its reason in `data/cities.ts`'s header. Short
+names are the real cost of this tier and the obvious candidate for a curated
+alias allowance in T2.
 
 ### 7.2 The generator
 
@@ -414,6 +753,49 @@ Follows the existing shape.
 The last row is the one that proves §3.1: an engine built with datetime and
 rates but no geo must not throw, and must behave exactly as it does today.
 
+**Amended during M6.2: the file names differ, two of the six ambiguity rows fail
+outright, and a third only half holds.**
+
+Shipped is `data/cities.test.ts`, `data/reserved.test.ts`,
+`data/countries.test.ts` and `scripts/geo/build.test.ts` where the table says
+`data.test.ts` and `fixtures/geonames.test.ts`. Naming only — every assertion
+this table asks for is present.
+
+`ambiguity.test.ts` now exists. Row by row, as asserted:
+
+| Row | Holds? |
+| --- | --- |
+| `90210` stays a number, `us 90210` does not | Holds for the half that exists; the postal half is M6.3's and is asserted in its pre-M6.3 form so that milestone cannot move it silently |
+| `paris` ranks France | Holds — `2988507`, the French *city*, unit `fr` |
+| `georgia` ranks the country | Holds — `614540`, and the state is not a place at all |
+| `suggest()` returns both Parises | **Fails**, structurally. See §6.1 |
+| `paris texas` resolves to the Texan one | **Fails** on data. See §5.2 |
+| `tokyo` is a zone in one sentence and a place in the other | **Half.** The zone half holds in every engine; the place half only in an engine without datetime. See §6.3 |
+
+`ambiguity.test.ts` is also the regression net for the whole tier, which matters
+more than any single row above: every corpus in the repo — core's `en.tsv` and
+`en-complete.tsv`, datetime's, rates' and geo's own — is replayed through its
+owning package's engine plus the 6,247-name kind. Discovery is a filesystem glob
+asserted equal to the replayed set, so a corpus added later fails the net rather
+than escaping it. Result: no row in the repo changed kind, canonical or formatted
+output, and no completion row changed.
+
+Two behaviour deltas that no corpus can show, recorded because a caller would
+care:
+
+- Registering the tier only ever turns nothing into something. `nice`, `mobile`,
+  `reading` and `split` threw `UnitParseError` before and are places now; no
+  input that had a reading changed it.
+- `5 nice` and `10 mobile` moved from `NoCandidateError` to `UnitParseError` — a
+  claimed place where a unit was expected is a parse failure rather than a
+  missing candidate. Both still mean "no reading".
+
+Getting the `3pm in tokyo` half of the table into `packages/geo/src/` needed
+`@smartput/datetime`, `@smartput/kinds` and `@smartput/rates` in geo's
+`devDependencies`. Runtime dependencies are unchanged and `check-deps` still
+passes; relative cross-package imports fail `typecheck` with TS6059 under geo's
+`rootDir`, which is why it is a dependency rather than a path.
+
 ## 10. Milestones
 
 Each independently shippable, each with its own plan.
@@ -424,6 +806,11 @@ Each independently shippable, each with its own plan.
 | **M6.2** | T1 cities, admin1 scope matching, weights, `suggest()` ranking. |
 | **M6.3** | `PlaceProvider`, generic cache facade lifted into core, `geonames()` and `postalCodes()` providers, `postalLiteral`. |
 | **M6.4** | Completion surface: country and city prefix completion, postal format validation and normalization. |
+
+**Amended during M6.2: `suggest()` ranking was not delivered and is not
+deliverable here.** It needs `LiteralMatcher` widened to return an array — a
+change to core's matcher contract, which is the same change §6.3's collision
+needs. M6.3 inherits it along with the four items in §12.
 
 ### 10.1 Roadmap renumbering
 
@@ -443,25 +830,77 @@ updated in M6.1 rather than left to drift.
   existing `in` parse — see §4.5, and note that the original claim of "no parser
   change at all" did not survive contact with `3pm in japan`.
 
-## 12. What M6.1 actually shipped
+## 12. What has actually shipped
 
 Recorded so the later sub-milestones start from the truth rather than from §2.
+Updated at the end of every sub-milestone.
 
-| Shipped | Deferred |
+### 12.1 M6.1 — countries
+
+| Shipped | Deferred to |
 | --- | --- |
-| T0: 250 countries, generated and committed, body-hash checked | T1 cities (M6.2) — so `kyiv to warsaw` is `ukraine to poland` today |
-| `place` kind, trie matcher, multi-word names | admin1 scoping, `paris texas` (M6.2) |
-| `in \| place \| place` great-circle distance | postal literals, `90210` (M6.3) |
-| datetime and rates bridges, both dependency-free | providers, live engine, lifted cache facade (M6.3) |
-| Fact formatting: `japan` → `Japan — JPY, +81, Asia/Tokyo, 127M` | completion (M6.4) |
+| T0: 252 countries, generated and committed, body-hash checked | T1 cities — M6.2 |
+| `place` kind, trie matcher, multi-word names | admin1 scoping — M6.2 |
+| `in \| place \| place` great-circle distance | postal literals, `90210` — M6.3 |
+| datetime and rates bridges, both dependency-free | providers, live engine, lifted cache facade — M6.3 |
+| Fact formatting: `japan` → `Japan — JPY, +81, Asia/Tokyo, 127M` | completion — M6.4 |
 
-Two things found during implementation that the later milestones inherit:
+Deviations, all amended into their own sections above: the Pratt parser did
+change (§4.5), country codes are not alias-index entries (§4.1), and a lowercase
+two- or three-letter code is never claimed (§5.1).
 
-- **Opaque kinds cannot complete.** `complete.ts:63` skips non-ratio kinds
-  outright, so M6.4's country completion has to go through the matcher's trie
-  rather than the alias index. This is not geo-specific — datetime has the same
-  hole and nobody had hit it.
-- **`§9`'s `ambiguity.test.ts` does not exist yet.** Every row of that table
-  needs T1 cities or the postal literal. The M6.1-reachable half lives in
-  `matcher.test.ts` and in two corpus-replay guards that run the whole datetime
-  and rates corpora through an engine with geo registered.
+### 12.2 M6.2 — cities
+
+| Shipped | Deferred to |
+| --- | --- |
+| T1: 6,247 cities and 1,664 divisions, behind `@smartput/geo/cities` (§7.1) | `paris texas` — needs a T2 tier, no milestone |
+| `definePlace()` factory; `place` unchanged (§4.4) | — |
+| Entry-point split verified with a bundler, not by reading imports (§3) | — |
+| admin1 and country scoping, abbreviation form for 26 divisions (§5.2) | `athens georgia` — M6.3 |
+| §6.1's four weights, exactly as tabled (§6.1) | `suggest()` ranking — needs a core change, M6.3 |
+| `RESERVED_WORDS`, derived from six vocabularies (§5.4) | — |
+| `ambiguity.test.ts`, and every corpus in the repo replayed against the tier (§9) | — |
+| City zone and currency reach the bridges: `noon in vancouver`, `100 usd in kyoto` | — |
+| — | A city's *formatted* output — M6.3 (§5.3) |
+
+### 12.3 What M6.3 inherits
+
+Two defects. Both are asserted in `ambiguity.test.ts` as the behaviour they
+currently have, so that fixing either fails a test rather than passing silently.
+
+Two more were found by this section and fixed before M6.2 was committed, and are
+recorded here because the reasoning outlived them:
+
+- **A city formatted as its country** (§5.3). `athens` rendered "Greece — EUR,
+  +30, Europe/Athens, 11M" while the same Value's meta said Athens, 664,046, and
+  every US city rendered the identical "United States" string. The rendered zone
+  contradicted the zone that Value hands the datetime bridge. Fixed by widening
+  `PlaceMeta` with the place's own `name` — the alternative, closing
+  `formatPlace` over `opts.cities`, would have put a static edge from the
+  formatter to the gazetteer and undone §3's entry-point split. Ten corpus rows
+  changed with it.
+- **`athens georgia` threw** (§5.2), which is §9's headline row. `scopeFrom`
+  refused a division whose first word is a registered unit alias, and every
+  country name is one. The guard is right on the country branch and redundant on
+  the admin1 branch, where the division only wins if a candidate city is really
+  in it — a stronger check than the guard. The `KEYWORDS` test beside it is what
+  actually keeps `paris in ukraine` intact, and it stays.
+
+Still open:
+
+1. **`suggest()` cannot return a runner-up** (§6.1) and **17 city names yield to
+   datetime** (§6.3). One root cause: `LiteralMatcher` returns at most one claim
+   and the fold is destructive. Both need the matcher contract widened to an
+   array, which is a core change, and it should be made once for both.
+2. **Opaque kinds cannot complete.** `complete.ts:63` skips non-ratio kinds
+   outright, so M6.4's place completion has to go through the matcher's trie
+   rather than the alias index. Not geo-specific — datetime has the same hole and
+   nobody had hit it. Carried from M6.1, still true.
+
+And one standing risk that is nobody's defect: `packages/geo/src/data/cities.ts`
+is 1.4 MiB. Biome's default `files.maxSize` is 1 MiB and an oversized file is
+**skipped with a warning, not failed**, so `bun run check` was exiting 0 while
+the largest file the milestone added was the one file nothing linted. `biome.json`
+now sets `files.maxSize` to 4 MiB. The reason cannot live beside it — Biome 2.5.6
+rejects comments in `biome.json`, and adding one makes `biome check .` process
+zero files — so it is recorded here.

@@ -100,6 +100,17 @@ export interface RateLookup {
 export interface PlaceMeta {
   /** GeoNames feature id. Stable, and the Value's canonical. */
   readonly geonameId: number;
+  /**
+   * The place's own display name — "Japan", "Athens", "Los Angeles".
+   *
+   * Here rather than left to the formatter to look up, because the lookup a
+   * formatter could do is by `country`, and that returns the *country's* name
+   * for a city: it rendered "athens" as "Greece — … 11M" while this same meta
+   * said 664,046. A city table big enough to answer the question properly is
+   * the one thing the formatter must not import, since reaching it statically
+   * links the whole gazetteer into every bundle.
+   */
+  readonly name: string;
   /** IANA zone. Always present: a country carries its capital's zone. */
   readonly zone: string;
   /** ISO 4217. Present on countries; on a city, its country's. */

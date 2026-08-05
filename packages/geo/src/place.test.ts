@@ -1,13 +1,56 @@
 import { expect, test } from "bun:test";
-import { buildRegistry, createEngine, type OpaqueSpec } from "@smartput/core";
+import {
+  buildRegistry,
+  createEngine,
+  type Kind,
+  type MatchCtx,
+  type OpaqueSpec,
+  type Registry,
+} from "@smartput/core";
 import en from "@smartput/core/locale/en";
 import { length } from "@smartput/length";
 import { number } from "@smartput/number";
-import { place } from "./place";
+import { ADMIN1 } from "./data/admin1";
+import { CITIES } from "./data/cities";
+import { COUNTRIES } from "./data/countries";
+import { MIN_NAME_LENGTH } from "./matcher";
+import { definePlace, place } from "./place";
 
 const engine = createEngine({ locales: [en], kinds: [number, length, place] });
 const registry = buildRegistry([number, length, place], [], "en");
 const units = registry.kinds.get("place")?.units;
+
+/**
+ * The other half of the factory: the same kind with T1 loaded. Built here rather
+ * than in a `beforeAll` because every assertion below is about the difference
+ * between the two, so both have to exist side by side in one process — which is
+ * also the only proof that `definePlace` returns an independent Kind and not a
+ * mutated singleton.
+ */
+const cityPlace = definePlace({ cities: CITIES, admin1: ADMIN1 });
+const cityEngine = createEngine({ locales: [en], kinds: [number, length, cityPlace] });
+const cityRegistry = buildRegistry([number, length, cityPlace], [], "en");
+const cityUnits = cityRegistry.kinds.get("place")?.units;
+
+function matcherOf(kind: Kind) {
+  const m = kind.literals?.[0];
+  if (m === undefined) throw new Error("the kind registers no matcher");
+  return m;
+}
+
+const matchCtx: MatchCtx = {
+  locale: "en",
+  now: 0,
+  timeZone: "UTC",
+  isUnitAlias: (text) => registry.aliasIndex.has(text.toLowerCase()),
+};
+
+/** Every global-index key that any place unit put there, in either build. */
+function placeAliases(reg: Registry): string[] {
+  return [...reg.aliasIndex.entries()]
+    .filter(([, entries]) => entries.some((e) => e.kind === "place"))
+    .map(([key]) => key);
+}
 
 test("countries are the units, keyed by alpha-2", () => {
   expect(units?.has("jp")).toBe(true);
@@ -84,4 +127,87 @@ test("a distance is an ordinary length afterwards", () => {
   const r = engine.evaluate("france to germany in mi");
   expect(r.kind).toBe("length");
   expect(r.formatted).toBe("545.81183389008192157798457 miles");
+});
+
+test("the countries-only build knows no city", () => {
+  // Asserted on the matcher as well as through the engine: an engine throw only
+  // says nothing read "kyiv", while a null claim says the trie never carried it,
+  // which is what "@smartput/geo" alone not paying for T1 actually means.
+  expect(matcherOf(place)("kyiv", 0, matchCtx)).toBeNull();
+  expect(() => engine.evaluate("kyiv")).toThrow();
+});
+
+test("a kind built with the city table reads one", () => {
+  const r = cityEngine.evaluate("kyiv");
+  expect(r.kind).toBe("place");
+  // The city's own GeoNames id, not Ukraine's — the difference between reading
+  // the city and falling through to the country it happens to sit in.
+  expect(r.value.canonical.toString()).toBe("703448");
+});
+
+test("a city's unit is its country, which is why the unit is always registered", () => {
+  // The invariant `properties.test.ts` asserts over T0, restated where T1 can
+  // break it: a city is not a unit, so its Value has to borrow one, and the only
+  // unit that describes it is its country's alpha-2. `LiteralMatch.unit` naming
+  // something unregistered is a resolver error, not a bad reading.
+  const v = cityEngine.evaluate("kyiv").value;
+  const meta = v.meta as Record<string, unknown>;
+  expect(v.unit).toBe("ua");
+  expect(meta.country).toBe(v.unit);
+  expect(cityUnits?.has(v.unit)).toBe(true);
+});
+
+test("every city alias that claims still resolves to a registered country unit", () => {
+  const matcher = matcherOf(cityPlace);
+  let claimed = 0;
+  for (const row of CITIES) {
+    for (const alias of row.aliases) {
+      // Null where a country outranks the city, or where the alias is a word the
+      // matcher refuses; the property is about what a claim looks like, not
+      // about which row wins.
+      const match = matcher(alias, 0, matchCtx);
+      if (match === null) continue;
+      claimed += 1;
+      const meta = match.meta as Record<string, unknown>;
+      expect(match.kind).toBe("place");
+      expect(cityUnits?.has(match.unit)).toBe(true);
+      expect(meta.country).toBe(match.unit);
+      expect(match.canonical.toString()).toBe(String(meta.geonameId));
+    }
+  }
+  expect(claimed).toBeGreaterThan(CITIES.length / 2);
+});
+
+test("cities are not units, in either build", () => {
+  // COUNTRY_UNITS is the same table both ways round. Six thousand more opaque
+  // units would be six thousand more rows in a global alias index that no weight
+  // can undo a claim from — the whole reason a city is reachable only by trie.
+  expect(cityUnits?.size).toBe(units?.size);
+  const codes = new Set(COUNTRIES.map((c) => c.a2));
+  for (const unit of cityUnits?.keys() ?? []) expect(codes.has(unit)).toBe(true);
+  expect(cityUnits?.has("703448")).toBe(false);
+});
+
+test("no place alias below MIN_NAME_LENGTH reaches the global index, in either build", () => {
+  // The M6.1 finding, re-run with T1 present: "km" is Comoros and "pm" is Saint
+  // Pierre, and putting either in cost twelve corpus rows their reading. The
+  // filter is on COUNTRY_UNITS, so this passes for the second build only as long
+  // as loading cities does not start registering units of its own.
+  for (const reg of [registry, cityRegistry]) {
+    const short = placeAliases(reg).filter((a) => a.length < MIN_NAME_LENGTH);
+    expect(short).toEqual([]);
+  }
+  // The stronger statement, and the one that actually holds T1 out: passing the
+  // city table changes the global index by nothing at all.
+  expect(placeAliases(cityRegistry)).toEqual(placeAliases(registry));
+});
+
+const placeSource = await Bun.file(new URL("./place.ts", import.meta.url)).text();
+
+test("the entry point never pulls the city table into a bundle", () => {
+  // The factory only saves a consumer the ~180 KB of T1 if `place.ts` reaches it
+  // through the caller's argument. One static import re-links the table into
+  // every build of "@smartput/geo" and the seam is worth nothing, so it is
+  // asserted on the source rather than trusted to review.
+  expect(placeSource).not.toMatch(/from\s+"\.\/data\/(cities|admin1)"/);
 });
