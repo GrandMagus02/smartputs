@@ -12,9 +12,16 @@ import type { EvalCtx, KindId, Locale, RateLookup, Value } from "../types";
  * What `toJSON()` produces and what `from()` accepts back. Plain JSON, so it
  * survives `JSON.stringify`/`parse` — `value` is the decimal string rather
  * than a Decimal, and `new Decimal` reads either.
+ *
+ * `value` is `string | number` rather than `string` so that a micro-path
+ * `ValueInstance` — `@smartput/angle/class`'s `Angle`, whose `value` is a
+ * double — satisfies this shape and `Quantity.from(angle)` type-checks. Spec
+ * §11 names that as the one existing public type this design changes. `toJSON`
+ * still *produces* a string, so the JSON round-trip is unaffected; only what
+ * `from()` accepts has widened, and `new Decimal` already read both.
  */
 export interface QuantitySnapshot {
-  readonly value: string;
+  readonly value: string | number;
   readonly unit: string;
   readonly meta?: Readonly<Record<string, unknown>>;
 }
