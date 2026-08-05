@@ -245,15 +245,42 @@ export interface MatchCtx {
 }
 
 /**
+ * One reading of a span the fold has already settled.
+ *
+ * `LiteralMatch` without `length` — by the time the fold has grouped the
+ * matches that reach the same end, the span is a property of the group and no
+ * longer of the reading — and with `weight` defaulted, so nothing downstream
+ * has to spell `?? 0` again.
+ */
+export interface LiteralReading {
+  readonly kind: KindId;
+  readonly unit: string;
+  readonly canonical: Decimal;
+  readonly meta?: Readonly<Record<string, unknown>>;
+  readonly weight: number;
+  readonly targetable?: boolean;
+}
+
+/**
  * Offered the whole normalized input and an offset that is always a token
  * boundary. Returns null for "not mine". A match that does not end on a token
  * boundary is discarded by the fold, so a matcher never has to align itself.
+ *
+ * An array is several readings of the SAME text, not several spans: the other
+ * Athens, the other Springfield, both Congos. The fold keeps whichever readings
+ * reach the furthest end and hands all of them to the solver as candidates, so
+ * a matcher that has ranked its hits should return them ranked and stop there —
+ * returning only the winner is what made `suggest("springfield")` a list of
+ * one, and dropping the ranking would ask the solver to redo a decision it has
+ * no information for.
+ *
+ * Returning the single object stays legal and means exactly what it always did.
  */
 export type LiteralMatcher = (
   input: string,
   offset: number,
   ctx: MatchCtx,
-) => LiteralMatch | null;
+) => LiteralMatch | readonly LiteralMatch[] | null;
 
 export interface RatioSpec {
   mode: "ratio";

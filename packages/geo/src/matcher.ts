@@ -37,6 +37,25 @@ const SCOPED_WEIGHT = 4;
 export const MIN_NAME_LENGTH = 4;
 
 /**
+ * The gap kept between one reading of a span and the next.
+ *
+ * §6.1's weights rank the readings of a name and nothing more, and a ranking
+ * that the solver has to score is not the same object: confidences are a softmax
+ * over summed weights, and `evaluate` throws `AmbiguityError` when the top two
+ * land within `ambiguityEpsilon` of each other. San José, CR at `+2` against San
+ * Jose, CA at `+1.9996` is a decided ranking and a coin flip once scored — 0.0001
+ * apart in confidence against a 0.05 default — so emitting the tabled figures
+ * verbatim turned `san jose` and `springfield`, both corpus rows, into errors
+ * the moment the runner-up became reachable.
+ *
+ * `0.5` is `pratt.ts`'s own figure for exactly this question: half a point is
+ * 0.62 against 0.38, well outside the epsilon. Exported because `postal.ts`
+ * separates its readings for the same reason and against the same epsilon, and
+ * two spellings of one constant are two things to keep in step.
+ */
+export const RANK_STEP = 0.5;
+
+/**
  * The locale's keyword surface words, which `MatchCtx` does not expose.
  *
  * `in` is India, `to` is Tonga, `as` is American Samoa and `by` is Belarus, so
@@ -99,7 +118,15 @@ interface TrieNode {
    * third payload beside the two below.
    */
   readonly next: Map<string, TrieNode>;
-  /** The largest country of this alias. At most one; §6.1 ranks the rest away. */
+  /**
+   * The largest country of this alias. At most one, still, now that a claim can
+   * carry several readings: every country weighs a flat `+3`, so both Congos
+   * would reach the solver on identical scores and turn `congo` from a decided
+   * answer into an `AmbiguityError` naming two countries the user cannot pick
+   * between with any more input than they already gave. A city runner-up is
+   * separated by population and does not have that problem. Surfacing the second
+   * Congo wants a tiebreak §6.1 does not have; it stays M6.4's, with completion.
+   */
   country?: CountryHit;
   /** Every city of this alias, heaviest first. */
   cities?: CityHit[];
@@ -287,23 +314,34 @@ function claimable(word: string, surface: string, ctx: MatchCtx): boolean {
  * and Reading are all over 100 000 people, and a table that reaches down to the
  * towns finds March, Boring and Why. So a single-word city is refused whenever
  * the word belongs to something else — a keyword or numeral or unit, via
- * `RESERVED_WORDS`; a registered unit of a kind loaded at runtime, via
- * `isUnitAlias`; or nothing at all, if it is too short to be a name.
+ * `RESERVED_WORDS` — or is too short to be a name at all.
  *
  * `RESERVED_WORDS` is imported rather than passed in with the tables, even
  * though it costs the countries-only build a few kilobytes it never reads. The
  * guard is a property of the matcher and not of the data a caller supplies: as
  * a parameter it is one forgotten argument away from a table that eats "march",
- * and the fold gives that mistake no second chance. The generator applies the
- * same set to CITIES before emitting, so this is the second of two nets.
+ * and a mistake here is one the corpora would have to catch. The generator
+ * applies the same set to CITIES before emitting, so this is the second of two
+ * nets.
+ *
+ * `ctx.isUnitAlias` was the third until M6.3 and is gone, which is spec §6.3's
+ * defect closing. Yielding was the only non-destructive answer a matcher had
+ * while the fold kept one claim per offset: "tokyo" is an alias of datetime's
+ * Asia/Tokyo, so claiming it took the zone away and cost "3pm in tokyo", and
+ * refusing it took the city away and cost "tokyo to kyoto" — seventeen names,
+ * all of them datetime's. The fold now keeps the word beside the claim, so both
+ * readings reach the solver and the weights decide; there is nothing left to
+ * yield to. `RESERVED_WORDS` stays because the words it holds are not readings
+ * to be ranked — "march" and "may" and "one" are the engine's own vocabulary,
+ * and a claim over one of them competes with a *numeral*, which never reaches
+ * the solver as a candidate at all.
  *
  * No keyword check: `RESERVED_WORDS` is derived from core's keyword list among
  * its sources, and `reserved.test.ts` asserts every one of them is in it.
  */
-function cityClaimable(word: string, ctx: MatchCtx): boolean {
+function cityClaimable(word: string): boolean {
   if (word.length < MIN_NAME_LENGTH) return false;
-  if (RESERVED_WORDS.has(word)) return false;
-  return !ctx.isUnitAlias(word);
+  return !RESERVED_WORDS.has(word);
 }
 
 interface Scoped {
@@ -387,10 +425,51 @@ function scopeFrom(
 }
 
 /**
+ * Ranked readings of one span, pushed apart until consecutive ones are at least
+ * `RANK_STEP` from each other.
+ *
+ * A clamp downwards and never a lift, so the winner keeps the figure §6.1 tables
+ * for it exactly — which matters because the winner's weight is the one that
+ * leaves this package: it is what a place scores against a datetime zone or a
+ * currency in "3pm in tokyo", and a Tokyo that got heavier for having homonyms
+ * would let the size of the gazetteer decide a question between two kinds.
+ * Normalising the whole run onto one base, the way `postal.ts` can, is what that
+ * rules out: there every reading is the same country reached through a code, and
+ * here `+3` against `+2` is a real difference the solver is entitled to see.
+ *
+ * Spacing rather than dropping the runners-up, because the ranking is the answer
+ * to §12.3's first defect: `suggest("springfield")` has to return three.
+ */
+function spaced(readings: readonly LiteralMatch[]): LiteralMatch[] {
+  const out: LiteralMatch[] = [];
+  let ceiling = Number.POSITIVE_INFINITY;
+
+  for (const reading of readings) {
+    const own = reading.weight ?? 0;
+    const weight = Math.min(own, ceiling);
+    ceiling = weight - RANK_STEP;
+    out.push(weight === own ? reading : { ...reading, weight });
+  }
+
+  return out;
+}
+
+/**
  * The one matcher this kind registers for names (spec §5.1). Longest match
  * wins, and a match is always a whole number of words, which is what makes
  * "newark" impossible to read as "new" — the fold's token-boundary check is a
  * second net, not the first one.
+ *
+ * Longest wins; heaviest does not decide. Every reading of the winning span
+ * leaves here ranked, heaviest first, and the solver ranks that against what
+ * other kinds claim — which is spec §6.1's "each is a ranking, not a decision"
+ * becoming true for the first time. Before M6.3 the contract was one claim per
+ * offset, so `suggest("springfield")` returned one result where CITIES holds
+ * three of the name.
+ *
+ * A lone reading is returned as itself rather than wrapped. The contract takes
+ * either, and a claim on "japan" has exactly one reading in the same sense it
+ * always did; wrapping it would push every caller through `[0]` to say nothing.
  *
  * `cities` and `admin1` are optional and default to empty, so the one-argument
  * call is not a special case of the three-argument one: with no cities the trie
@@ -481,39 +560,47 @@ export function createPlaceLiteral(
       const word = words[0] as string;
       const surface = input.slice(offset, ends[0] as number);
       const end = ends[i] as number;
+      const readings: LiteralMatch[] = [];
 
       // Country before city, which is §6.1's +3 against at most +2 read as
-      // control flow rather than as a comparison — the two never tie, so
-      // scoring them and picking the maximum would be a longer way to write
-      // this line.
+      // ordering rather than as a comparison — the two never tie, so scoring
+      // them and sorting would be a longer way to write this line. It is an
+      // ordering and no longer a return: "singapore" is a country and a city of
+      // the name, and the city is now the runner-up rather than nothing.
       if (at.country !== undefined && (!single || claimable(word, surface, ctx))) {
         const { row } = at.country;
-        return claim(
-          {
-            geonameId: row.geonameId,
-            name: row.name,
-            zone: row.zone,
-            currency: row.currency,
-            lat: row.lat,
-            lon: row.lon,
-            population: row.population,
-            country: row.a2,
-          },
-          end - offset,
-          at.country.weight,
+        readings.push(
+          claim(
+            {
+              geonameId: row.geonameId,
+              name: row.name,
+              zone: row.zone,
+              currency: row.currency,
+              lat: row.lat,
+              lon: row.lon,
+              population: row.population,
+              country: row.a2,
+            },
+            end - offset,
+            at.country.weight,
+          ),
         );
       }
 
-      const best = at.cities?.[0];
-      if (best !== undefined && (!single || cityClaimable(word, ctx))) {
-        return cityClaim(best, offset, end, best.weight);
+      // Already sorted, at build time, by the weight §6.1 tables — so the other
+      // Athens and the other two Springfields arrive behind the winner in the
+      // order the spec ranks them, and nothing here re-decides it.
+      if (at.cities !== undefined && (!single || cityClaimable(word))) {
+        for (const hit of at.cities)
+          readings.push(cityClaim(hit, offset, end, hit.weight));
       }
 
       // Longest match wins, and a refused claim does not fall back to a shorter
       // one. Backtracking would mean "chicago" refused as a city could still be
       // read as some prefix, and a prefix is exactly the reading §5.1 spends
       // MAX_WORDS and the token-boundary rule making impossible.
-      return null;
+      if (readings.length === 0) return null;
+      return readings.length === 1 ? (readings[0] as LiteralMatch) : spaced(readings);
     }
 
     return null;

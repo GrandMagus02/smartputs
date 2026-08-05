@@ -4,7 +4,8 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
-    "./cities": "./src/cities.ts"
+    "./cities": "./src/cities.ts",
+    "./providers": "./src/providers/index.ts"
   },
   "dependencies": {
     "@smartput/core": "workspace:*",

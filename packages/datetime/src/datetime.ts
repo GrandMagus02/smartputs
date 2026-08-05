@@ -14,6 +14,14 @@ import { ZONES } from "./zones";
 /**
  * The one matcher this kind registers. Everything date-shaped enters the engine
  * through here — there is no other path, and core knows nothing about dates.
+ *
+ * One reading, though M6.3 widened `LiteralMatcher` to return several. A place
+ * name has homonyms — three Springfields, two Athenses — and a date does not:
+ * chrono resolves a span to one instant against one clock, and a second reading
+ * of "next friday" would be a second answer to a question that has one. What the
+ * widening does buy this kind is the other half of the same change: the word
+ * under a single-token claim now survives, so geo claiming "tokyo" the city no
+ * longer costs `Asia/Tokyo` the alias (spec §6.3).
  */
 const dateLiteral: LiteralMatcher = (input, offset, ctx) => {
   const match = parseDateTime(input, offset, ctx);

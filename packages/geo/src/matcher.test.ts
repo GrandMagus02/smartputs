@@ -1,10 +1,10 @@
 import { expect, test } from "bun:test";
-import type { LiteralMatcher, MatchCtx } from "@smartput/core";
+import type { LiteralMatch, LiteralMatcher, MatchCtx } from "@smartput/core";
 import { ADMIN1 } from "./data/admin1";
 import { CITIES } from "./data/cities";
 import { COUNTRIES } from "./data/countries";
 import { RESERVED_WORDS } from "./data/reserved";
-import { createPlaceLiteral, MIN_NAME_LENGTH } from "./matcher";
+import { createPlaceLiteral, MIN_NAME_LENGTH, RANK_STEP } from "./matcher";
 import type { Admin1Row, CityRow, CountryRow } from "./types";
 
 const placeLiteral = createPlaceLiteral(COUNTRIES);
@@ -13,15 +13,39 @@ function ctx(isUnitAlias: (t: string) => boolean = () => false): MatchCtx {
   return { locale: "en", now: 0, timeZone: "UTC", isUnitAlias };
 }
 
-/** `input` with the claim's offset marked by a `|`, which the helper strips. */
+/**
+ * Every reading of the claim, ranked heaviest first, or `[]` for no claim.
+ *
+ * `input` with the claim's offset marked by a `|`, which the helper strips.
+ *
+ * M6.3 widened `LiteralMatcher` to return an array, and a matcher that has one
+ * reading still returns it bare — so the shape a caller gets back depends on the
+ * data, which is not something a test should have to branch on. Normalized here
+ * once instead.
+ */
+function readingsWith(
+  matcher: LiteralMatcher,
+  marked: string,
+  isUnitAlias?: (t: string) => boolean,
+): readonly LiteralMatch[] {
+  const bar = marked.indexOf("|");
+  const input = bar === -1 ? marked : marked.replace("|", "");
+  const result = matcher(input, bar === -1 ? 0 : bar, ctx(isUnitAlias));
+  if (result === null) return [];
+  return Array.isArray(result) ? result : [result as LiteralMatch];
+}
+
+/**
+ * The winning reading alone, which is what almost every assertion below is
+ * about: the runners-up are a `suggest()` concern and `ambiguity.test.ts` is
+ * where they are asserted.
+ */
 function claimWith(
   matcher: LiteralMatcher,
   marked: string,
   isUnitAlias?: (t: string) => boolean,
-) {
-  const bar = marked.indexOf("|");
-  const input = bar === -1 ? marked : marked.replace("|", "");
-  return matcher(input, bar === -1 ? 0 : bar, ctx(isUnitAlias));
+): LiteralMatch | null {
+  return readingsWith(matcher, marked, isUnitAlias)[0] ?? null;
 }
 
 function claim(marked: string, isUnitAlias?: (t: string) => boolean) {
@@ -181,12 +205,14 @@ test("every alias the trie carries claims itself whole, for a registered unit", 
   const units = new Set(COUNTRIES.map((c) => c.a2));
   for (const country of COUNTRIES) {
     for (const alias of country.aliases) {
-      const match = placeLiteral(alias, 0, ctx());
-      // A code the keyword guard refuses is the one alias with no reading.
-      if (match === null) continue;
-      expect(units.has(match.unit)).toBe(true);
-      expect(match.meta?.country).toBe(match.unit);
-      expect(match.length).toBe(alias.length);
+      // A code the keyword guard refuses is the one alias with no reading, and
+      // every reading is checked rather than the winner alone — a runner-up
+      // naming a unit the kind never registered is the same resolver error.
+      for (const match of readingsWith(placeLiteral, alias)) {
+        expect(units.has(match.unit)).toBe(true);
+        expect(match.meta?.country).toBe(match.unit);
+        expect(match.length).toBe(alias.length);
+      }
     }
   }
 });
@@ -199,6 +225,11 @@ const withCities = createPlaceLiteral(COUNTRIES, CITIES, ADMIN1);
 
 function city(marked: string, isUnitAlias?: (t: string) => boolean) {
   return claimWith(withCities, marked, isUnitAlias);
+}
+
+/** Every reading of a name, for the tests that are about the runners-up. */
+function cities(marked: string) {
+  return readingsWith(withCities, marked);
 }
 
 const cityRow = (id: number) => CITIES.find((c) => c.geonameId === id) as CityRow;
@@ -353,6 +384,43 @@ test("unscoped, the heaviest city of a name wins", () => {
   expect(city("toledo")?.canonical.toNumber()).toBe(5174035);
 });
 
+test("the losers of that ranking survive as readings behind it", () => {
+  // §12.3's first defect, closed: the contract returns every reading of the
+  // span, so all three Springfields reach the solver and `suggest()` has
+  // something to list.
+  expect(cities("springfield").map((m) => m.canonical.toNumber())).toEqual([
+    4409896, 4951788, 4250542,
+  ]);
+  // A country claims first and the city of the name is the runner-up, where in
+  // M6.2 the country returned and the city did not exist.
+  expect(cities("singapore").map((m) => m.weight)).toEqual([3, 2]);
+});
+
+test("readings of one span are spaced so the ranking survives being scored", () => {
+  // The winner keeps §6.1's own figure — it is what leaves this package to be
+  // scored against another kind — and every reading behind it is clamped to at
+  // least RANK_STEP below its predecessor.
+  const jose = cities("san jose");
+  // Ranked +2 (capital) over +1.9996 (population), which is a decided ranking
+  // and a coin flip once softmaxed. Spacing is what keeps `evaluate` deciding.
+  expect(jose[0]?.weight).toBe(2);
+  expect(jose.map((m) => m.weight ?? 0)).toEqual([2, 1.5, 1]);
+
+  for (const name of ["springfield", "athens", "los angeles", "singapore"]) {
+    const weights = cities(name).map((m) => m.weight ?? 0);
+    expect(weights.length).toBeGreaterThan(1);
+    for (let i = 1; i < weights.length; i += 1) {
+      expect((weights[i - 1] as number) - (weights[i] as number)).toBeGreaterThanOrEqual(
+        RANK_STEP,
+      );
+    }
+  }
+
+  // Clamped down, never lifted: a reading already far enough below its
+  // predecessor keeps the weight §6.1 gives it.
+  expect(cities("singapore")[1]?.weight).toBe(2);
+});
+
 test("a country outranks a city of the same name", () => {
   // Twenty-one city aliases are also country aliases. §6.1 puts a country at +3
   // and no city above +2, so the country takes all of them and "singapore to
@@ -398,12 +466,23 @@ test("an ordinary English word that is a real city is still claimed", () => {
   }
 });
 
-test("a single-word city yields to a registered unit alias; a country does not", () => {
-  expect(city("chicago", (t) => t === "chicago")).toBeNull();
+test("a single-word city no longer yields to a registered unit alias", () => {
+  // M6.2's behaviour, inverted on purpose: `cityClaimable` consulted
+  // `isUnitAlias` and refused, which is spec §6.3's defect. Yielding was the
+  // only non-destructive answer while the fold kept one claim per offset —
+  // claiming "tokyo" took datetime's zone away and refusing it took the city
+  // away. The fold now keeps the word beside the claim, so there is nothing left
+  // to yield to and the solver ranks both readings. `ambiguity.test.ts` asserts
+  // the engine-level half.
+  expect(city("chicago", (t) => t === "chicago")).toMatchObject({ unit: "us" });
   // M6.1's exemption is for country *names*, and it survives cities joining the
   // trie untouched.
   expect(city("japan", () => true)).toMatchObject({ unit: "jp" });
   expect(city("united kingdom", () => true)).toMatchObject({ unit: "gb" });
+  // What still refuses is `RESERVED_WORDS`, which is not a reading to be ranked:
+  // "march" competes with a numeral, and a numeral never reaches the solver as a
+  // candidate at all.
+  expect(city("march", () => false)).toBeNull();
 });
 
 test("a city shorter than MIN_NAME_LENGTH is never a single-word claim", () => {
@@ -472,9 +551,11 @@ test("adding cities takes no country alias away from its country", () => {
   const stolen: string[] = [];
   for (const country of COUNTRIES) {
     for (const alias of country.aliases) {
-      const before = placeLiteral(alias, 0, ctx());
+      const before = claimWith(placeLiteral, alias);
       if (before === null) continue;
-      const after = withCities(alias, 0, ctx());
+      // The winner, which is the reading that decides. A country alias picking
+      // up a city runner-up behind it — "singapore" does — takes nothing away.
+      const after = claimWith(withCities, alias);
       if (after?.unit !== before.unit || after.length !== before.length) {
         stolen.push(`${alias}: ${before.unit} -> ${after?.unit ?? "null"}`);
       }
@@ -499,7 +580,7 @@ test("a city alias claims itself whole exactly when the scanner can produce it",
   const unread: string[] = [];
   for (const c of CITIES) {
     for (const alias of c.aliases) {
-      const match = withCities(alias, 0, ctx());
+      const match = claimWith(withCities, alias);
       if (match === null || match.length !== alias.length) {
         unread.push(alias);
         continue;

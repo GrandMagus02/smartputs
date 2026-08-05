@@ -1,6 +1,6 @@
 ---
 title: Places and distances
-description: The place kind, countries and cities as values, admin1 scoping, great-circle distance, and the datetime and rates bridges.
+description: The place kind, countries and cities as values, postal codes, admin1 scoping, great-circle distance, the GeoNames providers, and the datetime and rates bridges.
 ---
 
 # Places and distances
@@ -32,9 +32,11 @@ engine.evaluate("japan to france").formatted; // "9,712.518 kilometres"
 length — `BUILTIN_KINDS` covers that. There is no locale pack and no engine
 option: the place names are the data, and the data ships in the package.
 
-`place` is countries only. Cities are a second import and a factory call, and
-the section on [turning cities on](#turning-cities-on) is why they are not simply
-there.
+`place` is countries and [postal codes](#postal-codes). Cities are a second
+import and a factory call, and the section on
+[turning cities on](#turning-cities-on) is why they are not simply there. The
+long tail below the shipped data — a village, the coordinates of one postcode —
+is [a provider](#providers-and-t2) and a network call.
 
 ## What it recognises
 
@@ -209,14 +211,40 @@ engine.evaluate("georgia").value.canonical.toString();     // "614540"  the coun
 - **`georgia`** is the country at `+3`, and the state is not ranked below it so
   much as absent — a division is not a place, so there is nothing to compare.
 
-**`suggest()` cannot return the runner-up.** `suggest("springfield")` returns one
-result where the table holds three Springfields. This is structural rather than a
-missing weight: core's `LiteralMatcher` returns `LiteralMatch | null`, so the
-literal fold receives one claim per offset and the alternatives never become
-candidates the solver could rank. The weights above are therefore applied *inside
-the matcher*, choosing which row escapes; the weight that reaches the solver then
-competes with other kinds, not with other places. Returning the alternatives
-needs the matcher contract widened to an array, which is a change to core.
+`suggest()` returns the runners-up, ranked:
+
+```ts
+engine.suggest("springfield").map((r) => r.formatted);
+// [ "Springfield, US — USD, +1, America/Chicago, 170K",
+//   "Springfield, US — USD, +1, America/New_York, 154K",
+//   "Springfield, US — USD, +1, America/Chicago, 114K" ]
+
+engine.suggest("athens").map((r) => r.formatted);
+// [ "Athens, GR — EUR, +30, Europe/Athens, 664K",
+//   "Athens, US — USD, +1, America/New_York, 127K" ]
+```
+
+`evaluate()` still decides — `springfield` is Missouri and `athens` is Greece.
+The matcher hands over every reading of the span it claimed; the solver ranks
+them and `evaluate()` takes the top one, which is exactly how it has always
+treated two readings of an ordinary word.
+
+That is a change in M6.3, and it needed core's matcher contract widened: a
+`LiteralMatcher` may now return an array of readings of the same text, and the
+literal fold groups them instead of keeping one. See
+[`LiteralMatcher`](/api/types#returning-more-than-one-reading).
+
+**The weights above are the winner's.** Once the runners-up are scored rather
+than merely sorted, the engine's ambiguity guard sees them, and the table's own
+figures are too close together for it: San José, CR beats San Jose, CA by 0.0004
+and the three Springfields sit 0.058 apart, where `ambiguityEpsilon`'s default
+needs roughly 0.15. Emitted verbatim, 91 city names — `barcelona`, `hyderabad`,
+`santiago`, `valencia`, `newcastle` among them — would stop resolving and raise
+`AmbiguityError` instead. So the matcher clamps each reading to at least 0.5
+below the one above it. Downwards only: the winner keeps the weight the table
+gives it, because that is the number a place carries into a comparison with a
+time zone or a currency, and a Tokyo that got heavier for having homonyms would
+let the size of the gazetteer decide a question between two kinds.
 
 ### What a city formats to
 
@@ -242,37 +270,40 @@ carry the place's own `name` in `PlaceMeta`; the alternative — closing
 `formatPlace` over the city table — would have linked the whole gazetteer into
 the countries-only bundle and undone the entry-point split above.
 
-### Cities datetime already owns
+### Cities datetime also names
 
-Registering `@smartput/datetime` costs 17 city names their place reading:
+Seventeen city names are also aliases of datetime's eighteen hand-written IANA
+zones:
 
 ```
 auckland  beijing  berlin  chicago  delhi  denver  dubai  kiev  kolkata
 kyiv  london  moscow  mumbai  paris  shanghai  sydney  tokyo
 ```
 
-Each one is an alias of one of datetime's eighteen hand-written IANA zones. A
-single-word city claim yields to any word another kind has registered as a unit,
-so in an engine with datetime the trie never claims them at all:
+Both readings survive, and the signature decides which one the sentence wanted:
 
 ```ts
 // engine: BUILTIN_KINDS + datetime + place-with-cities
-engine.evaluate("3pm in tokyo").formatted;  // "2026-01-16 00:00 JST"
-engine.evaluate("tokyo to kyoto");          // UnitParseError
-engine.evaluate("kyoto to osaka").formatted; // "43.085 kilometres"
+engine.evaluate("3pm in tokyo").formatted;    // "2026-01-16 00:00 JST"
+engine.evaluate("tokyo to kyoto").formatted;  // "364.743 kilometres"
+engine.evaluate("kyiv to warsaw").formatted;  // "688.971 kilometres"
+engine.evaluate("chicago to denver").formatted; // "1,475.384 kilometres"
 ```
 
-`kyiv to warsaw`, `paris to berlin`, `london to paris` and `chicago to denver`
-all throw in that engine and all resolve in one without datetime. The design
-document expected both readings to reach the solver and be ranked; they cannot,
-because the literal fold is destructive — a claim that is made is the only claim
-there is, so yielding is the only non-destructive answer a matcher has. Making
-both survive means letting a literal claim and a unit reading coexist as
-candidates, which is a core change and not a geo tweak.
+`in | datetime | place` has no competing signature and neither does
+`in | place | place`, so neither input needs a tiebreak. `3pm in tokyo` is
+byte-identical with and without geo registered.
 
-The cost is exactly those 17 words. Every other name in the tier claims
-identically whether datetime is registered or not, which is what the corpus
-replay checks.
+Until M6.3 this section documented the opposite: all seventeen threw, because a
+single-word city claim yielded to any word another kind had registered as a unit.
+That guard existed only because the literal fold was destructive — a claim that
+was made was the only claim there was, so yielding was the one non-destructive
+answer a matcher had. The fold now keeps the token under a single-token claim, so
+the city and the zone are both candidates and the guard is gone.
+
+One rough edge left: `suggest("3pm in tokyo")` returns two results with identical
+formatted output, the place bridge and the zone alias. Both are genuine readings,
+but a launcher list shows a duplicate row.
 
 ### The words a place may not eat
 
@@ -450,6 +481,161 @@ harmless input by input. What that replay found is that registering the tier onl
 ever turns nothing into something: no input that had a reading changed it, and
 `nice`, `mobile`, `reading` and `split` went from `UnitParseError` to a place.
 
+## Postal codes
+
+A postal code is a place. The matcher ships in both builds — the format is one
+column of the country table, so it costs nothing extra and does not wait on the
+gazetteer:
+
+```ts
+// engine: BUILTIN_KINDS + place  (countries only is enough)
+engine.evaluate("SW1A 1AA").formatted;
+// "SW1A 1AA, GB — GBP, +44, Europe/London, 66M"
+engine.evaluate("M5V 3L9").formatted;
+// "M5V 3L9, CA — CAD, +1, America/Toronto, 37M"
+engine.evaluate("us 90210").formatted;
+// "90210, US — USD, +1, America/New_York, 327M"
+engine.evaluate("100-0001 japan").formatted;
+// "100-0001, JP — JPY, +81, Asia/Tokyo, 127M"
+```
+
+178 of the 252 country rows carry a format. The remaining 74 have no postal
+system GeoNames records one for.
+
+### Three shapes, and only one of them is fussy
+
+| Shape | Example | Claimed |
+| --- | --- | --- |
+| Qualified by a country | `us 90210`, `90210 us`, `100-0001 japan` | anywhere |
+| Unqualified, carrying a letter | `SW1A 1AA`, `M5V 3L9`, `AD123` | anywhere |
+| Unqualified, no letter | `90210`, `123 45`, `01310-100` | **only as the whole input** |
+
+Sixty countries have a format that fits five bare digits and forty-three fit
+four. Without that third rule every 3-to-6-digit number in every expression would
+carry a place candidate nobody asked for:
+
+```ts
+engine.evaluate("90210 + 1").formatted;    // "90,211"
+engine.evaluate("12345 - 6789").formatted; // "5,556"
+```
+
+A bare code is a lookup; the moment an operator or a unit sits beside it, the
+user is doing arithmetic.
+
+### `90210` is still a number
+
+```ts
+engine.evaluate("90210").formatted;              // "90,210"
+engine.suggest("90210").map((r) => r.formatted);
+// [ "90,210", "90210, US — USD, +1, America/New_York, 327M" ]
+```
+
+Nothing is hidden to make that happen — the postal claim is simply outweighed.
+A claim over a single token leaves that token readable underneath it, and a
+digits-only code deliberately weighs less than the number does. Everything else
+weighs what a country weighs, `+3`, because what the matcher produces *is* a
+country's value reached through a code rather than through a name.
+
+Bare digits keep exactly one reading, where a lettered code keeps all of them:
+
+```ts
+engine.suggest("SW1A 1AA").map((r) => r.formatted);
+// [ "SW1A 1AA, GB — GBP, +44, Europe/London, 66M",
+//   "SW1A 1AA, JE — GBP, +44-1534, Europe/Jersey, 91K",
+//   "SW1A 1AA, IM — GBP, +44-1624, Europe/Isle_of_Man, 84K",
+//   "SW1A 1AA, GG — GBP, +44-1481, Europe/Guernsey, 65K" ]
+
+engine.suggest("123 45").map((r) => r.formatted);
+// [ "123 45, CZ — CZK, +420, Europe/Prague, 11M",
+//   "123 45, SE — SEK, +46, Europe/Stockholm, 10M",
+//   "123 45, SK — EUR, +421, Europe/Bratislava, 5.4M" ]
+```
+
+Four countries share the British format and three share Sweden's, and those are
+alternatives a user could actually pick between. Sixty countries accepting five
+digits are not — the shape carries no country in it at all, and sixty rows under
+the number would bury the number's own. Naming the country is how the other
+fifty-nine are reached.
+
+### What a code's value is
+
+The country, addressed by a code. There are no coordinates for a postal code in
+the vendored data, so it borrows the country's:
+
+```ts
+const { value } = engine.evaluate("us 90210");
+value.kind;                 // "place"
+value.unit;                 // "us"
+value.canonical.toString(); // "0" — GeoNames issues no feature id for a code
+value.meta;
+// { geonameId: 0, name: "90210", zone: "America/New_York", currency: "USD",
+//   lat: 38.89511, lon: -77.03637, population: 327167434, country: "us" }
+
+engine.evaluate("us 90210 to japan"); // throws UnpositionedPlaceError
+```
+
+The borrowed coordinates keep the rest of the Value usable — the zone, the
+currency, the country — but they are not a position the code has, so measuring
+from them is refused rather than answered.
+
+That is a deliberate reversal. Measuring the borrowed point at first returned an
+answer, and the answer was wrong in a way nothing on screen admitted: every pair
+of codes in one country came out `0 kilometres`, so `SW1A 1AA to EH1 1YZ` —
+London to Edinburgh — measured zero. An engine that throws `AmbiguityError`
+rather than pick between two readings should not hand back a confident zero
+here. Real coordinates for a code need [a provider](#providers-and-t2), and the
+error message says so.
+
+A code is a conversion target like any other place:
+
+```ts
+// with @smartput/datetime, at its fixed test clock — 2026-01-15T12:00:00Z
+engine.evaluate("3pm in us 90210").formatted;     // "2026-01-15 10:00 ET"
+// with @smartput/rates
+engine.evaluate("100 usd in us 90210").formatted; // "$100.00"
+```
+
+Both read the country's fact, not the code's: the zone is Washington's and the
+currency is the country's, exactly as they are for `us`.
+
+### Three edges worth knowing
+
+**`usa 90210` does not resolve; `us 90210` does.** A qualifier shorter than four
+characters has to be the alpha-2, because the alpha-3 column is where `and` is
+Andorra, `ago` is Angola and `can` is Canada — the same rule that keeps
+[lowercase codes](#codes-are-read-as-codes) out of the trie, applied to the
+qualifier slot.
+
+**A unit symbol beside a number wins.** The Netherlands' format is `#### @@`,
+which is exactly a four-digit quantity next to a two-letter unit:
+
+```ts
+engine.evaluate("1234 kg").formatted;    // "1,234 kilograms"
+engine.evaluate("nl 1234 kg").formatted;
+// "1234 kg, NL — EUR, +31, Europe/Amsterdam, 17M"
+```
+
+`1234 kg` is a real Kerkrade postcode, and it is reachable by naming the country
+— the same trade `90210` makes against `us 90210`. Without the guard, `1000 ms`,
+`5000 mi` and `1234 cm` would all be Dutch postcodes too.
+
+**Two shapes take an answer away.** `12345-6789` is a US ZIP+4 and `01310-100` is
+a Brazilian CEP, and both used to be subtractions:
+
+```ts
+engine.evaluate("12345-6789").formatted;
+// "12345-6789, US — USD, +1, America/New_York, 327M"   (5,556 without geo)
+engine.evaluate("01310-100").formatted;
+// "01310-100, BR — BRL, +55, America/Sao_Paulo, 209M"  (1,210 without geo)
+```
+
+These are the only two answers registering the place kind takes from an engine
+that already had one. The whole-input rule contains them — `12345 - 6789` spaced
+out is still 5,556, and nothing embedded in a larger expression is touched — but
+`suggest()` cannot offer the number underneath, because the claim spans three
+tokens and only a single-token claim leaves its token readable. If you evaluate
+untrusted arithmetic, this is the case to know about.
+
 ## The bridges
 
 A place is a conversion target for two kinds that have never heard of it.
@@ -557,16 +743,186 @@ Render it wherever the place data is visible. The string still says "Country
 data" and the cities come from the same dump under the same licence, so it
 covers them; the wording is worth widening the next time that file is touched.
 
+## Providers and T2
+
+The vendored tiers stop at 6,247 cities and 252 country-level postal formats.
+Everything below that — the villages, the hamlets, and the coordinates of an
+individual postal code — is a network call, and it lives behind a third entry
+point:
+
+```sh
+@smartput/geo/providers
+```
+
+It carries no data of its own, and no consumer who only wants the vendored tiers
+links a fetch they never make.
+
+### The shape
+
+```ts
+interface Place extends PlaceMeta {
+  readonly admin1: string;  // "TX", "11", or "" where upstream has none
+  readonly postal: string;  // the code this row was found under, "" otherwise
+}
+
+interface PlaceLookup   { find(name: string, hint?: PlaceHint): Place | null }
+interface PlaceSnapshot extends PlaceLookup { readonly asOf: string }
+interface PlaceProvider { readonly id: string; lookup(q: string): Promise<Place[]> }
+interface PlaceHint     { readonly country?: string; readonly admin1?: string }
+```
+
+`Place` extends core's `PlaceMeta`, the same interface the datetime and rates
+bridges read, so a provider row drops into a Value's `meta` with no adapter in
+between — and no second field list to drift away from the one the bridges use.
+
+**What a provider cannot know, it leaves empty rather than inventing.** `zone` is
+`""` on every postal row: neither upstream carries one, and defaulting to the
+capital's zone would put a confident wrong answer behind the zone bridge, since
+Beverly Hills is not on New York time. `currency` is `""` everywhere, because it
+is a country-level fact that `COUNTRIES` already holds — join on `country`.
+`geonameId` is `0` on a postal row, which means two postal rows compare equal
+under place equality; that is the known cost of not inventing a synthetic id
+that would look stable and one day collide with a real one.
+
+### GeoNames
+
+```ts
+import { geonames } from "@smartput/geo/providers";
+
+const gn = geonames({ username: "your-account" });
+
+await gn.lookup("dar es salaam");
+// [ { geonameId: 160263, name: "Dar es Salaam", zone: "Africa/Dar_es_Salaam",
+//     currency: "", lat: -6.82349, lon: 39.26951, population: 5383728,
+//     country: "tz", admin1: "23", postal: "" }, … ]
+
+await gn.postal("44657", "us");
+// [ { geonameId: 0, name: "Minerva", zone: "", currency: "",
+//     lat: 40.742049, lon: -81.103076, population: 0,
+//     country: "us", admin1: "OH", postal: "44657" } ]
+```
+
+Two methods, because GeoNames has two indexes and a code is not a toponym —
+`searchJSON` with `q=44657` finds nothing at all. Guessing which index a query
+wants from its shape decides wrongly, and silently, for every country whose codes
+contain letters.
+
+Three things to expect from the service itself:
+
+- **The account needs enabling by hand** for the free web service after signup.
+  Until it is, every call returns HTTP 200 with an error envelope in the body.
+  So does an exhausted quota and a malformed query. The provider checks the
+  envelope before the payload and raises `PlaceProviderError`, because a caller
+  retrying on "no results" would spin on that forever.
+- **The default host is `secure.geonames.org`**, not the `api.geonames.org` the
+  docs print — `api` resolves but its certificate names only `secure`, so every
+  https request to it fails the hostname check. Same service, same account.
+- **Nothing is cached and nothing is rate-limited here.** The credits are yours
+  to spend; the cache is the next section.
+
+### Postal codes from a mirror
+
+```ts
+import { postalCodes } from "@smartput/geo/providers";
+
+const zip = postalCodes({ url: "https://your-mirror.example/{country}.json" });
+
+await zip.lookup("us 90210");
+// [ { geonameId: 0, name: "Beverly Hills", zone: "", currency: "",
+//     lat: 34.0901, lon: -118.4065, population: 0,
+//     country: "us", admin1: "CA", postal: "90210" } ]
+```
+
+It reads the [zauberware collection](https://github.com/zauberware/postal-codes-json-xml-csv)
+(CC BY 4.0), which is GeoNames' postal export republished per country as JSON.
+There is **no default URL**: the collection is a few hundred megabytes published
+as zips rather than as an API, and defaulting to any host would hardcode a third
+party's bandwidth as this package's transport. `{country}` in the URL takes the
+alpha-2 lowercased and `{COUNTRY}` uppercased, since a mirror may have kept
+either.
+
+A country file is fetched whole and kept — `us` is 12 MB and 41,490 codes — so
+the internal cache is what makes this usable rather than an optimisation. A
+lookup naming no country throws instead of guessing: `1000` is Brussels, Sofia,
+Manila and Ljubljana.
+
+Both the query forms the matcher claims are accepted, so the string a matcher
+claimed is the string a provider is handed: `lookup("us 90210")` and
+`lookup("90210 us")` return the same row, and `SW1A 1AA` survives intact because
+neither of its tokens is two letters.
+
+### A snapshot
+
+```ts
+import { placeSnapshot } from "@smartput/geo/providers";
+
+const snap = placeSnapshot("2026-08-05", await zip.lookup("us 90210"));
+
+snap.asOf;                            // "2026-08-05"
+snap.find("Beverly Hills")?.postal;   // "90210"
+snap.find("90210")?.name;             // "Beverly Hills"
+snap.find("90210", { admin1: "CA" })?.name; // "Beverly Hills"
+snap.find("90210", { admin1: "NY" }); // null
+snap.find("atlantis");                // null
+```
+
+A code is indexed as one more name the row answers to, in the same map as its
+place name, so `find` is one call and one miss path — it is handed a string, not
+a claim about what kind of string it is. Names are matched case- and
+whitespace-insensitively; diacritics are **not** stripped, because the matcher's
+trie does not strip them either and a lookup that disagreed with the matcher
+about what one name is would be the worse bug.
+
+A hint that selects nothing returns `null` rather than the unhinted winner. You
+asked a narrower question, and answering it with Paris, France would be a wrong
+answer in place of a true one.
+
+### Keeping it fresh
+
+Core ships the caching half, lifted out of `@smartput/rates` so more than one
+package can use it:
+
+```ts
+import { createSnapshotCache } from "@smartput/core";
+import { placeSnapshot, type PlaceSnapshot } from "@smartput/geo/providers";
+
+const cache = createSnapshotCache<PlaceSnapshot>({
+  ttlMs: 60 * 60 * 1000,
+  load: async () => placeSnapshot(today(), await zip.lookup("90210")),
+});
+
+const [a, b, c] = await Promise.all([cache.get(), cache.get(), cache.get()]);
+// one request, not three — a === b === c
+cache.current?.find("90210")?.name;  // "Beverly Hills"
+```
+
+A burst of keystrokes on a cold cache shares one in-flight load. A rejection
+clears the slot, so the failure reaches every waiting caller and the next call
+retries rather than awaiting a settled rejection forever. `current` is
+`undefined` until the first load succeeds.
+
+`createCachedEngine` is the same cache with an engine built from each snapshot —
+`evaluate`, `suggest` and `refresh` all `async`, the snapshot and the engine it
+built cached as one pair so they cannot come apart.
+
+**Geo ships no live engine of its own**, and that is the honest gap in this
+section: `@smartput/rates` has `createLiveEngine`, geo does not. A provider row
+is a `Place` and a kind is built from `CityRow`s, so anyone wiring a live place
+engine today writes that mapping themselves, deciding for their own data what a
+row with no zone and no population should become. Whether geo ships the mapping,
+or a whole `createLivePlaceEngine` around it, is open.
+
 ## How it works
 
-Two seams, both of them M4's, plus one parser change.
+Two seams, both of them M4's, plus two core changes.
 
-- **A literal matcher** — the same seam `@smartput/datetime` uses. Geo registers
-  exactly one, offered `(input, offset, ctx)` at every token boundary; it walks
-  its trie and returns a finished `Value` with the characters it claims. See
+- **Literal matchers** — the same seam `@smartput/datetime` uses. Geo registers
+  two, each offered `(input, offset, ctx)` at every token boundary: one walks the
+  name trie, one tries the postal formats. See
   [`Kind.literals`](/api/define-kind#literals). Countries, cities and scopes are
   all one walk down one trie, which is why a scope needed no new structure —
-  only a third payload on a node.
+  only a third payload on a node. The order is not a precedence: both are asked,
+  and the readings they return are ranked together.
 - **An opaque kind's units are indexed like any other kind's**, so a country
   code is a unit, weighted and usable as an `in` target. Every place's `unit` is
   its country, which is what lets the distance op find a position even for an
@@ -575,10 +931,22 @@ Two seams, both of them M4's, plus one parser change.
 The parser changed, and the design document said it would not. `15:00 in japan`
 needs the *claimed* value on the right of `in` — the zone lives in its `meta` —
 and the parser previously discarded it in favour of a stand-in built from the
-unit name alone. It now carries a literal-claimed conversion target through to
-`apply`. One user-visible side effect: `X in <literal>` used to throw
-`UnitParseError` and now resolves a signature, so `today in tomorrow` returns a
-datetime where it used to be an error.
+unit name alone. It now carries literal-claimed conversion targets through to
+`apply`. The signature is still opt-in per claim: a kind marks a claim
+`targetable` or it cannot stand on the right of `in`, which is why
+`today in tomorrow` is still a `UnitParseError` even though datetime claims
+`tomorrow` as a literal.
+
+The matcher contract changed too, and that is M6.3's larger change. A
+`LiteralMatcher` may return **several readings of the same text**, and the
+literal fold groups every match reaching the furthest end — from every kind, not
+just the first to register — instead of keeping one and discarding the rest. A
+claim over a single token also keeps that token beside the readings. Three
+things in this guide are that one change: `suggest()`
+[returns runners-up](#ranking), `tokyo` is
+[a city and a zone at once](#cities-datetime-also-names), and `90210`
+[is a number with a postcode underneath](#90210-is-still-a-number). The full
+contract is in [Types](/api/types#returning-more-than-one-reading).
 
 One other observable change comes with cities, and no corpus can show it: `5 nice`
 and `10 mobile` used to throw `NoCandidateError` and now throw `UnitParseError`,
@@ -588,28 +956,33 @@ error class should know.
 
 ## Not yet
 
-Cities, scoping and weights shipped in M6.2. What remains is planned and not
-present — reaching for it today gets an error, not a wrong answer:
+Postal codes, the providers and the ranked `suggest()` shipped in M6.3. What
+remains:
 
-- **No postal codes.** `SW1A 1AA` and `90210` are not places; `90210` is the
-  number 90,210 in every engine, and the corpus pins it that way so the postal
-  matcher cannot take it silently. The `postalRegex` is already on every country
-  row, unused, waiting for the postal literal in M6.3 — along with
-  `PlaceProvider`, the lifted cache facade and the GeoNames providers for the
-  long tail the vendored data does not carry.
 - **No completion.** `complete("kyi")` returns nothing. Core's completion inserts
-  `<number><unit>` and skips non-ratio kinds outright, so place completion needs
-  to go through the matcher's trie rather than the alias index. That is M6.4,
-  with postal format validation.
+  `<number><unit>` and skips non-ratio kinds outright, so place completion has to
+  go through the matcher's trie rather than the alias index. That is M6.4, with
+  postal format validation. Not geo-specific — datetime has the same hole.
+- **No live place engine.** The cache facade is core's and the providers are
+  geo's, and nothing joins them: `@smartput/rates` has `createLiveEngine` and
+  geo has no equivalent. [Wiring one](#keeping-it-fresh) means writing the
+  `Place` → `CityRow` mapping yourself.
+- **One Paris.** `paris texas` still throws and `suggest("paris")` still returns
+  one result, and neither is a matcher limit any more — `suggest()` genuinely
+  ranks runners-up, there is simply one Paris in the data. Paris, Texas is 25,171
+  people against T1's 100,000 floor, so this needs T2 rather than more code.
+- **A postal code carries its country's coordinates**, so `us 90210 to japan` is
+  Washington to Tokyo. Real coordinates need a provider lookup, and nothing wires
+  a provider into the kind.
 - **No geocoding, no reverse geocoding, no street addresses.** Not a milestone —
   a different product, and no free dataset carries them at quality.
 
-Two limits of the shipped tier are described above rather than here, because
-they are behaviour and not absence:
-[17 city names yield to datetime](#cities-datetime-already-owns) and
-[`suggest()` returns one place](#ranking). Both are the same root cause — one
-claim per offset, and a fold that consumes the token — so both wait on the same
-core change.
+Two behaviours are described above rather than here, because they are answers
+rather than absences, and both are the kind of thing worth knowing before you
+ship: `12345-6789` and `01310-100`
+[stop being arithmetic](#three-edges-worth-knowing), and
+`suggest("3pm in tokyo")` returns
+[two identical-looking rows](#cities-datetime-also-names).
 
 ## Next
 

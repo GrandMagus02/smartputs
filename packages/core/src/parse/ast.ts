@@ -15,15 +15,20 @@ export interface QuantityNode {
 }
 
 /**
- * A run of source a kind claimed outright. Unlike a quantity, the value is
- * already built — the matcher had to build it to decide the match — so the
- * evaluator has nothing to compute here. The candidate list exists purely so
- * the node is scored, filtered and explained like every other operand.
+ * A run of source one or more kinds claimed. Unlike a quantity, every value is
+ * already built — a matcher had to build one to decide its match — so the
+ * evaluator has nothing to compute here, only a choice to read.
+ *
+ * One candidate per reading, exactly as a quantity carries one per unit its word
+ * resolved to, so the solver scores, filters and explains this node with the
+ * code it already had. `values` is keyed by candidate *identity* rather than by
+ * kind and unit, because two readings of one span routinely agree on both:
+ * three Springfields are all `place:us` and differ only in which city they are.
  */
 export interface LiteralNode {
   type: "literal";
-  value: Value;
   candidates: Candidate[];
+  values: ReadonlyMap<Candidate, Value>;
   span: Span;
 }
 
@@ -50,13 +55,18 @@ export interface ConvertNode {
   /** The span of the target unit token alone, distinct from `span`, which covers the whole conversion expression. */
   targetSpan: Span;
   /**
-   * Present when a kind claimed the target outright — "japan to ukraine", where
-   * the target is a value rather than a unit label. The evaluator hands this to
-   * `apply` instead of the stand-in it synthesizes from `target`, because a
-   * stand-in carries no `meta`, and a signature that reads the right operand's
-   * `meta` is the whole point of a claimed target.
+   * The value behind each target a kind claimed outright — "japan to ukraine",
+   * where the target is a value rather than a unit label. The evaluator hands
+   * one of these to `apply` instead of the stand-in it synthesizes from
+   * `target`, because a stand-in carries no `meta`, and a signature that reads
+   * the right operand's `meta` is the whole point of a claimed target.
+   *
+   * A map rather than one value, because `target` may mix claimed readings with
+   * the ordinary unit readings of the word underneath them: "3pm in tokyo" is a
+   * claimed place and a registered time zone at once, and only the former has a
+   * value. A candidate absent from the map gets the stand-in.
    */
-  targetValue?: Value;
+  targetValues?: ReadonlyMap<Candidate, Value>;
 }
 
 export type Node =

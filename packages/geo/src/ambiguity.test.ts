@@ -95,12 +95,19 @@ function matcherOf(kind: Kind): LiteralMatcher {
 
 const literal = matcherOf(geo);
 
-/** What the trie claims for `input`, read straight rather than through an
- * engine: a weight is what §6.1 is written in, and the engine reports a
- * confidence instead. */
+/** Every reading the trie claims for `input`, ranked, read straight rather than
+ * through an engine: a weight is what §6.1 is written in, and the engine reports
+ * a confidence instead. */
+function claims(input: string): readonly LiteralMatch[] {
+  const result = literal(input, 0, matchCtx);
+  if (result === null) return [];
+  return Array.isArray(result) ? result : [result as LiteralMatch];
+}
+
+/** The winning reading, which is what a §6.1 ranking decides. */
 function claim(input: string): LiteralMatch {
-  const match = literal(input, 0, matchCtx);
-  if (match === null) throw new Error(`nothing claimed "${input}"`);
+  const match = claims(input)[0];
+  if (match === undefined) throw new Error(`nothing claimed "${input}"`);
   return match;
 }
 
@@ -154,17 +161,28 @@ test("between cities that are nobody's capital, population is the whole ranking"
   expect(claim("springfield").weight).toBeCloseTo(Math.log10(170188) / 3, 12);
 });
 
-test("suggest() reports the winner and cannot report the runners-up", () => {
-  // Spec §9 wants both Parises back from suggest(). They do not survive, and the
-  // reason is structural rather than a missing weight: `LiteralMatcher` returns
-  // `LiteralMatch | null`, so the fold receives one claim per offset and the
-  // alternatives never become candidates the solver could rank. Asserted as it
-  // stands, with the count, so that whoever widens the matcher contract sees this
-  // fail rather than discovers the gap from a user.
+test("suggest() reports the winner and the runners-up behind it", () => {
+  // §12.3's first defect, closed. `LiteralMatcher` returned `LiteralMatch | null`
+  // through M6.2, so the fold received one claim per offset and the alternatives
+  // never became candidates the solver could rank; M6.3 widened it to an array
+  // and the fold now groups every reading that reaches the same end.
   expect(rows("springfield")).toHaveLength(3);
   const suggested = places.suggest("springfield");
-  expect(suggested).toHaveLength(1);
-  expect(suggested[0]?.value.canonical.toString()).toBe("4409896");
+  expect(suggested).toHaveLength(3);
+  expect(suggested.map((r) => r.value.canonical.toString())).toEqual([
+    "4409896",
+    "4951788",
+    "4250542",
+  ]);
+
+  // And ranked, not merely listed: `evaluate` still decides, which is what §6.1
+  // means by "a ranking, not a decision". The weights §6.1 tables put the top two
+  // 0.0127 apart, close enough to be a coin flip once softmaxed, so the matcher
+  // spaces its readings — see RANK_STEP.
+  expect(places.evaluate("springfield").value.canonical.toString()).toBe("4409896");
+  expect(suggested[0]?.confidence ?? 0).toBeGreaterThan(
+    (suggested[1]?.confidence ?? 0) + 0.05,
+  );
 });
 
 // ---- §9: "paris texas" resolves to the Texan one ----
@@ -255,45 +273,59 @@ test("georgia is the country, and the state is not a place at all", () => {
 
 // ---- §9: "tokyo" is a zone in one sentence and a place in the other ----
 
-test("tokyo is a zone under datetime and a place without it", () => {
-  // §6.3 predicts both readings reaching the solver. They do not, and the reason
-  // is the destructive fold again, one layer earlier: `cityClaimable` refuses any
-  // single word that `isUnitAlias` reports, and "tokyo" is an alias of datetime's
-  // Asia/Tokyo unit. So with datetime loaded geo never claims it — which is what
-  // keeps "3pm in tokyo" working, and what costs "tokyo to kyoto" its distance.
+test("tokyo is a zone in one sentence and a place in the other", () => {
+  // §9's row, and §12.3's second defect closed with it. Through M6.2 only one
+  // reading ever survived: `cityClaimable` refused any single word `isUnitAlias`
+  // reported, so with datetime loaded geo never claimed "tokyo" — which kept
+  // "3pm in tokyo" working and cost "tokyo to kyoto" its distance, seventeen
+  // names in all.
+  //
+  // The fold is what changed, not the weights. A claim over a single token now
+  // keeps that token beside it, so geo's city and datetime's zone are both
+  // candidates and the signature decides: `in | datetime | place` has no
+  // competitor and neither does `in | place | place`, which is exactly what §6.3
+  // said would happen once both readings could reach the solver.
   expect(full.evaluate("3pm in tokyo").formatted).toBe("2026-01-16 00:00 JST");
   expect(full.evaluate("3pm in tokyo").formatted).toBe(
     without.evaluate("3pm in tokyo").formatted,
   );
-  expect(() => full.evaluate("tokyo to kyoto")).toThrow();
 
-  // Without datetime nothing else owns the word, and the same input is a
-  // distance. Both engines are legitimate builds of this library, so the row is
-  // half satisfied and the half that fails is a design consequence, not a bug in
-  // this tier: yielding is the only non-destructive answer a matcher has.
-  const r = places.evaluate("tokyo to kyoto");
-  expect(r.kind).toBe("length");
-  expect(r.value.canonical.toString()).toBe("364743");
+  // Byte-identical in both engines, where M6.2 had this one throwing under
+  // datetime and answering without it.
+  for (const engine of [full, places]) {
+    const r = engine.evaluate("tokyo to kyoto");
+    expect(r.kind).toBe("length");
+    expect(r.value.canonical.toString()).toBe("364743");
+  }
 
-  // datetime's eighteen zones and their aliases are the whole cost — some forty
-  // words. A city datetime has never heard of is a place in either engine.
+  // The other sixteen names datetime used to take, spot-checked across the shape
+  // of the two signatures that share them.
+  expect(full.evaluate("paris to berlin").kind).toBe("length");
+  expect(full.evaluate("kyiv to warsaw").kind).toBe("length");
+  expect(full.evaluate("chicago to denver").kind).toBe("length");
+  expect(full.evaluate("3pm in london").formatted).toBe(
+    without.evaluate("3pm in london").formatted,
+  );
+
+  // A city datetime has never heard of was always a place in either engine, and
+  // still is — the fix took nothing away from the words that never collided.
   expect(full.evaluate("kyoto to osaka").kind).toBe("length");
 });
 
 // ---- §9: "90210" stays a number ----
 
 test("90210 is a number, in every engine this package can be part of", () => {
-  // §6.2, asserted before the matcher that could break it exists. `postalLiteral`
-  // is M6.3's, and the first thing it will be tempted to do is claim five digits.
+  // §6.2's headline, now with the matcher that could have broken it registered.
   for (const engine of [places, full]) {
     const r = engine.evaluate("90210");
     expect(r.kind).toBe("number");
     expect(r.value.canonical.toString()).toBe("90210");
     expect(r.formatted).toBe("90,210");
   }
-  // And nothing beneath it yet. §6.2 promises suggest() will offer the place
-  // reading; today there is none, so this line is what M6.3 changes on purpose.
-  expect(places.suggest("90210").map((r) => r.kind)).toEqual(["number"]);
+  // With the place reading beneath it, which is the rest of §6.2's promise and
+  // what M6.3 added. The number stays on top because the postal claim weighs
+  // less than core's `NUMBER_FALLBACK_WEIGHT`, not because the fold hid it.
+  expect(places.suggest("90210").map((r) => r.kind)).toEqual(["number", "place"]);
 });
 
 // ---- the regression net ----

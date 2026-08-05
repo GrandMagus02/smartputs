@@ -3,9 +3,32 @@ import {
   deriveValue,
   type OpSignature,
   type PlaceMeta,
+  SmartputError,
   type Value,
 } from "@smartput/core";
 import { COUNTRIES } from "./data/countries";
+import { NO_GEONAME_ID } from "./postal";
+
+/**
+ * A place that names somewhere real but carries no coordinates — today, a postal
+ * code reached without a provider.
+ *
+ * Its own error rather than `DimensionMismatchError`, because the operands are
+ * the right kinds and the signature is the right one: what is missing is data,
+ * not a reading. The message names the provider path (spec §8), since that is
+ * the thing a caller can actually do about it.
+ */
+export class UnpositionedPlaceError extends SmartputError {
+  readonly place: string;
+  constructor(place: string, country: string) {
+    super(
+      `${JSON.stringify(place)} has no coordinates: a postal code is positioned by a provider, and none resolved it. Its country ${country.toUpperCase()} does have a position.`,
+      place,
+    );
+    this.name = "UnpositionedPlaceError";
+    this.place = place;
+  }
+}
 
 interface Position {
   readonly lat: number;
@@ -74,6 +97,20 @@ export const distance: OpSignature = {
     detail: { model: "sphere", radius: `${EARTH_RADIUS_M} m` },
   },
   apply: (l: Value, r: Value): Value => {
+    // A postal code has no position of its own until a provider resolves one
+    // (spec §8), and it borrows its country's so the rest of the Value is
+    // usable. Measuring from that borrowed point answers a question nobody
+    // asked: every pair of codes in one country came out "0 kilometres", so
+    // "SW1A 1AA to EH1 1YZ" — London to Edinburgh — measured zero. Refusing is
+    // the same choice `evaluate` makes over `AmbiguityError`: a wrong answer
+    // delivered confidently is worse than an error that names the remedy.
+    for (const side of [l, r]) {
+      const meta = side.meta as Partial<PlaceMeta> | undefined;
+      if (meta?.geonameId === NO_GEONAME_ID) {
+        throw new UnpositionedPlaceError(meta.name ?? side.unit, side.unit);
+      }
+    }
+
     // Rounded to the metre. Capital coordinates carry five decimal places, so
     // anything finer is invented precision — and the corpus asserts formatted
     // output verbatim, which a host's Math.sin last bit must not decide.

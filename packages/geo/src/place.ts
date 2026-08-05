@@ -3,6 +3,7 @@ import { COUNTRIES } from "./data/countries";
 import { distance } from "./distance";
 import { formatPlace } from "./format";
 import { createPlaceLiteral, MIN_NAME_LENGTH } from "./matcher";
+import { createPostalLiteral } from "./postal";
 import type { Admin1Row, CityRow } from "./types";
 
 /**
@@ -70,7 +71,20 @@ export function definePlace(opts: PlaceOptions = {}): Kind {
     // the same place exactly when their canonicals are equal, and that is already
     // the default. Declaring one would restate it and invite it to drift.
     value: { mode: "opaque", units: COUNTRY_UNITS },
-    literals: [createPlaceLiteral(COUNTRIES, opts.cities, opts.admin1)],
+    // Names before codes. Both are registered unconditionally — a postal code is
+    // T0 data, one column of COUNTRIES, so gating it on `opts.cities` would tie
+    // a country's own format to a gazetteer it has nothing to do with.
+    //
+    // The order is not a precedence: the fold groups every match that reaches
+    // the same end, so on the one input both could claim — a name that is also
+    // a code — the readings travel on together and the solver ranks them. What
+    // the order does buy is that the name matcher, which is the one with a trie
+    // and a scope walk, is the first to see a span; the postal walk is 178
+    // regexes and the cheaper question to ask second.
+    literals: [
+      createPlaceLiteral(COUNTRIES, opts.cities, opts.admin1),
+      createPostalLiteral(COUNTRIES),
+    ],
     ops: [distance],
     format: formatPlace,
   });

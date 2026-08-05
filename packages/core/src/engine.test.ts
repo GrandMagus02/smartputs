@@ -511,3 +511,126 @@ test("a targetable literal reaches apply with its own meta, not the stand-in's",
   expect(sawRight?.canonical.toString()).toBe("7");
   expect(sawRight?.meta?.tag).toBe("claimed");
 });
+
+// ---------------------------------------------------------------------------
+// M6.3 — several readings of one claim, ranked rather than chosen between
+// ---------------------------------------------------------------------------
+
+/**
+ * Two readings of one name, the shape geo's trie has for "athens": the capital
+ * at +2 and the other one at +1.70, both real, one of them meant.
+ */
+const twoCities: LiteralMatcher = (input, offset) =>
+  input.slice(offset).startsWith("athens")
+    ? [
+        {
+          kind: "probe",
+          unit: "UTC",
+          canonical: new Decimal(264371),
+          meta: { name: "Athens, GR" },
+          length: 6,
+          weight: 2,
+        },
+        {
+          kind: "probe",
+          unit: "other",
+          canonical: new Decimal(4180386),
+          meta: { name: "Athens, GA" },
+          length: 6,
+          weight: 1.7,
+        },
+      ]
+    : null;
+
+test("suggest returns every reading of one claim, best first", () => {
+  const engine = createEngine({ locales: [en], kinds: [number, probe([twoCities])] });
+  const suggested = engine.suggest("athens");
+  expect(suggested.map((r) => r.value.meta?.name)).toEqual(["Athens, GR", "Athens, GA"]);
+  // Ranked, not merely listed: the weights order them and the confidences say so.
+  expect(suggested[0]?.confidence).toBeGreaterThan(suggested[1]?.confidence ?? 1);
+  // And evaluate still decides. Two readings of one span are a ranking; asking
+  // the user which Athens they meant is what suggest() is for.
+  expect(engine.evaluate("athens").value.canonical.toString()).toBe("264371");
+});
+
+/**
+ * Spec §6.2, proved with a probe because `postalLiteral` is another agent's half
+ * of M6.3. `90210` is a valid ZIP and a valid number, and the weight is what
+ * says which one a bare five digits is: below `NUMBER_FALLBACK_WEIGHT`, so the
+ * ordinary number wins — the fold no longer decides it by eating the token.
+ */
+const postal: LiteralMatcher = (input, offset) =>
+  /^\d{5}(?!\d)/.test(input.slice(offset))
+    ? {
+        kind: "probe",
+        unit: "UTC",
+        canonical: new Decimal(90210),
+        meta: { name: "Beverly Hills" },
+        length: 5,
+        weight: -1,
+      }
+    : null;
+
+test("a claimed number evaluates as a number and suggests the claim beneath it", () => {
+  const engine = createEngine({ locales: [en], kinds: [number, probe([postal])] });
+
+  const r = engine.evaluate("90210");
+  expect(r.kind).toBe("number");
+  expect(r.value.canonical.toString()).toBe("90210");
+  expect(r.formatted).toBe("90,210");
+
+  // The reading the destructive fold used to swallow whole. Both are present,
+  // and the order is the weights' doing rather than the parser's.
+  expect(engine.suggest("90210").map((s) => s.kind)).toEqual(["number", "probe"]);
+  expect(engine.suggest("90210")[1]?.value.meta?.name).toBe("Beverly Hills");
+});
+
+test("a claim that names no weight still beats the number underneath it", () => {
+  // The reason `NUMBER_FALLBACK_WEIGHT` is not zero: a matcher that starts
+  // claiming bare digits without thinking about weight behaves as it did when
+  // the fold was destructive, instead of turning a decided input into an
+  // AmbiguityError.
+  const unweighted: LiteralMatcher = (input, offset) =>
+    /^\d{5}(?!\d)/.test(input.slice(offset))
+      ? { kind: "probe", unit: "UTC", canonical: new Decimal(1), length: 5 }
+      : null;
+  const engine = createEngine({ locales: [en], kinds: [number, probe([unweighted])] });
+  expect(engine.evaluate("90210").kind).toBe("probe");
+  expect(engine.suggest("90210").map((s) => s.kind)).toEqual(["probe", "number"]);
+});
+
+test("a claimed word keeps the unit reading of the word underneath it", () => {
+  // Spec §6.3's "both readings survive to the solver", which the destructive
+  // fold made impossible: a claim over a single word used to be the only reading
+  // there was, so a kind whose matcher claimed another kind's unit alias cost it
+  // the alias — the 17 city names datetime's zones took.
+  const kind = defineKind({
+    id: "probe",
+    value: { mode: "opaque", units: { UTC: ["utc"], other: ["other"] } },
+    literals: [
+      (input, offset) =>
+        input.slice(offset).startsWith("utc")
+          ? {
+              kind: "probe",
+              unit: "other",
+              canonical: new Decimal(5),
+              length: 3,
+              targetable: true,
+            }
+          : null,
+    ],
+    ops: [{ op: "in", left: "probe", right: "probe", result: "probe", apply: (l) => l }],
+    format: (v) => v.canonical.toFixed(),
+  });
+  const engine = createEngine({ locales: [en], kinds: [number, kind] });
+
+  // "utc" is unit UTC's alias and now also a claim of unit `other`. Both reach
+  // the conversion-target slot: the claim because it opted in, and the label
+  // because the word underneath the claim is still a registered alias. The
+  // convert node is the first slot the walk collects, so each pair reads
+  // target-first.
+  expect(engine.explain("utc in utc").assignments.map((a) => a.units.join(","))).toEqual([
+    "other,other",
+    "UTC,other",
+  ]);
+});

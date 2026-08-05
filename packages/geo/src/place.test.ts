@@ -3,6 +3,7 @@ import {
   buildRegistry,
   createEngine,
   type Kind,
+  type LiteralMatch,
   type MatchCtx,
   type OpaqueSpec,
   type Registry,
@@ -32,10 +33,21 @@ const cityEngine = createEngine({ locales: [en], kinds: [number, length, cityPla
 const cityRegistry = buildRegistry([number, length, cityPlace], [], "en");
 const cityUnits = cityRegistry.kinds.get("place")?.units;
 
-function matcherOf(kind: Kind) {
+/**
+ * The name matcher, which is the first of the two the kind registers — the
+ * postal one is `postal.test.ts`'s subject and has its own file.
+ *
+ * Every reading it claims, ranked, since M6.3 lets one span have several and a
+ * matcher with one still returns it bare.
+ */
+function nameReadingsOf(kind: Kind) {
   const m = kind.literals?.[0];
   if (m === undefined) throw new Error("the kind registers no matcher");
-  return m;
+  return (input: string, offset: number, ctx: MatchCtx): readonly LiteralMatch[] => {
+    const result = m(input, offset, ctx);
+    if (result === null) return [];
+    return Array.isArray(result) ? result : [result as LiteralMatch];
+  };
 }
 
 const matchCtx: MatchCtx = {
@@ -78,8 +90,12 @@ test("identity rides on canonical, so no equals is declared", () => {
   expect((place.value as OpaqueSpec).equals).toBeUndefined();
 });
 
-test("the kind declares one matcher and one op", () => {
-  expect(place.literals).toHaveLength(1);
+test("the kind declares two matchers and one op", () => {
+  // Names and codes (spec §5.1, §6.2). Both are registered in every build,
+  // because a postal format is T0 data — one column of COUNTRIES — and gating it
+  // on `cities` would tie a country's own format to a gazetteer.
+  expect(place.literals).toHaveLength(2);
+  expect(definePlace({ cities: CITIES, admin1: ADMIN1 }).literals).toHaveLength(2);
   expect(place.ops).toHaveLength(1);
 });
 
@@ -133,7 +149,7 @@ test("the countries-only build knows no city", () => {
   // Asserted on the matcher as well as through the engine: an engine throw only
   // says nothing read "kyiv", while a null claim says the trie never carried it,
   // which is what "@smartput/geo" alone not paying for T1 actually means.
-  expect(matcherOf(place)("kyiv", 0, matchCtx)).toBeNull();
+  expect(nameReadingsOf(place)("kyiv", 0, matchCtx)).toEqual([]);
   expect(() => engine.evaluate("kyiv")).toThrow();
 });
 
@@ -158,21 +174,22 @@ test("a city's unit is its country, which is why the unit is always registered",
 });
 
 test("every city alias that claims still resolves to a registered country unit", () => {
-  const matcher = matcherOf(cityPlace);
+  const readings = nameReadingsOf(cityPlace);
   let claimed = 0;
   for (const row of CITIES) {
     for (const alias of row.aliases) {
-      // Null where a country outranks the city, or where the alias is a word the
-      // matcher refuses; the property is about what a claim looks like, not
-      // about which row wins.
-      const match = matcher(alias, 0, matchCtx);
-      if (match === null) continue;
-      claimed += 1;
-      const meta = match.meta as Record<string, unknown>;
-      expect(match.kind).toBe("place");
-      expect(cityUnits?.has(match.unit)).toBe(true);
-      expect(meta.country).toBe(match.unit);
-      expect(match.canonical.toString()).toBe(String(meta.geonameId));
+      // Empty where the alias is a word the matcher refuses; the property is
+      // about what a claim looks like, not about which row wins. Every reading
+      // is checked and not just the winner — a runner-up naming a unit the kind
+      // does not register is the same resolver error, and it is now reachable.
+      for (const match of readings(alias, 0, matchCtx)) {
+        claimed += 1;
+        const meta = match.meta as Record<string, unknown>;
+        expect(match.kind).toBe("place");
+        expect(cityUnits?.has(match.unit)).toBe(true);
+        expect(meta.country).toBe(match.unit);
+        expect(match.canonical.toString()).toBe(String(meta.geonameId));
+      }
     }
   }
   expect(claimed).toBeGreaterThan(CITIES.length / 2);

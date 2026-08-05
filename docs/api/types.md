@@ -104,7 +104,7 @@ type LiteralMatcher = (
   input: string,
   offset: number,
   ctx: MatchCtx,
-) => LiteralMatch | null;
+) => LiteralMatch | readonly LiteralMatch[] | null;
 
 interface LiteralMatch {
   readonly kind: KindId;
@@ -123,6 +123,16 @@ interface LiteralMatch {
   readonly targetable?: boolean;
 }
 
+/** What the fold turns each surviving match into. See below. */
+interface LiteralReading {
+  readonly kind: KindId;
+  readonly unit: string;
+  readonly canonical: Decimal;
+  readonly meta?: Readonly<Record<string, unknown>>;
+  readonly weight: number;
+  readonly targetable?: boolean;
+}
+
 interface MatchCtx {
   readonly locale: string;
   /** Epoch milliseconds of "now", from `EngineOptions.now`. */
@@ -133,6 +143,61 @@ interface MatchCtx {
   isUnitAlias(text: string): boolean;
 }
 ```
+
+### Returning more than one reading
+
+An array is **several readings of the same text**, never several spans. The
+other Athens, the other Springfield, the four countries whose postal format is
+`SW1A 1AA` — all of them claim the same characters and differ only in what those
+characters mean.
+
+Returning the single object is still legal and still means what it always did.
+A matcher with one hit should return it bare; `@smartput/geo` does, so every
+unambiguous name comes back the same shape it did before the widening.
+
+What the fold does with what it gets:
+
+- **Longest wins, across every matcher.** Every kind is asked at the same
+  offset, and every match reaching the furthest end joins one group — including
+  matches from different kinds. Readings of a shorter span are dropped rather
+  than ranked below the longer one; they describe different text.
+- **The group becomes one `literal` token** carrying `readings: LiteralReading[]`,
+  which is `LiteralMatch` minus `length` — the span belongs to the group by then —
+  and with `weight` defaulted to `0`.
+- **The parser builds one candidate per reading**, and the solver picks between
+  them exactly as it picks between two readings of a word. Ranking is what a
+  matcher owes; deciding is the solver's.
+- **A match naming a unit its kind does not register is dropped**, silently and
+  per match, so one bad reading no longer costs the whole claim.
+
+Because the readings reach the solver, they are also compared by
+`ambiguityEpsilon`. Readings that a matcher has already ranked need a real gap
+between their weights or a decided input becomes an `AmbiguityError`;
+`@smartput/geo` spaces its readings 0.5 apart for this reason, clamping
+downwards so the winner keeps the weight it would have carried alone.
+
+### The token under a claim
+
+A claim that covers exactly one token, and that token is a `number` or a `word`,
+keeps that token beside the readings as `fallback`. The parser then offers it
+too:
+
+- a **number** becomes an ordinary number candidate — this is what leaves
+  `90210` the number 90,210 while a postal claim rides underneath it;
+- a **word** is offered where a unit label is legal: the target of `in`, and the
+  position straight after a number. It is never an atom, because a bare unit
+  label never was one.
+
+```ts
+import { NUMBER_FALLBACK_WEIGHT } from "@smartput/core"; // -0.5
+```
+
+That is what the number under a claim scores. A number is in nobody's alias
+index, so it has no weight of its own; sitting just below "claimed and
+unweighted" means a matcher that says nothing still wins, and a matcher that
+means to **lose** to the number has to weigh itself below this constant and far
+enough below to clear `ambiguityEpsilon`. A claim spanning two or more tokens
+has no fallback at all — there is no single token left to keep.
 
 ## Vocabulary
 
@@ -305,6 +370,56 @@ interface Engine {
   complete(input: string, opts?: CompleteOptions): Completion[];
 }
 ```
+
+## Snapshot cache
+
+The caching half of the provider path, lifted out of `@smartput/rates` so that
+more than one package can fetch a snapshot and rebuild an engine from it.
+
+```ts
+interface SnapshotCacheOptions<S> {
+  /** Fetches a fresh snapshot. Its rejection reaches every waiting caller. */
+  load: () => Promise<S>;
+  /** How long a snapshot stays fresh. Default: never expires — load once. */
+  ttlMs?: number;
+  /** Injectable clock, in epoch milliseconds. Default `Date.now`. */
+  now?: () => number;
+}
+
+interface SnapshotCache<S> {
+  get(): Promise<S>;
+  refresh(): Promise<S>;
+  readonly current: S | undefined;
+}
+
+interface CachedEngineOptions<S> extends SnapshotCacheOptions<S> {
+  /** Builds the sync engine a snapshot implies. Called once per load. */
+  build: (snapshot: S) => Engine;
+}
+
+interface CachedEngine<S> {
+  evaluate(input: string, opts?: EvalOptions): Promise<Result>;
+  suggest(input: string, opts?: EvalOptions): Promise<Result[]>;
+  refresh(): Promise<void>;
+  readonly engine: Engine | undefined;
+  readonly snapshot: S | undefined;
+}
+```
+
+Concurrent callers on a cold cache share one in-flight load, and a rejection
+clears the slot so the next call retries rather than awaiting a settled
+rejection. `current`, `engine` and `snapshot` are `undefined` until a load
+succeeds; a consumer that owes its callers a named error throws it from its own
+getter — `@smartput/rates` raises `RatesNotReadyError` there.
+
+`createCachedEngine` caches the snapshot and the engine built from it as one
+pair, so a rebuild happens inside the shared load rather than once per waiting
+caller, and the two cannot come apart. A load that fails past the TTL rejects
+rather than serving the expired engine; `engine` stays readable for a consumer
+that would rather have stale than nothing.
+
+Core carries no I/O of its own — `load` is injected, so this adds no dependency
+and no network to a package that has one dependency.
 
 ## Completion
 

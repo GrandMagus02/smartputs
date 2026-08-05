@@ -3,6 +3,8 @@ import {
   buildRegistry,
   Decimal,
   type EvalCtx,
+  type LiteralMatch,
+  type LiteralMatcher,
   type MatchCtx,
   type Value,
 } from "@smartput/core";
@@ -80,6 +82,17 @@ test("every country is a registered unit of the kind", () => {
 });
 
 const matcher = createPlaceLiteral(COUNTRIES);
+
+/**
+ * Every reading of a claim at offset 0, or `[]` for no claim. M6.3 widened
+ * `LiteralMatcher` to return an array and a matcher with one reading still
+ * returns it bare, so the shape depends on the data rather than on the call.
+ */
+function readingsOf(m: LiteralMatcher, input: string): readonly LiteralMatch[] {
+  const result = m(input, 0, matchCtx);
+  if (result === null) return [];
+  return Array.isArray(result) ? result : [result as LiteralMatch];
+}
 const matchCtx: MatchCtx = {
   locale: "en",
   now: 0,
@@ -88,21 +101,21 @@ const matchCtx: MatchCtx = {
 };
 
 test("every place Value's meta.country equals its unit", () => {
-  // Every alias of every row, rather than one per row: an alias two countries
-  // share resolves to whichever the matcher ranks first, and the property holds
-  // for the winner either way.
+  // Every alias of every row, and since M6.3 every *reading* of every alias: a
+  // claim can carry a ranked list, and a runner-up that named a unit the kind
+  // does not register is the same resolver error as a winner that did.
   let claimed = 0;
   for (const row of COUNTRIES) {
     for (const alias of row.aliases) {
-      // Null where the alias is a conversion keyword — "to" is Tonga.
-      const match = matcher(alias, 0, matchCtx);
-      if (match === null) continue;
-      claimed += 1;
-      const meta = match.meta as Record<string, unknown>;
-      expect(match.kind).toBe("place");
-      expect(units?.has(match.unit)).toBe(true);
-      expect(meta.country).toBe(match.unit);
-      expect(match.canonical.toString()).toBe(String(meta.geonameId));
+      // Empty where the alias is a conversion keyword — "to" is Tonga.
+      for (const match of readingsOf(matcher, alias)) {
+        claimed += 1;
+        const meta = match.meta as Record<string, unknown>;
+        expect(match.kind).toBe("place");
+        expect(units?.has(match.unit)).toBe(true);
+        expect(meta.country).toBe(match.unit);
+        expect(match.canonical.toString()).toBe(String(meta.geonameId));
+      }
     }
   }
   expect(claimed).toBeGreaterThan(COUNTRIES.length);
