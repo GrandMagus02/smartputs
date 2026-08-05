@@ -193,6 +193,34 @@ export async function measureEntry(spec: EntrySpec): Promise<Sizes> {
 export const BUDGETS: EntrySpec[] = [
   // Rows are added by later tasks as each entry lands. Every number here was
   // measured first and then committed — see the plan's Global Constraints.
+  //
+  // The three angle rows are the measured figures rounded up to the next 50 B.
+  // They are well over the spec's original §13 budgets, which is why §13 now
+  // carries a dated amendment stating the measured numbers and the reason: the
+  // table costs what the spec predicted (392 B), the shared parser costs six
+  // times what §13 implicitly assumed. Raising one of these again means
+  // amending §13 again.
+  {
+    label: "angle/validate parseAngle only",
+    from: "@smartput/angle/validate",
+    names: ["parseAngle"],
+    min: 1300,
+    gzip: 750,
+  },
+  {
+    label: "angle/validate parse + add + to",
+    from: "@smartput/angle/validate",
+    names: ["parseAngle", "addAngle", "toAngle"],
+    min: 2300,
+    gzip: 1100,
+  },
+  {
+    label: "angle/class",
+    from: "@smartput/angle/class",
+    names: ["Angle"],
+    min: 4250,
+    gzip: 1800,
+  },
 ];
 
 if (import.meta.main) {

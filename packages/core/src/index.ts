@@ -15,6 +15,9 @@ export { createFacade, createFacades } from "./facade/index";
 export type { FormatOptions } from "./format/format";
 export { DISPLAY_PRECISION, formatNumber, formatValue } from "./format/format";
 export { defineKind } from "./kind/define";
+// The engine-side view of a kind package's UnitTable: the micro path reads the
+// same table, so English aliases and ratios have exactly one source.
+export { aliasesFor, decimalRatios } from "./kind/from-table";
 // The seam the extracted kind packages build on: every @smartput/<kind> package
 // derives its values and names the number/percent kinds through these.
 export { deriveValue, NUMBER_KIND, PERCENT_KIND } from "./kind/ratio-ops";

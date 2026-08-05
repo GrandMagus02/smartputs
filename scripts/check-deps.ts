@@ -9,7 +9,11 @@ import { Glob } from "bun";
  * dependency at all.
  */
 const ALLOWED: Record<string, string[]> = {
-  "packages/core/package.json": ["decimal.js"],
+  // @smartput/validate is type-and-adapter only and itself has zero runtime
+  // dependencies, so the standing "core ships one runtime dependency" target
+  // is unchanged in substance. The dependency runs core -> validate; validate
+  // must never import core.
+  "packages/core/package.json": ["decimal.js", "@smartput/validate"],
   "packages/datetime/package.json": [
     "@smartput/core",
     "chrono-node",
@@ -33,7 +37,7 @@ const ALLOWED: Record<string, string[]> = {
   // Extracted built-in kinds. Each is a leaf: it defines one kind against the
   // machinery in core and depends on nothing else, which is what keeps the
   // aggregator below the only package that has to know the full set.
-  "packages/angle/package.json": ["@smartput/core"],
+  "packages/angle/package.json": ["@smartput/core", "@smartput/validate"],
   "packages/area/package.json": ["@smartput/core"],
   "packages/datasize/package.json": ["@smartput/core"],
   "packages/duration/package.json": ["@smartput/core"],

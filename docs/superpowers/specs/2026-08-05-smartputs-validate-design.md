@@ -686,11 +686,11 @@ The shared parser is paid once; per-kind cost is the table. Rough model:
 
 | Entry | Minified | Gzip |
 | --- | --- | --- |
-| `@smartput/number/validate` — `parseNumber` only | < 350 B | < 220 B |
-| `@smartput/angle/validate` — `parseAngle` only | < 600 B | < 350 B |
-| `@smartput/angle/validate` — `+ addAngle`, `toAngle` | < 900 B | < 500 B |
-| `@smartput/angle/class` | < 1.4 KB | < 700 B |
-| `@smartput/datasize/validate` (9 units, widest table) | < 800 B | < 450 B |
+| `@smartput/number/validate` — `parseNumber` only | < 1.3 KB | < 750 B |
+| `@smartput/angle/validate` — `parseAngle` only | < 1.3 KB | < 750 B |
+| `@smartput/angle/validate` — `+ addAngle`, `toAngle` | < 2.3 KB | < 1.1 KB |
+| `@smartput/angle/class` | < 4.25 KB | < 1.8 KB |
+| `@smartput/datasize/validate` (9 units, widest table) | < 1.5 KB | < 850 B |
 | each additional kind at the same entry | < 400 B | < 250 B |
 
 **These numbers are budgets, not measurements.** The first implementation task
@@ -698,6 +698,57 @@ after the build lands is to measure the real figures and commit them; if a
 budget proves wrong, the spec is amended with the measured value and the reason,
 not quietly raised. A budget nobody can hit was a bad budget; a budget that
 drifts upward silently is a broken feature.
+
+#### Amendment, 2026-08-06 — the angle rows, measured
+
+The three `angle` rows above were revised upward when `angle` landed. What they
+originally said, and what `scripts/check-size.ts` actually measures:
+
+| Entry | Was | Measured | Committed budget |
+| --- | --- | --- | --- |
+| `parseAngle` only | < 600 B / < 350 B | 1270 B / 722 B | 1300 B / 750 B |
+| `+ addAngle`, `toAngle` | < 900 B / < 500 B | 2254 B / 1065 B | 2300 B / 1100 B |
+| `@smartput/angle/class` | < 1.4 KB / < 700 B | 4218 B / 1759 B | 4250 B / 1800 B |
+
+The reason is not the table. Measured on their own:
+
+| Piece | Minified | Gzip |
+| --- | --- | --- |
+| shared `parse` (no table) | 883 B | 521 B |
+| shared `parse` + `add` + `convert` | 1815 B | 843 B |
+| shared `createValueClass` | 3834 B | 1550 B |
+| `ANGLE_UNITS` alone (4 units, 15 aliases) | 392 B | 235 B |
+
+Each entry is the shared code plus 392 B, to within a dozen bytes of minifier
+noise — so the per-kind model in this section survives intact, and is if
+anything pessimistic: it predicted ~460 B for angle's table and the real figure
+is 392 B. What was wrong is the *shared* baseline this section never stated. The
+600 B row implied a shared parser of roughly 140 B. The real one is 883 B, and
+the plan's own §5 table is why: `strict`/`loose`, six distinct error codes, a
+whitespace policy, exponent and sign handling, a unit-charset check, an
+`opts.unit` and `defaultUnit` path, and a `resolve` hook. That is a specified
+surface, not accidental weight — the bundle was read line by line and contains
+no dead code.
+
+Two consequences, both accepted rather than worked around:
+
+- **The shared parser now dominates, so the marginal kind is what matters.** The
+  400 B per additional kind row is unchanged and is the number that decides
+  whether a page importing six kinds is affordable. A second kind at the same
+  entry costs its table, not another parser.
+- **The claim in "the honest comparison" below is weakened, not withdrawn.** 1.3
+  KB is not 600 B. It is still small enough that the argument holds for anything
+  that already ships a framework, and it is now stated at its true size.
+
+Deliberately **not** traded away for bytes: the 30-significant-digit ratio
+strings (~90 B of the 392 B table, and the reason `90 deg in rad` is correct to
+28 digits on both paths), the unit-charset check that makes `"30,5deg"` a `nan`
+rather than an `unknown-unit`, and the strict-mode `trailing` check. Each is a
+row in this spec's own §5 table.
+
+The `number` and `datasize` rows are re-stated as the shared parser plus a
+projected table (~50 B and ~200 B respectively) and remain **unmeasured** until
+those kinds land.
 
 ### The honest comparison
 
@@ -707,14 +758,16 @@ A hand-written single-unit check is about 40 bytes:
 const isAngle = (s) => /^-?\d+(\.\d+)?deg$/.test(s);
 ```
 
-`parseAngle` will not match that, and this spec does not claim it will. What
-600 bytes buys over 40: four units instead of one, aliases and plurals, a typed
-error code instead of `false`, exponent and sign handling, `strict`/`loose`,
-`opts.unit`, and a conversion, arithmetic, class and fuzzy path that are each one
-import away rather than a rewrite away.
+`parseAngle` will not match that, and this spec does not claim it will. What the
+measured 1270 bytes buys over 40: four units instead of one, aliases and plurals,
+a typed error code instead of `false`, exponent and sign handling,
+`strict`/`loose`, `opts.unit`, and a conversion, arithmetic, class and fuzzy path
+that are each one import away rather than a rewrite away.
 
-The claim is that 600 bytes is *close enough to free* that nobody reaches for the
-regex — not that the regex was beaten on bytes.
+The claim is that 1.3 KB — 722 B over the wire — is *close enough to free* that
+nobody reaches for the regex, not that the regex was beaten on bytes. The
+comparison that decides a real page is the second kind, which costs its table
+alone: about 400 B minified, because the parser is already paid for.
 
 ## 14. Phasing
 

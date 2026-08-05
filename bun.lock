@@ -32,6 +32,7 @@
       "version": "0.0.0",
       "dependencies": {
         "@smartput/core": "workspace:*",
+        "@smartput/validate": "workspace:*",
       },
       "devDependencies": {
         "@smartput/kinds": "workspace:*",
@@ -51,6 +52,7 @@
       "name": "@smartput/core",
       "version": "0.0.0",
       "dependencies": {
+        "@smartput/validate": "workspace:*",
         "decimal.js": "^10.6.0",
       },
       "devDependencies": {
@@ -186,6 +188,10 @@
       "devDependencies": {
         "@smartput/kinds": "workspace:*",
       },
+    },
+    "packages/validate": {
+      "name": "@smartput/validate",
+      "version": "0.0.0",
     },
     "packages/volume": {
       "name": "@smartput/volume",
@@ -494,6 +500,8 @@
     "@smartput/speed": ["@smartput/speed@workspace:packages/speed"],
 
     "@smartput/temperature": ["@smartput/temperature@workspace:packages/temperature"],
+
+    "@smartput/validate": ["@smartput/validate@workspace:packages/validate"],
 
     "@smartput/volume": ["@smartput/volume@workspace:packages/volume"],
 
