@@ -119,13 +119,20 @@ solve(node): Assignment[]
 
 raw(candidate) = weight(candidate)        // Σ of matching selectors, see §4.5
                + contextBonus             // a matching OpSignature exists for the sibling
-               + hintBonus                // opts.kinds or the coerce<K> target
 
 score(assignment) = Σ raw(candidate)
 confidence        = softmax(score over all consistent assignments)
 ```
 
-Three scoring terms, one signature lookup. There is no separate type system: the
+`opts.kinds` and the `coerce<K>()` target are **not** scoring terms. They are a
+hard filter applied before enumeration: a candidate whose kind is outside the set
+is dropped, never ranked (§6). A filter strictly dominates a bonus here — a bonus
+large enough to be reliable is indistinguishable from a filter, and `coerce()`
+needs the guarantee rather than a preference. The cost is that `suggest({ kinds })`
+cannot report "your hint disagreed with the best reading"; the filtered-out
+interpretation is simply absent. Accepted.
+
+Two scoring terms, one signature lookup. There is no separate type system: the
 `OpSignature` table (§4) *is* the check, for `+` as much as for `datetime + duration`.
 
 Raw scores are unbounded; `confidence` is the softmax normalization, so
@@ -138,6 +145,19 @@ acceptable. Guarded by `maxCandidates` (default 10,000); exceeding it raises
 
 `coerce<K>()` injects a hard constraint at this stage rather than running a
 second code path, so type-directed parsing shares all solver behaviour.
+
+**The filter applies to unit-bearing nodes only.** A quantity or `in` target has
+a candidate set and gets filtered; a bare numeric literal has none, so it always
+survives. `evaluate("10 kg * 2", { kinds: ["mass"] })` is `20 kg` — the `2` is
+never a candidate to drop. `kinds` therefore constrains *which units may be
+chosen*, not which kinds may appear in the tree, and the entry point picks its
+assignment by result kind afterwards. A caller reading `kinds` as "only K may
+appear anywhere" will be surprised.
+
+`coerce<K>()` passes `[K, "number"]` rather than `[K]` to keep number-kind units
+(a future `%`, `dozen`) reachable as operands. As of M1 the `number` kind ships
+no aliases, so no surface resolves to it and the extra entry admits nothing —
+it is forward-compatibility, not live behaviour.
 
 ### Value model
 
@@ -649,7 +669,7 @@ export type EngineOptions = {
 };
 
 export type EvalOptions = {
-  kinds?: KindId[];                      // hard filter — candidates outside this set are dropped
+  kinds?: KindId[];                      // hard filter on unit candidates, not a bonus — see §3
   weights?: Weights;                     // per-call layer 4
   timeZone?: string;
 };
