@@ -2,11 +2,12 @@ import type { Locale } from "../types";
 import type { Token } from "./lex";
 
 /**
- * Longest numeral phrase worth scanning. "nine hundred ninety nine thousand
- * nine hundred ninety nine" is eight words; anything longer is not a number a
- * person types into a calculator, and the cap bounds the work per token.
+ * Longest cardinal the largest plausible table can express, so the cap bounds
+ * the work per token without ever truncating a real number. Five scale groups
+ * up to trillions, each "nine hundred and ninety nine" plus its scale word, is
+ * 29 words. Rounded up for headroom.
  */
-const MAX_RUN = 8;
+const MAX_RUN = 32;
 
 interface Run {
   words: string[];

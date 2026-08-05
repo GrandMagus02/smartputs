@@ -84,3 +84,9 @@ test("a locale without numerals is passed through unchanged", () => {
   const tokens = lex(normalize("one kg"), bare);
   expect(foldNumerals(tokens, bare)).toBe(tokens);
 });
+
+test("a fully spelled six-digit number folds to a single token", () => {
+  expect(shape("nine hundred ninety nine thousand nine hundred ninety nine")).toEqual([
+    ["number", "999999", 0, 58],
+  ]);
+});
