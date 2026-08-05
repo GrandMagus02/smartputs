@@ -11,6 +11,7 @@ import { Glob } from "bun";
 const ALLOWED: Record<string, string[]> = {
   "packages/core/package.json": ["decimal.js"],
   "packages/rates/package.json": ["decimal.js", "@smartput/core"],
+  "packages/math/package.json": ["@cortex-js/compute-engine", "@smartput/core"],
 };
 
 const root = new URL("..", import.meta.url);
