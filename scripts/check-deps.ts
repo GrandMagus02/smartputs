@@ -26,6 +26,10 @@ const ALLOWED: Record<string, string[]> = {
     "@smartput/number",
   ],
 
+  // The micro-validation path. Zero runtime dependencies, enforced here: a
+  // first one would mean decimal.js or core leaked into a 600-byte budget.
+  "packages/validate/package.json": [],
+
   // Extracted built-in kinds. Each is a leaf: it defines one kind against the
   // machinery in core and depends on nothing else, which is what keeps the
   // aggregator below the only package that has to know the full set.
