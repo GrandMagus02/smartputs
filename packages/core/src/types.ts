@@ -7,8 +7,13 @@ export type OpSymbol = "+" | "-" | "*" | "/" | "in" | "of";
  * word that means conversion under `in` (English: "in", "to", "as"), and
  * `keywordFor` returns the key — so "to" and "as" are values, never keys, and
  * a `Keyword` of "to" is unreachable by construction.
+ *
+ * `plus`, `minus`, `times` and `over` are rewritten into op tokens before the
+ * parser runs. `by` exists only to be swallowed by one of those four, so that
+ * "divided by" is a single operator; anywhere else it reaches the parser
+ * unconsumed and fails, exactly as a stray "as" does.
  */
-export type Keyword = "in" | "of";
+export type Keyword = "in" | "of" | "plus" | "minus" | "times" | "over" | "by";
 
 export interface Span {
   start: number;

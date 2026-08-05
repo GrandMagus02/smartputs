@@ -57,5 +57,10 @@ export default defineLocale({
   keywords: {
     in: ["in", "to", "as"],
     of: ["of"],
+    plus: ["plus"],
+    minus: ["minus"],
+    times: ["times", "multiplied"],
+    over: ["over", "divided"],
+    by: ["by"],
   },
 });
