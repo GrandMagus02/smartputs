@@ -29,7 +29,12 @@ export const NUMBER_FALLBACK_WEIGHT = -0.5;
  */
 const IMPLIED_COUNT = new Decimal(1);
 
-const BINDING: Record<Exclude<OpSymbol, "in">, number> = {
+/** Every `BinaryNode.op` value. Exported so a reader outside this file (the
+ * printer) can name the same type `bindingOf` takes, rather than restating
+ * `Exclude<OpSymbol, "in">` as an unrelated-looking local alias. */
+export type BinaryOp = Exclude<OpSymbol, "in">;
+
+const BINDING: Record<BinaryOp, number> = {
   "+": 10,
   "-": 10,
   // Between + and *: "50 + 20% of 100" is 50 + (20% of 100). "of" arrives as
@@ -45,7 +50,28 @@ const BINDING: Record<Exclude<OpSymbol, "in">, number> = {
   "*": 20,
   "/": 20,
 };
-const CONVERT_BINDING = 5;
+
+/**
+ * The parser's own precedence for `op`, exported so `print/print.ts` reads
+ * this number directly instead of restating it. A second, hand-copied table
+ * can drift silently from this one — `Record<BinaryOp, number>` only catches
+ * a *new* operator the copy hasn't priced in (the object literal stops
+ * compiling); it does nothing for an *existing* operator's number changing
+ * here, which is exactly the drift a shared accessor closes off. `BINDING`
+ * itself stays unexported — a `const` object is mutable from the outside,
+ * and nothing beyond this file needs more than to ask "how tightly does this
+ * bind".
+ */
+export function bindingOf(op: BinaryOp): number {
+  return BINDING[op];
+}
+
+/**
+ * Precedence `in`/`to`/`as` binds at — looser than every real operator, so
+ * `1 kg in g + 500 g` reads as `(1 kg in g) + 500 g`. Exported for the same
+ * reason `bindingOf` is: `print/print.ts` needs the parser's own number.
+ */
+export const CONVERT_BINDING = 5;
 
 export function parse(
   tokens: Token[],

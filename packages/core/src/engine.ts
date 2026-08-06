@@ -10,13 +10,13 @@ import {
   UnknownKindError,
 } from "./errors";
 import { Evaluator } from "./eval/evaluator";
-import { formatValue } from "./format/format";
 import { buildRegistry, NUMBER_KIND, type Registry } from "./kind/registry";
 import { createResolver } from "./parse/candidates";
 import type { Token } from "./parse/lex";
 import { Normalizer } from "./parse/normalize";
 import { Parser, type Program } from "./parse/program";
 import { Tokenizer, type TokenStream } from "./parse/tokenizer";
+import { Printer } from "./print/print";
 import type { Resolution } from "./solve/solver";
 import { Solver } from "./solve/solver-class";
 import { weightBreakdown } from "./solve/weights";
@@ -168,6 +168,12 @@ function buildStages(opts: EngineOptions, registry: Registry, locale: Locale) {
       ...(opts.kindMeta === undefined ? {} : { kindMeta: opts.kindMeta }),
       ...(opts.rates ? { rates: opts.rates } : {}),
     }),
+    printer: new Printer({
+      registry,
+      locale,
+      ...(opts.rates ? { rates: opts.rates } : {}),
+      ...(opts.rounding === undefined ? {} : { rounding: opts.rounding }),
+    }),
   };
 }
 
@@ -192,25 +198,32 @@ interface EngineCtx {
   registry: Registry;
   locale: Locale;
   evaluator: Evaluator;
+  printer: Printer;
   opts: EngineOptions;
 }
 
 /**
  * `evaluator.run` plus the formatting and span-mapping every entry point
  * needs to turn a `Resolution` into the public `Result` shape. Takes `ctx`
- * explicitly rather than closing over it, the way spec §5 shows this taking
- * `printer` — the difference is only that `Printer` (Task 9) does not exist
- * yet, so formatting still goes through `formatValue` directly.
+ * explicitly rather than closing over it, the way spec §5's
+ * `toResult(program, resolution, printer, evaluator)` does — `printer` and
+ * `evaluator` both arrive folded into one `ctx` here instead of as two
+ * separate parameters, which is what lets a future per-call override swap
+ * one field via a spread rather than every caller here restating both.
+ *
+ * `printer.value` replaces the direct `formatValue` call: the `Printer`
+ * this `EngineCtx` carries was built with the same `rates`/`rounding`
+ * `formatValue` used to be handed explicitly, so only `formatPrecision`
+ * (a per-call-shaped option `Printer`'s constructor does not hold) still
+ * needs threading through here.
  */
 function toResult(program: Program, resolution: Resolution, ctx: EngineCtx): Result {
-  const { registry, locale, evaluator, opts } = ctx;
+  const { evaluator, printer, opts } = ctx;
   const { value, assumptions } = evaluator.run(program, resolution);
   return {
     value,
-    formatted: formatValue(value, registry, locale, {
+    formatted: printer.value(value, {
       ...(opts.formatPrecision === undefined ? {} : { precision: opts.formatPrecision }),
-      ...(opts.rounding === undefined ? {} : { rounding: opts.rounding }),
-      ...(opts.rates ? { rates: opts.rates } : {}),
     }),
     kind: value.kind,
     confidence: resolution.confidence,
@@ -341,7 +354,13 @@ export function createEngine(callerOpts: EngineOptions): Engine {
   const registry = buildRegistry(opts.kinds ?? [], opts.packs ?? [], locale.id);
   const layers = (call?: Weights) => weightLayers(locale, opts, call);
   const stages = buildStages(opts, registry, locale);
-  const ctx: EngineCtx = { registry, locale, evaluator: stages.evaluator, opts };
+  const ctx: EngineCtx = {
+    registry,
+    locale,
+    evaluator: stages.evaluator,
+    printer: stages.printer,
+    opts,
+  };
   // The Parser (and Completer) is rebuilt per call: it closes over the weight
   // layers, and `EvalOptions.weights` is a per-call override.
   const parserFor = (call?: EvalOptions) =>

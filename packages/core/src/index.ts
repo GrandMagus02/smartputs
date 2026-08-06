@@ -78,6 +78,11 @@ export type { ParserOptions, Program } from "./parse/program";
 export { buildProgram, Parser } from "./parse/program";
 export type { TokenizerOptions, TokenStream } from "./parse/tokenizer";
 export { Tokenizer } from "./parse/tokenizer";
+// `formatValue`/`formatNumber`/`DISPLAY_PRECISION` stay exported above from
+// `./format/format`, their one home; `print/print.ts` only re-exports them
+// for a caller reaching through the `@smartput/core/print` subpath.
+export type { PrinterOptions, PrintMode, PrintOptions } from "./print/print";
+export { Printer } from "./print/print";
 export type { Resolution } from "./solve/solver";
 export { solve } from "./solve/solver";
 export type { SolverOptions } from "./solve/solver-class";
