@@ -4,6 +4,7 @@ import { Decimal } from "../decimal";
 import { formatValue } from "../format/format";
 import { buildRegistry, NUMBER_KIND } from "../kind/registry";
 import en from "../locale/en";
+import type { Node } from "../parse/ast";
 import { createResolver } from "../parse/candidates";
 import { Normalizer } from "../parse/normalize";
 import { Parser, type Program } from "../parse/program";
@@ -271,6 +272,49 @@ test("node(): verbatim slices the source at the addressed node's mapped span", (
   ).toBe("1 kg");
 });
 
+/** The right operand of a top-level binary program — the node whose span
+ * sits *after* whatever the left operand's text did to the normalizer, so
+ * addressing it exercises `mapSpan`'s offset bookkeeping rather than always
+ * landing at position 0. */
+function rightOperand(program: Program): Node {
+  if (program.root.type !== "binary") {
+    throw new Error(`expected a binary root, got ${program.root.type}`);
+  }
+  return program.root.right;
+}
+
+// The three cases above are also testable at `print()`'s level, but only the
+// padded one actually distinguishes `print()`'s "always exact" contract from
+// a hypothetical `mapSpan(root.span)`-based implementation — a double space,
+// a degree sign, or a non-ASCII dash earlier in the string leaves the root's
+// own span already covering "start of content" to "end of content" with
+// nothing outside it to lose, so `print()`-level versions of them would pass
+// under either implementation and mostly pin a `Normalizer` property, not a
+// `Printer` one. `node()` addressing the *second* operand is where each edit's
+// length change (or, for the dash, its position) actually has to be mapped
+// correctly for the slice to land right — this is that regression cover.
+
+test("node(): verbatim after a degree sign the normalizer strips earlier in the string", () => {
+  const program = programFor("30°C + 5 kg");
+  expect(printer.node(program, rightOperand(program).id, { mode: "verbatim" })).toBe(
+    "5 kg",
+  );
+});
+
+test("node(): verbatim after a double space the normalizer collapses earlier in the string", () => {
+  const program = programFor("10  kg + 5 g");
+  expect(printer.node(program, rightOperand(program).id, { mode: "verbatim" })).toBe(
+    "5 g",
+  );
+});
+
+test("node(): verbatim after a non-ASCII dash the normalizer folds earlier in the string", () => {
+  const program = programFor("10 km − 5 km + 3 g"); // U+2212 MINUS SIGN
+  expect(printer.node(program, rightOperand(program).id, { mode: "verbatim" })).toBe(
+    "3 g",
+  );
+});
+
 test("node(): verbatim throws after an NFKC length change, rather than returning the whole source", () => {
   // U+339E "㎞" (SQUARE KM) NFKC-expands to the two characters "km": a
   // length change, which is the one case `NormalizedInput.mapSpan` cannot
@@ -376,6 +420,31 @@ test("unit: an alias ambiguous across kinds throws rather than guessing", () => 
   expect(() => printer.print(program, { unit: "m" })).toThrow();
 });
 
+test("unit: canonical never rebases an ambiguous quantity, even one whose reading would match — the printed line can look mixed-unit", () => {
+  // "m" is ambiguous (length/duration); `canonical` has no `Resolution` to
+  // pick a candidate with, so it cannot know this node is length at all —
+  // the same reason it echoes the surface here instead of an alias (see
+  // `renderQuantity`'s doc comment). Only the unambiguous "5 km" gets
+  // rebased, producing a line with two different length units on it. This
+  // is the documented carve-out on `PrintOptions.unit`, pinned so it reads
+  // as a decision rather than a surprise.
+  expect(printer.print(programFor("10 m + 5 km"), { unit: "cm" })).toBe(
+    "10 m + 500,000 cm",
+  );
+  expect(printer.print(programFor("2 km in m"), { unit: "cm" })).toBe("200,000 cm in m");
+});
+
+test("unit: resolved rebases the same ambiguous quantity the carve-out above skips", () => {
+  // Same input and target unit as the canonical carve-out test, but with a
+  // `Resolution` in hand `pickCandidate` has a chosen candidate to check
+  // `unit` against, so both quantities rebase.
+  const program = programFor("10 m + 5 km");
+  const resolution = solver.best(program);
+  expect(printer.print(program, { mode: "resolved", resolution, unit: "cm" })).toBe(
+    "1,000 cm + 500,000 cm",
+  );
+});
+
 test("precision: rounds a quantity unit actually rebases", () => {
   // 1 h = 1/24 d exactly, a repeating decimal in base 10.
   const program = programFor("1 h");
@@ -395,6 +464,19 @@ test("symbols: an area quantity prints its display symbol, not its alias", () =>
 
 test("symbols: a speed quantity's symbol differs entirely from its alias", () => {
   expect(printer.print(programFor("10 mps"), { symbols: true })).toBe("10 m/s");
+});
+
+test("symbols: inert on an ambiguous resolved node with no distinguishing spelling at all", () => {
+  // temperature and tempdelta share not just one alias table but one
+  // symbol ("°C" for both) — `resolved` still has nothing to reveal here
+  // (see the "no distinguishing spelling" test above and `unitWord`'s doc
+  // comment), so `{ symbols: true }` makes no difference: the printed unit
+  // is "C" either way, never "°C".
+  const program = programFor("30 C - 20 C");
+  const resolution = solver.best(program);
+  expect(printer.print(program, { mode: "resolved", resolution, symbols: true })).toBe(
+    printer.print(program),
+  );
 });
 
 // --- spacing: "tight" vs the default "normal" ----------------------------

@@ -10,6 +10,24 @@ import { Solver } from "../solve/solver-class";
 import { Printer } from "./print";
 
 /**
+ * Whether any node in `program` has more than one candidate reading —
+ * derived from the tree itself (`Program.nodes`, the flat id-indexed array,
+ * so no recursive walk is needed) rather than a hand-maintained list, so a
+ * row that stopped being ambiguous (or started being ambiguous) would move
+ * itself in or out of `AMBIGUOUS_INPUTS` below instead of leaving a stale
+ * assertion that still passes for the wrong reason.
+ */
+function hasAmbiguousNode(program: Program): boolean {
+  return program.nodes.some((node) => {
+    if (node.type === "quantity" || node.type === "literal") {
+      return node.candidates.length > 1;
+    }
+    if (node.type === "convert") return node.target.length > 1;
+    return false;
+  });
+}
+
+/**
  * The corpus-wide mode contracts task 10's done-when names directly:
  * `verbatim` reproduces every corpus input exactly, and `resolved` differs
  * from `canonical` on exactly the corpus's ambiguous inputs — never more,
@@ -60,17 +78,14 @@ for (const input of CORPUS_INPUTS) {
 
 // --- resolved: differs from canonical on exactly the ambiguous inputs ---
 
-/**
- * The rows whose tree has a node with more than one candidate reading — six
- * of the 36, one more than the brief's "the thing to settle first" names,
- * because a full scan (not just eyeballing the four length/duration cases)
- * turns up two more: "212 F in C" and "30 C - 20 C", ambiguous between
- * `temperature` and `tempdelta`. Recorded here, not derived from the
- * printer, so this test does not validate the printer against its own
- * output — see `pickCandidate`'s call sites for where each row's ambiguous
- * node lives.
- */
-const AMBIGUOUS_INPUTS = new Set([
+/** The rows `hasAmbiguousNode` finds — six of the 36, one more than the
+ * brief's "the thing to settle first" names, because a full scan (not just
+ * eyeballing the four length/duration cases) turns up two more:
+ * "212 F in C" and "30 C - 20 C", ambiguous between `temperature` and
+ * `tempdelta`. Cross-checked against the derivation below, not asserted on
+ * its own, so a row silently becoming (or ceasing to be) ambiguous shows up
+ * as a mismatch instead of leaving this comment quietly wrong. */
+const EXPECTED_AMBIGUOUS = new Set([
   "10 m + 5 h",
   "10 m + 5 km",
   "2 km in m",
@@ -79,40 +94,43 @@ const AMBIGUOUS_INPUTS = new Set([
   "3 m * 4 m",
 ]);
 
+const AMBIGUOUS_INPUTS = CORPUS_INPUTS.filter((input) =>
+  hasAmbiguousNode(buildProgram(input)),
+);
+
+test("hasAmbiguousNode finds exactly the rows this file expects to be ambiguous", () => {
+  expect(new Set(AMBIGUOUS_INPUTS)).toEqual(EXPECTED_AMBIGUOUS);
+});
+
 /**
  * Of those six, only four actually print differently under `resolved` —
  * `temperature` and `tempdelta` share one identical alias table (decorative
  * degree-signed entries included), so no spelling of either distinguishes
  * them and `resolved` correctly prints the same text `canonical` does. See
  * `unitWord`'s doc comment on `ambiguousSurface` for why the fallback is the
- * raw surface and not the unit's normalized alias. This is task 10's
- * done-when, verified against the recorded set above rather than restated.
+ * raw surface and not the unit's normalized alias.
+ *
+ * Each of the four is pinned to its exact resolved text, not just "differs
+ * from canonical" — a printer that substituted the wrong candidate, or the
+ * wrong spelling of the right one, would still pass a bare `not.toBe` check.
+ * This is task 10's done-when.
  */
-const EXPECTED_TO_DIFFER = new Set([
-  "10 m + 5 h",
-  "10 m + 5 km",
-  "2 km in m",
-  "3 m * 4 m",
-]);
-
-test("every ambiguous row this test knows about is still in the corpus", () => {
-  // Guards the fixture above against drifting out of sync with `en.tsv` —
-  // a row deleted or reworded there would otherwise silently stop being
-  // exercised by the loop below.
-  const inputs = new Set(CORPUS_INPUTS);
-  for (const input of AMBIGUOUS_INPUTS) {
-    expect(inputs.has(input)).toBe(true);
-  }
-});
+const EXPECTED_TO_DIFFER: Readonly<Record<string, string>> = {
+  "10 m + 5 h": "10 min + 5 h",
+  "10 m + 5 km": "10 metre + 5 km",
+  "2 km in m": "2 km in metre",
+  "3 m * 4 m": "3 metre * 4 metre",
+};
 
 for (const input of CORPUS_INPUTS) {
-  const expectDiffer = EXPECTED_TO_DIFFER.has(input);
-  test(`resolved vs canonical: ${input} (expect ${expectDiffer ? "differ" : "match"})`, () => {
+  const expected = EXPECTED_TO_DIFFER[input];
+  test(`resolved vs canonical: ${input} (expect ${expected !== undefined ? "differ" : "match"})`, () => {
     const program = buildProgram(input);
     const resolution = solver.best(program);
     const canonical = printer.print(program, { mode: "canonical" });
     const resolved = printer.print(program, { mode: "resolved", resolution });
-    if (expectDiffer) {
+    if (expected !== undefined) {
+      expect(resolved).toBe(expected);
       expect(resolved).not.toBe(canonical);
     } else {
       expect(resolved).toBe(canonical);
@@ -129,5 +147,5 @@ test("resolved differs from canonical on exactly the corpus's expected-to-differ
     const resolved = printer.print(program, { mode: "resolved", resolution });
     if (resolved !== canonical) actuallyDiffered.push(input);
   }
-  expect(new Set(actuallyDiffered)).toEqual(EXPECTED_TO_DIFFER);
+  expect(new Set(actuallyDiffered)).toEqual(new Set(Object.keys(EXPECTED_TO_DIFFER)));
 });

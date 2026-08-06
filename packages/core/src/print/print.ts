@@ -37,6 +37,17 @@ export interface PrintOptions {
    * the registry's alias index) once per call, not once per node, so a typo
    * that would fail to rebase anything still fails loudly. Ignored by
    * `"verbatim"`: that mode never computes a value, only echoes source text.
+   *
+   * Carve-out: an ambiguous quantity under `"canonical"` (no `Resolution`,
+   * so `pickCandidate` cannot choose) is never rebased, even when one of its
+   * candidates matches — `canonical` genuinely does not know this node's
+   * kind, the same reason it echoes the raw surface instead of an alias, so
+   * rebasing it would be guessing which reading to convert. The result can
+   * look mixed-unit on the printed line (`{ unit: "cm" }` on `"10 m + 5 km"`
+   * rebases only the unambiguous `"5 km"`, producing `"10 m + 500,000 cm"`);
+   * `"resolved"` with an actual `Resolution` rebases the ambiguous quantity
+   * too, since it has a chosen kind to check `unit` against. See
+   * `renderQuantity`'s doc comment.
    */
   unit?: string;
   /** "thirty degrees plus fifteen degrees". Task 11. */
@@ -50,6 +61,11 @@ export interface PrintOptions {
    * `"m²"` does not lex back through every path — see `unitWord`'s doc
    * comment). That is expected: the contract is specified for `"canonical"`
    * with default options only.
+   *
+   * On `"resolved"`, an ambiguous node whose candidates share one symbol as
+   * well as one alias table (temperature/tempdelta's `"°C"`) still has
+   * nothing to reveal, so `symbols` is inert there too — see `unitWord`'s
+   * doc comment.
    */
   symbols?: boolean;
   /**
@@ -448,8 +464,19 @@ export class Printer {
     return choice;
   }
 
-  /** A quantity's `"<number> <unit>"`, or the ambiguous echo when
-   * `pickCandidate` cannot choose. */
+  /**
+   * A quantity's `"<number> <unit>"`, or the ambiguous echo when
+   * `pickCandidate` cannot choose.
+   *
+   * That echo branch also means `ctx.rebase`/`ctx.precision` are silently
+   * skipped for this node even when `ctx.rebase.kind` matches one of
+   * `candidates`' kinds — deliberately: with no chosen candidate there is no
+   * single kind to check `unit` against without guessing, the same reason
+   * `canonical` echoes the surface here instead of an alias. See
+   * `PrintOptions.unit`'s doc comment for the resulting mixed-unit output
+   * this can produce on one printed line, and why `"resolved"` (which does
+   * have a chosen candidate) does not have this carve-out.
+   */
   private renderQuantity(
     nodeId: NodeId,
     value: Decimal,
@@ -472,9 +499,14 @@ export class Printer {
     return `${magnitude.text}${sep}${unit}`;
   }
 
-  /** A convert's target unit alone — there is no magnitude of its own to
+  /**
+   * A convert's target unit alone — there is no magnitude of its own to
    * rebase or apply `precision` to, only the label, which `unit` can still
-   * substitute. */
+   * substitute when `pickCandidate` has a chosen candidate. An ambiguous
+   * target under `"canonical"` echoes the raw surface and skips `unit`
+   * entirely, for the same reason `renderQuantity`'s ambiguous branch does —
+   * see its doc comment.
+   */
   private renderTarget(
     nodeId: NodeId,
     target: readonly Candidate[],
@@ -606,6 +638,14 @@ export class Printer {
    * symbol like `"m²"` or `"m/s"` does not lex back through every path) —
    * see `PrintOptions.symbols`'s doc comment. That is why the round-trip
    * test in `roundtrip.test.ts` only ever calls `print` with default options.
+   *
+   * `symbols` is checked *before* the alias filter, but the same `avoid` set
+   * applies to it — so on the temperature/tempdelta case above, `ctx.symbols`
+   * is inert: the shared symbol (`"°C"` for both) is in `avoid` exactly like
+   * the shared aliases are, `ambiguousSurface` wins, and `"resolved"` prints
+   * `"C"`, not `"°C"`. That is the same "nothing left to reveal" outcome as
+   * the alias case, not a separate bug — a real, user-visible consequence of
+   * a correct rule, not an oversight.
    */
   private unitWord(
     kindId: KindId,
