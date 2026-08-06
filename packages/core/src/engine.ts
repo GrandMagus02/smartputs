@@ -15,7 +15,7 @@ import { buildRegistry, NUMBER_KIND } from "./kind/registry";
 import { createResolver } from "./parse/candidates";
 import { lex, type Token } from "./parse/lex";
 import { foldLiterals } from "./parse/literals";
-import { normalize } from "./parse/normalize";
+import { type NormalizedInput, Normalizer } from "./parse/normalize";
 import { foldNumerals } from "./parse/numerals";
 import { parse } from "./parse/pratt";
 import { foldWordOps } from "./parse/wordops";
@@ -105,6 +105,10 @@ export interface Result {
 
 export interface Explanation {
   input: string;
+  // Token.start/end index the normalized text, not `input`. Unlike
+  // Result.spans, these are not mapped back: Explanation's shape is frozen
+  // for this restructuring, and the parity fixture records these offsets, so
+  // mapping them is deferred rather than done here.
   tokens: Token[];
   candidates: Candidate[];
   assignments: Array<{
@@ -141,19 +145,21 @@ export function createEngine(opts: EngineOptions): Engine {
   const now = opts.now ?? (() => Date.now());
   const hostZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
   const timeZone = opts.timeZone ?? hostZone;
+  // One instance, frozen, reused across every call: it holds only options.
+  const normalizer = new Normalizer();
 
   const layersFor = (call?: Weights) => [locale.weights, opts.weights, call];
 
   function pipeline(input: string, call?: EvalOptions) {
-    const normalized = normalize(input);
-    if (normalized.length === 0) throw new UnitParseError(input);
+    const normalized = normalizer.run(input);
+    if (normalized.empty) throw new UnitParseError(input);
     const resolver = createResolver({
       registry,
       locale: locale as Locale,
       packs,
       layers: layersFor(call?.weights),
     });
-    const lexed = lex(normalized, locale as Locale);
+    const lexed = lex(normalized.text, locale as Locale);
     const matchCtx: MatchCtx = {
       locale: (locale as Locale).id,
       now: now(),
@@ -162,7 +168,10 @@ export function createEngine(opts: EngineOptions): Engine {
         registry.aliasIndex.has(text.toLocaleLowerCase((locale as Locale).id)),
     };
     const tokens = foldWordOps(
-      foldNumerals(foldLiterals(lexed, normalized, registry, matchCtx), locale as Locale),
+      foldNumerals(
+        foldLiterals(lexed, normalized.text, registry, matchCtx),
+        locale as Locale,
+      ),
     );
     const node = parse(tokens, resolver, input);
     const assignments = solve(node, registry, {
@@ -174,6 +183,7 @@ export function createEngine(opts: EngineOptions): Engine {
   }
 
   function toResult(
+    normalized: NormalizedInput,
     node: ReturnType<typeof pipeline>["node"],
     assignment: Assignment,
     input: string,
@@ -196,7 +206,10 @@ export function createEngine(opts: EngineOptions): Engine {
       }),
       kind: value.kind,
       confidence: assignment.confidence,
-      spans: [node.span],
+      // Spans are produced against the normalized text; the caller reads them
+      // against the string they passed in. Without this they disagree whenever
+      // normalization changed a length.
+      spans: [normalized.mapSpan(node.span)],
       meta: {
         assumptions,
         ...(rates ? { ratesAsOf: rates.asOf } : {}),
@@ -206,7 +219,7 @@ export function createEngine(opts: EngineOptions): Engine {
 
   return {
     evaluate(input, call) {
-      const { node, assignments } = pipeline(input, call);
+      const { normalized, node, assignments } = pipeline(input, call);
       const [best, second] = assignments;
       if (best === undefined) throw new SmartputError("No interpretation", input);
 
@@ -220,16 +233,16 @@ export function createEngine(opts: EngineOptions): Engine {
           unit: [...a.choices.values()][0]?.unit ?? "",
           confidence: a.confidence,
         }));
-        throw new AmbiguityError(input, listed, [node.span]);
+        throw new AmbiguityError(input, listed, [normalized.mapSpan(node.span)]);
       }
 
-      return toResult(node, best, input);
+      return toResult(normalized, node, best, input);
     },
 
     suggest(input, call) {
       try {
-        const { node, assignments } = pipeline(input, call);
-        return assignments.map((a) => toResult(node, a, input));
+        const { normalized, node, assignments } = pipeline(input, call);
+        return assignments.map((a) => toResult(normalized, node, a, input));
       } catch (e) {
         // Only the library's own errors mean "this input has no interpretation",
         // and not even all of those — see NEVER_SWALLOWED. A TypeError from a
