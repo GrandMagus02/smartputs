@@ -27,3 +27,4 @@ export {
   type PlaceSnapshotLike,
   toQuery,
 } from "./query";
+export { dedupe, proximity, rankHits, scoreHit, similarity } from "./rank";
