@@ -346,25 +346,49 @@ export const BUDGETS: EntrySpec[] = [
     gzip: 1950,
   },
 
-  // `@smartput/geo` is not a ratio kind and owes none of the subpaths above —
-  // a place has no ratios to convert. It gets a row for a different claim its
-  // own source makes: `geo/src/index.ts` says CITIES and ADMIN1 "live behind
-  // '@smartput/geo/cities' so that this module's import graph never reaches
-  // them", and until this row that sentence was the whole enforcement.
+  // `@smartput/country` is not a ratio kind and owes none of the subpaths above
+  // — a place has no ratios to convert. It gets a row for a different claim its
+  // own source makes: `place.ts` says the T1 tables are `@smartput/city`'s "so
+  // that this package's import graph never reaches them", and until this row
+  // that sentence was the whole enforcement. The split made the edge a package
+  // name instead of a path, and `place.test.ts` reads the source for a value
+  // import of it — this row is the other half, measuring the bundle rather than
+  // reading the imports, so a re-export chain nobody thought to grep still fails.
   //
-  // Measured, the T1 tier is 1_011_415 B against the root's 128_435 B, so a
+  // Measured, the T1 tier is 1_011_415 B against this root's 128_435 B, so a
   // leak is not a drift — it is an eightfold jump, and the ceiling here catches
   // it on the first build. The floor is set explicitly because the T0 country
-  // table is ~99% of this number and would not move under any change to geo's
-  // code; the default 70% band would let two thirds of the gazetteer vanish
-  // silently.
+  // table is ~99% of this number and would not move under any change to the
+  // package's code; the default 70% band would let two thirds of the gazetteer
+  // vanish silently.
   {
-    label: "geo root, T0 only (T1 must not leak in)",
-    from: "@smartput/geo",
+    label: "country root, T0 only (T1 must not leak in)",
+    from: "@smartput/country",
     names: ["place"],
     min: 132_000,
     gzip: 46_000,
     floor: 120_000,
+  },
+  // The two packages below the kind, each measured for the claim that it is
+  // usable without the gazetteer the kind ships. Both were inside the 128 KB row
+  // above until the split, where "does the postal validator cost you a country
+  // table" had no way to be asked. The answer is 37 KB rather than the 8 KB the
+  // code is worth: decimal.js is ~35 KB of both numbers and is the floor for
+  // anything that builds a Value at all. What these rows watch is the delta —
+  // a country table arriving in either one is +90 KB and unmissable.
+  {
+    label: "zip root (postal machinery, no gazetteer)",
+    from: "@smartput/zip",
+    names: ["PostalFormat", "PostalFormats", "createPostalLiteral"],
+    min: 39_000,
+    gzip: 16_000,
+  },
+  {
+    label: "distance root (the op, no gazetteer)",
+    from: "@smartput/distance",
+    names: ["PlaceDistance"],
+    min: 40_500,
+    gzip: 16_500,
   },
 ];
 

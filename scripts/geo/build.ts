@@ -10,13 +10,14 @@ import { join } from "node:path";
 // does declare it, which is why that path goes through datetime's node_modules.
 import en from "../../packages/core/src/locale/en";
 import type { Kind, Lexicon, Locale } from "../../packages/core/src/types";
+import { MIN_NAME_LENGTH } from "../../packages/country/src/matcher";
 import * as chrono from "../../packages/datetime/node_modules/chrono-node";
-import { MIN_NAME_LENGTH } from "../../packages/geo/src/matcher";
 import { BUILTIN_KINDS } from "../../packages/kinds/src/index";
 import { NUMBER_WORDS } from "../../packages/number/src/words";
 
 /**
- * Builds `packages/geo/src/data/{countries,cities,admin1,reserved}.ts` from the
+ * Builds the four vendored tables — `country/src/data/{countries,reserved}.ts`
+ * and `city/src/data/{cities,admin1}.ts` — from the
  * GeoNames dump and from the engine's own vocabulary.
  *
  * Run deliberately — `bun run scripts/geo/build.ts` — and commit the diff. The
@@ -1138,8 +1139,24 @@ async function countryFeature(
  * bytes are the same ones biome would produce — otherwise the next `biome check`
  * run reformats the file and breaks its own hash.
  */
+/**
+ * Which package each table is committed into. M6 split `@smartput/geo` four ways
+ * and the tables went with the halves that read them: countries and the reserved
+ * list are the T0 package's, cities and divisions are the T1 package's. The map
+ * is exhaustive and `write` throws on a name it does not hold, so a fifth table
+ * has to say where it goes rather than landing wherever the last one did.
+ */
+const PACKAGE_OF: Record<string, string> = {
+  "countries.ts": "country",
+  "reserved.ts": "country",
+  "cities.ts": "city",
+  "admin1.ts": "city",
+};
+
 async function write(name: string, source: string): Promise<number> {
-  const out = new URL(`../../packages/geo/src/data/${name}`, import.meta.url).pathname;
+  const pkg = PACKAGE_OF[name];
+  if (pkg === undefined) throw new Error(`no package declared for ${name}`);
+  const out = new URL(`../../packages/${pkg}/src/data/${name}`, import.meta.url).pathname;
   await mkdir(join(out, ".."), { recursive: true });
   await Bun.write(out, source);
 

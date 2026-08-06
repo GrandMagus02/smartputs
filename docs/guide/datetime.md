@@ -258,7 +258,7 @@ Deliberate, and recorded in `docs/superpowers/m4-followups.md`:
   `<number><unit>`, which a time zone is not, so it offers no zone rather than
   offering `1 utc`. The door out of that is
   [`Kind.completions`](/api/define-kind#completions), added in M6.4 for exactly
-  this shape of vocabulary and used by `@smartput/geo`; this kind does not
+  this shape of vocabulary and used by `@smartput/country`; this kind does not
   declare one yet.
 - **No `DateTime` facade class.** `createFacade` generates `.to()` and `.scale()`
   from a ratio table an opaque kind does not have, so it refuses one outright.

@@ -153,7 +153,7 @@ other Athens, the other Springfield, the four countries whose postal format is
 characters mean.
 
 Returning the single object is still legal and still means what it always did.
-A matcher with one hit should return it bare; `@smartput/geo` does, so every
+A matcher with one hit should return it bare; `@smartput/country` does, so every
 unambiguous name comes back the same shape it did before the widening.
 
 What the fold does with what it gets:
@@ -174,7 +174,7 @@ What the fold does with what it gets:
 Because the readings reach the solver, they are also compared by
 `ambiguityEpsilon`. Readings that a matcher has already ranked need a real gap
 between their weights or a decided input becomes an `AmbiguityError`;
-`@smartput/geo` spaces its readings 0.5 apart for this reason, clamping
+`@smartput/zip` spaces its readings 0.5 apart for this reason, clamping
 downwards so the winner keeps the weight it would have carried alone.
 
 ### The token under a claim
@@ -448,7 +448,7 @@ See [`complete()`](/api/complete).
 `Completion` above is what a caller receives. These three are what a **kind
 supplies**, through [`Kind.completions`](/api/define-kind#completions), and they
 exist because the global alias index cannot hold every vocabulary that wants
-completing — `@smartput/geo` registers no name shorter than four characters and
+completing — `@smartput/country` registers no name shorter than four characters and
 no city at all, so without this seam a place could not be offered at any price.
 
 ```ts

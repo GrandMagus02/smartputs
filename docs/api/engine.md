@@ -138,11 +138,11 @@ Rows come from **two sources**, ranked into one list:
   splices `<count> <plural display form>` — this is where `30 hours` comes from;
 - every kind that declares a [`completions`](/api/define-kind#completions)
   hook, which answers for itself and supplies the replacement text whole. This
-  is how an opaque kind completes at all, and how `@smartput/geo` offers a city
+  is how an opaque kind completes at all, and how `@smartput/country` offers a city
   that is in nobody's alias index.
 
 ```ts
-// with @smartput/geo registered
+// with @smartput/country registered
 engine.complete("kyi").map((c) => c.text); // [ "Kyiv", "Kyivskyi", "Kyivskyi" ]
 ```
 

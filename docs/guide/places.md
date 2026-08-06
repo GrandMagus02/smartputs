@@ -5,18 +5,18 @@ description: The place kind, countries and cities as values, postal codes and th
 
 # Places and distances
 
-`@smartput/geo` adds one kind. Once it is registered, `japan` is a value the way
+`@smartput/country` adds one kind. Once it is registered, `japan` is a value the way
 `5 kg` is a value: it has a unit — its ISO 3166-1 alpha-2 code — it formats to
 its facts, and it takes part in one operation.
 
 ```sh
-bun add @smartput/geo
+bun add @smartput/country
 ```
 
 ```ts
 import { createEngine } from "@smartput/core";
 import en from "@smartput/core/locale/en";
-import { place } from "@smartput/geo";
+import { place } from "@smartput/country";
 import { BUILTIN_KINDS } from "@smartput/kinds";
 
 const engine = createEngine({
@@ -33,10 +33,34 @@ length — `BUILTIN_KINDS` covers that. There is no locale pack and no engine
 option: the place names are the data, and the data ships in the package.
 
 `place` is countries and [postal codes](#postal-codes). Cities are a second
-import and a factory call, and the section on
+package and a factory call, and the section on
 [turning cities on](#turning-cities-on) is why they are not simply there. The
 long tail below the shipped data — a village, the coordinates of one postcode —
 is [a provider](#providers-and-t2) and a network call.
+
+## The four packages
+
+What used to be one `@smartput/geo` is four, layered so the graph runs one way.
+Three of them are usable on their own; the fourth is where they meet.
+
+| Package | What it is | Depends on |
+| --- | --- | --- |
+| `@smartput/zip` | The postal literal matcher and the format validator, over rows you hand it | core |
+| `@smartput/city` | The T1 gazetteer: 6,247 cities, 1,664 divisions, two row types, no code | nothing |
+| `@smartput/distance` | `PlaceDistance` — the great-circle op, over the table its kind registered | core, zip |
+| `@smartput/country` | The T0 table and the `place` kind assembled out of the other three | all of them |
+
+The direction is what makes the split worth having. `@smartput/country` names
+`createPostalLiteral` and `PlaceDistance`, so neither of those packages can name
+it back — which is why both take their data as an argument and ship none. A form
+field that validates postcodes installs `@smartput/zip` and gets no gazetteer;
+`POSTAL_FORMATS` in `@smartput/country` is that same validator with the shipped
+252 rows behind it.
+
+The edge from `@smartput/country` to `@smartput/city` is `import type` from the
+`/types` subpath and compiles away, which is what keeps the 234 KB of cities out
+of a bundle that only wanted countries. See
+[turning cities on](#turning-cities-on).
 
 ## What it recognises
 
@@ -67,13 +91,13 @@ The alternate names come from GeoNames, so the coverage is theirs: `nippon` and
 
 ## Turning cities on
 
-Cities live behind a second entry point and arrive as an argument:
+Cities live in a package of their own and arrive as an argument:
 
 ```ts
 import { createEngine } from "@smartput/core";
 import en from "@smartput/core/locale/en";
-import { definePlace } from "@smartput/geo";
-import { ADMIN1, CITIES } from "@smartput/geo/cities";
+import { definePlace } from "@smartput/country";
+import { ADMIN1, CITIES } from "@smartput/city";
 import { BUILTIN_KINDS } from "@smartput/kinds";
 
 const engine = createEngine({
@@ -108,10 +132,10 @@ the one above it:
 Cities cost nearly nine times what the whole countries tier does. That is the
 entire reason `place.ts` does not import `data/cities.ts` — not a style
 preference. A static
-import links the gazetteer into every bundle that touches `@smartput/geo`, and
+import links the gazetteer into every bundle that touches `@smartput/country`, and
 no bundler can prove `CITIES` unused once a kind has closed over it. Tiering is
 only real if the dependency edge runs from the consumer inwards, so the
-consumer is the one who names `@smartput/geo/cities`. Probing the countries-only
+consumer is the one who names `@smartput/city`. Probing the countries-only
 bundle for `chelyabinsk`, `fukuoka`, `texas`, `bavaria` and `springfield` finds
 none of them; all five are in the other one.
 
@@ -292,7 +316,7 @@ engine.evaluate("chicago to denver").formatted; // "1,475.384 kilometres"
 
 `in | datetime | place` has no competing signature and neither does
 `in | place | place`, so neither input needs a tiebreak. `3pm in tokyo` is
-byte-identical with and without geo registered.
+byte-identical with and without the place kind registered.
 
 Until M6.3 this section documented the opposite: all seventeen threw, because a
 single-word city claim yielded to any word another kind had registered as a unit.
@@ -322,7 +346,7 @@ The set is **derived, never transcribed**, from six vocabularies:
 | `Intl` months and weekdays, long and short | 38 |
 | chrono's `en.casual` parser patterns, read off `parser.pattern().source` | 1,027 |
 | `BUILTIN_KINDS` unit ids, aliases, symbols and display forms | 338 |
-| geo's own country codes below four characters | 508 |
+| the place kind's own country codes below four characters | 508 |
 
 Plus exactly one hand-written entry, `or`, for Oregon — no kind, keyword or
 numeral produces the conjunction, so no source can derive it, and it is pruned
@@ -473,9 +497,9 @@ are also English words, which fails destructively on the first word the list
 forgets. This fails by not recognising a lowercase code, and the country's full
 name always covers that.
 
-`packages/geo/corpus/en.tsv` carries `10 km` and `two hundred and five km` as
+`packages/country/corpus/en.tsv` carries `10 km` and `two hundred and five km` as
 rows for exactly this reason, and every corpus in the repo — core's, datetime's,
-rates' and geo's own — is replayed through an engine with the full 6,247-name
+rates' and the place kind's own — is replayed through an engine with the full 6,247-name
 trie registered. A kind that adds words to a global index can only be shown
 harmless input by input. What that replay found is that registering the tier only
 ever turns nothing into something: no input that had a reading changed it, and
@@ -624,9 +648,9 @@ a Brazilian CEP, and both used to be subtractions:
 
 ```ts
 engine.evaluate("12345-6789").formatted;
-// "12345-6789, US — USD, +1, America/New_York, 327M"   (5,556 without geo)
+// "12345-6789, US — USD, +1, America/New_York, 327M"   (5,556 without places)
 engine.evaluate("01310-100").formatted;
-// "01310-100, BR — BRL, +55, America/Sao_Paulo, 209M"  (1,210 without geo)
+// "01310-100, BR — BRL, +55, America/Sao_Paulo, 209M"  (1,210 without places)
 ```
 
 These are the only two answers registering the place kind takes from an engine
@@ -660,7 +684,7 @@ engine.evaluate("100 usd in kyoto").formatted;  // "¥15,455"
 engine.evaluate("100 usd in kyiv").formatted;   // "₴4,136.36"
 ```
 
-**Neither package depends on geo, in either direction.** Core declares one
+**Neither package depends on the place kind, in either direction.** Core declares one
 interface, `PlaceMeta`, beside `RateLookup` and for the same reason. Geo
 produces it. `datetime` declares `in | datetime | place` and reads a string off
 `meta.zone`; `rates` declares `in | money | place` and reads a string off
@@ -668,7 +692,7 @@ produces it. `datetime` declares `in | datetime | place` and reads a string off
 
 A signature naming a kind that is not registered is inert rather than an error:
 the op table is keyed without checking that `left` and `right` exist, and with
-geo absent the solver can never produce a `place` operand, so the entry is
+the place kind absent, the solver can never produce a `place` operand, so the entry is
 simply never reached. That is what lets each bridge live in the package that
 owns the *other* side of it.
 
@@ -691,9 +715,10 @@ find it.
 252 country rows, 6,247 city rows and 1,664 division rows, generated by
 `scripts/geo/build.ts` from the GeoNames `countryInfo.txt`, `cities15000.txt`,
 `admin1CodesASCII.txt`, `timeZones.txt` and `alternateNamesV2.txt` dumps, and
-vendored as TypeScript. That is a deliberate trade: the package takes on no npm
-data dependency and no upstream maintenance risk, and its runtime dependencies
-stay at two — `@smartput/core` and `decimal.js`. Each generated file carries a
+vendored as TypeScript. That is a deliberate trade: no package here takes on an
+npm data dependency or the upstream maintenance risk that comes with one, and
+the runtime dependencies outside the four stay at two — `@smartput/core` and
+`decimal.js`. Each generated file carries a
 hash of its own body and of each source dump, and a test recomputes them, so a
 hand edit fails the suite. Two consecutive builds produce byte-identical output.
 
@@ -702,8 +727,8 @@ wants the rows and cannot re-derive them from the registry — the alias index
 carries names only, and cities are not in it at all.
 
 ```ts
-import { COUNTRIES } from "@smartput/geo";
-import { ADMIN1, CITIES } from "@smartput/geo/cities";
+import { COUNTRIES } from "@smartput/country";
+import { ADMIN1, CITIES } from "@smartput/city";
 
 COUNTRIES.find((c) => c.a2 === "jp");
 // { a2: "jp", a3: "jpn", name: "Japan",
@@ -734,7 +759,7 @@ export, not a line in a README, because the data ships compiled into a
 launcher's UI where nobody reads a README:
 
 ```ts
-import { GEONAMES_ATTRIBUTION } from "@smartput/geo";
+import { GEONAMES_ATTRIBUTION } from "@smartput/country";
 // "Country data from GeoNames (https://www.geonames.org/), licensed under
 //  CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/)."
 ```
@@ -747,11 +772,10 @@ covers them; the wording is worth widening the next time that file is touched.
 
 The vendored tiers stop at 6,247 cities and 252 country-level postal formats.
 Everything below that — the villages, the hamlets, and the coordinates of an
-individual postal code — is a network call, and it lives behind a third entry
-point:
+individual postal code — is a network call, and it lives behind a subpath:
 
 ```sh
-@smartput/geo/providers
+@smartput/country/providers
 ```
 
 It carries no data of its own, and no consumer who only wants the vendored tiers
@@ -787,7 +811,7 @@ that would look stable and one day collide with a real one.
 ### GeoNames
 
 ```ts
-import { geonames } from "@smartput/geo/providers";
+import { geonames } from "@smartput/country/providers";
 
 const gn = geonames({ username: "your-account" });
 
@@ -823,7 +847,7 @@ Three things to expect from the service itself:
 ### Postal codes from a mirror
 
 ```ts
-import { postalCodes } from "@smartput/geo/providers";
+import { postalCodes } from "@smartput/country/providers";
 
 const zip = postalCodes({ url: "https://your-mirror.example/{country}.json" });
 
@@ -854,7 +878,7 @@ neither of its tokens is two letters.
 ### A snapshot
 
 ```ts
-import { placeSnapshot } from "@smartput/geo/providers";
+import { placeSnapshot } from "@smartput/country/providers";
 
 const snap = placeSnapshot("2026-08-05", await zip.lookup("us 90210"));
 
@@ -884,7 +908,7 @@ package can use it:
 
 ```ts
 import { createSnapshotCache } from "@smartput/core";
-import { placeSnapshot, type PlaceSnapshot } from "@smartput/geo/providers";
+import { placeSnapshot, type PlaceSnapshot } from "@smartput/country/providers";
 
 const cache = createSnapshotCache<PlaceSnapshot>({
   ttlMs: 60 * 60 * 1000,
@@ -906,10 +930,10 @@ retries rather than awaiting a settled rejection forever. `current` is
 built cached as one pair so they cannot come apart.
 
 **Geo ships no live engine of its own**, and that is the honest gap in this
-section: `@smartput/rates` has `createLiveEngine`, geo does not. A provider row
+section: `@smartput/rates` has `createLiveEngine`, `@smartput/country` does not. A provider row
 is a `Place` and a kind is built from `CityRow`s, so anyone wiring a live place
 engine today writes that mapping themselves, deciding for their own data what a
-row with no zone and no population should become. Whether geo ships the mapping,
+row with no zone and no population should become. Whether `@smartput/country` ships the mapping,
 or a whole `createLivePlaceEngine` around it, was M6.4's to decide and M6.4 did
 not decide it — the milestone ended with this still open.
 
@@ -955,7 +979,7 @@ declare [`completions`](/api/define-kind#completions), a function core calls onc
 per keystroke for a vocabulary the global alias index was never allowed to hold.
 Geo is its first consumer and the reason it exists — a city is in no index and a
 country name below four characters is in none either — but nothing about it is
-geo's. It is the door datetime needs to complete a time zone, and that kind does
+the place kind's. It is the door datetime needs to complete a time zone, and that kind does
 not declare one yet.
 
 One other observable change comes with cities, and no corpus can show it: `5 nice`
@@ -1061,8 +1085,8 @@ one row in total.
 A place picker wants the opposite trade, so it asks for it:
 
 ```ts
-import { COUNTRIES, PlaceCompleter } from "@smartput/geo";
-import { CITIES } from "@smartput/geo/cities";
+import { COUNTRIES, PlaceCompleter } from "@smartput/country";
+import { CITIES } from "@smartput/city";
 
 const wide = new PlaceCompleter(COUNTRIES, CITIES).withLimit(10);
 wide.completions({ locale: "en", fragment: "par" }).map((r) => r.text);
@@ -1076,7 +1100,7 @@ so widening the list costs a walk and not a rebuild. Underneath it,
 the same thing as functions, for a picker that has no engine at all. The seam
 they plug into is core's, and it is [`Kind.completions`](/api/define-kind#completions)
 — any kind with a vocabulary too large or too collision-prone for the global
-alias index can do what geo does here.
+alias index can do what the place kind does here.
 
 ### When one prefix names two countries
 
@@ -1148,7 +1172,7 @@ ascending; it is in the list rather than fixed, because the thumb on the scale
 that would fix it is exactly what was taken off above.
 
 The list is pinned by a test that sweeps all 294 prefixes and asserts the top row
-is byte-identical to the geo-free engine everywhere else, so any movement in it
+is byte-identical to the place-free engine everywhere else, so any movement in it
 is a deliberate change rather than a drift. If `pe` offering Peru over `percent`
 is wrong for your launcher, `complete("...", { kinds: [...] })` drops the kind
 before its completer is ever called.
@@ -1156,27 +1180,29 @@ before its completer is ever called.
 ## Checking a postal code
 
 The format is one column of the country table, so the same 178 formats that
-parse `SW1A 1AA` will also answer for a form field:
+parse `SW1A 1AA` will also answer for a form field. The machinery is
+`@smartput/zip`, which ships no data of its own; `POSTAL_FORMATS` is that
+package's lookup bound to the shipped countries:
 
 ```ts
-import { PostalFormat } from "@smartput/geo";
+import { POSTAL_FORMATS } from "@smartput/country";
 
-const gb = PostalFormat.for("GB");
+const gb = POSTAL_FORMATS.for("GB");
 gb.validate("sw1a1aa");  // true
 gb.normalize("sw1a1aa"); // "SW1A 1AA"
 gb.shape("sw1a1aa");     // "@@#@ #@@"
 
-PostalFormat.for("AQ");  // null — Antarctica has no postal system
+POSTAL_FORMATS.for("AQ");  // null — Antarctica has no postal system
 ```
 
 `for` takes alpha-2 or alpha-3 in any case and returns `null` twice over: for a
 code that names no country, and for one of the 74 countries with no format to
 check against. Check once at the door rather than a hundred codes later. There is
-no constructor, and the instance is frozen — `for` and `of` are the only ways in,
-and both may refuse. `PostalFormat.of(row)` is the same door for a row you
-brought yourself: a `definePlace()` table, a row off a provider. The same
-instance comes back for the same country, which is what makes the matcher behind
-it worth caching.
+no public constructor, and the instance is frozen — `PostalFormat.of(row)` is the
+only way in and it may refuse. That is also the door for a row you brought
+yourself: a `definePlace()` table, a row off a provider, a table of your own
+wrapped in `new PostalFormats(rows)`. The same instance comes back for the same
+row, which is what makes the matcher behind it worth caching.
 
 Ireland is the near miss worth knowing about: the Eircode has been in GeoNames'
 column since 2015, so `for("IE")` is a format and `d02af30` normalizes to
@@ -1187,11 +1213,11 @@ different, so `normalize` strips the separators and offers the country's own
 format each single reinsertion until one is accepted:
 
 ```ts
-PostalFormat.for("CA").normalize("m5v3l9");    // "M5V 3L9"
-PostalFormat.for("NL").normalize("1234ab");    // "1234 AB"
-PostalFormat.for("JP").normalize("1000001");   // "100-0001"
-PostalFormat.for("US").normalize("902101234"); // "90210-1234"
-PostalFormat.for("GB").normalize("nope");      // null
+POSTAL_FORMATS.for("CA").normalize("m5v3l9");    // "M5V 3L9"
+POSTAL_FORMATS.for("NL").normalize("1234ab");    // "1234 AB"
+POSTAL_FORMATS.for("JP").normalize("1000001");   // "100-0001"
+POSTAL_FORMATS.for("US").normalize("902101234"); // "90210-1234"
+POSTAL_FORMATS.for("GB").normalize("nope");      // null
 ```
 
 `validate` is defined as `normalize(code) !== null`, so the two can never
@@ -1201,7 +1227,8 @@ without the case and separator repair, is `postalAccepts(row, code)` in the laye
 underneath, beside `normalizePostal` and `postalShape`:
 
 ```ts
-import { COUNTRIES, postalAccepts } from "@smartput/geo";
+import { COUNTRIES } from "@smartput/country";
+import { PostalFormat, postalAccepts } from "@smartput/zip";
 
 const us = COUNTRIES.find((c) => c.a2 === "us");
 postalAccepts(us, "902101234");                 // false — not as written
@@ -1234,7 +1261,7 @@ Five things remain.
 
 Multi-word completion is not one of them, though it nearly shipped as one.
 `complete("san fran")` first offered `san France`: core took the fragment to be
-the trailing *word*, so `fran` was the whole question geo was asked, `France` was
+the trailing *word*, so `fran` was the whole question the kind was asked, `France` was
 a truthful answer to it, and core spliced that back over `fran` alone to make a
 place that does not exist. `CompleteCtx` now carries the whole input and the
 fragment's span, and a `KindCompletion` may name the offset it replaces from:
@@ -1250,8 +1277,8 @@ York City. What separates them is how much of the alias is still untyped — and
 that has to be measured against everything typed, `new yor`, not against the
 fragment `yor` that neither alias begins with.
 - **No live place engine.** The cache facade is core's and the providers are
-  geo's, and nothing joins them: `@smartput/rates` has `createLiveEngine` and
-  geo has no equivalent. M6.4 was where that was to be ruled on and it was not —
+  the place path's, and nothing joins them: `@smartput/rates` has
+  `createLiveEngine` and `@smartput/country` has no equivalent. M6.4 was where that was to be ruled on and it was not —
   [wiring one](#keeping-it-fresh) still means writing the `Place` → `CityRow`
   mapping yourself, deciding for your own data what a row with no zone and no
   population should become.

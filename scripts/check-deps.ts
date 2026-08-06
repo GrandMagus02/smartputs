@@ -30,11 +30,38 @@ const ALLOWED: Record<string, string[]> = {
     "@smartput/core",
     "@smartput/number",
   ],
-  // No data package. GeoNames is vendored as generated TypeScript under
-  // src/data, committed and reviewable in a diff, so geo carries no npm data
-  // dependency and no upstream maintenance risk — an npm gazetteer would have
-  // been a second supply chain for a table that changes a few times a year.
-  "packages/geo/package.json": ["@smartput/core", "decimal.js"],
+  // The four halves of what M6 shipped as `@smartput/geo`, layered so the graph
+  // has one direction: zip, city and distance are underneath and country is the
+  // package that assembles a kind out of them.
+  //
+  // No data package anywhere in the four. GeoNames is vendored as generated
+  // TypeScript under src/data, committed and reviewable in a diff, so none of
+  // them carries an npm data dependency or the upstream maintenance risk that
+  // comes with one — an npm gazetteer would have been a second supply chain for
+  // a table that changes a few times a year.
+  //
+  // `@smartput/city` has no runtime dependency at all: it is the T1 tables and
+  // their two row types, and a table needs no engine to be a table.
+  "packages/city/package.json": [],
+  // Postal codes: a literal matcher and a validator over rows the caller brings.
+  // It names no gazetteer, which is what lets `country` name it.
+  "packages/zip/package.json": ["@smartput/core", "decimal.js"],
+  // The great-circle op. The edge to zip is one constant — the id a postal code
+  // carries when nothing has positioned it, which is the case `between` refuses.
+  "packages/distance/package.json": ["@smartput/core", "@smartput/zip", "decimal.js"],
+  // T0 and the place kind. `@smartput/city` is here for `CityRow` alone: the
+  // import is `import type` from the `/types` subpath and compiles away, and the
+  // check-size row below is what proves the gazetteer stays out of the bundle.
+  // It is a dependency rather than a devDependency because the emitted `.d.ts`
+  // names it, and a published declaration naming a package absent from the
+  // manifest is a dependency a consumer discovers on install.
+  "packages/country/package.json": [
+    "@smartput/city",
+    "@smartput/core",
+    "@smartput/distance",
+    "@smartput/zip",
+    "decimal.js",
+  ],
 
   // The micro-validation path. Zero runtime dependencies, enforced here: a
   // first one would mean decimal.js or core leaked into a 600-byte budget.

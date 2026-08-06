@@ -113,7 +113,7 @@ export const money: Kind = defineKind({
       },
     },
     {
-      // The bridge to `@smartput/geo`, declared here and importing nothing:
+      // The bridge to `@smartput/country`, declared here and importing nothing:
       // geo puts an ISO 4217 code on `meta.currency` (core's `PlaceMeta`, the
       // same reason `RateLookup` lives there), so rates reads a string and
       // gains no dependency in either direction.

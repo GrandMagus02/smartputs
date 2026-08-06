@@ -16,6 +16,24 @@ claimed as a literal had no path through the parser at all, and the bridges in
 §3.1 are unreachable without one. The change is twenty lines behind an opt-in
 flag, and it is the only core change this milestone makes.
 
+**Amended 2026-08-06: the one package is four.** `@smartput/geo` was split into
+`@smartput/zip` (the postal literal matcher and the format validator),
+`@smartput/city` (the T1 gazetteer, data and no code), `@smartput/distance` (the
+great-circle op) and `@smartput/country` (T0 and the `place` kind assembled out
+of the other three). Nothing about the design below changed — the tiering, the
+weights, the fold and the bridges are all as specified — but every package name
+in it is now the name of a part. Read `@smartput/geo` as `@smartput/country`,
+`@smartput/geo/cities` as `@smartput/city`, and `@smartput/geo/providers` as
+`@smartput/country/providers`.
+
+The one API this cost: `PostalFormat.for("GB")` needed a country table baked
+into the class and `@smartput/zip` ships none, so the lookup is now
+`PostalFormats` — an instance over rows — and `@smartput/country` exports it
+bound to `COUNTRIES` as `POSTAL_FORMATS`. `PostalFormat.of(row)` is unchanged.
+Two constants the postal matcher shared with the name matcher, `MIN_NAME_LENGTH`
+and `RANK_STEP`, are respelled in `@smartput/zip` rather than imported uphill;
+`country/src/postal-agreement.test.ts` asserts the two spellings are equal.
+
 **Amended during M6.3: that is now two core changes, and the second is not
 twenty lines.** `LiteralMatcher` returns `LiteralMatch | readonly LiteralMatch[]
 | null`, the literal fold groups where it used to choose, and the literal token,

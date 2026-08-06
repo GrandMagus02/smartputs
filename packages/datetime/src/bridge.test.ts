@@ -7,7 +7,7 @@ import {
   NoCandidateError,
 } from "@smartput/core";
 import coreEn from "@smartput/core/locale/en";
-import { place } from "@smartput/geo";
+import { place } from "@smartput/country";
 import { BUILTIN_KINDS } from "@smartput/kinds";
 import { datetime } from "./datetime";
 import en from "./locale/en";
@@ -129,8 +129,8 @@ test("datetime declares the bridge without depending on geo", async () => {
   // as well as in check-deps: a stray `import type` would satisfy every test
   // above and quietly reverse it.
   const source = await Bun.file(new URL("./datetime.ts", import.meta.url)).text();
-  expect(source).not.toContain("@smartput/geo");
+  expect(source).not.toContain("@smartput/country");
   const pkg = await Bun.file(new URL("../package.json", import.meta.url)).json();
-  expect(pkg.dependencies["@smartput/geo"]).toBeUndefined();
-  expect(pkg.devDependencies["@smartput/geo"]).toBe("workspace:*");
+  expect(pkg.dependencies["@smartput/country"]).toBeUndefined();
+  expect(pkg.devDependencies["@smartput/country"]).toBe("workspace:*");
 });

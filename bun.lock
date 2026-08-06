@@ -49,6 +49,13 @@
         "@smartput/kinds": "workspace:*",
       },
     },
+    "packages/city": {
+      "name": "@smartput/city",
+      "version": "0.0.0",
+      "devDependencies": {
+        "@smartput/country": "workspace:*",
+      },
+    },
     "packages/core": {
       "name": "@smartput/core",
       "version": "0.0.0",
@@ -58,6 +65,24 @@
       "devDependencies": {
         "@smartput/kinds": "workspace:*",
         "@smartput/validate": "workspace:*",
+      },
+    },
+    "packages/country": {
+      "name": "@smartput/country",
+      "version": "0.0.0",
+      "dependencies": {
+        "@smartput/city": "workspace:*",
+        "@smartput/core": "workspace:*",
+        "@smartput/distance": "workspace:*",
+        "@smartput/zip": "workspace:*",
+        "decimal.js": "^10.6.0",
+      },
+      "devDependencies": {
+        "@smartput/datetime": "workspace:*",
+        "@smartput/kinds": "workspace:*",
+        "@smartput/length": "workspace:*",
+        "@smartput/number": "workspace:*",
+        "@smartput/rates": "workspace:*",
       },
     },
     "packages/datasize": {
@@ -81,8 +106,20 @@
         "temporal-polyfill": "^0.3.0",
       },
       "devDependencies": {
-        "@smartput/geo": "workspace:*",
+        "@smartput/country": "workspace:*",
         "@smartput/kinds": "workspace:*",
+      },
+    },
+    "packages/distance": {
+      "name": "@smartput/distance",
+      "version": "0.0.0",
+      "dependencies": {
+        "@smartput/core": "workspace:*",
+        "@smartput/zip": "workspace:*",
+        "decimal.js": "^10.6.0",
+      },
+      "devDependencies": {
+        "@smartput/country": "workspace:*",
       },
     },
     "packages/duration": {
@@ -91,21 +128,6 @@
       "dependencies": {
         "@smartput/core": "workspace:*",
         "@smartput/validate": "workspace:*",
-      },
-    },
-    "packages/geo": {
-      "name": "@smartput/geo",
-      "version": "0.0.0",
-      "dependencies": {
-        "@smartput/core": "workspace:*",
-        "decimal.js": "^10.6.0",
-      },
-      "devDependencies": {
-        "@smartput/datetime": "workspace:*",
-        "@smartput/kinds": "workspace:*",
-        "@smartput/length": "workspace:*",
-        "@smartput/number": "workspace:*",
-        "@smartput/rates": "workspace:*",
       },
     },
     "packages/kinds": {
@@ -190,7 +212,7 @@
         "decimal.js": "^10.6.0",
       },
       "devDependencies": {
-        "@smartput/geo": "workspace:*",
+        "@smartput/country": "workspace:*",
         "@smartput/number": "workspace:*",
       },
     },
@@ -228,6 +250,19 @@
         "@smartput/validate": "workspace:*",
       },
       "devDependencies": {
+        "@smartput/kinds": "workspace:*",
+      },
+    },
+    "packages/zip": {
+      "name": "@smartput/zip",
+      "version": "0.0.0",
+      "dependencies": {
+        "@smartput/core": "workspace:*",
+        "decimal.js": "^10.6.0",
+      },
+      "devDependencies": {
+        "@smartput/country": "workspace:*",
+        "@smartput/datetime": "workspace:*",
         "@smartput/kinds": "workspace:*",
       },
     },
@@ -499,17 +534,21 @@
 
     "@smartput/area": ["@smartput/area@workspace:packages/area"],
 
+    "@smartput/city": ["@smartput/city@workspace:packages/city"],
+
     "@smartput/core": ["@smartput/core@workspace:packages/core"],
+
+    "@smartput/country": ["@smartput/country@workspace:packages/country"],
 
     "@smartput/datasize": ["@smartput/datasize@workspace:packages/datasize"],
 
     "@smartput/datetime": ["@smartput/datetime@workspace:packages/datetime"],
 
+    "@smartput/distance": ["@smartput/distance@workspace:packages/distance"],
+
     "@smartput/docs": ["@smartput/docs@workspace:docs"],
 
     "@smartput/duration": ["@smartput/duration@workspace:packages/duration"],
-
-    "@smartput/geo": ["@smartput/geo@workspace:packages/geo"],
 
     "@smartput/kinds": ["@smartput/kinds@workspace:packages/kinds"],
 
@@ -534,6 +573,8 @@
     "@smartput/validate": ["@smartput/validate@workspace:packages/validate"],
 
     "@smartput/volume": ["@smartput/volume@workspace:packages/volume"],
+
+    "@smartput/zip": ["@smartput/zip@workspace:packages/zip"],
 
     "@tybys/wasm-util": ["@tybys/wasm-util@0.10.3", "", { "dependencies": { "tslib": "^2.4.0" } }, "sha512-F3fo1MYrRJYL3zER0OUOmkutjr1Vp23m7OsSgp7nq4SP6OqX6C/56XFIPAl5bt3zaBRjmW7SGz3u/6LwFpYcOg=="],
 

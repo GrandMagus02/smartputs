@@ -17,7 +17,7 @@ Each milestone is independently shippable and gets its own implementation plan.
 | **M4** | `@smartput/datetime`: datetime kind, chrono bridge, Temporal ops, timezones. Core's literal-matcher seam and opaque-kind units. | **Shipped** |
 | **M4.5** | `@smartput/validate`: an engine-free parser, operation algebra and value-class factory. Every ratio kind gains `./units`, `./validate`, `./class` subpaths, plus `@smartput/kinds/validate` and `/class` barrels. Per-entry byte budgets enforced in CI. | **Shipped** |
 | **M5** | `@smartput/color`, the Ukrainian locale across every package, `defineLocalePack`, analyzer helpers, `assertLocaleContract`. | Planned |
-| **M6** | `@smartput/geo`: place kind, countries and cities, `kyiv to warsaw` as a distance, postal codes, the datetime and rates bridges, GeoNames providers, place completion. | **Shipped** |
+| **M6** | `@smartput/country` and its three layers below: place kind, countries and cities, `kyiv to warsaw` as a distance, postal codes, the datetime and rates bridges, GeoNames providers, place completion. | **Shipped** |
 | **M7** | `@smartput/http`, meta-package, npm release. | Planned |
 
 M1 carried the only real invention risk. Most of what came after it is
@@ -51,7 +51,7 @@ byte figures that justify the split are measured, not estimated —
 `bun run check` on regression, the same enforcement `check-deps.ts` already
 applied to the dependency table below.
 
-M6 shipped `@smartput/geo` in four parts — see
+M6 shipped in four parts and then split into four packages — see
 [Places and distances](/guide/places). Core knows no geography: a place is an
 opaque kind whose units are country codes, the distance is one
 `in | place | place` signature, and the datetime and rates bridges are one op
@@ -101,8 +101,11 @@ Shipped:
 @smartput/validate     engine-free parser, operation algebra, value-class factory
 @smartput/rates        money kind, RateSnapshot, ECB provider, async facade
 @smartput/datetime     datetime kind, chrono bridge, Temporal ops, time zones
-@smartput/geo          place kind: countries, cities, postal codes, distance,
-                       zone and currency lookup, GeoNames providers
+@smartput/country      place kind: T0 countries, zone and currency lookup,
+                       completion, GeoNames providers
+@smartput/city         T1 gazetteer: 6,247 cities, 1,664 divisions, no code
+@smartput/zip          postal literal matcher, format validation, no data
+@smartput/distance     great-circle op for two place values, no data
 ```
 
 Planned:

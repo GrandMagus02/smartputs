@@ -1,5 +1,5 @@
 {
-  "name": "@smartput/rates",
+  "name": "@smartput/distance",
   "version": "0.0.0",
   "type": "module",
   "sideEffects": false,
@@ -8,19 +8,14 @@
       "bun": "./src/index.ts",
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
-    },
-    "./locale/en": {
-      "bun": "./src/locale/en.ts",
-      "types": "./dist/locale/en.d.ts",
-      "default": "./dist/locale/en.js"
     }
   },
   "dependencies": {
     "@smartput/core": "workspace:*",
+    "@smartput/zip": "workspace:*",
     "decimal.js": "^10.6.0"
   },
   "devDependencies": {
-    "@smartput/country": "workspace:*",
-    "@smartput/number": "workspace:*"
+    "@smartput/country": "workspace:*"
   }
 }

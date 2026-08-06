@@ -8,7 +8,7 @@ import {
   type Value,
 } from "@smartput/core";
 import en from "@smartput/core/locale/en";
-import { place } from "@smartput/geo";
+import { place } from "@smartput/country";
 import { number } from "@smartput/number";
 import { money } from "./money";
 import { snapshot } from "./snapshot";
@@ -84,7 +84,7 @@ test("a quotable currency missing from this snapshot raises MissingRateError", (
 });
 
 test("a place carrying no currency says so, rather than converting by NaN", () => {
-  // Reached directly: every place `@smartput/geo` ships carries a currency, so
+  // Reached directly: every place `@smartput/country` ships carries a currency, so
   // the only way to see this is a Value from a provider (M6.3) that does not.
   const sig = money.ops?.find((o) => o.op === "in" && o.right === "place");
   if (sig === undefined) throw new Error("missing money|place signature");
