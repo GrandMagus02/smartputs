@@ -16,3 +16,14 @@ export {
   type PlaceSnapshot,
   placeSnapshot,
 } from "./place";
+export {
+  applyFilters,
+  cacheKey,
+  GeocodeError,
+  type GeocodeHit,
+  type GeocodeKind,
+  type GeocodeProvider,
+  type GeocodeQuery,
+  type PlaceSnapshotLike,
+  toQuery,
+} from "./query";
