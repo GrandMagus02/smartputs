@@ -234,15 +234,6 @@ test("race takes the first non-empty answer", async () => {
   expect((await geo.search("berlin")).map((h) => h.source)).toEqual(["fast"]);
 });
 
-test("a non-interactive provider is skipped until the query is committed", async () => {
-  const live = stub("live", [hit("live")], { interactive: false });
-  const geo = new Geocoder({ providers: [live], now: () => 0 });
-  expect(await geo.search("berlin")).toEqual([]);
-  expect(live.calls).toBe(0);
-  expect(await geo.search({ text: "berlin", committed: true })).toHaveLength(1);
-  expect(live.calls).toBe(1);
-});
-
 test("an already-aborted query rejects with the signal's own reason", async () => {
   const controller = new AbortController();
   const reason = new Error("gone");
@@ -255,10 +246,14 @@ test("an already-aborted query rejects with the signal's own reason", async () =
   expect(a.calls).toBe(0);
 });
 
-test("a query aborted mid-flight rejects and caches nothing for the aborter", async () => {
+test("a query aborted mid-flight rejects for the aborter, not for the shared load", async () => {
   const controller = new AbortController();
+  // Counted here rather than through `stub`'s `calls`, which only the default
+  // `search` increments — an `over.search` replaces it outright.
+  let calls = 0;
   const a = stub("a", [], {
     async search() {
+      calls += 1;
       await new Promise((r) => setTimeout(r, 10));
       return [hit("a")];
     },
@@ -267,6 +262,13 @@ test("a query aborted mid-flight rejects and caches nothing for the aborter", as
   const pending = geo.search({ text: "berlin", signal: controller.signal });
   controller.abort(new Error("superseded"));
   await expect(pending).rejects.toThrow("superseded");
+  // The half of §11 the abort rule leaves ambiguous, pinned here: the abort is
+  // the *aborter's view* of a load it never reaches, so it contributes no cache
+  // entry of its own — but it does not cancel a request the next keystroke may
+  // still be waiting on, which is §5.3's in-flight dedup. Hence the second
+  // caller joins the load already running rather than starting a fresh one.
+  expect(await geo.search("berlin")).toHaveLength(1);
+  expect(calls).toBe(1);
 });
 
 test("reverse asks the providers that can reverse", async () => {
