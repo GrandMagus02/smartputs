@@ -117,6 +117,23 @@ test("a burst of keystrokes on one key makes one call", async () => {
   expect(a.calls).toBe(1);
 });
 
+test("a non-interactive provider is skipped until the query is committed", async () => {
+  const live = stub("live", [hit("live")], { interactive: false });
+  const geo = new Geocoder({ providers: [live], now: () => 0 });
+  expect(await geo.search("berlin")).toEqual([]);
+  expect(live.calls).toBe(0);
+  expect(await geo.search({ text: "berlin", committed: true })).toHaveLength(1);
+  expect(live.calls).toBe(1);
+});
+
+test("a keystroke reads the committed answer, never the other way round", async () => {
+  const live = stub("live", [hit("live")], { interactive: false });
+  const geo = new Geocoder({ providers: [live], now: () => 0 });
+  expect(await geo.search({ text: "berlin", committed: true })).toHaveLength(1);
+  expect(await geo.search("berlin")).toHaveLength(1);
+  expect(live.calls).toBe(1);
+});
+
 test("the constructor limit applies, and a query overrides it", async () => {
   const hits = [1, 2, 3].map((n) => hit("a", { place: place({ geonameId: n }) }));
   const geo = new Geocoder({ providers: [stub("a", hits)], limit: 2, now: () => 0 });

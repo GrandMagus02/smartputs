@@ -50,8 +50,8 @@ export class Geocoder {
     this.#limit = opts.limit ?? DEFAULT_LIMIT;
     // Spread-or-omit rather than passing undefined through:
     // `exactOptionalPropertyTypes` makes an absent option and one holding
-    // undefined different types, and `QueryCache` reads its defaults with `??`
-    // on properties it expects to be absent.
+    // undefined different types, and `QueryCacheOptions` declares the absent
+    // one — so `{ ttlMs: undefined }` is a type error, not a defaulted call.
     this.#cache = new QueryCache<readonly GeocodeHit[]>({
       ...(opts.ttlMs === undefined ? {} : { ttlMs: opts.ttlMs }),
       ...(opts.cacheMax === undefined ? {} : { max: opts.cacheMax }),
@@ -97,7 +97,7 @@ export class Geocoder {
   async search(input: string | GeocodeQuery): Promise<readonly GeocodeHit[]> {
     const q = this.#withDefaults(toQuery(input));
     this.#throwIfAborted(q);
-    const hits = await this.#cache.get(cacheKey(q), () => this.#run(q));
+    const hits = await this.#load(q);
     // Re-checked after the await: a query aborted while its load was in flight
     // must not resolve, even though the load itself is shared and completed for
     // somebody else.
@@ -113,6 +113,32 @@ export class Geocoder {
 
   #withDefaults(q: GeocodeQuery): GeocodeQuery {
     return q.limit === undefined ? { ...q, limit: this.#limit } : q;
+  }
+
+  /**
+   * The cached load, in the one direction sharing is sound.
+   *
+   * `cacheKey` deliberately ignores `committed` because a committed answer is a
+   * *superset* — every eligible provider ran — and a later keystroke is
+   * entitled to read it. The converse is not true, and reading it as symmetric
+   * is a cache poisoning: `type, then press Enter` is the only order that
+   * happens in practice, so the keystroke's narrow answer (often `[]`, since
+   * non-interactive providers were skipped) would be handed straight back to
+   * the committed query and the provider would never run at all.
+   *
+   * So the committed answer owns `cacheKey(q)` and a keystroke answer is
+   * shelved beside it under a suffixed key, which `cacheKey` can never produce
+   * (its last field is `limit`, always a number once `#withDefaults` has run).
+   * `peek` rather than `get` on the wide entry: an entry only exists once its
+   * load resolved, and a *pending* committed load must not be awaited by a
+   * keystroke that could still be served now.
+   */
+  #load(q: GeocodeQuery): Promise<readonly GeocodeHit[]> {
+    const key = cacheKey(q);
+    if (q.committed === true) return this.#cache.get(key, () => this.#run(q));
+    const wide = this.#cache.peek(key);
+    if (wide !== undefined) return Promise.resolve(wide);
+    return this.#cache.get(`${key} ~`, () => this.#run(q));
   }
 
   /**
