@@ -224,7 +224,11 @@ export class Normalizer {
   private readonly opts: NormalizerOptions;
 
   constructor(cfg: NormalizerOptions = {}) {
-    this.opts = cfg;
+    // A copy, not the caller's object: freezing `this` only stops `this.opts`
+    // being reassigned, and the caller could otherwise mutate the object they
+    // passed in after construction, changing `run()`'s behavior without
+    // reconstructing the instance.
+    this.opts = Object.freeze({ ...cfg });
     Object.freeze(this);
   }
 

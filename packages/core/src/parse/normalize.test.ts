@@ -6,6 +6,7 @@ test("the passes that existed before still run", () => {
   expect(normalize("30 − 5").text).toBe("30 - 5");
   expect(normalize("20 °C").text).toBe("20 C");
   expect(normalize("30​deg").text).toBe("30deg");
+  expect(normalize("１０ kg").text).toBe("10 kg");
 });
 
 test("empty input is reported, not thrown", () => {
@@ -84,6 +85,13 @@ test("the class holds config and returns equal output across calls", () => {
   expect(Object.isFrozen(n)).toBe(true);
   expect(n.run("20 °C").text).toBe("20 °C");
   expect(n.run("20 °C")).toEqual(n.run("20 °C"));
+});
+
+test("mutating the config object after construction does not change run()", () => {
+  const cfg = { degree: false };
+  const n = new Normalizer(cfg);
+  cfg.degree = true;
+  expect(n.run("20 °C").text).toBe("20 °C");
 });
 
 test("outputs are frozen", () => {
