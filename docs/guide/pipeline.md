@@ -76,7 +76,7 @@ result.value.unit = "hacked";
 `Result` itself and its `meta.assumptions` array are not frozen — only the
 values a caller is likely to hold onto and pass around are.
 
-## Stage 1 — Normalizer
+## Stage 1 - Normalizer
 
 The stage that tries to make input valid, and reports what it could and could
 not do. `@smartput/core/normalize`.
@@ -115,7 +115,7 @@ close honestly: once NFKC has changed the string's *length*, there is no
 character-level correspondence left, and `mapSpan` answers with the whole
 source rather than a plausible-looking wrong offset.
 
-## Stage 2 — Tokenizer
+## Stage 2 - Tokenizer
 
 Lexing plus the three fold passes, which used to be four separate calls with
 different argument shapes. `@smartput/core/tokenize`.
@@ -171,7 +171,7 @@ operator. Because both fold passes run before parsing, `"ten plus five"` and
 `"10 + 5"` reach the parser as identical token streams, and word operators get
 the existing precedence table for free: `ten plus two times three` is 16.
 
-## Stage 3 — Parser
+## Stage 3 - Parser
 
 Pratt parsing over a `Resolver`, producing a `Program` — the tree that *is*
 the "list of commands," just with structure, because `2 * (3 + 4)` has some.
@@ -238,7 +238,7 @@ later. The Pratt tree-builder underneath it (`parse`) is a private
 implementation detail: nothing outside `parse/program.ts` calls it, and
 `Parser.run` is the public door onto both steps.
 
-## Stage 4 — Solver
+## Stage 4 - Solver
 
 The load-bearing stage: constraint propagation over the tree unifies kinds
 across operands, scores each consistent assignment, and ranks them.
@@ -293,7 +293,7 @@ itself re-exports `Solver`, `Resolution`, `SolverOptions` and
 `solve` on its own — `Solver.all()`/`best()`/`forKind()` are the intended door
 from that subpath.
 
-## Stage 5 — Evaluator
+## Stage 5 - Evaluator
 
 The tree, walked with kinds resolved. `@smartput/core/eval`.
 
@@ -316,7 +316,7 @@ The pure function underneath is `evaluateNode`, taking the same explicit
 options `Evaluator` holds; `toCanonical` — the conversion primitive both
 `Evaluator` and `Printer` share — travels with it on the same subpath.
 
-## Stage 6 — Printer
+## Stage 6 - Printer
 
 The stage that did not exist before this restructuring: turning a `Program`
 back into a string, and a `Value` back into a string. Full reference:
@@ -346,7 +346,7 @@ category:
 [Printer](/api/printer) for the modes, the options and the round-trip
 contract.
 
-## Stage 7 — Autocompleter
+## Stage 7 - Autocompleter
 
 Prefix completion, ranked by the same weight stack that ranks readings.
 `complete()` holding its own config, no behaviour change from before this
