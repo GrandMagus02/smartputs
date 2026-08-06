@@ -169,3 +169,118 @@ test("attribution is every provider's, deduplicated and empty-free", () => {
   });
   expect(geo.attribution).toEqual(["© a"]);
 });
+
+test("merge calls every provider and ranks the union", async () => {
+  const a = stub("a", [hit("a", { place: place({ geonameId: 1 }) })]);
+  const b = stub("b", [
+    hit("b", { place: place({ geonameId: 2, name: "Berlin Heights" }) }),
+  ]);
+  const geo = new Geocoder({ providers: [a, b], strategy: "merge", now: () => 0 });
+  const hits = await geo.search("berlin");
+  expect(a.calls).toBe(1);
+  expect(b.calls).toBe(1);
+  expect(hits).toHaveLength(2);
+});
+
+test("merge deduplicates the same place found twice", async () => {
+  const a = stub("a", [hit("a")]);
+  const b = stub("b", [hit("b")]);
+  const geo = new Geocoder({ providers: [a, b], strategy: "merge", now: () => 0 });
+  expect(await geo.search("berlin")).toHaveLength(1);
+});
+
+test("merge prefers the earlier provider, all else equal", async () => {
+  const a = stub("a", [hit("a", { place: place({ geonameId: 1 }) })]);
+  const b = stub("b", [hit("b", { place: place({ geonameId: 2 }) })]);
+  const geo = new Geocoder({ providers: [a, b], strategy: "merge", now: () => 0 });
+  expect((await geo.search("berlin"))[0]?.source).toBe("a");
+});
+
+test("merge survives one provider rejecting", async () => {
+  const a = stub("a", [], {
+    async search() {
+      throw new Error("down");
+    },
+  });
+  const b = stub("b", [hit("b")]);
+  const geo = new Geocoder({ providers: [a, b], strategy: "merge", now: () => 0 });
+  expect(await geo.search("berlin")).toHaveLength(1);
+});
+
+test("merge with every provider rejecting is one GeocodeError", async () => {
+  const down = () =>
+    stub("x", [], {
+      async search() {
+        throw new Error("down");
+      },
+    });
+  const geo = new Geocoder({
+    providers: [down(), down()],
+    strategy: "merge",
+    now: () => 0,
+  });
+  await expect(geo.search("berlin")).rejects.toBeInstanceOf(GeocodeError);
+});
+
+test("race takes the first non-empty answer", async () => {
+  const slow = stub("slow", [], {
+    async search() {
+      await new Promise((r) => setTimeout(r, 20));
+      return [hit("slow")];
+    },
+  });
+  const fast = stub("fast", [hit("fast")]);
+  const geo = new Geocoder({ providers: [slow, fast], strategy: "race", now: () => 0 });
+  expect((await geo.search("berlin")).map((h) => h.source)).toEqual(["fast"]);
+});
+
+test("a non-interactive provider is skipped until the query is committed", async () => {
+  const live = stub("live", [hit("live")], { interactive: false });
+  const geo = new Geocoder({ providers: [live], now: () => 0 });
+  expect(await geo.search("berlin")).toEqual([]);
+  expect(live.calls).toBe(0);
+  expect(await geo.search({ text: "berlin", committed: true })).toHaveLength(1);
+  expect(live.calls).toBe(1);
+});
+
+test("an already-aborted query rejects with the signal's own reason", async () => {
+  const controller = new AbortController();
+  const reason = new Error("gone");
+  controller.abort(reason);
+  const a = stub("a", [hit("a")]);
+  const geo = new Geocoder({ providers: [a], now: () => 0 });
+  await expect(geo.search({ text: "berlin", signal: controller.signal })).rejects.toBe(
+    reason,
+  );
+  expect(a.calls).toBe(0);
+});
+
+test("a query aborted mid-flight rejects and caches nothing for the aborter", async () => {
+  const controller = new AbortController();
+  const a = stub("a", [], {
+    async search() {
+      await new Promise((r) => setTimeout(r, 10));
+      return [hit("a")];
+    },
+  });
+  const geo = new Geocoder({ providers: [a], now: () => 0 });
+  const pending = geo.search({ text: "berlin", signal: controller.signal });
+  controller.abort(new Error("superseded"));
+  await expect(pending).rejects.toThrow("superseded");
+});
+
+test("reverse asks the providers that can reverse", async () => {
+  const flat = stub("flat", []);
+  const rev = stub("rev", [], {
+    async reverse() {
+      return [hit("rev")];
+    },
+  });
+  const geo = new Geocoder({ providers: [flat, rev], now: () => 0 });
+  expect((await geo.reverse(52.52, 13.4)).map((h) => h.source)).toEqual(["rev"]);
+});
+
+test("reverse with nothing that reverses throws rather than saying nowhere", async () => {
+  const geo = new Geocoder({ providers: [stub("flat", [])], now: () => 0 });
+  await expect(geo.reverse(52.52, 13.4)).rejects.toBeInstanceOf(GeocodeError);
+});

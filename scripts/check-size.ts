@@ -409,6 +409,28 @@ export const BUDGETS: EntrySpec[] = [
     min: 40_500,
     gzip: 16_500,
   },
+  // The search half of geo, measured for the claim its manifest makes: one
+  // runtime dependency and no data of its own. `@smartput/city` is a
+  // devDependency because `bundled()` takes rows as an argument, and this row
+  // is what says so in bytes — the T1 tier is ~1 MB, so a value import of it
+  // sneaking into the graph is a twenty-fold jump, not a drift.
+  //
+  // 38.8 KB for ~5.5 KB of code, because reaching `SmartputError` through
+  // `@smartput/core`'s root costs 33.3 KB on its own: core configures
+  // decimal.js's precision in a module-load side effect, which a bundler may
+  // not drop. Same reason the zip and distance rows above sit where they do.
+  // That constant mass is also why the floor is set explicitly — the default
+  // 70% band bottoms out at 27 KB, below the 33.3 KB core alone costs, so
+  // every symbol this package exports could shake away and the row would still
+  // read as a pass.
+  {
+    label: "geocode root (one dependency, no gazetteer)",
+    from: "@smartput/geocode",
+    names: ["Geocoder", "rankHits", "QueryCache"],
+    min: 38_912,
+    gzip: 15_616,
+    floor: 37_000,
+  },
 ];
 
 if (import.meta.main) {

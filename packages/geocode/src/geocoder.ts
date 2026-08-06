@@ -97,12 +97,26 @@ export class Geocoder {
   async search(input: string | GeocodeQuery): Promise<readonly GeocodeHit[]> {
     const q = this.#withDefaults(toQuery(input));
     this.#throwIfAborted(q);
-    const hits = await this.#load(q);
-    // Re-checked after the await: a query aborted while its load was in flight
-    // must not resolve, even though the load itself is shared and completed for
-    // somebody else.
-    this.#throwIfAborted(q);
-    return hits;
+    const load = this.#load(q);
+    const signal = q.signal;
+    if (signal === undefined) return load;
+    // The shared load is *not* cancelled — another caller may still want it.
+    // What this rejects is this caller's view of it, which is what an abort
+    // actually means when one request serves several callers (§5.3). Racing
+    // rather than re-checking after the await, so an abort lands the moment it
+    // happens instead of whenever the slowest provider gets round to answering.
+    return Promise.race([
+      load,
+      new Promise<never>((_, reject) => {
+        signal.addEventListener(
+          "abort",
+          () => {
+            reject(signal.reason);
+          },
+          { once: true },
+        );
+      }),
+    ]);
   }
 
   /** `search` narrowed to one answer, which is what the kind bridge wants. */
@@ -174,9 +188,19 @@ export class Geocoder {
   async #run(q: GeocodeQuery): Promise<readonly GeocodeHit[]> {
     const providers = this.#eligible(q);
     if (providers.length === 0) return [];
-    const causes: unknown[] = [];
     const weightOf = this.#weightOf(providers);
+    if (this.#strategy === "merge") return this.#merge(providers, q, weightOf);
+    if (this.#strategy === "race") return this.#race(providers, q, weightOf);
+    return this.#fallback(providers, q, weightOf);
+  }
 
+  /** Cheapest source first, and stop at the first one that answers. */
+  async #fallback(
+    providers: readonly GeocodeProvider[],
+    q: GeocodeQuery,
+    weightOf: (source: string) => number,
+  ): Promise<readonly GeocodeHit[]> {
+    const causes: unknown[] = [];
     for (const provider of providers) {
       try {
         const hits = applyFilters(await provider.search(q), q);
@@ -187,10 +211,115 @@ export class Geocoder {
         causes.push(err);
       }
     }
+    return this.#empty(providers, causes);
+  }
 
-    if (causes.length === providers.length && causes.length > 0) {
+  /**
+   * Every provider in parallel, the union deduped and ranked together.
+   *
+   * `allSettled` and not `all`: one dead mirror must not take the query with
+   * it, which is the same rule `#fallback` follows. Only an all-rejecting run
+   * is a failure.
+   */
+  async #merge(
+    providers: readonly GeocodeProvider[],
+    q: GeocodeQuery,
+    weightOf: (source: string) => number,
+  ): Promise<readonly GeocodeHit[]> {
+    const settled = await Promise.allSettled(providers.map((p) => p.search(q)));
+    const hits: GeocodeHit[] = [];
+    const causes: unknown[] = [];
+    for (const result of settled) {
+      if (result.status === "fulfilled") hits.push(...applyFilters(result.value, q));
+      else causes.push(result.reason);
+    }
+    if (hits.length > 0) return rankHits(hits, q, weightOf);
+    return this.#empty(providers, causes);
+  }
+
+  /**
+   * The first non-empty answer wins. Losers are left to settle rather than
+   * cancelled: a provider's own `signal` is the query's, and aborting it here
+   * would abort the winner too.
+   */
+  async #race(
+    providers: readonly GeocodeProvider[],
+    q: GeocodeQuery,
+    weightOf: (source: string) => number,
+  ): Promise<readonly GeocodeHit[]> {
+    const causes: unknown[] = [];
+    let pending = providers.length;
+    return new Promise<readonly GeocodeHit[]>((resolve, reject) => {
+      // Only reached once every provider has answered emptily or rejected —
+      // a winner resolves the promise directly and leaves this counting into
+      // an already-settled promise, which is a no-op.
+      const settle = (): void => {
+        pending -= 1;
+        if (pending > 0) return;
+        if (causes.length === providers.length) {
+          reject(new GeocodeError(`every provider failed (${providers.length})`, causes));
+          return;
+        }
+        resolve([]);
+      };
+      for (const provider of providers) {
+        provider.search(q).then(
+          (raw) => {
+            const hits = applyFilters(raw, q);
+            if (hits.length > 0) resolve(rankHits(hits, q, weightOf));
+            else settle();
+          },
+          (err: unknown) => {
+            causes.push(err);
+            settle();
+          },
+        );
+      }
+    });
+  }
+
+  /** No hits: empty when someone answered, an error when nobody could. */
+  #empty(
+    providers: readonly GeocodeProvider[],
+    causes: readonly unknown[],
+  ): readonly GeocodeHit[] {
+    if (causes.length > 0 && causes.length === providers.length) {
       throw new GeocodeError(`every provider failed (${providers.length})`, causes);
     }
     return [];
+  }
+
+  /**
+   * The coordinate's place, from the providers that can answer one.
+   *
+   * A `Geocoder` with none throws rather than returning `[]`: an empty array
+   * reads as "nowhere is there", which is never true of a coordinate (§4.3).
+   */
+  async reverse(
+    lat: number,
+    lon: number,
+    input: string | GeocodeQuery = "",
+  ): Promise<readonly GeocodeHit[]> {
+    const q = this.#withDefaults(toQuery(input));
+    this.#throwIfAborted(q);
+    const able = this.#eligible(q).filter((p) => p.reverse !== undefined);
+    if (able.length === 0) {
+      throw new GeocodeError("no provider can reverse a coordinate");
+    }
+    const weightOf = this.#weightOf(able);
+    const causes: unknown[] = [];
+    const hits: GeocodeHit[] = [];
+    for (const provider of able) {
+      try {
+        const raw = await provider.reverse?.(lat, lon, q);
+        hits.push(...applyFilters(raw ?? [], q));
+        if (hits.length > 0 && this.#strategy !== "merge") break;
+      } catch (err) {
+        causes.push(err);
+      }
+    }
+    this.#throwIfAborted(q);
+    if (hits.length > 0) return rankHits(hits, q, weightOf);
+    return this.#empty(able, causes);
   }
 }
