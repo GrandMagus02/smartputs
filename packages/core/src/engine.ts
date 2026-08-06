@@ -1,7 +1,7 @@
-import { type CompleteOptions, type Completion, complete } from "./complete/complete";
+import type { CompleteOptions, Completion } from "./complete/complete";
+import { Completer } from "./complete/completer";
 import type { Decimal } from "./decimal";
 import {
-  AmbiguityError,
   KindConflictError,
   MissingRateError,
   NoCandidateError,
@@ -9,15 +9,16 @@ import {
   UnitParseError,
   UnknownKindError,
 } from "./errors";
-import { evaluateNode } from "./eval/evaluate";
+import { Evaluator } from "./eval/evaluator";
 import { formatValue } from "./format/format";
-import { buildRegistry, NUMBER_KIND } from "./kind/registry";
+import { buildRegistry, NUMBER_KIND, type Registry } from "./kind/registry";
 import { createResolver } from "./parse/candidates";
 import type { Token } from "./parse/lex";
-import { type NormalizedInput, Normalizer } from "./parse/normalize";
+import { Normalizer } from "./parse/normalize";
 import { Parser, type Program } from "./parse/program";
-import { Tokenizer } from "./parse/tokenizer";
-import { type Resolution, solve } from "./solve/solver";
+import { Tokenizer, type TokenStream } from "./parse/tokenizer";
+import type { Resolution } from "./solve/solver";
+import { Solver } from "./solve/solver-class";
 import { weightBreakdown } from "./solve/weights";
 import type {
   Assumption,
@@ -27,7 +28,6 @@ import type {
   Locale,
   LocalePack,
   RateLookup,
-  ResultCandidate,
   Span,
   Value,
   Weights,
@@ -122,226 +122,266 @@ export interface Engine {
   complete(input: string, opts?: CompleteOptions): Completion[];
 }
 
+/**
+ * The three weight layers every reading is scored against — locale, engine,
+ * call — in the order `resolveWeight` sums them. The one formula, shared by
+ * `parserFor`/`completerFor` (which need the array to build a fresh stage)
+ * and `toExplanation` (which needs it again to reproduce a candidate's score
+ * as named rows), so a fourth caller cannot invent a different order.
+ */
+function weightLayers(
+  locale: Locale,
+  opts: EngineOptions,
+  call: Weights | undefined,
+): (Weights | undefined)[] {
+  return [locale.weights, opts.weights, call];
+}
+
+/**
+ * One instance each of the stages that hold no per-call state, built once and
+ * reused across every call `createEngine`'s returned `Engine` receives. The
+ * `Parser` and `Completer` are conspicuously missing: both close over a weight
+ * layer that `EvalOptions.weights`/`CompleteOptions.weights` can override per
+ * call, so `createEngine` builds a fresh one per call instead (`parserFor`,
+ * `completerFor`).
+ */
+function buildStages(opts: EngineOptions, registry: Registry, locale: Locale) {
+  return {
+    normalizer: new Normalizer(),
+    tokenizer: new Tokenizer({
+      locale,
+      registry,
+      ...(opts.now === undefined ? {} : { now: opts.now }),
+      ...(opts.timeZone === undefined ? {} : { timeZone: opts.timeZone }),
+    }),
+    solver: new Solver({
+      registry,
+      ...(opts.maxCandidates === undefined ? {} : { maxCandidates: opts.maxCandidates }),
+      ...(opts.ambiguityEpsilon === undefined
+        ? {}
+        : { ambiguityEpsilon: opts.ambiguityEpsilon }),
+      ...(opts.tiebreak === undefined ? {} : { tiebreak: opts.tiebreak }),
+    }),
+    evaluator: new Evaluator({
+      registry,
+      locale: locale.id,
+      ...(opts.kindMeta === undefined ? {} : { kindMeta: opts.kindMeta }),
+      ...(opts.rates ? { rates: opts.rates } : {}),
+    }),
+  };
+}
+
+/**
+ * The stage instances and options every entry point method needs but no
+ * single call supplies — as opposed to `layers(call?.weights)` and a fresh
+ * `Parser`/`Completer`, which are per-call. Built once, passed down instead of
+ * closed over, the way spec §5's `toResult(program, resolution, printer,
+ * evaluator)` already takes `printer` and `evaluator` as explicit arguments.
+ */
+interface EngineCtx {
+  registry: Registry;
+  locale: Locale;
+  evaluator: Evaluator;
+  opts: EngineOptions;
+}
+
+/**
+ * `evaluator.run` plus the formatting and span-mapping every entry point
+ * needs to turn a `Resolution` into the public `Result` shape. Takes `ctx`
+ * explicitly rather than closing over it, the way spec §5 shows this taking
+ * `printer` — the difference is only that `Printer` (Task 9) does not exist
+ * yet, so formatting still goes through `formatValue` directly.
+ */
+function toResult(program: Program, resolution: Resolution, ctx: EngineCtx): Result {
+  const { registry, locale, evaluator, opts } = ctx;
+  const { value, assumptions } = evaluator.run(program, resolution);
+  return {
+    value,
+    formatted: formatValue(value, registry, locale, {
+      ...(opts.formatPrecision === undefined ? {} : { precision: opts.formatPrecision }),
+      ...(opts.rounding === undefined ? {} : { rounding: opts.rounding }),
+      ...(opts.rates ? { rates: opts.rates } : {}),
+    }),
+    kind: value.kind,
+    confidence: resolution.confidence,
+    // Spans are produced against the normalized text; the caller reads them
+    // against the string they passed in. Without this they disagree whenever
+    // normalization changed a length.
+    spans: [program.input.mapSpan(program.root.span)],
+    meta: {
+      assumptions: [...assumptions],
+      ...(opts.rates ? { ratesAsOf: opts.rates.asOf } : {}),
+    },
+  };
+}
+
+/**
+ * `explain()`'s whole body: the token span mapping (Task 6's boundary rule —
+ * `stream.tokens` is normalized-relative because `foldLiterals` slices
+ * `normalized.text` by these offsets, so this is the one place they reach a
+ * caller), the deduplicated candidate list, and the per-assignment
+ * contribution rows, where every summand of `score` gets a row so
+ * `Σcontributions === score`.
+ */
+function toExplanation(
+  program: Program,
+  streamTokens: readonly Token[],
+  assignments: Resolution[],
+  weights: Weights | undefined,
+  ctx: EngineCtx,
+): Explanation {
+  const { registry, locale, opts } = ctx;
+  const layers = weightLayers(locale, opts, weights);
+  const tokens: Token[] = streamTokens.map((t) => ({
+    ...t,
+    ...program.input.mapSpan({ start: t.start, end: t.end }),
+  }));
+
+  const candidates: Candidate[] = [];
+  for (const assignment of assignments) {
+    for (const candidate of Object.values(assignment.choices)) {
+      if (
+        !candidates.some((c) => c.kind === candidate.kind && c.unit === candidate.unit)
+      ) {
+        candidates.push(candidate);
+      }
+    }
+  }
+
+  return {
+    input: program.input.source,
+    tokens,
+    candidates,
+    assignments: assignments.map((a) => {
+      const chosen = Object.values(a.choices);
+      return {
+        kind: a.kind,
+        score: a.score,
+        confidence: a.confidence,
+        units: chosen.map((c) => c.unit),
+        contributions: [
+          ...chosen.flatMap((c) => [
+            ...weightBreakdown({
+              kind: c.kind,
+              unit: c.unit,
+              // The folded surface is what `token:` selectors matched during
+              // scoring; passing the raw one would drop rows silently.
+              surface: c.foldedSurface,
+              prior: registry.kinds.get(c.kind)?.prior ?? 0,
+              layers,
+              // Only a corrected reading carries one, and it is what puts
+              // the `fuzzy:` row in the list. Dropping it here would leave
+              // the rows short of the score by exactly the penalty.
+              ...(c.fuzzy ? { fuzzy: c.fuzzy } : {}),
+            }),
+            { selector: "analyzer", value: c.analyzerWeight, layer: 0 },
+          ]),
+          { selector: "contextBonus", value: a.contextBonus, layer: 0 },
+          // Unlike contextBonus, emitted only when non-zero: no built-in
+          // signature carries a weight, so an unconditional row would add a
+          // `signature: 0` line to every explanation in the repo to say
+          // nothing. The sum invariant holds either way, 0 being 0.
+          ...(a.signatureWeight === 0
+            ? []
+            : [{ selector: "signature", value: a.signatureWeight, layer: 0 }]),
+        ],
+      };
+    }),
+  };
+}
+
+/**
+ * Only the library's own errors mean "this input has no interpretation", and
+ * not even all of those — see `NEVER_SWALLOWED`. A TypeError from a bug in
+ * the pipeline must keep its stack rather than masquerade as an empty result.
+ */
+function swallowedAsEmpty<T>(fn: () => T[]): T[] {
+  try {
+    return fn();
+  } catch (e) {
+    if (e instanceof SmartputError && !NEVER_SWALLOWED.some((C) => e instanceof C))
+      return [];
+    throw e;
+  }
+}
+
+/**
+ * `coerce`'s error policy: any `SmartputError` other than a `NoCandidateError`
+ * already in hand becomes one. This must wrap `forKind`'s own solve() call
+ * along with parsing — a kinds-filtered solve over an expression whose
+ * operand kinds fall outside `[kind, NUMBER_KIND]` (coercing "3 m * 4 m" to
+ * "area" filters the length-typed "m" slots down to nothing) throws
+ * `DimensionMismatchError`, another `SmartputError` this method's contract
+ * still answers with `NoCandidateError`, not the raw error.
+ */
+function orNoCandidate<T>(input: string, fn: () => T): T {
+  try {
+    return fn();
+  } catch (e) {
+    if (e instanceof NoCandidateError) throw e;
+    if (!(e instanceof SmartputError)) throw e;
+    throw new NoCandidateError(input, input, []);
+  }
+}
+
 export function createEngine(opts: EngineOptions): Engine {
   const locale = opts.locales[0];
   if (locale === undefined) throw new Error("createEngine requires at least one locale");
 
-  const packs = opts.packs ?? [];
-  const kinds = opts.kinds ?? [];
-  const registry = buildRegistry(kinds, packs, locale.id);
-  const maxCandidates = opts.maxCandidates ?? 10_000;
-  const epsilon = opts.ambiguityEpsilon ?? 0.05;
-  const tiebreak = opts.tiebreak ?? "error";
-  const kindMeta = opts.kindMeta ?? {};
-  const formatPrecision = opts.formatPrecision;
-  const rates = opts.rates;
-  const rounding = opts.rounding;
-  const now = opts.now ?? (() => Date.now());
-  const hostZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-  const timeZone = opts.timeZone ?? hostZone;
-  // One instance each, frozen, reused across every call: they hold only
-  // options, and the Tokenizer's `now` is still called once per `run()`
-  // inside it, not once here at construction.
-  const normalizer = new Normalizer();
-  const tokenizer = new Tokenizer({ locale: locale as Locale, registry, now, timeZone });
-
-  const layersFor = (call?: Weights) => [locale.weights, opts.weights, call];
-
-  function pipeline(input: string, call?: EvalOptions) {
-    const normalized = normalizer.run(input);
-    if (normalized.empty) throw new UnitParseError(input);
-    const resolver = createResolver({
-      registry,
-      locale: locale as Locale,
-      packs,
-      layers: layersFor(call?.weights),
-    });
-    const stream = tokenizer.run(
-      normalized,
-      call?.timeZone === undefined ? undefined : { timeZone: call.timeZone },
-    );
-    const program = new Parser({ resolver }).run(stream);
-    const assignments = solve(program, registry, {
-      maxCandidates,
-      input,
-      ...(call?.kinds ? { kinds: call.kinds } : {}),
-    });
-    return { normalized, resolver, tokens: stream.tokens, program, assignments };
-  }
-
-  function toResult(
-    normalized: NormalizedInput,
-    program: Program,
-    resolution: Resolution,
-    input: string,
-  ): Result {
-    const { value, assumptions } = evaluateNode({
-      program,
-      resolution,
-      registry,
-      locale: (locale as Locale).id,
-      input,
-      kindMeta,
-      ...(rates ? { rates } : {}),
-    });
-    return {
-      value,
-      formatted: formatValue(value, registry, locale as Locale, {
-        ...(formatPrecision === undefined ? {} : { precision: formatPrecision }),
-        ...(rounding === undefined ? {} : { rounding }),
-        ...(rates ? { rates } : {}),
+  const registry = buildRegistry(opts.kinds ?? [], opts.packs ?? [], locale.id);
+  const layers = (call?: Weights) => weightLayers(locale, opts, call);
+  const stages = buildStages(opts, registry, locale);
+  const ctx: EngineCtx = { registry, locale, evaluator: stages.evaluator, opts };
+  // The Parser (and Completer) is rebuilt per call: it closes over the weight
+  // layers, and `EvalOptions.weights` is a per-call override.
+  const parserFor = (call?: EvalOptions) =>
+    new Parser({
+      resolver: createResolver({
+        registry,
+        locale,
+        packs: opts.packs ?? [],
+        layers: layers(call?.weights),
       }),
-      kind: value.kind,
-      confidence: resolution.confidence,
-      // Spans are produced against the normalized text; the caller reads them
-      // against the string they passed in. Without this they disagree whenever
-      // normalization changed a length.
-      spans: [normalized.mapSpan(program.root.span)],
-      meta: {
-        assumptions,
-        ...(rates ? { ratesAsOf: rates.asOf } : {}),
-      },
-    };
-  }
+    });
+  const completerFor = (call?: EvalOptions) =>
+    new Completer({ registry, locale, layers: layers(call?.weights) });
+  const tokenize = (input: string, call?: EvalOptions): TokenStream => {
+    const normalized = stages.normalizer.run(input);
+    if (normalized.empty) throw new UnitParseError(input);
+    const tz = call?.timeZone === undefined ? undefined : { timeZone: call.timeZone };
+    return stages.tokenizer.run(normalized, tz);
+  };
+  const compile = (input: string, call?: EvalOptions): Program =>
+    parserFor(call).run(tokenize(input, call));
 
   return {
     evaluate(input, call) {
-      const { normalized, program, assignments } = pipeline(input, call);
-      const [best, second] = assignments;
-      if (best === undefined) throw new SmartputError("No interpretation", input);
-
-      if (
-        tiebreak === "error" &&
-        second !== undefined &&
-        Math.abs(best.confidence - second.confidence) < epsilon
-      ) {
-        const listed: ResultCandidate[] = assignments.slice(0, 5).map((a) => ({
-          kind: a.kind,
-          unit: Object.values(a.choices)[0]?.unit ?? "",
-          confidence: a.confidence,
-        }));
-        throw new AmbiguityError(input, listed, [normalized.mapSpan(program.root.span)]);
-      }
-
-      return toResult(normalized, program, best, input);
+      const program = compile(input, call);
+      return toResult(program, stages.solver.best(program, call), ctx);
     },
-
     suggest(input, call) {
-      try {
-        const { normalized, program, assignments } = pipeline(input, call);
-        return assignments.map((a) => toResult(normalized, program, a, input));
-      } catch (e) {
-        // Only the library's own errors mean "this input has no interpretation",
-        // and not even all of those — see NEVER_SWALLOWED. A TypeError from a
-        // bug in the pipeline must keep its stack rather than masquerade as an
-        // empty result.
-        if (e instanceof SmartputError && !NEVER_SWALLOWED.some((C) => e instanceof C)) {
-          return [];
-        }
-        throw e;
-      }
-    },
-
-    coerce(kind, input, call) {
-      const merged: EvalOptions = { ...call, kinds: [kind, NUMBER_KIND] };
-      let assignments: Resolution[];
-      let program: ReturnType<typeof pipeline>["program"];
-      try {
-        const run = pipeline(input, merged);
-        assignments = run.assignments;
-        program = run.program;
-      } catch (e) {
-        if (e instanceof NoCandidateError) throw e;
-        // Same rule as suggest: never convert a genuine bug into "no candidate".
-        if (!(e instanceof SmartputError)) throw e;
-        throw new NoCandidateError(input, input, []);
-      }
-      const best = assignments.find((a) => a.kind === kind);
-      if (best === undefined) throw new NoCandidateError(input, input, []);
-      return evaluateNode({
-        program,
-        resolution: best,
-        registry,
-        locale: locale.id,
-        input,
-        kindMeta,
-        ...(rates ? { rates } : {}),
-      }).value;
-    },
-
-    explain(input, call) {
-      const { normalized, tokens, assignments } = pipeline(input, call);
-      // `tokens` is normalized-relative — `foldLiterals` slices `normalized.text`
-      // by these offsets, so the Tokenizer cannot map them itself. This is the
-      // one boundary where they reach a caller, so it is where they are mapped.
-      const mappedTokens: Token[] = tokens.map((t) => ({
-        ...t,
-        ...normalized.mapSpan({ start: t.start, end: t.end }),
-      }));
-      const candidates: Candidate[] = [];
-      for (const assignment of assignments) {
-        for (const candidate of Object.values(assignment.choices)) {
-          if (
-            !candidates.some(
-              (c) => c.kind === candidate.kind && c.unit === candidate.unit,
-            )
-          ) {
-            candidates.push(candidate);
-          }
-        }
-      }
-
-      return {
-        input,
-        tokens: mappedTokens,
-        candidates,
-        assignments: assignments.map((a) => {
-          const chosen = Object.values(a.choices);
-          return {
-            kind: a.kind,
-            score: a.score,
-            confidence: a.confidence,
-            units: chosen.map((c) => c.unit),
-            // Every summand of `score` gets a row, so Σcontributions === score.
-            contributions: [
-              ...chosen.flatMap((c) => [
-                ...weightBreakdown({
-                  kind: c.kind,
-                  unit: c.unit,
-                  // The folded surface is what `token:` selectors matched during
-                  // scoring; passing the raw one would drop rows silently.
-                  surface: c.foldedSurface,
-                  prior: registry.kinds.get(c.kind)?.prior ?? 0,
-                  layers: layersFor(call?.weights),
-                  // Only a corrected reading carries one, and it is what puts
-                  // the `fuzzy:` row in the list. Dropping it here would leave
-                  // the rows short of the score by exactly the penalty.
-                  ...(c.fuzzy ? { fuzzy: c.fuzzy } : {}),
-                }),
-                { selector: "analyzer", value: c.analyzerWeight, layer: 0 },
-              ]),
-              { selector: "contextBonus", value: a.contextBonus, layer: 0 },
-              // Unlike contextBonus, emitted only when non-zero: no built-in
-              // signature carries a weight, so an unconditional row would add
-              // a `signature: 0` line to every explanation in the repo to say
-              // nothing. The sum invariant holds either way, 0 being 0.
-              ...(a.signatureWeight === 0
-                ? []
-                : [{ selector: "signature", value: a.signatureWeight, layer: 0 }]),
-            ],
-          };
-        }),
-      };
-    },
-
-    complete(input, call) {
-      return complete({
-        registry,
-        locale: locale as Locale,
-        layers: layersFor(call?.weights),
-        input,
-        ...(call ? { opts: call } : {}),
+      return swallowedAsEmpty(() => {
+        const program = compile(input, call);
+        return stages.solver.all(program, call).map((r) => toResult(program, r, ctx));
       });
+    },
+    coerce(kind, input, call) {
+      const resolved = orNoCandidate(input, () => {
+        const program = compile(input, call);
+        const kinds = [kind, NUMBER_KIND];
+        return { program, resolution: stages.solver.forKind(program, kind, { kinds }) };
+      });
+      if (resolved.resolution === undefined) throw new NoCandidateError(input, input, []);
+      return stages.evaluator.run(resolved.program, resolved.resolution).value;
+    },
+    explain(input, call) {
+      const stream = tokenize(input, call);
+      const program = parserFor(call).run(stream);
+      const assignments = stages.solver.all(program, call);
+      return toExplanation(program, stream.tokens, assignments, call?.weights, ctx);
+    },
+    complete(input, call) {
+      return [...completerFor(call).run(input, call)];
     },
   };
 }
