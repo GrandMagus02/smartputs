@@ -1,5 +1,6 @@
 import { expect, test } from "bun:test";
 import { Evaluator } from "@smartput/core/eval";
+import en from "@smartput/core/locale/en";
 import { Normalizer } from "@smartput/core/normalize";
 import { Parser } from "@smartput/core/parse";
 import { buildRegistry, createResolver } from "@smartput/core/registry";
@@ -7,7 +8,6 @@ import { Solver } from "@smartput/core/solve";
 import { Tokenizer } from "@smartput/core/tokenize";
 import { BUILTIN_KINDS } from "@smartput/kinds";
 import { createEngine } from "./engine";
-import en from "./locale/en";
 import type { Value } from "./types";
 
 /**
@@ -15,20 +15,24 @@ import type { Value } from "./types";
  * deliverable": five stages, assembled by hand, with no `createEngine`
  * anywhere in this file.
  *
- * Every import above is a public entry point a package outside `packages/
- * core` could use too: `Normalizer`, `Tokenizer`, `Parser`, `Solver` and
- * `Evaluator` are each their own subpath (spec §6), and `Parser`'s one
- * required config field — a `Resolver`, which nothing but `createResolver`
- * constructs — comes from `@smartput/core/registry`. That subpath is what
- * closes the gap this test used to record: before Task 12, `createResolver`
- * and the `Resolver` type were exported from neither `index.ts` nor any
- * subpath, and this file reached into `./parse/candidates` with a relative
- * import to get them — not the barrel, and not anything a package outside
- * `packages/core` could import at all. Nothing here reaches around the
- * package boundary anymore.
+ * Every name the hand-built pipeline is made of is publicly reachable:
+ * `Normalizer`, `Tokenizer`, `Parser`, `Solver` and `Evaluator` are each
+ * their own subpath (spec §6), `Parser`'s one required config field — a
+ * `Resolver`, which nothing but `createResolver` constructs — comes from
+ * `@smartput/core/registry`, and the locale it all runs against comes from
+ * `@smartput/core/locale/en` rather than a relative import. That registry
+ * subpath is what closes the gap this test used to record: before Task 12,
+ * `createResolver` and the `Resolver` type were exported from neither
+ * `index.ts` nor any subpath, and this file reached into `./parse/candidates`
+ * with a relative import to get them — not the barrel, and not anything a
+ * package outside `packages/core` could import at all.
  *
- * `createEngine` below exists only as the oracle each hand-built pipeline is
- * checked against, over the same input, never as part of the pipeline itself.
+ * The two imports below that do stay relative are not part of the pipeline
+ * under test: `createEngine` is the oracle every hand-built pipeline is
+ * checked against, never a step in one, and `Value` is a type, compiled away
+ * before anything ships. Both are reachable from the root barrel too
+ * (`@smartput/core` and `export type * from "./types"` respectively) — the
+ * relative path is a convenience inside this package, not a gap in it.
  */
 
 const registry = buildRegistry(BUILTIN_KINDS, [], en.id);

@@ -1,3 +1,9 @@
+// The root barrel: every name every `@smartput/core/*` subpath exports (spec
+// §6), plus everything besides. "everything, as today" is read literally as
+// of Task 12 — `createResolver`/`Resolver`, `lex`, `foldNumerals`,
+// `foldWordOps`, `toCanonical` and `weightBreakdown` became newly public
+// through a subpath there and are re-exported here too, so nothing a subpath
+// exports is missing from this barrel.
 export type { CompleteOptions, Completion } from "./complete/complete";
 export { complete } from "./complete/complete";
 export type { AutocompleterOptions } from "./complete/completer";
@@ -7,6 +13,7 @@ export { Decimal } from "./decimal";
 export type { Engine, EngineOptions, EvalOptions, Explanation, Result } from "./engine";
 export { createEngine } from "./engine";
 export * from "./errors";
+export { toCanonical } from "./eval/convert";
 export type { EvalResult, EvaluateOptions } from "./eval/evaluate";
 export { evaluateNode } from "./eval/evaluate";
 export type { Evaluation, EvaluatorOptions } from "./eval/evaluator";
@@ -53,6 +60,11 @@ export {
 } from "./locale/helpers";
 export type { Node, NodeId } from "./parse/ast";
 export { walk } from "./parse/ast";
+// `Parser`'s one required config field, and the gap Task 12 closed: nothing
+// but `createResolver` builds a `Resolver`, and until it was public here too,
+// `stages.test.ts` had to reach into this file with a relative import.
+export type { Resolver } from "./parse/candidates";
+export { createResolver } from "./parse/candidates";
 // One edit distance for the whole repo. A package that reads through a typo —
 // math's spoken words, completion's fragments — measures the slip the same way
 // the error hints do, because two implementations of "how near is this" drift
@@ -60,6 +72,7 @@ export { walk } from "./parse/ast";
 export { EDIT_HEADROOM, editDistance, nearestWord } from "./parse/distance";
 // Explanation.tokens is Token[]; without this the type is unnameable downstream.
 export type { Token } from "./parse/lex";
+export { lex } from "./parse/lex";
 // Exported so a plugin author can drive a literal matcher in isolation, without
 // standing up an engine just to see what their matcher claims.
 export { foldLiterals } from "./parse/literals";
@@ -70,6 +83,7 @@ export type {
   NormalizerOptions,
 } from "./parse/normalize";
 export { Normalizer, normalize } from "./parse/normalize";
+export { foldNumerals } from "./parse/numerals";
 // The score the ordinary number under a claimed span gets, which a matcher that
 // claims bare digits has to weigh itself against: a postal code must sit below
 // it to leave "90210" a number. Public for the same reason the completion
@@ -80,6 +94,7 @@ export type { ParserOptions, Program } from "./parse/program";
 export { buildProgram, Parser } from "./parse/program";
 export type { TokenizerOptions, TokenStream } from "./parse/tokenizer";
 export { Tokenizer } from "./parse/tokenizer";
+export { foldWordOps } from "./parse/wordops";
 // `formatValue`/`formatNumber`/`DISPLAY_PRECISION` stay exported above from
 // `./format/format`, their one home; `print/print.ts` only re-exports them
 // for a caller reaching through the `@smartput/core/print` subpath.
@@ -89,4 +104,5 @@ export type { Resolution } from "./solve/solver";
 export { solve } from "./solve/solver";
 export type { SolverOptions } from "./solve/solver-class";
 export { Solver } from "./solve/solver-class";
+export { weightBreakdown } from "./solve/weights";
 export type * from "./types";

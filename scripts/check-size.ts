@@ -698,14 +698,30 @@ export const BUDGETS: EntrySpec[] = [
     gzip: 800,
   },
   // The other six sit within 6 KB of each other (36_450-42_256 B measured),
-  // the same band `boolean`/`query` occupy above: each is core's own graph —
-  // `Decimal`, `errors.ts`'s `SmartputError`, `freeze.ts` — plus a few
-  // kilobytes of the one stage named. None of the six is anywhere near the
-  // solver/evaluator's actual size were it dragged in whole (`solve` and
-  // `eval` measure lighter than `tokenize`, `parse`, `print` and `registry`
-  // here, which would be backwards if either had pulled the other in), so the
-  // gap between this band and a genuine cross-stage leak is wide enough that
-  // a regression here would be unmissable rather than a rounding error.
+  // the same band `zip root`/`distance root` occupy above: each is core's
+  // own graph — `Decimal`, `errors.ts`'s `SmartputError`, `freeze.ts` — plus
+  // a few kilobytes of the one stage named.
+  //
+  // `registry` is the largest of the six, and it is the row that actually
+  // carries the resolver graph (`buildRegistry` plus `createResolver`'s
+  // analyzer chain and edit-distance correction pass, spec §6): nothing here
+  // can contain that whole graph and still measure smaller than the row that
+  // is exactly that graph. Paired with `normalize`'s 1665 B two rows up,
+  // which plainly cannot hold a 37+ KB solver either, that rules out both
+  // directions a leak this size would take — a size-ordering guess about
+  // *which pair* leaked into which does not, and an earlier draft of this
+  // comment tried to make one anyway (`parse` at 37_983 B is larger than
+  // `solve` at 37_549 B, which alone neither confirms nor rules out `parse`
+  // containing the solver). The two rows this paragraph actually leans on are
+  // the only ones size alone can settle.
+  //
+  // The ceilings below also carry more headroom than this file's "round up
+  // to the next 50 B" convention implies: `core/registry` measured 42_256 B
+  // on one run and 41_701 B on another, 555 B apart on the same machine with
+  // nothing between the runs but re-measuring. Each ceiling rounds up from
+  // the higher of its two runs, so the ~600 B of slack these six rows carry
+  // is measurement jitter, not a rounding choice — still two orders of
+  // magnitude under what a genuine cross-stage leak would cost.
   {
     label: "core/tokenize",
     from: "@smartput/core/tokenize",
