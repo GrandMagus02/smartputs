@@ -26,16 +26,7 @@ export { defineKind } from "./kind/define";
 export { aliasesFor, decimalRatios } from "./kind/from-table";
 // The seam the extracted kind packages build on: every @smartput/<kind> package
 // derives its values and names the number/percent kinds through these.
-export {
-  BOOLEAN_KIND,
-  BOOLEAN_UNIT,
-  COMPARE_PRECISION,
-  COMPARISON_OPS,
-  deriveValue,
-  generateComparisonOps,
-  NUMBER_KIND,
-  PERCENT_KIND,
-} from "./kind/ratio-ops";
+export { deriveValue, NUMBER_KIND, PERCENT_KIND } from "./kind/ratio-ops";
 // The registry an engine is built on, exposed so a kind package can assert what
 // its own units and aliases resolve to without standing up a whole engine —
 // which is the only way to see an alias collision between two kinds at all.
