@@ -1,6 +1,7 @@
 import { expect, test } from "bun:test";
 import { BUILTIN_KINDS } from "@smartput/kinds";
 import { Decimal } from "../decimal";
+import { NoCandidateError } from "../errors";
 import { buildRegistry } from "../kind/registry";
 import en from "../locale/en";
 import type { BinaryNode, NumberNode } from "./ast";
@@ -158,4 +159,20 @@ test("two Parser.run calls on the same TokenStream return equal output", () => {
   const a = parser.run(stream);
   const b = parser.run(stream);
   expect(shape(a.nodes)).toEqual(shape(b.nodes));
+});
+
+test("Parser.run maps a NoCandidateError's span through the TokenStream's NormalizedInput", () => {
+  // Measured on main before Task 6: the raw lexer token's normalized-relative
+  // offsets sliced "0 zzzzz" out of this padded input instead of the word.
+  const source = "  10 zzzzzzz  ";
+  const parser = new Parser({ resolver });
+  expect.assertions(2);
+  try {
+    parser.run(tokenizer.run(source));
+  } catch (e) {
+    expect(e).toBeInstanceOf(NoCandidateError);
+    if (!(e instanceof NoCandidateError)) throw e;
+    const span = e.spans[0];
+    expect(span && source.slice(span.start, span.end)).toBe("zzzzzzz");
+  }
 });

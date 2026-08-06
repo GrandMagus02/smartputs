@@ -1,6 +1,7 @@
 import { expect, test } from "bun:test";
 import { BUILTIN_KINDS } from "@smartput/kinds";
 import { createEngine } from "./engine";
+import { NoCandidateError } from "./errors";
 import en from "./locale/en";
 
 const engine = createEngine({ locales: [en], kinds: BUILTIN_KINDS });
@@ -23,6 +24,31 @@ test("Result.spans indexes the caller's string, not the normalized one", () => {
     expect(span, input).toBeDefined();
     if (span === undefined) continue;
     expect(input.slice(span.start, span.end), input).toBe(expected);
+  }
+});
+
+test("Explanation.tokens index the caller's string, not the normalized one", () => {
+  // Measured on main before Task 6: these five tokens sliced "  ", "0 d", "g",
+  // "+ " and "5 d" — the normalized-relative offsets read against the padded
+  // source. Mapped through NormalizedInput, they read back the words they
+  // actually are.
+  const input = "  30 deg + 15 deg  ";
+  const slices = engine.explain(input).tokens.map((t) => input.slice(t.start, t.end));
+  expect(slices).toEqual(["30", "deg", "+", "15", "deg"]);
+});
+
+test("NoCandidateError.spans indexes the caller's string, not the normalized one", () => {
+  // Measured on main before Task 6: the raw lexer token's offsets sliced
+  // "0 zzzzz" out of this padded input.
+  const input = "  10 zzzzzzz  ";
+  expect.assertions(2);
+  try {
+    engine.evaluate(input);
+  } catch (e) {
+    expect(e).toBeInstanceOf(NoCandidateError);
+    if (!(e instanceof NoCandidateError)) throw e;
+    const span = e.spans[0];
+    expect(span && input.slice(span.start, span.end)).toBe("zzzzzzz");
   }
 });
 

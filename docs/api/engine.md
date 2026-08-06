@@ -205,9 +205,9 @@ interface Assumption {
 ```
 
 `spans` exist so a caller can underline the tokens a result came from without
-re-parsing. Today only `Result.spans` and `AmbiguityError.spans` index the
-string the caller passed in; spans on other `SmartputError` subtypes are
-relative to the normalized text.
+re-parsing. `Result.spans`, `AmbiguityError.spans` and `NoCandidateError.spans`
+index the string the caller passed in; spans on the remaining
+`SmartputError` subtypes are relative to the normalized text.
 
 `meta.assumptions` records anything the engine inferred rather than read. Two
 kinds populate it today:

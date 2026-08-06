@@ -6,9 +6,10 @@ description: Every error type, when it is raised, and what it carries.
 # Errors
 
 All errors extend `SmartputError` and carry `input` and `spans`, so a caller can
-underline the offending token without re-parsing anything. Today only
-`Result.spans` and `AmbiguityError.spans` index the string the caller passed
-in; spans on the other error types are relative to the normalized text.
+underline the offending token without re-parsing anything. `Result.spans`,
+`AmbiguityError.spans` and `NoCandidateError.spans` all index the string the
+caller passed in; spans on the remaining error types are relative to the
+normalized text.
 
 ```ts
 import { AmbiguityError, SmartputError } from "@smartput/core";

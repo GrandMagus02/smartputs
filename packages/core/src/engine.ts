@@ -102,12 +102,7 @@ export interface Result {
 
 export interface Explanation {
   input: string;
-  // Token.start/end index the normalized text, not `input`. Unlike
-  // Result.spans, these are not mapped back: Explanation's shape is frozen
-  // for this restructuring, and mapping them belongs with the Task 6
-  // tokenizer work. (Not a parity constraint — no corpus input triggers a
-  // length-changing normalization, so mapping these offsets would re-record
-  // byte-identical; the fixture would not notice either way.)
+  /** Token.start/end index `input`, the same string `Result.spans` does. */
   tokens: Token[];
   candidates: Candidate[];
   assignments: Array<{
@@ -171,7 +166,7 @@ export function createEngine(opts: EngineOptions): Engine {
       input,
       ...(call?.kinds ? { kinds: call.kinds } : {}),
     });
-    return { normalized, resolver, tokens: [...stream.tokens], program, assignments };
+    return { normalized, resolver, tokens: stream.tokens, program, assignments };
   }
 
   function toResult(
@@ -275,7 +270,14 @@ export function createEngine(opts: EngineOptions): Engine {
     },
 
     explain(input, call) {
-      const { tokens, assignments } = pipeline(input, call);
+      const { normalized, tokens, assignments } = pipeline(input, call);
+      // `tokens` is normalized-relative — `foldLiterals` slices `normalized.text`
+      // by these offsets, so the Tokenizer cannot map them itself. This is the
+      // one boundary where they reach a caller, so it is where they are mapped.
+      const mappedTokens: Token[] = tokens.map((t) => ({
+        ...t,
+        ...normalized.mapSpan({ start: t.start, end: t.end }),
+      }));
       const candidates: Candidate[] = [];
       for (const assignment of assignments) {
         for (const candidate of Object.values(assignment.choices)) {
@@ -291,7 +293,7 @@ export function createEngine(opts: EngineOptions): Engine {
 
       return {
         input,
-        tokens,
+        tokens: mappedTokens,
         candidates,
         assignments: assignments.map((a) => {
           const chosen = Object.values(a.choices);
