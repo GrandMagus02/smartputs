@@ -21,13 +21,48 @@ const ALLOWED: Record<string, string[]> = {
   // one. It is underneath datetime for the same reason `@smartput/city` is
   // underneath country: the edge runs from the consumer inwards.
   "packages/timezone/package.json": [],
+  // The datetime kind, the chrono bridge and the Temporal ops. `@smartput/
+  // holiday` is a dependency of the *package* but not of its root entry: one
+  // file imports it, `src/holiday.ts`, and that file is reachable only through
+  // the `./holiday` subpath. This map cannot tell the difference — it reads a
+  // manifest — so the claim is enforced next door instead, by the `datetime root
+  // (no holiday data)` row in check-size.ts, which fails by a megabyte the
+  // moment the import reaches the root graph.
+  //
+  // A devDependency was the other way to keep it off the root, and it is the
+  // wrong one for the same reason `@smartput/country` lists `@smartput/city`
+  // here: the emitted `holiday.d.ts` names the package, and a published
+  // declaration naming a package absent from the manifest is a dependency a
+  // consumer discovers on install.
   "packages/datetime/package.json": [
     "@smartput/core",
+    "@smartput/holiday",
     "@smartput/timezone",
     "chrono-node",
     "decimal.js",
     "temporal-polyfill",
   ],
+  // Which holiday a phrase names and when it falls: the `date-holidays` rule
+  // table, a tokenising scorer over the names, and nothing else. No `@smartput`
+  // edge at all — it knows nothing about kinds, values, `Decimal` or the engine
+  // — which is what lets the package above reach it from a subpath rather than
+  // from its root. Precedent: `@smartput/city` and `@smartput/timezone` ship
+  // with none either.
+  //
+  // Size is why this is a package and not a file inside `datetime`.
+  // `date-holidays@3.34.1` ships a 768 KB `holidays.json`, is CommonJS, and
+  // pulls `date-holidays-parser`, `js-yaml`, `lodash` and `prepin` behind it;
+  // bundled it is ~1.5 MB, six times the T0 gazetteer that the `country root`
+  // row in check-size.ts exists to keep out of a bundle. As a plain dependency
+  // of `datetime` it would charge every consumer of `today + 3 d` a megabyte for
+  // a feature they did not ask for — the trade this repo has already refused
+  // twice, for T1 inside `country` and for chrono and Temporal inside `core`.
+  //
+  // Its own edit-distance scorer is a copy of core's, not an import of it, and
+  // that is deliberate: importing would cost this package the `@smartput` edge
+  // its whole shape depends on, and core's `nearestWord` refuses a tie, which is
+  // exactly wrong for something that has to return a ranked list.
+  "packages/holiday/package.json": ["date-holidays"],
   // The rate half of money: snapshots, the ECB provider, the live-engine
   // facade, and the `money` kind whose unit ratios read an injected table. It
   // depends on `@smartput/currency` for the other half — the symbol, the minor
@@ -117,6 +152,60 @@ const ALLOWED: Record<string, string[]> = {
   // bridge to `duration` is an `in` signature instead of a ratio row. Same
   // string-named operands, same empty edge list.
   "packages/tempo/package.json": ["@smartput/core", "@smartput/shared"],
+
+  // The calendar-day half of datetime's recognition. It depends on datetime
+  // rather than on chrono because it re-reads the match datetime already made
+  // — `hasDate && !hasTime` — instead of parsing the string a second time. That
+  // is also why `@smartput/timezone` is absent even though the design's summary
+  // table lists it: the zone arrives inside the bridge match, so nothing here
+  // names the zone package itself.
+  "packages/date/package.json": ["@smartput/core", "@smartput/datetime"],
+  // The clock-time half, on the same terms as `date`.
+  "packages/time/package.json": ["@smartput/core", "@smartput/datetime"],
+  // The interval algebra the three range kinds share: the meta shape, boundary
+  // snapping, the window table, the endpoint seam and `InvertedRangeError`.
+  // Depends on datetime for `Temporal` rather than importing temporal-polyfill
+  // a second time — that package has one import site by design, and every
+  // consumer of this one already pays for datetime.
+  "packages/range-core/package.json": ["@smartput/core", "@smartput/datetime"],
+  // The three range kinds. Each names only the endpoint kind it actually reads,
+  // so a consumer who wants `10:00 - 20:00` does not link the calendar half.
+  //
+  // `@smartput/datetime` is here for the same two names `range-core` takes it
+  // for — `Temporal`, because the polyfill has one import site in the repo by
+  // design, and `addDuration`, because "whole week + 1 wk" has to walk the
+  // calendar rather than add 604800 seconds. It costs a consumer nothing: this
+  // package already reaches datetime through `@smartput/date`, which re-reads
+  // datetime's chrono match instead of parsing again.
+  "packages/date-range/package.json": [
+    "@smartput/core",
+    "@smartput/date",
+    "@smartput/datetime",
+    "@smartput/range-core",
+  ],
+  "packages/time-range/package.json": [
+    "@smartput/core",
+    "@smartput/range-core",
+    "@smartput/time",
+  ],
+  // `@smartput/holiday` is a dependency of the package but not of its root
+  // entry: one file imports it, `src/holiday.ts`, reachable only through the
+  // `./holiday` subpath. This map cannot tell the difference — it reads a
+  // manifest — so the claim is enforced next door by check-size.ts's
+  // `datetime-range root (no holiday data)` row, exactly as datetime's is.
+  //
+  // It is a dependency rather than a devDependency for the reason stated above
+  // for datetime: the emitted `holiday.d.ts` names the package, and a published
+  // declaration naming a package absent from the manifest is a dependency a
+  // consumer discovers on install.
+  "packages/datetime-range/package.json": [
+    "@smartput/core",
+    "@smartput/date",
+    "@smartput/datetime",
+    "@smartput/holiday",
+    "@smartput/range-core",
+    "@smartput/time",
+  ],
 
   // The aggregator: re-exports every kind above and owns BUILTIN_KINDS, so it
   // is the one package legitimately allowed to depend on all of them.

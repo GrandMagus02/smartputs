@@ -23,10 +23,15 @@
     "decimal.js": "^10.6.0"
   },
   "devDependencies": {
+    "@smartput/date": "workspace:*",
+    "@smartput/date-range": "workspace:*",
     "@smartput/datetime": "workspace:*",
+    "@smartput/datetime-range": "workspace:*",
     "@smartput/kinds": "workspace:*",
     "@smartput/length": "workspace:*",
     "@smartput/number": "workspace:*",
-    "@smartput/rate": "workspace:*"
+    "@smartput/rate": "workspace:*",
+    "@smartput/time": "workspace:*",
+    "@smartput/time-range": "workspace:*"
   }
 }

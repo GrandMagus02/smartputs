@@ -39,6 +39,26 @@ test("a number followed by a unit parses to a quantity node", () => {
   expect(node.candidates.map((c) => c.unit)).toEqual(["km"]);
 });
 
+test("a bare unit word is a quantity of one", () => {
+  const node = ast("km");
+  expect(node).toMatchObject({ type: "quantity" });
+  if (node.type !== "quantity") throw new Error("unreachable");
+  expect(node.value.toString()).toBe("1");
+  expect(node.candidates.map((c) => c.unit)).toEqual(["km"]);
+});
+
+test("an implied one is an operand like any other", () => {
+  const node = ast("km + 3 km");
+  expect(node).toMatchObject({ type: "binary", op: "+" });
+  if (node.type !== "binary") throw new Error("unreachable");
+  expect(node.left).toMatchObject({ type: "quantity" });
+  expect(node.right).toMatchObject({ type: "quantity" });
+});
+
+test("a word that names no unit is still not an atom", () => {
+  expect(() => ast("furlong")).toThrow(UnitParseError);
+});
+
 test("addition is left-associative", () => {
   const node = ast("1 + 2 + 3");
   expect(node).toMatchObject({ type: "binary", op: "+" });

@@ -1,0 +1,22 @@
+{
+  "name": "@smartput/date-range",
+  "version": "0.0.0",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "bun": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "dependencies": {
+    "@smartput/core": "workspace:*",
+    "@smartput/date": "workspace:*",
+    "@smartput/datetime": "workspace:*",
+    "@smartput/range-core": "workspace:*"
+  },
+  "devDependencies": {
+    "@smartput/kinds": "workspace:*"
+  }
+}

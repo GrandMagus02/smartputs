@@ -16,7 +16,10 @@ test("valid and invalid input", () => {
     unit: "hp",
   });
   expect(parsePower("1.5smth")).toMatchObject({ ok: false, code: "unknown-unit" });
-  expect(parsePower("kw")).toMatchObject({ ok: false, code: "nan" });
+  // A unit with no count is one of it. A word that names no unit is still
+  // `nan`: with no number in the string, nothing said a unit was expected.
+  expect(parsePower("kw")).toMatchObject({ ok: true, value: 1 });
+  expect(parsePower("smth")).toMatchObject({ ok: false, code: "nan" });
 });
 
 test("the left operand's unit wins", () => {

@@ -1,3 +1,4 @@
+import { Decimal } from "../decimal";
 import { NoCandidateError, UnitParseError } from "../errors";
 import { NUMBER_KIND } from "../kind/ratio-ops";
 import type { Candidate, LiteralReading, OpSymbol, Span, Value } from "../types";
@@ -21,6 +22,12 @@ import type { Token, WordToken } from "./lex";
  * confidences: 0.5 apart is 0.62 against 0.38, well outside the 0.05 default.
  */
 export const NUMBER_FALLBACK_WEIGHT = -0.5;
+
+/**
+ * What a unit word with no number in front of it is worth. One, and frozen at
+ * module level because every such atom is the same number.
+ */
+const IMPLIED_COUNT = new Decimal(1);
 
 const BINDING: Record<Exclude<OpSymbol, "in">, number> = {
   "+": 10,
@@ -159,6 +166,34 @@ export function parse(tokens: Token[], resolver: Resolver, input: string): Node 
         value: token.value,
         span: { start: token.start, end: token.end },
       };
+    }
+
+    // A unit word with no number in front of it, counted once. "kg" is a
+    // kilogram, "cm" is a centimetre, and "kg + 3 kg" is four of them — which
+    // is why this is an atom rather than a special case for a one-token input.
+    //
+    // This moves a line the parser used to hold: a unit label alone was not a
+    // legal atom, and `unitWordOf` reached one only from the two positions
+    // where a label belongs. The line was worth holding while a label could
+    // only be a label; it stops being worth holding once the count it lacks
+    // has an obvious value. What it protected against is still protected by
+    // `countable` — an opaque kind's units are names, not scales, so a bare
+    // country code or zone name is no more an atom now than it was before.
+    //
+    // Only `token.type === "word"`, never a claimed token's fallback: a claim
+    // is already a value, and reading "tomorrow" as one of something would
+    // take a decided input and make it ambiguous.
+    if (token.type === "word") {
+      const candidates = resolver.countable(token.text);
+      if (candidates.length > 0) {
+        pos += 1;
+        return {
+          type: "quantity",
+          value: IMPLIED_COUNT,
+          candidates,
+          span: { start: token.start, end: token.end },
+        };
+      }
     }
 
     throw new UnitParseError(input);

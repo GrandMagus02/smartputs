@@ -13,12 +13,17 @@ import {
   UnitParseError,
 } from "@smartput/core";
 import coreEn from "@smartput/core/locale/en";
+import { date } from "@smartput/date";
+import { dateRange } from "@smartput/date-range";
 import { datetime } from "@smartput/datetime";
 import datetimeEn from "@smartput/datetime/locale/en";
+import { datetimeRange } from "@smartput/datetime-range";
 import { BUILTIN_KINDS } from "@smartput/kinds";
 import { length } from "@smartput/length";
 import { number } from "@smartput/number";
 import { money, snapshot } from "@smartput/rate";
+import { time } from "@smartput/time";
+import { timeRange } from "@smartput/time-range";
 import { Glob } from "bun";
 import { definePlace } from "./place";
 
@@ -341,9 +346,49 @@ interface Suite {
   readonly engine: Engine;
   /** en-complete.tsv records completions, so it is replayed through complete(). */
   readonly completion?: true;
+  /**
+   * The `kinds` narrowing the owning package's own corpus test passes.
+   *
+   * Only `date` and `time` need one, and they need it for a reason that is the
+   * whole point of their design: both readings are weighted -5 so that an
+   * unnarrowed "today" keeps answering as a `datetime`, so their corpora record
+   * a reading nobody gets by accident. Replaying those rows unnarrowed here
+   * would assert the opposite of what the owning package asserts. The narrowing
+   * costs this file nothing it cares about — a place claim that ate "friday"
+   * would still show up, because `place` is not in the list and the row would
+   * fail to read at all.
+   */
+  readonly kinds?: readonly string[];
 }
 
 const rates = snapshot("EUR", "2026-08-04", { USD: 1.1, UAH: 45.5 });
+
+/**
+ * The six range-milestone kinds, registered together the way a consumer would.
+ *
+ * One engine for all five of their corpora rather than one per package: each
+ * package's own corpus test builds the narrowest engine that can read its rows,
+ * and this file's question is the opposite one — what happens when everything is
+ * loaded at once and six thousand city names are in front of the fold. "to" is
+ * Tonga and "and" is Andorra, so `from today to friday` is the single most
+ * exposed input the milestone shipped.
+ */
+const ranges = createEngine({
+  locales: [coreEn],
+  kinds: [
+    ...BUILTIN_KINDS,
+    datetime,
+    date,
+    time,
+    dateRange,
+    timeRange,
+    datetimeRange,
+    geo,
+  ],
+  packs: [datetimeEn],
+  now: () => TEST_NOW,
+  timeZone: TEST_ZONE,
+});
 
 const SUITES: readonly Suite[] = [
   {
@@ -361,6 +406,13 @@ const SUITES: readonly Suite[] = [
     engine: createEngine({ locales: [coreEn], kinds: [number, money, geo], rates }),
   },
   { file: "packages/country/corpus/en.tsv", engine: places },
+  // The range milestone's five. `date` and `time` carry their owning corpus
+  // test's narrowing; the three range kinds win outright and take none.
+  { file: "packages/date/corpus/en.tsv", engine: ranges, kinds: ["date", "duration"] },
+  { file: "packages/time/corpus/en.tsv", engine: ranges, kinds: ["time", "duration"] },
+  { file: "packages/date-range/corpus/en.tsv", engine: ranges },
+  { file: "packages/time-range/corpus/en.tsv", engine: ranges },
+  { file: "packages/datetime-range/corpus/en.tsv", engine: ranges },
 ];
 
 const ROOT = new URL("../../../", import.meta.url);
@@ -384,7 +436,7 @@ test("every corpus in the repo is replayed", () => {
   expect(found).toEqual(SUITES.map((s) => s.file).sort());
 });
 
-for (const { file, engine, completion } of SUITES) {
+for (const { file, engine, completion, kinds } of SUITES) {
   const rows = await corpusRows(file);
 
   test(`${file} reads the same with 6000 city names registered`, () => {
@@ -398,7 +450,13 @@ for (const { file, engine, completion } of SUITES) {
             return `${top?.kind}:${top?.unit} ${top?.text}`;
           })()
         : (() => {
-            const r = engine.evaluate(input as string);
+            const r = engine.evaluate(
+              input as string,
+              // Spread rather than `{ kinds }`: the repo compiles with
+              // `exactOptionalPropertyTypes`, so an explicit `undefined` is not
+              // the same as an absent option.
+              kinds === undefined ? {} : { kinds: [...kinds] },
+            );
             return `${r.kind} ${r.value.canonical.toString()} ${r.formatted}`;
           })();
       const expected = completion

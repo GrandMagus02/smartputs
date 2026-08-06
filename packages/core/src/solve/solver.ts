@@ -12,6 +12,8 @@ export interface Assignment {
   score: number;
   /** The part of `score` that came from context agreement, so explain() can list it. */
   contextBonus: number;
+  /** The part of `score` that came from op signatures, so explain() can list it. */
+  signatureWeight: number;
   confidence: number;
 }
 
@@ -123,6 +125,41 @@ function contextBonus(
   return bonus;
 }
 
+/**
+ * The signature half of a candidate's score, and the mirror of `contextBonus`
+ * above: same walk, same `typeOf` resolution, a different term.
+ *
+ * It exists because every other weight layer prices a *reading* and this one
+ * prices the *operation* — see `OpSignature.weight`. A signature that declares
+ * no weight contributes 0, which is why adding this moved no corpus row.
+ *
+ * The `convert` branch resolves its signature exactly as `typeOf` does, down to
+ * looking the target's kind up in `choices` rather than assuming `in` is an
+ * identity on kind: a declared cross-kind `in` is as entitled to a weight as
+ * any binary is.
+ */
+function signatureWeight(
+  node: Node,
+  choices: Map<Node, Candidate>,
+  registry: Registry,
+): number {
+  let total = 0;
+  walk(node, (n) => {
+    if (n.type === "binary") {
+      const left = typeOf(n.left, choices, registry);
+      const right = typeOf(n.right, choices, registry);
+      if (left === null || right === null) return;
+      total += registry.ops.get(opKey(n.op, left, right))?.weight ?? 0;
+    } else if (n.type === "convert") {
+      const operand = typeOf(n.operand, choices, registry);
+      const target = choices.get(n);
+      if (operand === null || target === undefined) return;
+      total += registry.ops.get(opKey("in", operand, target.kind))?.weight ?? 0;
+    }
+  });
+  return total;
+}
+
 function softmax(scores: number[]): number[] {
   if (scores.length === 0) return [];
   const max = Math.max(...scores);
@@ -148,6 +185,7 @@ export function solve(
     kind: KindId;
     score: number;
     contextBonus: number;
+    signatureWeight: number;
   }> = [];
 
   const enumerate = (
@@ -159,11 +197,13 @@ export function solve(
       const kind = typeOf(root, choices, registry);
       if (kind === null) return;
       const bonus = contextBonus(root, choices, registry);
+      const signature = signatureWeight(root, choices, registry);
       viable.push({
         choices: new Map(choices),
         kind,
-        score: weight + bonus,
+        score: weight + bonus + signature,
         contextBonus: bonus,
+        signatureWeight: signature,
       });
       return;
     }

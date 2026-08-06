@@ -48,6 +48,11 @@ const NUMBER = "[+-]?(?:\\d+(?:\\.\\d+)?|\\.\\d+)(?:[eE][+-]?\\d+)?";
  * accepts a bare number when `defaultUnit` is set, and a table cannot know
  * whether it was — a pattern that guessed yes would pass `30` through native
  * validation on a field whose parser then rejects it.
+ *
+ * The count is the other way round. Loose `parse` reads a bare unit as one of
+ * it whatever the table holds, so the number is optional here — a field that
+ * rejected `kg` in the browser and accepted it in JavaScript would be the same
+ * disagreement as the narrowing above, pointing the other way.
  */
 export function patternFor<U extends string>(
   table: UnitTable<U>,
@@ -57,5 +62,5 @@ export function patternFor<U extends string>(
   if (opts?.mode === "strict") {
     return `${NUMBER} ?(?:${aliases.map(quote).join("|")})`;
   }
-  return `\\s*${NUMBER} ?(?:${aliases.map(anyCase).join("|")})\\s*`;
+  return `\\s*(?:${NUMBER} ?)?(?:${aliases.map(anyCase).join("|")})\\s*`;
 }

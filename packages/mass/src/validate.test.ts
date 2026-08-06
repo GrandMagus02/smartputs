@@ -12,7 +12,10 @@ test("valid and invalid input", () => {
   expect(parseMass("3 pounds")).toMatchObject({ ok: true, value: 3, unit: "lb" });
   expect(parseMass("1.5kilos")).toMatchObject({ ok: true, unit: "kg" });
   expect(parseMass("1.5smth")).toMatchObject({ ok: false, code: "unknown-unit" });
-  expect(parseMass("kg")).toMatchObject({ ok: false, code: "nan" });
+  // A unit with no count is one of it. A word that names no unit is still
+  // `nan`: with no number in the string, nothing said a unit was expected.
+  expect(parseMass("kg")).toMatchObject({ ok: true, value: 1 });
+  expect(parseMass("smth")).toMatchObject({ ok: false, code: "nan" });
 });
 
 test("the left operand's unit wins", () => {

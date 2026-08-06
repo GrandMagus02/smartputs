@@ -12,7 +12,10 @@ test("valid and invalid input", () => {
   expect(parseDuration("2 hours")).toMatchObject({ ok: true, value: 2, unit: "h" });
   expect(parseDuration("30 m")).toMatchObject({ ok: true, value: 30, unit: "min" });
   expect(parseDuration("1.5smth")).toMatchObject({ ok: false, code: "unknown-unit" });
-  expect(parseDuration("h")).toMatchObject({ ok: false, code: "nan" });
+  // A unit with no count is one of it. A word that names no unit is still
+  // `nan`: with no number in the string, nothing said a unit was expected.
+  expect(parseDuration("h")).toMatchObject({ ok: true, value: 1 });
+  expect(parseDuration("smth")).toMatchObject({ ok: false, code: "nan" });
 });
 
 test("the left operand's unit wins", () => {

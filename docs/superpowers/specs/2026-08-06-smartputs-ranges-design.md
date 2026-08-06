@@ -455,11 +455,21 @@ endpoints, because "tomorrow is after now" is the fact the user needs.
 
 | Input | Outcome |
 | --- | --- |
-| `from tomorrow to present` | `InvertedRangeError` |
+| `from tomorrow to present` | `UnitParseError` — see below |
 | `until yesterday` | `InvertedRangeError` — implicit start is now |
 | `until 20:00` when now is 21:00 | `InvertedRangeError` |
 | `20:00 - 06:00` | a `time-range` that wraps — **not** an error |
 | `night` | a `time-range` that wraps |
+
+`from tomorrow to present` was written into this table as an
+`InvertedRangeError` and is not one, which the implementation established rather
+than assumed: chrono reads no date at all in "present", so the endpoint never
+resolves, the matcher declines the whole run, and the input fails as an
+unparseable quantity before any ordering check happens. `from tomorrow to today`
+is the same intent expressed in words chrono knows, and it does throw
+`InvertedRangeError`. Teaching the range packages a "present" synonym for `now`
+would be vocabulary work in a locale pack, which none of these packages have yet
+— see §8.
 
 Endpoints resolve **literally**. There is no rolling forward to the next
 occurrence: a rule that rescued `until 20:00` at 21:00 by moving to tomorrow

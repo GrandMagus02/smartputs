@@ -12,7 +12,10 @@ test("valid and invalid input", () => {
   expect(parseSpeed("3 knots")).toMatchObject({ ok: true, value: 3, unit: "knot" });
   expect(parseSpeed("60kmh")).toMatchObject({ ok: true, value: 60, unit: "kph" });
   expect(parseSpeed("1.5smth")).toMatchObject({ ok: false, code: "unknown-unit" });
-  expect(parseSpeed("kph")).toMatchObject({ ok: false, code: "nan" });
+  // A unit with no count is one of it. A word that names no unit is still
+  // `nan`: with no number in the string, nothing said a unit was expected.
+  expect(parseSpeed("kph")).toMatchObject({ ok: true, value: 1 });
+  expect(parseSpeed("smth")).toMatchObject({ ok: false, code: "nan" });
 });
 
 test("the left operand's unit wins", () => {

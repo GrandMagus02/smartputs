@@ -18,6 +18,7 @@ Each milestone is independently shippable and gets its own implementation plan.
 | **M4.5** | `@smartput/shared`: an engine-free parser, operation algebra and value-class factory. Every ratio kind gains `./units`, `./validate`, `./class` subpaths, plus `@smartput/kinds/validate` and `/class` barrels. Per-entry byte budgets enforced in CI. | **Shipped** |
 | **M5** | `@smartput/color`, the Ukrainian locale across every package, `defineLocalePack`, analyzer helpers, `assertLocaleContract`. | Planned |
 | **M6** | `@smartput/country` and its three layers below: place kind, countries and cities, `kyiv to warsaw` as a distance, postal codes, the datetime and rates bridges, GeoNames providers, place completion. | **Shipped** |
+| **Ranges** | `date` and `time` as kinds of their own, `range-core`, and the three range kinds — `whole week`, `10:00 - 20:00`, `yesterday morning`, `from today until friday`. Core's one new field: [`OpSignature.weight`](#ranges-and-the-one-field-they-cost). | **Shipped** |
 | **M7** | `@smartput/http`, meta-package, npm release. | Planned |
 
 M1 carried the only real invention risk. Most of what came after it is
@@ -92,6 +93,46 @@ costing any input its reading, `90210` stayed 90,210 with a postcode ranked
 underneath it, and the eighteen hand-written zones in `@smartput/datetime`
 stopped being the only places the engine knows.
 
+## Ranges, and the one field they cost
+
+Six packages and five kinds shipped so that a value can have two ends — see
+[Ranges](/guide/ranges). Core paid **one optional field**:
+
+```ts
+export interface OpSignature {
+  /** Summed into the candidate's score when this signature is applied. */
+  readonly weight?: number;
+}
+```
+
+The field is not a convenience. `solve()` scores a candidate as the sum of its
+**operand readings'** weights plus `contextBonus`, and every selector
+`weights.ts` offers is a property of a reading; the result kind is never
+consulted. So no existing knob can say "prefer this signature" without also
+saying "prefer this reading everywhere" — and the milestone's two requirements
+pull that single dial in opposite directions. `3pm` must stay a `datetime`,
+which wants the `time` reading weighted *down*; `10:00 - 20:00` must become a
+`time-range`, which wants it weighted *up*. `contextBonus` cannot break the tie
+either, because both operands agree on kind in both readings, so it lands on
+both paths and cancels.
+
+A weight on the signature is the missing term, and it lands beside
+`contextBonus` in the same tree walk. Default `0`, so nothing that existed
+scores differently and no corpus row moved. `Assignment` gained a matching
+field, because `explain()` has to be able to say where a score came from.
+
+Everything else the milestone needed already existed: the literal-matcher seam
+from M4, the non-destructive fold from M6.3, opaque-kind units, and the weight
+layers. `date` and `time` do not even load `chrono-node` a second time — they
+re-read the match `@smartput/datetime`'s bridge already made, which gained two
+booleans (`hasDate`, `hasTime`) and cost 47 B in the size row that watches it.
+
+One thing did not fall out, and is recorded rather than glossed:
+`in | datetime | datetime` belongs to zone conversion and the registry refuses a
+second claimant, so two fully specified endpoints cannot reach a range through
+the op path at all. They are served by the `from X to Y` literal matcher
+instead. The alternative was taking `3pm in tokyo` away.
+
 ## Percent, finished
 
 `percent` shipped in M2 with `of`, `+` and `-`. Two readings people actually
@@ -132,6 +173,8 @@ Shipped:
 @smartput/rate         money kind, RateSnapshot, ECB provider, async facade
 @smartput/currency     currency table, vocabulary, engine-free parse and format
 @smartput/datetime     datetime kind, chrono bridge, Temporal ops, time zones
+@smartput/holiday      which holiday a phrase names and when it falls; reached
+                       from @smartput/datetime/holiday, never from its root
 @smartput/country      place kind: T0 countries, zone and currency lookup,
                        completion, GeoNames providers
 @smartput/city         T1 gazetteer: 6,247 cities, 1,664 divisions, no code
@@ -143,6 +186,16 @@ Shipped:
 @smartput/energy       energy kind: joules, watt-hours, calories, BTU, and the
                        power x duration bridge
 @smartput/tempo        tempo kind: bpm and hertz, reciprocal bridge to duration
+@smartput/date         date kind: the day half of a chrono match, weighted -5 so
+                       a bare "today" still reads as a datetime
+@smartput/time         time kind: the clock half, same weight, ns since midnight
+@smartput/range-core   no kind: half-open range values, boundary snapping, the
+                       window table, the endpoint seam, InvertedRangeError
+@smartput/date-range   date-range kind: "whole week", "today to friday"
+@smartput/time-range   time-range kind: "morning", "10:00 - 20:00", wrapping
+@smartput/datetime-range
+                       datetime-range kind: "yesterday morning", "from X to Y";
+                       holiday endpoints from its ./holiday subpath, never its root
 ```
 
 Planned:
@@ -163,7 +216,12 @@ Every package that defines a kind ships that kind's translations beside it under
 | any ratio kind (`angle`, `length`, …) | `@smartput/core`, `@smartput/shared` |
 | `datarate`, `energy`, `power`, `tempo` | `@smartput/core`, `@smartput/shared` — a bridging kind names its operand kinds by string, so it depends on neither side of the bridge |
 | `*/locale/*` | none — descriptors only |
-| `datetime` | `temporal-polyfill`, `chrono-node`, `@smartput/core`, `decimal.js` |
+| `datetime` | `temporal-polyfill`, `chrono-node`, `@smartput/core`, `@smartput/timezone`, `decimal.js`, and `@smartput/holiday` — the last reachable only from the `./holiday` subpath |
+| `holiday` | `date-holidays` — and no `@smartput` edge at all, in either direction |
+| `date`, `time`, `range-core` | `@smartput/core`, `@smartput/datetime` — the last for `Temporal` and the chrono match, so `temporal-polyfill` still has exactly one import site in the repo |
+| `date-range` | `@smartput/core`, `@smartput/date`, `@smartput/range-core`, `@smartput/datetime` — the last for `addDuration`, because `whole week + 1 wk` walks the calendar rather than adding 604,800 seconds |
+| `time-range` | `@smartput/core`, `@smartput/time`, `@smartput/range-core` — no `datetime` edge, because a clock span never touches a calendar |
+| `datetime-range` | `@smartput/core`, `@smartput/date`, `@smartput/time`, `@smartput/datetime`, `@smartput/range-core`, and `@smartput/holiday` — the last reachable only from the `./holiday` subpath, exactly as `datetime`'s is |
 | `rates` | `decimal.js`, `@smartput/core`; provider adapters use `fetch` only |
 | `color` | `@urcolor/core`, `@urcolor/i18n` (peer) |
 | `geo` | `decimal.js`, `@smartput/core` — GeoNames data is vendored as generated TypeScript, not an npm package |
@@ -178,6 +236,20 @@ engine, so datetime moved out rather than taxing every consumer. That split was
 only possible because datetime is an ordinary plugin — which is the strongest
 available evidence that the extension seam is real, and M4 is where it was
 tested.
+
+`date-holidays` is the same argument one layer further out, and an order of
+magnitude louder: a 768 KB rule table that bundles to 1.43 MB, which would
+otherwise be paid by everyone who types `today + 3 d`. So it does not tax
+`@smartput/datetime` either — the bridge is
+[a subpath, not the root entry](/guide/datetime#holidays), the package under it
+takes no `@smartput` dependency, and a `check-size` row on the root fails by a
+megabyte if the import ever leaks inwards.
+
+`@smartput/datetime-range` makes the identical split for the identical reason,
+so there are now two guard rows rather than one: 147,846 B for the root against
+1,586,908 B for `./holiday`, measured. A package that wants
+[`from today to closest holiday`](/guide/ranges#holiday-endpoints) is a
+different program from one that wants `whole week`.
 
 ## Deliberately rejected
 

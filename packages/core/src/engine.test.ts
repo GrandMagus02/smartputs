@@ -191,6 +191,15 @@ test("explain lists contextBonus as its own row", () => {
   ]);
 });
 
+test("explain lists no signature row when no signature carries a weight", () => {
+  // The row is emitted only when non-zero, so every built-in kind — none of
+  // which weights a signature — explains exactly as it did before the term
+  // existed. The positive case lives in solve/solver.test.ts, next to the one
+  // fixture that sets a weight.
+  const rows = engine.explain("10 m + 5 km").assignments[0]?.contributions ?? [];
+  expect(rows.some((c) => c.selector === "signature")).toBe(false);
+});
+
 test("explain lists the analyzer's own weight", () => {
   const rows = engine.explain("1.5 kilograms").assignments[0]?.contributions ?? [];
   // en's suffixStripper penalises the plural stem by -2.

@@ -95,12 +95,51 @@ describe("the strict/loose difference", () => {
   });
 });
 
+describe("a unit with no count", () => {
+  test("is one of that unit", () => {
+    expect(parse(T, "deg")).toMatchObject({ ok: true, value: 1, unit: "deg" });
+    expect(parse(T, "rad")).toMatchObject({ ok: true, value: 1, unit: "rad" });
+  });
+
+  test("is folded and trimmed like any other loose input", () => {
+    expect(parse(T, "  DEG  ")).toMatchObject({ ok: true, value: 1, unit: "deg" });
+  });
+
+  test("round-trips: the raw it reports is the number it implied", () => {
+    const ok = parse(T, "deg");
+    if (!ok.ok) throw new Error("unreachable");
+    expect(ok.raw).toBe("1");
+    expect(parse(T, `${ok.raw}${ok.unit}`, { mode: "strict" })).toMatchObject(ok);
+  });
+
+  test("still answers to `unit`, which is orthogonal to mode", () => {
+    expect(parse(T, "deg", { unit: "rad" })).toMatchObject({
+      ok: false,
+      code: "wrong-unit",
+    });
+  });
+
+  test("is loose only: strict has no implied count, as it has no implied unit", () => {
+    expect(parse(T, "deg", { mode: "strict" })).toMatchObject({
+      ok: false,
+      code: "nan",
+    });
+  });
+
+  test("a word that names no unit is still nan, not unknown-unit", () => {
+    // `unknown-unit` is what a *number* beside a bad word gets. With no number
+    // there is nothing to say a unit was expected, so the older code names the
+    // older problem: this string never looked like a value at all.
+    expect(parse(T, "smth")).toMatchObject({ ok: false, code: "nan" });
+    expect(is(T, "smth")).toBe(false);
+  });
+});
+
 describe("rejected in both modes", () => {
   for (const [input, code] of [
     ["", "empty"],
     ["   ", "empty"],
     ["30,5deg", "nan"],
-    ["deg", "nan"],
     ["30smth", "unknown-unit"],
     ["30 deg extra", "trailing"],
   ] as const) {
@@ -129,6 +168,12 @@ describe("spec §5 strict/loose table", () => {
     ["30DEG", "unknown-unit", null],
     ["30Deg", "unknown-unit", null],
     ["30", "missing-unit", "missing-unit"],
+    // A unit with no count is one of it, in loose mode only. Strict accepts
+    // exactly what `format` emits and `format` always writes the number, so a
+    // bare unit there is still input that never started.
+    ["deg", "nan", null],
+    ["DEG", "nan", null],
+    ["smth", "nan", "nan"],
     ["30,5deg", "nan", "nan"],
     ["30smth", "unknown-unit", "unknown-unit"],
     ["30 deg extra", "trailing", "trailing"],

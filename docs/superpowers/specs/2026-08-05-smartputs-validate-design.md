@@ -962,6 +962,36 @@ that were missing rather than numbers that moved:
   `kinds/class barrel, one kind (shake check)` now measures 4671 B, byte for
   byte what `@smartput/angle/class` costs.
 
+#### Amendment, 2026-08-06 — the implied count moves every row
+
+A unit with no count in front of it now parses as one of that unit, in loose
+mode: `parseMass("kg")` is 1 kg, `parseAngle("deg")` is 1°. The branch is in
+`@smartput/shared`'s `parse`, so it is paid by every kind, and the shared
+parser rises from **883 B to ~990 B**. Every `validate` and `class` row in
+`check-size.ts` moved with it — twenty-five of them — each re-measured and
+rounded up to the next 50 B under the rule above.
+
+Three named rows in §13's table are superseded:
+
+| Entry | Was | Measured now |
+| --- | --- | --- |
+| `@smartput/number/validate` — `parseNumber` only | < 1.3 KB / < 750 B | 1330 B / 706 B |
+| `@smartput/angle/validate` — `parseAngle` only | < 1.3 KB / < 750 B | 1396 B / 764 B |
+| `@smartput/angle/validate` — `+ addAngle`, `toAngle` | < 2.3 KB / < 1.1 KB | 2380 B / 1102 B |
+| `@smartput/datasize/validate` | < 1.5 KB / < 850 B | 1528 B / 759 B |
+
+`number`'s row carries ~200 B of its own besides: `mode: "native"`, which reads
+the leading number the way `parseFloat` does and is deliberately *not* in the
+shared parser. The contrast is the point of both amendments read together. A
+leniency that only one kind can want costs one row; a leniency every kind wants
+costs nineteen. `parseLength("30 kg")` answering 30 metres would be a wrong
+answer, so `native` stays in `number`; `parseLength("km")` answering 1 km is a
+right one, so the implied count is shared. Neither placement is a preference.
+
+The `percent/validate` row is the one to watch, and it did what it was kept for:
+1000 B before, 1126 B after. It is the smallest table in the repo, so it is the
+first row any growth in the shared parser shows up in.
+
 ### The honest comparison
 
 A hand-written single-unit check is about 40 bytes:

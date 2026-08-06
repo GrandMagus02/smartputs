@@ -1,0 +1,44 @@
+# input	kind	canonical	formatted
+# Read against the fixed clock 2026-01-15T12:00:00Z — a Thursday — in UTC, and
+# with no `kinds` narrowing at all: unlike `@smartput/date`, every row here is
+# what the engine answers unprompted. Canonical is epoch nanoseconds of the
+# range's *start*; the formatted end is inclusive while the stored one is
+# exclusive, which is the one place design §3.1's half-open rule is undone.
+#
+# Every phrase in `PHRASES`, in table order.
+whole week	date-range	1768176000000000000	2026-01-12 → 2026-01-18
+this week	date-range	1768176000000000000	2026-01-12 → 2026-01-18
+next week	date-range	1768780800000000000	2026-01-19 → 2026-01-25
+last week	date-range	1767571200000000000	2026-01-05 → 2026-01-11
+whole month	date-range	1767225600000000000	2026-01-01 → 2026-01-31
+this month	date-range	1767225600000000000	2026-01-01 → 2026-01-31
+# Both boundaries move through the calendar, so February ends on the 28th.
+next month	date-range	1769904000000000000	2026-02-01 → 2026-02-28
+# And "last month" crosses the year end.
+last month	date-range	1764547200000000000	2025-12-01 → 2025-12-31
+whole year	date-range	1767225600000000000	2026-01-01 → 2026-12-31
+this year	date-range	1767225600000000000	2026-01-01 → 2026-12-31
+next year	date-range	1798761600000000000	2027-01-01 → 2027-12-31
+last year	date-range	1735689600000000000	2025-01-01 → 2025-12-31
+# The three spellings of the calendar year containing now — design §5.2's most
+# revisable ruling. Nothing else claims them: `duration` has no year unit.
+one year	date-range	1767225600000000000	2026-01-01 → 2026-12-31
+1 year	date-range	1767225600000000000	2026-01-01 → 2026-12-31
+year	date-range	1767225600000000000	2026-01-01 → 2026-12-31
+# A one-day span displays with both ends on the same date, because the stored
+# end is the next midnight.
+whole day	date-range	1768435200000000000	2026-01-15 → 2026-01-15
+#
+# The `in | date | date` signature. `to` is a surface word for `in`, and the
+# +20 on the signature is what carries the two -5 date readings.
+today to friday	date-range	1768435200000000000	2026-01-15 → 2026-01-16
+today to jan 20	date-range	1768435200000000000	2026-01-15 → 2026-01-20
+yesterday to tomorrow	date-range	1768348800000000000	2026-01-14 → 2026-01-16
+friday to march 1 2026	date-range	1768521600000000000	2026-01-16 → 2026-03-01
+#
+# Shifting moves both ends by the same amount, so the span is preserved.
+whole week + 1 wk	date-range	1768780800000000000	2026-01-19 → 2026-01-25
+whole week - 1 wk	date-range	1767571200000000000	2026-01-05 → 2026-01-11
+next month + 3 d	date-range	1770163200000000000	2026-02-04 → 2026-03-03
+this year - 1 d	date-range	1767139200000000000	2025-12-31 → 2026-12-30
+whole day + 2 wk	date-range	1769644800000000000	2026-01-29 → 2026-01-29

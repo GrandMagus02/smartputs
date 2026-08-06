@@ -37,7 +37,10 @@ test("valid input parses; invalid input names the reason", () => {
 
   expect(parseMeasure("10px")).toMatchObject({ ok: true, value: 10, unit: "px" });
   expect(parseMeasure("")).toMatchObject({ ok: false, code: "empty" });
-  expect(parseMeasure("px")).toMatchObject({ ok: false, code: "nan" });
+  // A unit with no count is one of it. A word that names no unit is still
+  // `nan`: with no number in the string, nothing said a unit was expected.
+  expect(parseMeasure("px")).toMatchObject({ ok: true, value: 1 });
+  expect(parseMeasure("smth")).toMatchObject({ ok: false, code: "nan" });
   expect(parseMeasure("10")).toMatchObject({ ok: false, code: "missing-unit" });
   expect(parseMeasure("10furlong")).toMatchObject({ ok: false, code: "unknown-unit" });
   expect(parseMeasure("10px", { unit: "mm" })).toMatchObject({

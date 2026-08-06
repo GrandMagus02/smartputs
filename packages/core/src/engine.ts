@@ -314,6 +314,13 @@ export function createEngine(opts: EngineOptions): Engine {
                 { selector: "analyzer", value: c.analyzerWeight, layer: 0 },
               ]),
               { selector: "contextBonus", value: a.contextBonus, layer: 0 },
+              // Unlike contextBonus, emitted only when non-zero: no built-in
+              // signature carries a weight, so an unconditional row would add
+              // a `signature: 0` line to every explanation in the repo to say
+              // nothing. The sum invariant holds either way, 0 being 0.
+              ...(a.signatureWeight === 0
+                ? []
+                : [{ selector: "signature", value: a.signatureWeight, layer: 0 }]),
             ],
           };
         }),

@@ -12,7 +12,10 @@ test("valid and invalid input", () => {
   expect(parseVolume("3 litres")).toMatchObject({ ok: true, value: 3, unit: "l" });
   expect(parseVolume("2milliliters")).toMatchObject({ ok: true, value: 2, unit: "ml" });
   expect(parseVolume("1.5smth")).toMatchObject({ ok: false, code: "unknown-unit" });
-  expect(parseVolume("gal")).toMatchObject({ ok: false, code: "nan" });
+  // A unit with no count is one of it. A word that names no unit is still
+  // `nan`: with no number in the string, nothing said a unit was expected.
+  expect(parseVolume("gal")).toMatchObject({ ok: true, value: 1 });
+  expect(parseVolume("smth")).toMatchObject({ ok: false, code: "nan" });
 });
 
 test("the m³ symbol form parses", () => {

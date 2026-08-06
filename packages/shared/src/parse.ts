@@ -39,7 +39,22 @@ export function parse<U extends string>(
   if (strict && text.length !== input.length) return fail("trailing", input);
 
   const matched = NUMBER.exec(text);
-  if (matched === null) return fail("nan", input);
+  if (matched === null) {
+    // A unit with no count in front of it is one of that unit: "deg" is one
+    // degree, "kg" is one kilogram. Loose only, and for the same reason loose
+    // is the only mode with a bare-number fallback — strict accepts exactly
+    // what `format` emits, and `format` always writes the number.
+    //
+    // `nan` rather than `unknown-unit` when the word names nothing: with no
+    // number in the string there was never anything to say a unit was
+    // expected, so the older code still names the older problem. `"smth"` is
+    // not a value that went wrong at its unit, it is not a value.
+    if (strict || !UNIT_WORD.test(text)) return fail("nan", input);
+    const key = text.toLowerCase();
+    const implied = table.alias[key] ?? opts?.resolve?.(key, table);
+    if (implied === undefined) return fail("nan", input);
+    return finish(1, implied, "1", input, opts);
+  }
 
   const raw = matched[0];
   const value = Number(raw);

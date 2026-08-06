@@ -6,6 +6,16 @@ import { EDIT_HEADROOM, editDistance, nearestWord } from "./distance";
 
 export interface Resolver {
   resolve(surface: string): Candidate[];
+  /**
+   * The readings of `surface` that a bare unit word may stand for, which is
+   * `resolve` minus every kind that cannot carry a count.
+   *
+   * An opaque kind's units are labels, not scales: `place`'s are country codes
+   * and `datetime`'s are zone names, and "one UA" is not a quantity of
+   * anything. A ratio kind's units are exactly the ones where an implied count
+   * means something, which is why this filter is `spec.mode` and not a list.
+   */
+  countable(surface: string): Candidate[];
   literal(m: { kind: KindId; unit: string; surface: string; weight: number }): Candidate;
   nearest(surface: string): string[];
 }
@@ -101,7 +111,7 @@ export function createResolver(args: {
     return out;
   };
 
-  return {
+  const resolver: Resolver = {
     resolve(surface) {
       const found = new Map<string, Candidate>();
       const foldedSurface = fold(surface);
@@ -162,6 +172,16 @@ export function createResolver(args: {
       );
     },
 
+    // Deliberately built on `resolve` rather than beside it, so a bare unit
+    // word is scored by the same four layers, the same analyzer chain and the
+    // same correction pass as a word with a number in front of it. The only
+    // difference between "km" and "3 km" should be the count.
+    countable(surface) {
+      return resolver
+        .resolve(surface)
+        .filter((c) => args.registry.kinds.get(c.kind)?.spec.mode === "ratio");
+    },
+
     // A literal never went through the analyzer chain — its matcher already
     // decided what the text means — but it must still be weighted by all four
     // layers, or `weights: { datetime: 40 }` would silently not apply to a date.
@@ -198,4 +218,6 @@ export function createResolver(args: {
         .map((x) => x.alias);
     },
   };
+
+  return resolver;
 }

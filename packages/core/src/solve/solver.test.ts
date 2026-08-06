@@ -335,3 +335,88 @@ test("explain lists the literal as a candidate", () => {
     surface: "day7",
   });
 });
+
+/**
+ * A patch that replaces the `-|length|length` signature `generateRatioOps`
+ * already made for `length` with an identical one carrying a weight. Pass 4 of
+ * the registry puts generated ops first and `kind.ops` second, so a kind may
+ * overwrite what it generated — which is the only way to attach a weight to a
+ * signature nobody wrote by hand.
+ */
+const weightedMinus = defineKind({
+  id: "length-weighted-minus",
+  extendsKind: "length",
+  value: { mode: "ratio", canonical: "m", units: {} },
+  ops: [
+    {
+      op: "-",
+      left: "length",
+      right: "length",
+      result: "length",
+      weight: 20,
+      apply: (l, r) => ({
+        kind: "length",
+        canonical: l.canonical.minus(r.canonical),
+        unit: l.unit,
+      }),
+    },
+  ],
+});
+
+test("a signature weight lifts its candidate above an equal-scoring rival", () => {
+  // "10 m - 5 m" reads two ways, because "m" is both metre and minute: both
+  // slots length, or both duration. The readings weigh the same and
+  // contextBonus lands on both — each pair agrees with itself — so the contest
+  // is an exact tie that falls through to the alphabetical tie-break, and
+  // `duration` wins for no reason anyone typed. This is the shape §4.1 of the
+  // ranges design describes for `10:00 - 20:00`, reproduced in core's own
+  // fixtures: no reading weight can decide it without also deciding the bare
+  // "10 m" next door.
+  const plain = run("10 m - 5 m").assignments;
+  expect(plain.map((a) => a.kind)).toEqual(["duration", "length"]);
+  expect(plain[0]?.score).toBe(plain[1]?.score);
+
+  const weighted = buildRegistry([number, length, duration, weightedMinus]);
+  const resolver = createResolver({
+    registry: weighted,
+    locale: en,
+    packs: [],
+    layers: [],
+  });
+  const input = "10 m - 5 m";
+  const node = parse(lex(input, en), resolver, input);
+  const assignments = solve(node, weighted, { maxCandidates: 10_000, input });
+
+  expect(assignments[0]?.kind).toBe("length");
+  expect(assignments[0]?.signatureWeight).toBe(20);
+  // 30 context bonus + 20 signature, against the duration path's bare 30.
+  expect(assignments[0]?.score).toBe(50);
+  expect(assignments[1]?.kind).toBe("duration");
+  expect(assignments[1]?.signatureWeight).toBe(0);
+});
+
+test("signatureWeight defaults to zero and moves no existing score", () => {
+  // Every signature in the fixtures above is unweighted, so the field is 0 and
+  // `score` is what it was before the term existed.
+  expect(run("10 km").assignments[0]?.signatureWeight).toBe(0);
+  const contextual = run("10 m + 5 h").assignments[0];
+  expect(contextual?.signatureWeight).toBe(0);
+  expect(contextual?.score).toBe(30);
+});
+
+test("explain lists a non-zero signature weight as its own row", () => {
+  const weightedEngine = createEngine({
+    locales: [enLocale],
+    kinds: [number, length, duration, weightedMinus],
+  });
+  const assignment = weightedEngine.explain("10 m - 5 m").assignments[0];
+  expect(assignment?.contributions).toContainEqual({
+    selector: "signature",
+    value: 20,
+    layer: 0,
+  });
+  // The invariant engine.test.ts checks globally, asserted here where the only
+  // weighted signature in the repo lives: every summand of score has a row.
+  const sum = assignment?.contributions.reduce((s, c) => s + c.value, 0);
+  expect(sum).toBe(assignment?.score);
+});

@@ -29,7 +29,10 @@ test("valid and invalid input", () => {
   expect(parseTemperature("300 kelvins")).toMatchObject({ ok: true, unit: "k" });
   expect(parseTemperature("-40 °f")).toMatchObject({ ok: true, value: -40, unit: "f" });
   expect(parseTemperature("30smth")).toMatchObject({ ok: false, code: "unknown-unit" });
-  expect(parseTemperature("c")).toMatchObject({ ok: false, code: "nan" });
+  // A unit with no count is one of it. A word that names no unit is still
+  // `nan`: with no number in the string, nothing said a unit was expected.
+  expect(parseTemperature("c")).toMatchObject({ ok: true, value: 1 });
+  expect(parseTemperature("smth")).toMatchObject({ ok: false, code: "nan" });
   expect(parseTemperature("30")).toMatchObject({ ok: false, code: "missing-unit" });
   expect(parseTempDelta("5°c")).toMatchObject({ ok: true, value: 5, unit: "c" });
   expect(parseTempDelta("")).toMatchObject({ ok: false, code: "empty" });

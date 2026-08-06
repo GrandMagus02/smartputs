@@ -11,10 +11,13 @@ const T: UnitTable<"rad" | "deg"> = {
 
 test("the pattern accepts what parse accepts", () => {
   const re = new RegExp(`^(?:${patternFor(T)})$`);
-  for (const good of ["30deg", "30 deg", "-30.5deg", "1e3deg", "30degrees"]) {
+  // "deg" among them: loose parse reads a bare unit as one of it, and a field
+  // the browser rejected but the parser accepted would be the disagreement
+  // this test exists to catch.
+  for (const good of ["30deg", "30 deg", "-30.5deg", "1e3deg", "30degrees", "deg"]) {
     expect(re.test(good), good).toBe(true);
   }
-  for (const bad of ["30smth", "deg", "30,5deg", "30 deg extra"]) {
+  for (const bad of ["30smth", "smth", "30,5deg", "30 deg extra"]) {
     expect(re.test(bad), bad).toBe(false);
   }
 });

@@ -1,0 +1,48 @@
+# input	kind	canonical	formatted
+# Read against the repo's fixed clock: Thursday 2026-01-15T12:00:00Z, in UTC.
+# `canonical` is the epoch-nanosecond instant of the range's *start*, which is
+# what range-core stores so ordering works without the engine knowing what a
+# range is. Every number here was measured, not derived by hand.
+#
+# No `kinds` narrowing: unlike `date` and `time`, this kind is weighted +20 and
+# is meant to win outright, so each row is the answer a user really gets.
+
+# A day word plus a window word. The day supplies the date, the window the hours.
+yesterday morning	datetime-range	1768370400000000000	2026-01-14 06:00 → 2026-01-14 12:00 UTC
+today morning	datetime-range	1768456800000000000	2026-01-15 06:00 → 2026-01-15 12:00 UTC
+todays morning	datetime-range	1768456800000000000	2026-01-15 06:00 → 2026-01-15 12:00 UTC
+today's morning	datetime-range	1768456800000000000	2026-01-15 06:00 → 2026-01-15 12:00 UTC
+tomorrow morning	datetime-range	1768543200000000000	2026-01-16 06:00 → 2026-01-16 12:00 UTC
+# "next morning" is tomorrow morning, which +1 gives for free.
+next morning	datetime-range	1768543200000000000	2026-01-16 06:00 → 2026-01-16 12:00 UTC
+yesterday afternoon	datetime-range	1768392000000000000	2026-01-14 12:00 → 2026-01-14 18:00 UTC
+today afternoon	datetime-range	1768478400000000000	2026-01-15 12:00 → 2026-01-15 18:00 UTC
+tomorrow afternoon	datetime-range	1768564800000000000	2026-01-16 12:00 → 2026-01-16 18:00 UTC
+yesterday evening	datetime-range	1768413600000000000	2026-01-14 18:00 → 2026-01-14 22:00 UTC
+tomorrow evening	datetime-range	1768586400000000000	2026-01-16 18:00 → 2026-01-16 22:00 UTC
+# The wrapping window: night closes on the following calendar day.
+tonight	datetime-range	1768514400000000000	2026-01-15 22:00 → 2026-01-16 06:00 UTC
+tomorrow night	datetime-range	1768600800000000000	2026-01-16 22:00 → 2026-01-17 06:00 UTC
+yesterday night	datetime-range	1768428000000000000	2026-01-14 22:00 → 2026-01-15 06:00 UTC
+# The `day` window is daylight, 06 to 22 — not the calendar day. "next day" is
+# excluded from the grammar entirely and stays a datetime; see the unit tests.
+tomorrow day	datetime-range	1768543200000000000	2026-01-16 06:00 → 2026-01-16 22:00 UTC
+
+# `from X to Y`, and its three other closers.
+from today to friday	datetime-range	1768435200000000000	2026-01-15 00:00 → 2026-01-16 00:00 UTC
+from today until friday	datetime-range	1768435200000000000	2026-01-15 00:00 → 2026-01-16 00:00 UTC
+from today till friday	datetime-range	1768435200000000000	2026-01-15 00:00 → 2026-01-16 00:00 UTC
+from today through friday	datetime-range	1768435200000000000	2026-01-15 00:00 → 2026-01-16 00:00 UTC
+from tomorrow to next friday	datetime-range	1768521600000000000	2026-01-16 00:00 → 2026-01-23 00:00 UTC
+# Two clock times, and two fully specified endpoints — the shape design §5.1
+# records as unreachable through `in | datetime | datetime`, served here.
+from 20:00 to 22:00	datetime-range	1768507200000000000	2026-01-15 20:00 → 2026-01-15 22:00 UTC
+from today to 2026-03-01	datetime-range	1768435200000000000	2026-01-15 00:00 → 2026-03-01 00:00 UTC
+
+# `until Y` and friends: the start is now, literally and without rolling.
+until 20:00	datetime-range	1768478400000000000	2026-01-15 12:00 → 2026-01-15 20:00 UTC
+till 20:00	datetime-range	1768478400000000000	2026-01-15 12:00 → 2026-01-15 20:00 UTC
+through 20:00	datetime-range	1768478400000000000	2026-01-15 12:00 → 2026-01-15 20:00 UTC
+until tomorrow	datetime-range	1768478400000000000	2026-01-15 12:00 → 2026-01-16 00:00 UTC
+until friday	datetime-range	1768478400000000000	2026-01-15 12:00 → 2026-01-16 00:00 UTC
+until 2026-03-01	datetime-range	1768478400000000000	2026-01-15 12:00 → 2026-03-01 00:00 UTC

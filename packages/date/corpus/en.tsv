@@ -1,0 +1,23 @@
+# input	kind	canonical	formatted
+# The date reading is weighted -5, so every row is evaluated with the reading
+# set narrowed to `date` and `duration`; unnarrowed, "today" is a datetime and
+# that is what `date.test.ts` pins. Canonical is epoch nanoseconds at midnight
+# of the day, in TEST_ZONE (UTC), measured rather than derived by hand.
+today	date	1768435200000000000	2026-01-15
+tomorrow	date	1768521600000000000	2026-01-16
+yesterday	date	1768348800000000000	2026-01-14
+the day after tomorrow	date	1768608000000000000	2026-01-17
+# A bare weekday: chrono is certain of the weekday, not of the day.
+friday	date	1768521600000000000	2026-01-16
+next friday	date	1769126400000000000	2026-01-23
+last monday	date	1768176000000000000	2026-01-12
+# The weekday snap: ISO week starting Monday, one week on from 2026-01-15.
+next week monday	date	1768780800000000000	2026-01-19
+jan 20	date	1768867200000000000	2026-01-20
+march 1 2026	date	1772323200000000000	2026-03-01
+2026-03-01	date	1772323200000000000	2026-03-01
+# Arithmetic: the result snaps back to midnight, so it stays a whole day.
+today + 3 d	date	1768694400000000000	2026-01-18
+3 d + today	date	1768694400000000000	2026-01-18
+tomorrow - 1 d	date	1768435200000000000	2026-01-15
+today + 2 wk	date	1769644800000000000	2026-01-29

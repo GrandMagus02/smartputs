@@ -442,6 +442,18 @@ export interface OpSignature {
    * meaningless rather than because the user said so.
    */
   assumption?: Assumption;
+  /**
+   * Summed into the candidate's score whenever this signature is applied.
+   *
+   * The other weight layers are all properties of a *reading* —
+   * `token:<surface>`, `<kind>:<unit>`, `<kind>` — and the result kind is never
+   * scored at all. So a plugin that wants one signature preferred without also
+   * preferring its operands everywhere has no way to say so: `- | time | time`
+   * must beat `- | datetime | datetime` for "10:00 - 20:00" while a bare "3pm"
+   * must still read as a datetime, and one dial cannot be turned both ways.
+   * This is the second dial. It defaults to 0, so no existing signature moves.
+   */
+  weight?: number;
   apply: (l: Value, r: Value, ctx: EvalCtx) => Value;
 }
 

@@ -13,7 +13,10 @@ test("valid and invalid input", () => {
   expect(parseTempo("2 hertz")).toMatchObject({ ok: true, value: 2, unit: "hz" });
   expect(parseTempo("0.5 Hz")).toMatchObject({ ok: true, value: 0.5, unit: "hz" });
   expect(parseTempo("120smth")).toMatchObject({ ok: false, code: "unknown-unit" });
-  expect(parseTempo("bpm")).toMatchObject({ ok: false, code: "nan" });
+  // A unit with no count is one of it. A word that names no unit is still
+  // `nan`: with no number in the string, nothing said a unit was expected.
+  expect(parseTempo("bpm")).toMatchObject({ ok: true, value: 1 });
+  expect(parseTempo("smth")).toMatchObject({ ok: false, code: "nan" });
 });
 
 test("the left operand's unit wins", () => {

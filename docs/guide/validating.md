@@ -153,6 +153,38 @@ if (ok.ok) {
 The complete strict/loose difference — every accepted and rejected form — is
 one table in [the API reference](/api/validate#strict-vs-loose).
 
+### A unit with no count is one of it
+
+`loose` reads a bare unit word as a single one of that unit:
+
+```ts
+parseMass("kg");   // { ok: true, value: 1, unit: "kg", raw: "1" }
+parseLength("cm"); // { ok: true, value: 1, unit: "cm" }
+parseMass("smth"); // { ok: false, code: "nan" }
+```
+
+`strict` does not, for the same reason it has no bare-number fallback: it
+accepts exactly what `format()` emits, and `format()` always writes the number.
+So `parseMass("kg", { mode: "strict" })` is still `nan`, and the round trip
+stays a real one.
+
+A word that names no unit is `nan`, not `unknown-unit`. `unknown-unit` is what a
+*number* beside a bad word earns; with no number in the string, nothing ever
+said a unit was expected.
+
+The engine reads it the same way, and as an operand rather than a special case
+for one-token inputs:
+
+```ts
+engine.evaluate("kg");        // 1 kg
+engine.evaluate("kg + 3 kg"); // 4 kg
+engine.evaluate("2 kg + g");  // 2.001 kg
+```
+
+Only kinds whose units are scales get this. A place's units are country codes
+and a datetime's are zone names — "one UA" is not a quantity of anything — so a
+bare one of those is no more a value than it was before.
+
 ### `native`, and only for `number`
 
 `@smartput/number` carries a third point on that axis, looser than `loose`:

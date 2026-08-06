@@ -11,7 +11,10 @@ test("valid and invalid input", () => {
   expect(parseDatarate("1.5gbps")).toMatchObject({ ok: true, value: 1.5, unit: "gbps" });
   expect(parseDatarate("100 mbps")).toMatchObject({ ok: true, value: 100, unit: "mbps" });
   expect(parseDatarate("1.5smth")).toMatchObject({ ok: false, code: "unknown-unit" });
-  expect(parseDatarate("mbps")).toMatchObject({ ok: false, code: "nan" });
+  // A unit with no count is one of it. A word that names no unit is still
+  // `nan`: with no number in the string, nothing said a unit was expected.
+  expect(parseDatarate("mbps")).toMatchObject({ ok: true, value: 1 });
+  expect(parseDatarate("smth")).toMatchObject({ ok: false, code: "nan" });
 });
 
 test("case folding sends MBps to the megabit unit", () => {

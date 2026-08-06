@@ -16,7 +16,10 @@ test("valid and invalid input", () => {
   expect(parseArea("3 acres")).toMatchObject({ ok: true, value: 3, unit: "acre" });
   expect(parseArea("2sqm")).toMatchObject({ ok: true, value: 2, unit: "m2" });
   expect(parseArea("1.5smth")).toMatchObject({ ok: false, code: "unknown-unit" });
-  expect(parseArea("hectare")).toMatchObject({ ok: false, code: "nan" });
+  // A unit with no count is one of it. A word that names no unit is still
+  // `nan`: with no number in the string, nothing said a unit was expected.
+  expect(parseArea("hectare")).toMatchObject({ ok: true, value: 1 });
+  expect(parseArea("smth")).toMatchObject({ ok: false, code: "nan" });
 });
 
 // The grammar's unit character class must accept the superscript digits

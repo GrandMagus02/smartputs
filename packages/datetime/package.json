@@ -9,6 +9,11 @@
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
+    "./holiday": {
+      "bun": "./src/holiday.ts",
+      "types": "./dist/holiday.d.ts",
+      "default": "./dist/holiday.js"
+    },
     "./locale/en": {
       "bun": "./src/locale/en.ts",
       "types": "./dist/locale/en.d.ts",
@@ -17,6 +22,7 @@
   },
   "dependencies": {
     "@smartput/core": "workspace:*",
+    "@smartput/holiday": "workspace:*",
     "@smartput/timezone": "workspace:*",
     "chrono-node": "^2.9.0",
     "decimal.js": "^10.6.0",

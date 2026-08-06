@@ -1,0 +1,56 @@
+import { expect, test } from "bun:test";
+import { createEngine } from "@smartput/core";
+import coreEn from "@smartput/core/locale/en";
+import { datetime, TEST_NOW, TEST_ZONE } from "@smartput/datetime";
+import { BUILTIN_KINDS } from "@smartput/kinds";
+import { time } from "./time";
+
+const engine = createEngine({
+  locales: [coreEn],
+  kinds: [...BUILTIN_KINDS, datetime, time],
+  now: () => TEST_NOW,
+  timeZone: TEST_ZONE,
+});
+
+test("a bare clock time still reads as a datetime", () => {
+  const r = engine.evaluate("3pm");
+  expect(r.kind).toBe("datetime");
+  expect(r.formatted).toBe("2026-01-15 15:00 UTC");
+});
+
+test("the time reading is present and formats as a clock", () => {
+  const r = engine.evaluate("3pm", { kinds: ["time"] });
+  expect(r.kind).toBe("time");
+  expect(r.formatted).toBe("15:00");
+  expect(r.value.unit).toBe("clock");
+});
+
+test("canonical is nanoseconds since local midnight", () => {
+  const { value } = engine.evaluate("10:00", { kinds: ["time"] });
+  expect(value.canonical.toString()).toBe("36000000000000");
+});
+
+test("the time value carries its wall clock and zone on meta", () => {
+  const { value } = engine.evaluate("3pm", { kinds: ["time"] });
+  expect(value.meta?.hms).toBe("15:00:00");
+  expect(value.meta?.zone).toBe("UTC");
+});
+
+test("a date yields no time reading", () => {
+  expect(() => engine.evaluate("today", { kinds: ["time"] })).toThrow();
+});
+
+test("an ISO date-time yields no time reading", () => {
+  expect(() => engine.evaluate("2026-03-01 08:00", { kinds: ["time"] })).toThrow();
+});
+
+test("a time plus a duration wraps within the day", () => {
+  const r = engine.evaluate("23:30 + 90 min", { kinds: ["time", "duration"] });
+  expect(r.formatted).toBe("01:00");
+});
+
+test("a time minus a duration is a time", () => {
+  const r = engine.evaluate("10:00 - 90 min", { kinds: ["time", "duration"] });
+  expect(r.kind).toBe("time");
+  expect(r.formatted).toBe("08:30");
+});

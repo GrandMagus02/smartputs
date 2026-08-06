@@ -26,7 +26,10 @@ test("valid and invalid input", () => {
   expect(parsePercent("3pct")).toMatchObject({ ok: true, value: 3, unit: "%" });
   expect(parsePercent("3.5percents")).toMatchObject({ ok: true, unit: "%" });
   expect(parsePercent("20xyz")).toMatchObject({ ok: false, code: "unknown-unit" });
-  expect(parsePercent("%")).toMatchObject({ ok: false, code: "nan" });
+  // A unit with no count is one of it. A word that names no unit is still
+  // `nan`: with no number in the string, nothing said a unit was expected.
+  expect(parsePercent("%")).toMatchObject({ ok: true, value: 1 });
+  expect(parsePercent("smth")).toMatchObject({ ok: false, code: "nan" });
   // No `defaultUnit` is hardcoded here, unlike `number` — a bare "20" is not
   // a percentage, and the wrapper does not pretend otherwise.
   expect(parsePercent("20")).toMatchObject({ ok: false, code: "missing-unit" });
