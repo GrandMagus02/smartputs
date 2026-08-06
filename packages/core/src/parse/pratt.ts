@@ -55,15 +55,48 @@ export function parse(tokens: Token[], resolver: Resolver, input: string): Node 
   let nextId = 0;
   const id = () => nextId++;
 
+  // Every id in `node`'s subtree, shifted by `delta`. A demoted `left` is not
+  // always a leaf — a chain like "1 + 2 + 3" demotes the binary node that
+  // "1 + 2" already became — so giving only the subtree's root a fresh id
+  // would leave that root sorting after its own children: unique and dense
+  // still, since nothing outside this subtree changes, but wrong relative to
+  // its own contents, which is exactly the silent failure the id scheme
+  // exists to catch elsewhere. Recursing through every child-bearing variant
+  // keeps the whole subtree internally consistent after the shift.
+  const shiftIds = (node: Node, delta: number): Node => {
+    const shifted = { ...node, id: node.id + delta };
+    switch (shifted.type) {
+      case "binary":
+        return {
+          ...shifted,
+          left: shiftIds(shifted.left, delta),
+          right: shiftIds(shifted.right, delta),
+        };
+      case "unary":
+        return { ...shifted, operand: shiftIds(shifted.operand, delta) };
+      case "convert":
+        return { ...shifted, operand: shiftIds(shifted.operand, delta) };
+      default:
+        return shifted;
+    }
+  };
+
   // A binary or convert node wraps an already-parsed `left`, which already
   // has an id of its own — unlike a leaf or a freshly-parsed operand, there is
-  // no "just call id()" for the wrap itself. The wrap takes over `left`'s id
-  // and `left` is demoted to a fresh one, which is what keeps a parent's id
-  // smaller than the child it wraps, matching `walk`'s visit order.
-  const demote = (node: Node): { nodeId: NodeId; demoted: Node } => ({
-    nodeId: node.id,
-    demoted: { ...node, id: id() },
-  });
+  // no "just call id()" for the wrap itself. The wrap takes over `left`'s id,
+  // and `left`'s whole subtree is shifted up by one to make room: at every
+  // wrap site, `left` occupies the contiguous range `[left.id, nextId - 1]`
+  // with `left.id` minimal (true for leaves, for `unary`, which draws its id
+  // before its operand, for the paren branch, which forwards its inner
+  // result untouched, and restored here by the shift), so shifting the whole
+  // range by one and having `id()` account for the id that shift consumes
+  // keeps every id unique and dense while giving the wrap the smallest id in
+  // its own new range — parent-before-children, matching `walk`.
+  const demote = (node: Node): { nodeId: NodeId; demoted: Node } => {
+    const nodeId = node.id;
+    id(); // consumed by the shift below, not handed out directly
+    return { nodeId, demoted: shiftIds(node, 1) };
+  };
 
   const peek = (): Token | undefined => tokens[pos];
   const span = (a: Span, b: Span): Span => ({ start: a.start, end: b.end });

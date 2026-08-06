@@ -40,6 +40,42 @@ test("ids are assigned depth-first from zero", () => {
   expect(order).toEqual([0, 1, 2]);
 });
 
+// A left-associative chain demotes an already-built `left` that is itself a
+// wrapping node (here, the first "+"). A demote that only renumbers the
+// subtree's root — rather than the whole subtree — leaves the root sorting
+// after its own children, which `buildProgram` cannot detect: every id is
+// still unique and dense, just out of walk order.
+test("a left-associative chain renumbers a demoted subtree's descendants too", () => {
+  const program = programFor("1 kg + 2 kg + 3 kg");
+  const order: number[] = [];
+  walk(program.root, (n) => order.push(n.id));
+  expect(order).toEqual([0, 1, 2, 3, 4]);
+});
+
+// The case where a demoted node has a demoted node inside it: the second "+"
+// demotes a subtree that itself contains the first "+"'s already-demoted
+// result.
+test("a four-term chain renumbers a demoted-within-demoted subtree", () => {
+  const program = programFor("1 kg + 2 kg + 3 kg + 4 kg");
+  const order: number[] = [];
+  walk(program.root, (n) => order.push(n.id));
+  expect(order).toEqual([0, 1, 2, 3, 4, 5, 6]);
+});
+
+test("a demoted unary renumbers its operand too", () => {
+  const program = programFor("-1 kg + 2 kg");
+  const order: number[] = [];
+  walk(program.root, (n) => order.push(n.id));
+  expect(order).toEqual([0, 1, 2, 3]);
+});
+
+test("a convert wrapping a binary renumbers the whole binary subtree", () => {
+  const program = programFor("1 kg + 2 kg in g");
+  const order: number[] = [];
+  walk(program.root, (n) => order.push(n.id));
+  expect(order).toEqual([0, 1, 2, 3]);
+});
+
 test("the program carries its normalized input", () => {
   const program = programFor("  1 kg + 2 kg  ");
   expect(program.input.source).toBe("  1 kg + 2 kg  ");
