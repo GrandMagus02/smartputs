@@ -7,6 +7,7 @@
  * provider arrives through the consumer.
  */
 export { QueryCache, type QueryCacheOptions } from "./cache";
+export { Geocoder, type GeocoderOptions, type GeocodeStrategy } from "./geocoder";
 export {
   normalizeName,
   type Place,

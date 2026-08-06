@@ -1,0 +1,170 @@
+import { QueryCache } from "./cache";
+import type { Place, PlaceLookup } from "./place";
+import {
+  applyFilters,
+  cacheKey,
+  GeocodeError,
+  type GeocodeHit,
+  type GeocodeProvider,
+  type GeocodeQuery,
+  toQuery,
+} from "./query";
+import { rankHits } from "./rank";
+
+export type GeocodeStrategy = "fallback" | "merge" | "race";
+
+export interface GeocoderOptions {
+  readonly providers: readonly GeocodeProvider[];
+  /** Default `"fallback"`: cheapest source first, and stop when one answers. */
+  readonly strategy?: GeocodeStrategy;
+  /** How long a cached answer stays fresh. Default: forever. */
+  readonly ttlMs?: number;
+  /** Results per query, unless the query says otherwise. Default 10. */
+  readonly limit?: number;
+  /** Cached queries. Default 200. */
+  readonly cacheMax?: number;
+  readonly now?: () => number;
+}
+
+const DEFAULT_LIMIT = 10;
+
+/**
+ * The public door onto the search path (spec §5).
+ *
+ * A class and not a factory, matching how the rest of this codebase hands back
+ * stateful things — `PostalFormats`, `PlaceCompleter`, `PlaceDistance`: this
+ * object owns a cache and a provider list, and those want a `this`. The
+ * functions underneath — `rankHits`, `dedupe`, `applyFilters`, `cacheKey` — are
+ * plain and exported, and every one of them is tested without constructing a
+ * `Geocoder`.
+ */
+export class Geocoder {
+  readonly #providers: readonly GeocodeProvider[];
+  readonly #strategy: GeocodeStrategy;
+  readonly #limit: number;
+  readonly #cache: QueryCache<readonly GeocodeHit[]>;
+
+  constructor(opts: GeocoderOptions) {
+    this.#providers = opts.providers;
+    this.#strategy = opts.strategy ?? "fallback";
+    this.#limit = opts.limit ?? DEFAULT_LIMIT;
+    // Spread-or-omit rather than passing undefined through:
+    // `exactOptionalPropertyTypes` makes an absent option and one holding
+    // undefined different types, and `QueryCache` reads its defaults with `??`
+    // on properties it expects to be absent.
+    this.#cache = new QueryCache<readonly GeocodeHit[]>({
+      ...(opts.ttlMs === undefined ? {} : { ttlMs: opts.ttlMs }),
+      ...(opts.cacheMax === undefined ? {} : { max: opts.cacheMax }),
+      ...(opts.now === undefined ? {} : { now: opts.now }),
+    });
+  }
+
+  /**
+   * Every attribution string a consumer must display, deduplicated. Empty
+   * strings are dropped: `custom()` defaults to one, and a UI rendering a blank
+   * line is worse than rendering nothing.
+   */
+  get attribution(): readonly string[] {
+    const out: string[] = [];
+    for (const p of this.#providers) {
+      if (p.attribution !== "" && !out.includes(p.attribution)) out.push(p.attribution);
+    }
+    return out;
+  }
+
+  /**
+   * Whatever a provider can already answer with no I/O — `bundled()` always,
+   * a fetched index once loaded.
+   *
+   * Returns `null` where rates' `sync` getter throws `RatesNotReadyError`, and
+   * the difference is what the caller can do about it: a rate engine with no
+   * rates cannot evaluate anything, while a place lookup with no snapshot has
+   * simply not got that place, which is a `null` every caller already handles.
+   */
+  get sync(): PlaceLookup {
+    const providers = this.#providers;
+    return {
+      find(name: string): Place | null {
+        for (const p of providers) {
+          const found = p.snapshot?.find(name);
+          if (found != null) return found;
+        }
+        return null;
+      },
+    };
+  }
+
+  async search(input: string | GeocodeQuery): Promise<readonly GeocodeHit[]> {
+    const q = this.#withDefaults(toQuery(input));
+    this.#throwIfAborted(q);
+    const hits = await this.#cache.get(cacheKey(q), () => this.#run(q));
+    // Re-checked after the await: a query aborted while its load was in flight
+    // must not resolve, even though the load itself is shared and completed for
+    // somebody else.
+    this.#throwIfAborted(q);
+    return hits;
+  }
+
+  /** `search` narrowed to one answer, which is what the kind bridge wants. */
+  async resolve(input: string | GeocodeQuery): Promise<Place | null> {
+    const hits = await this.search(input);
+    return hits[0]?.place ?? null;
+  }
+
+  #withDefaults(q: GeocodeQuery): GeocodeQuery {
+    return q.limit === undefined ? { ...q, limit: this.#limit } : q;
+  }
+
+  /**
+   * Rejects with the signal's own reason, unwrapped, rather than a
+   * `GeocodeError`. `AbortError` is what every caller's `catch` already tests
+   * for, and dressing it up breaks that (§10).
+   */
+  #throwIfAborted(q: GeocodeQuery): void {
+    if (q.signal?.aborted === true) throw q.signal.reason;
+  }
+
+  /** Providers this query may reach: §4.3's licence condition, enforced. */
+  #eligible(q: GeocodeQuery): readonly GeocodeProvider[] {
+    if (q.committed === true) return this.#providers;
+    return this.#providers.filter((p) => p.interactive);
+  }
+
+  /**
+   * Order as weight: the first provider a query is allowed to reach is the one
+   * the consumer trusts most, and §6's source term is how that trust enters the
+   * score. Computed over the *eligible* list rather than the whole one, so a
+   * provider skipped for being non-interactive does not leave a gap in the
+   * scale.
+   */
+  #weightOf(providers: readonly GeocodeProvider[]): (source: string) => number {
+    return (source: string) => {
+      const index = providers.findIndex((p) => p.id === source);
+      if (index < 0) return 0;
+      return 1 - index / providers.length;
+    };
+  }
+
+  async #run(q: GeocodeQuery): Promise<readonly GeocodeHit[]> {
+    const providers = this.#eligible(q);
+    if (providers.length === 0) return [];
+    const causes: unknown[] = [];
+    const weightOf = this.#weightOf(providers);
+
+    for (const provider of providers) {
+      try {
+        const hits = applyFilters(await provider.search(q), q);
+        if (hits.length > 0) return rankHits(hits, q, weightOf);
+      } catch (err) {
+        // A dead mirror must not take the query with it. Recorded and walked
+        // past; only an all-rejecting run is a failure.
+        causes.push(err);
+      }
+    }
+
+    if (causes.length === providers.length && causes.length > 0) {
+      throw new GeocodeError(`every provider failed (${providers.length})`, causes);
+    }
+    return [];
+  }
+}
