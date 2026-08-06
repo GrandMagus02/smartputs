@@ -8,6 +8,7 @@ import { createResolver } from "../parse/candidates";
 import { Normalizer } from "../parse/normalize";
 import { Parser, type Program } from "../parse/program";
 import { Tokenizer } from "../parse/tokenizer";
+import { Solver } from "../solve/solver-class";
 import type { RateLookup, Value } from "../types";
 import { Printer } from "./print";
 
@@ -26,6 +27,7 @@ function programFor(input: string): Program {
   return parser.run(tokenizer.run(normalizer.run(input)));
 }
 
+const solver = new Solver({ registry });
 const printer = new Printer({ registry, locale: en });
 
 // --- canonical: the golden table ---------------------------------------
@@ -104,7 +106,8 @@ test("canonical: an ambiguous unit is echoed, not resolved to one meaning", () =
   // node alone carries both candidates with no way to know which the solver
   // will pick once "km" supplies context. Canonicalizing it to either
   // meaning here would be resolving an ambiguity `canonical` has no
-  // `Resolution` to resolve with — see `unitText`'s doc comment.
+  // `Resolution` to resolve with — see `pickCandidate`'s doc comment.
+  // `resolved` is the mode that does have one; see `modes.test.ts`.
   expect(printer.print(programFor("10 m + 5 km"))).toBe("10 m + 5 km");
 });
 
@@ -113,7 +116,7 @@ test("canonical: word math normalizes numerals and operator words to symbols", (
 });
 
 test("canonical: a bare number prints with no unit at all", () => {
-  // `NumberNode`'s own case in `printNode` never calls `unitText` — a bare
+  // `NumberNode`'s own case in `printNode` never calls `unitWord` — a bare
   // number is never a quantity of `NUMBER_KIND`'s "one" unit, it is a
   // `NumberNode`, and those two cases print differently on purpose. This is
   // the golden case that pins the bypass the invariant test below excludes
@@ -127,9 +130,9 @@ test("canonical: a bare number prints with no unit at all", () => {
 // --- the invariant unitText's single-candidate path rests on ------------
 
 test("invariant: every unit the printer can emit a unit for lexes back to that (kind, unit)", () => {
-  // `unitText` canonicalizes an unambiguous quantity to `lexeme.aliases[0]`
+  // `unitWord` canonicalizes an unambiguous quantity to `lexeme.aliases[0]`
   // rather than `lexeme.symbol` specifically because the first alias is
-  // supposed to be parser-legal (see `unitText`'s doc comment) — but nothing
+  // supposed to be parser-legal (see `unitWord`'s doc comment) — but nothing
   // enforces that ordering. It holds today only because every kind package
   // happens to declare the lexable spelling first; reversing two lines in a
   // kind package's `units.ts` would make the printer emit an unparseable
@@ -150,15 +153,17 @@ test("invariant: every unit the printer can emit a unit for lexes back to that (
   // `NUMBER_KIND` is excluded, and deliberately not by weakening the check
   // above but by narrowing which units the property even claims to cover:
   // the property is "every unit the printer can *emit* a unit suffix for",
-  // and `NUMBER_KIND` is outside that set on both printing paths —
-  // `formatValue` special-cases it to return the bare number with no unit,
-  // and `print.ts`'s `case "number"` never calls `unitText` either, so
-  // `unitText`'s promise about `aliases[0]` is simply never exercised for
-  // this kind. That the exclusion tracks a real code path rather than an
-  // assumption is what "canonical: a bare number prints with no unit at
-  // all" above pins: if a later change ever made either printing path start
-  // emitting `NUMBER_KIND`'s unit, that golden case fails first, which is
-  // what keeps this exclusion from silently going stale.
+  // and `NUMBER_KIND` is outside that set on this path — `print.ts`'s
+  // `case "number"` never calls `unitWord`, so `unitWord`'s promise about
+  // `aliases[0]` is simply never exercised for this kind here. (`formatValue`
+  // has the same special case on its own, separate path — `Printer.value()`,
+  // never exercised by this test — but that is a fact about a different
+  // function, not evidence for this exclusion.) That the exclusion tracks a
+  // real code path rather than an assumption is what "canonical: a bare
+  // number prints with no unit at all" above pins: if a later change ever
+  // made `print.ts`'s bypass start emitting `NUMBER_KIND`'s unit, that golden
+  // case fails first, which is what keeps this exclusion from silently going
+  // stale.
   //
   // Worth stating why `NUMBER_KIND` would fail here if it weren't excluded,
   // so the exclusion reads as a real asymmetry and not an oversight: its one
@@ -202,46 +207,213 @@ test("invariant: every unit the printer can emit a unit for lexes back to that (
   expect(checked).toBeGreaterThan(20);
 });
 
-// --- not yet implemented: throws, never a silent fallback ---------------
-
-test("print: verbatim mode throws rather than falling back to canonical", () => {
-  const program = programFor("10 km");
-  expect(() => printer.print(program, { mode: "verbatim" })).toThrow();
-});
-
-test("print: resolved mode throws rather than falling back to canonical", () => {
-  const program = programFor("10 km");
-  expect(() => printer.print(program, { mode: "resolved" })).toThrow();
-});
-
-test("print: { unit } throws", () => {
-  const program = programFor("10 km");
-  expect(() => printer.print(program, { unit: "m" })).toThrow();
-});
-
-test("print: { symbols: true } throws", () => {
-  const program = programFor("10 km");
-  expect(() => printer.print(program, { symbols: true })).toThrow();
-});
-
-test("print: { precision } throws", () => {
-  const program = programFor("10 km");
-  expect(() => printer.print(program, { precision: 2 })).toThrow();
-});
-
-test("print: { spacing } throws", () => {
-  const program = programFor("10 km");
-  expect(() => printer.print(program, { spacing: "tight" })).toThrow();
-});
+// --- spelled: not yet implemented, throws, never a silent fallback ------
 
 test("print: { spelled: true } throws", () => {
   const program = programFor("10 km");
   expect(() => printer.print(program, { spelled: true })).toThrow();
 });
 
-test("node(): not implemented, throws", () => {
+test("node(): { spelled: true } throws", () => {
   const program = programFor("10 km");
-  expect(() => printer.node(program, program.root.id)).toThrow();
+  expect(() => printer.node(program, program.root.id, { spelled: true })).toThrow();
+});
+
+// --- verbatim: reproduces the source exactly -----------------------------
+// The corpus-wide identity and the NFKC-shift case live in `modes.test.ts`;
+// these are the non-corpus inputs the brief calls out by name — the corpus
+// itself has no length-changing or padded row, so these are the only cases
+// that exercise `mapSpan` doing real work rather than an identity mapping.
+
+test("verbatim: leading and trailing padding the normalizer trims", () => {
+  const input = "  10 km  ";
+  expect(printer.print(programFor(input), { mode: "verbatim" })).toBe(input);
+});
+
+test("verbatim: a double space the normalizer collapses to one", () => {
+  const input = "10   km";
+  expect(printer.print(programFor(input), { mode: "verbatim" })).toBe(input);
+});
+
+test("verbatim: a degree sign the normalizer strips", () => {
+  const input = "30°C";
+  expect(printer.print(programFor(input), { mode: "verbatim" })).toBe(input);
+});
+
+test("verbatim: a non-ASCII dash the normalizer folds to '-'", () => {
+  const input = "10 km − 5 km"; // U+2212 MINUS SIGN
+  expect(printer.print(programFor(input), { mode: "verbatim" })).toBe(input);
+});
+
+// --- node(): one subexpression, same modes and options as print ---------
+
+test('node(): throws for an id not in program.nodes, never returning ""', () => {
+  const program = programFor("10 km");
+  expect(() => printer.node(program, 999)).toThrow();
+});
+
+test("node(): canonical prints just the addressed subtree", () => {
+  const program = programFor("1 kg + 500 g");
+  const left = program.root.type === "binary" ? program.root.left : undefined;
+  expect(left).toBeDefined();
+  expect(printer.node(program, (left as NonNullable<typeof left>).id)).toBe("1 kg");
+});
+
+test("node(): verbatim slices the source at the addressed node's mapped span", () => {
+  // Padded so the node's own span (which excludes the padding) differs from
+  // the whole-program `source` — the case that would pass even if `node()`
+  // wrongly bypassed `mapSpan` the way top-level `print()` correctly does.
+  const program = programFor("  1 kg + 500 g  ");
+  const left = program.root.type === "binary" ? program.root.left : undefined;
+  expect(left).toBeDefined();
+  expect(
+    printer.node(program, (left as NonNullable<typeof left>).id, { mode: "verbatim" }),
+  ).toBe("1 kg");
+});
+
+test("node(): verbatim throws after an NFKC length change, rather than returning the whole source", () => {
+  // U+339E "㎞" (SQUARE KM) NFKC-expands to the two characters "km": a
+  // length change, which is the one case `NormalizedInput.mapSpan` cannot
+  // answer for a specific node (see `verbatimSlice`'s doc comment).
+  const program = programFor("10 ㎞");
+  expect(() => printer.node(program, program.root.id, { mode: "verbatim" })).toThrow();
+});
+
+test("print(): verbatim is exact even after an NFKC length change — it never consults a node span", () => {
+  const input = "10 ㎞";
+  expect(printer.print(programFor(input), { mode: "verbatim" })).toBe(input);
+});
+
+// --- resolved: requires a Resolution, substitutes the solver's choice ---
+
+test("print: resolved mode throws without { resolution } rather than falling back to canonical", () => {
+  const program = programFor("10 km");
+  expect(() => printer.print(program, { mode: "resolved" })).toThrow();
+});
+
+test("resolved: matches canonical when every quantity is unambiguous", () => {
+  const program = programFor("1 kg + 500 g");
+  const resolution = solver.best(program);
+  expect(printer.print(program, { mode: "resolved", resolution })).toBe(
+    printer.print(program),
+  );
+});
+
+test("resolved: substitutes the resolved reading for an ambiguous quantity", () => {
+  // "m" is ambiguous (length's metre, duration's minute); "5 h" forces
+  // duration, so the solver reads the first "m" as minutes. `canonical` has
+  // no `Resolution` and echoes "m" either way — see the golden case above
+  // this one's counterpart on "10 m + 5 km". `resolved` is the mode that
+  // makes that choice visible instead: spec §4.6's own example.
+  const program = programFor("10 m + 5 h");
+  const resolution = solver.best(program);
+  expect(printer.print(program, { mode: "resolved", resolution })).toBe("10 min + 5 h");
+});
+
+test("resolved: an ambiguous quantity whose resolved alias would coincide with canonical's echo picks a distinguishing one instead", () => {
+  // Here the solver reads "m" as length's metre (context is "5 km"), and
+  // length's first alias is itself "m" — printing it blindly would silently
+  // reproduce canonical's echo, byte for byte, coinciding by accident rather
+  // than being the distinct mode `resolved` is supposed to be. See
+  // `unitWord`'s doc comment.
+  const program = programFor("10 m + 5 km");
+  const resolution = solver.best(program);
+  const resolved = printer.print(program, { mode: "resolved", resolution });
+  expect(resolved).toBe("10 metre + 5 km");
+  expect(resolved).not.toBe(printer.print(program));
+});
+
+test("resolved: an ambiguous node with no distinguishing spelling at all coincides with canonical", () => {
+  // "C" is ambiguous between temperature's and tempdelta's identically
+  // spelled "c" (decorative "°c" alias included) — no reading's alias
+  // differs from the other's, so there is nothing for `resolved` to reveal,
+  // and it should print exactly what `canonical` does rather than an
+  // artifact of alias-table casing (see `unitWord`'s `ambiguousSurface`
+  // fallback).
+  const program = programFor("30 C - 20 C");
+  const resolution = solver.best(program);
+  expect(printer.print(program, { mode: "resolved", resolution })).toBe(
+    printer.print(program),
+  );
+});
+
+test("resolved: node() reads the same Resolution for a single subtree", () => {
+  const program = programFor("10 m + 5 h");
+  const resolution = solver.best(program);
+  const left = program.root.type === "binary" ? program.root.left : undefined;
+  expect(left).toBeDefined();
+  expect(
+    printer.node(program, (left as NonNullable<typeof left>).id, {
+      mode: "resolved",
+      resolution,
+    }),
+  ).toBe("10 min");
+});
+
+// --- unit + precision: rebasing is the first thing the printer computes -
+
+test("unit: rebases every quantity of the matching kind, others untouched", () => {
+  expect(printer.print(programFor("1 kg + 500 g"), { unit: "g" })).toBe(
+    "1,000 g + 500 g",
+  );
+});
+
+test("unit: a quantity of a different kind is left exactly as canonical prints it", () => {
+  // "5 h" is duration, not length — { unit: "m" } (ambiguous on its own,
+  // see below) still must not touch it were it to resolve to length.
+  expect(printer.print(programFor("1 kg + 500 g"), { unit: "cm" })).toBe(
+    printer.print(programFor("1 kg + 500 g")),
+  );
+});
+
+test("unit: an unknown alias throws", () => {
+  const program = programFor("10 km");
+  expect(() => printer.print(program, { unit: "zzz-not-a-unit" })).toThrow();
+});
+
+test("unit: an alias ambiguous across kinds throws rather than guessing", () => {
+  const program = programFor("10 km");
+  expect(() => printer.print(program, { unit: "m" })).toThrow();
+});
+
+test("precision: rounds a quantity unit actually rebases", () => {
+  // 1 h = 1/24 d exactly, a repeating decimal in base 10.
+  const program = programFor("1 h");
+  expect(printer.print(program, { unit: "d", precision: 4 })).toBe("0.04167 d");
+});
+
+test("precision: without unit, there is nothing computed to round — the literal prints unchanged", () => {
+  const program = programFor("1 h");
+  expect(printer.print(program, { precision: 4 })).toBe("1 h");
+});
+
+// --- symbols: UnitLexeme.symbol, falling back to the alias --------------
+
+test("symbols: an area quantity prints its display symbol, not its alias", () => {
+  expect(printer.print(programFor("3 m2"), { symbols: true })).toBe("3 m²");
+});
+
+test("symbols: a speed quantity's symbol differs entirely from its alias", () => {
+  expect(printer.print(programFor("10 mps"), { symbols: true })).toBe("10 m/s");
+});
+
+// --- spacing: "tight" vs the default "normal" ----------------------------
+
+test("spacing: tight removes the number-unit gap and symbolic-operator spaces", () => {
+  expect(printer.print(programFor("1 kg + 500 g"), { spacing: "tight" })).toBe(
+    "1kg+500g",
+  );
+});
+
+test('spacing: tight keeps the spaces around a keyword operator ("of")', () => {
+  // Gluing "%" against "of" would produce "20%of50" — a different, unreadable
+  // word, not just a differently-spaced one — see `PrintOptions.spacing`'s
+  // doc comment.
+  expect(printer.print(programFor("20% of 50"), { spacing: "tight" })).toBe("20% of 50");
+});
+
+test('spacing: tight keeps the spaces around a convert\'s "in"', () => {
+  expect(printer.print(programFor("2 km in m"), { spacing: "tight" })).toBe("2km in m");
 });
 
 // --- value(): today's formatValue, byte-identical -----------------------
