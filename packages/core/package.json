@@ -6,7 +6,10 @@
     "./src/decimal.ts",
     "./dist/index.js",
     "./dist/locale/en.js",
-    "./dist/testing/index.js"
+    "./dist/testing/index.js",
+    "./dist/eval.js",
+    "./dist/print.js",
+    "./dist/registry.js"
   ],
   "exports": {
     ".": {
@@ -23,6 +26,41 @@
       "bun": "./src/testing/index.ts",
       "types": "./dist/testing/index.d.ts",
       "default": "./dist/testing/index.js"
+    },
+    "./normalize": {
+      "bun": "./src/normalize.ts",
+      "types": "./dist/normalize.d.ts",
+      "default": "./dist/normalize.js"
+    },
+    "./tokenize": {
+      "bun": "./src/tokenize.ts",
+      "types": "./dist/tokenize.d.ts",
+      "default": "./dist/tokenize.js"
+    },
+    "./parse": {
+      "bun": "./src/parse.ts",
+      "types": "./dist/parse.d.ts",
+      "default": "./dist/parse.js"
+    },
+    "./solve": {
+      "bun": "./src/solve.ts",
+      "types": "./dist/solve.d.ts",
+      "default": "./dist/solve.js"
+    },
+    "./eval": {
+      "bun": "./src/eval.ts",
+      "types": "./dist/eval.d.ts",
+      "default": "./dist/eval.js"
+    },
+    "./print": {
+      "bun": "./src/print.ts",
+      "types": "./dist/print.d.ts",
+      "default": "./dist/print.js"
+    },
+    "./registry": {
+      "bun": "./src/registry.ts",
+      "types": "./dist/registry.d.ts",
+      "default": "./dist/registry.js"
     }
   },
   "dependencies": {

@@ -1,14 +1,13 @@
 import { expect, test } from "bun:test";
+import { Evaluator } from "@smartput/core/eval";
+import { Normalizer } from "@smartput/core/normalize";
+import { Parser } from "@smartput/core/parse";
+import { buildRegistry, createResolver } from "@smartput/core/registry";
+import { Solver } from "@smartput/core/solve";
+import { Tokenizer } from "@smartput/core/tokenize";
 import { BUILTIN_KINDS } from "@smartput/kinds";
 import { createEngine } from "./engine";
-import { Evaluator } from "./eval/evaluator";
-import { buildRegistry } from "./kind/registry";
 import en from "./locale/en";
-import { createResolver } from "./parse/candidates";
-import { Normalizer } from "./parse/normalize";
-import { Parser } from "./parse/program";
-import { Tokenizer } from "./parse/tokenizer";
-import { Solver } from "./solve/solver-class";
 import type { Value } from "./types";
 
 /**
@@ -16,17 +15,17 @@ import type { Value } from "./types";
  * deliverable": five stages, assembled by hand, with no `createEngine`
  * anywhere in this file.
  *
- * The gap this test surfaces, stated rather than papered over: `Normalizer`,
- * `Tokenizer`, `Parser`, `Solver` and `Evaluator` are all barrel exports of
- * `packages/core/src/index.ts`, but `Parser`'s one required config field is a
- * `Resolver`, which the barrel exports no way to construct or even name.
- * `createResolver` (and the `Resolver` type) live in `./parse/candidates`,
- * which this file reaches into with a relative import — not the barrel, and
- * not a subpath a package outside `packages/core` could import at all today.
- * Spec §6 schedules `createResolver` under a public `@smartput/core/registry`
- * subpath in Task 12; until that lands, hand-assembling this pipeline from
- * outside this package is not actually possible with what's public, only from
- * inside it.
+ * Every import above is a public entry point a package outside `packages/
+ * core` could use too: `Normalizer`, `Tokenizer`, `Parser`, `Solver` and
+ * `Evaluator` are each their own subpath (spec §6), and `Parser`'s one
+ * required config field — a `Resolver`, which nothing but `createResolver`
+ * constructs — comes from `@smartput/core/registry`. That subpath is what
+ * closes the gap this test used to record: before Task 12, `createResolver`
+ * and the `Resolver` type were exported from neither `index.ts` nor any
+ * subpath, and this file reached into `./parse/candidates` with a relative
+ * import to get them — not the barrel, and not anything a package outside
+ * `packages/core` could import at all. Nothing here reaches around the
+ * package boundary anymore.
  *
  * `createEngine` below exists only as the oracle each hand-built pipeline is
  * checked against, over the same input, never as part of the pipeline itself.

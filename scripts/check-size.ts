@@ -663,6 +663,80 @@ export const BUDGETS: EntrySpec[] = [
     min: 1_587_000,
     gzip: 292_000,
   },
+
+  // Task 12: one row per `@smartput/core` stage subpath (spec §6), proving the
+  // separation the subpaths exist for — a caller who imports only `Normalizer`
+  // does not pay for the tokenizer, parser, solver, evaluator, printer or
+  // registry, and none of the others secretly reach back into a sibling stage.
+  //
+  // `normalize` is the one stage with no `Decimal` anywhere in its graph — no
+  // numeral has to become a number until the tokenizer sees it — so this is
+  // the only row in the file under 2 KB: 1665 B measured, nothing like the
+  // ~35 KB `decimal.js` floor every other row below carries. That gap *is*
+  // the separation this milestone's plan row asks to be proven.
+  {
+    label: "core/normalize",
+    from: "@smartput/core/normalize",
+    names: ["Normalizer", "normalize"],
+    min: 1700,
+    gzip: 800,
+  },
+  // The other six sit within 6 KB of each other (36_450-42_256 B measured),
+  // the same band `boolean`/`query` occupy above: each is core's own graph —
+  // `Decimal`, `errors.ts`'s `SmartputError`, `freeze.ts` — plus a few
+  // kilobytes of the one stage named. None of the six is anywhere near the
+  // solver/evaluator's actual size were it dragged in whole (`solve` and
+  // `eval` measure lighter than `tokenize`, `parse`, `print` and `registry`
+  // here, which would be backwards if either had pulled the other in), so the
+  // gap between this band and a genuine cross-stage leak is wide enough that
+  // a regression here would be unmissable rather than a rounding error.
+  {
+    label: "core/tokenize",
+    from: "@smartput/core/tokenize",
+    names: ["Tokenizer", "lex"],
+    min: 39_950,
+    gzip: 16_000,
+  },
+  {
+    label: "core/parse",
+    from: "@smartput/core/parse",
+    names: ["Parser"],
+    min: 38_000,
+    gzip: 15_150,
+  },
+  {
+    label: "core/solve",
+    from: "@smartput/core/solve",
+    names: ["Solver"],
+    min: 37_550,
+    gzip: 14_850,
+  },
+  {
+    label: "core/eval",
+    from: "@smartput/core/eval",
+    names: ["Evaluator"],
+    min: 36_450,
+    gzip: 14_500,
+  },
+  {
+    label: "core/print",
+    from: "@smartput/core/print",
+    names: ["Printer"],
+    min: 40_950,
+    gzip: 16_250,
+  },
+  {
+    // The registry subpath, importing both the constructor and the resolver
+    // factory `stages.test.ts` used to have no public way to reach — see
+    // `parse/candidates.ts`'s `createResolver`. Same band as the rest: this
+    // is `buildRegistry` and `createResolver` themselves, not the solver they
+    // feed.
+    label: "core/registry",
+    from: "@smartput/core/registry",
+    names: ["buildRegistry", "createResolver"],
+    min: 42_300,
+    gzip: 16_550,
+  },
 ];
 
 if (import.meta.main) {
