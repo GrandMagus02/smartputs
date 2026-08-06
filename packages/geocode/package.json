@@ -8,12 +8,15 @@
       "bun": "./src/index.ts",
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
+    },
+    "./providers": {
+      "bun": "./src/providers/index.ts",
+      "types": "./dist/providers/index.d.ts",
+      "default": "./dist/providers/index.js"
     }
   },
   "dependencies": {
+    "@smartput/city": "workspace:*",
     "@smartput/core": "workspace:*"
-  },
-  "devDependencies": {
-    "@smartput/city": "workspace:*"
   }
 }
