@@ -19,10 +19,18 @@ has two ends instead of one.
 @smartput/datetime-range  kind "datetime-range"   core, range-core, date, time
 ```
 
-**Core does not change.** Every mechanism this design needs already exists: the
-literal-matcher seam from M4, the multi-reading fold from M6.3, opaque-kind
-units, op signatures, and the four weight layers. That is the claim this
-milestone tests, the same way M4 tested the extension seam.
+**Core changes once**: `OpSignature` gains `weight?: number`. Everything else
+this design needs already exists — the literal-matcher seam from M4, the
+multi-reading fold from M6.3, opaque-kind units, and the weight layers.
+
+The one field is not optional, and §4 derives why from the solver's arithmetic:
+a candidate's score is the sum of its **operand readings'** weights plus
+`contextBonus`, and the result kind contributes nothing. So no existing knob can
+say "prefer this signature" without also saying "prefer this reading
+everywhere", and the two requirements conflict directly — `10:00 - 20:00` needs
+`time` to win while bare `3pm` needs `datetime` to win. A weight on the
+signature is the missing term, and it lands beside `contextBonus` in the same
+tree walk.
 
 ## 2. Why `date` and `time` are separate kinds
 
@@ -66,14 +74,31 @@ one reading per span, as it did before M6.3, `date` could not coexist with
 
 ### 2.2 Value shapes
 
-Both kinds are **opaque**, and both take their units from `ZONES` +
-`OFFSET_ZONES` — the same table `@smartput/datetime` copies — so that `in tokyo`
-works on every one of them without a new mechanism.
+Both kinds are **opaque**, and each registers exactly **one unit** — `date` has
+`day`, `time` has `clock`. The zone rides on `meta`, not on `unit`.
 
 | Kind | `canonical` | `unit` | `meta` | `format` |
 | --- | --- | --- | --- | --- |
-| `date` | epoch ns at local midnight of that day | IANA zone id | `{ iso, day }` | `2026-01-15` |
-| `time` | ns since local midnight, `0 <= x < 86_400e9` | IANA zone id | `{ hms }` | `15:00` |
+| `date` | epoch ns at local midnight of that day | `"day"` | `{ iso, day, zone }` | `2026-01-15` |
+| `time` | ns since local midnight, `0 <= x < 86_400e9` | `"clock"` | `{ iso, hms, zone }` | `15:00` |
+
+**Zones are deliberately not units here**, and this is load-bearing rather than
+a simplification. A `convert` node's targets come from the unit-alias index, so
+if `date` copied `ZONES` the way `datetime` does, `tokyo` would be a `date`
+target — and `today in tokyo` would match `in | date | date`, which §5.1 makes a
+`date-range`. It would score *above* the zone conversion, because both operands
+would read as `date` and collect the `contextBonus` that a mixed
+`date`/`datetime` pair does not. A correct input would return a broken range.
+
+One unit each closes that off by construction: no zone alias can ever resolve to
+a `date` or `time` target, so the range signatures are unreachable from
+`X in <zone>`.
+
+Both matchers set **`targetable: true`**, which is what lets `friday` stand on
+the right of `to` in `today to friday`. The M6.1 gate that gave datetime's
+literals `targetable: false` was there to keep `today in tomorrow` from being a
+zone conversion; under this design that phrase becomes a `date-range`, which is
+what it should have meant.
 
 `date.meta.day` is the plain calendar date, `"2026-01-15"`. `time.meta.hms` is
 `"15:00:00"`. `iso` keeps the full zoned string so `unwrap` can rebuild a
@@ -90,27 +115,24 @@ to 20:00 is 10 hours whatever day it lands on.
 | --- | --- | --- |
 | `+ \| date \| duration` | `date` | `today + 3 d` |
 | `- \| date \| duration` | `date` | `today - 1 wk` |
-| `- \| date \| date` | `duration` | see below |
 | `+ \| time \| duration` | `time` | `10:00 + 90 min` |
 | `- \| time \| duration` | `time` | `10:00 - 90 min` |
 
-**Neither kind declares an `in` conversion.** `today in tokyo` and
-`10:00 in tokyo` already work through `in | datetime | datetime`, because the
-fold carried a `datetime` reading of `today` and `10:00` alongside the new one.
-Declaring `in | date | datetime` here would claim the key that §5.1 needs for
-`today to friday 5pm`, and registry pass 4 refuses a second claimant. The
-consequence is that a zone conversion returns a `datetime`, not a `date` —
-which is the existing documented answer and the right one, since `today in nyc`
-is `2026-01-14 19:00 ET` and no longer a whole day.
+**Neither kind declares an `in` conversion**, because neither has a zone to
+convert to — §2.2 spent their unit slot on `day` and `clock`. `today in tokyo`
+and `10:00 in tokyo` keep working through `in | datetime | datetime`, since the
+fold carried a `datetime` reading of both alongside the new one. A zone
+conversion therefore returns a `datetime` rather than a `date`, which is the
+existing documented answer and the right one: `today in nyc` is
+`2026-01-14 19:00 ET`, no longer a whole day.
 
-`- | date | date` is declared and returns a `duration` in whole days. It never
-changes an existing answer: `tomorrow - today` already resolves through
-`- | datetime | datetime`, both readings produce `1 day`, and the corpus row is
-unaffected. It exists so that `2026-03-01 - 2026-01-15` reports `45 d` rather
-than datetime's fractional-week rendering.
+**`- | date | date` is not declared.** It would lose every contest it entered —
+§4's arithmetic gives `today - friday` 20 points on the `date` path against 30
+on the `datetime` path — so `tomorrow - today` stays the `1 day` duration the
+corpus already pins, and a signature that can never win is not worth its key.
 
-`- | time | time` is **not** declared here. It belongs to `@smartput/time-range`
-and is the subject of §4.
+`- | time | time` is **not** declared here either. It belongs to
+`@smartput/time-range` and is the subject of §4.
 
 ## 3. `@smartput/range-core`
 
@@ -178,31 +200,108 @@ lex "10:00 - 20:00"
   literal @8  readings: [datetime 20:00, time 20:00]
 
 solver:
-  - | datetime | datetime -> duration     @smartput/datetime, weight 0
-  - | time     | time     -> time-range   @smartput/time-range, weight +3
+  - | datetime | datetime -> duration     @smartput/datetime
+  - | time     | time     -> time-range   @smartput/time-range
 ```
 
-Two live candidates, ranked by the ordinary weight layers. Nothing is deleted,
-`explain()` lists both, and `AmbiguityError` still fires where it should.
+Two live candidates. Nothing is deleted, `explain()` lists both, and
+`AmbiguityError` still fires where it should.
+
+### 4.1 Why the existing weight layers cannot rank them
+
+`solve()` scores a candidate as **the sum of its operand readings' weights, plus
+`contextBonus`**. `weights.ts` offers three selectors — `token:<surface>`,
+`<kind>:<unit>`, and `<kind>` — every one of them a property of a *reading*. The
+result kind is never consulted, and `OpSignature` carries no weight.
+
+Two requirements pull that single dial in opposite directions:
+
+| Input | Must win | Needs |
+| --- | --- | --- |
+| `3pm` | `datetime`, formatting `2026-01-15 15:00 UTC` | `weight(time) < weight(datetime)` |
+| `10:00 - 20:00` | `time-range` | `weight(time) > weight(datetime)` |
+
+`contextBonus` cannot break the tie: it pays +30 whenever a binary node's two
+operands agree on kind, and both readings agree, so it lands on both paths and
+cancels.
+
+Writing out the sums with a `time` reading weighted `-5` and a signature weight
+of `+20` shows what the new term has to do:
+
+| Input | `datetime` path | `time` path | Winner |
+| --- | --- | --- | --- |
+| `3pm` | `0` | `-5` | `datetime` |
+| `10:00 - 20:00` | `0 + 0 + 30` = **30** | `-5 - 5 + 30 + 20` = **40** | `time-range` |
+| `today - friday` | `0 + 0 + 30` = **30** | `-5 - 5 + 30 + 0` = **20** | `duration` |
+
+The signature weight must exceed twice the reading penalty, or the two
+subtractions cancel and the contest ties. `+20` against `-5` clears it with room
+and stays under `CONTEXT_BONUS` (30) and `TYPO_PENALTY` (15) so it cannot
+overturn a corrected reading.
+
+### 4.2 The core change
+
+```ts
+export interface OpSignature {
+  // ...existing fields
+  /** Summed into the candidate's score when this signature is applied. */
+  readonly weight?: number;
+}
+```
+
+Summed by a `signatureWeight` walk that sits beside `contextBonus` in
+`solve/solver.ts` and resolves signatures exactly as it already does:
+
+```ts
+function signatureWeight(node, choices, registry): number {
+  let total = 0;
+  walk(node, (n) => {
+    if (n.type === "binary") {
+      const left = typeOf(n.left, choices, registry);
+      const right = typeOf(n.right, choices, registry);
+      if (left === null || right === null) return;
+      total += registry.ops.get(opKey(n.op, left, right))?.weight ?? 0;
+    } else if (n.type === "convert") {
+      const operand = typeOf(n.operand, choices, registry);
+      const target = choices.get(n);
+      if (operand === null || target === undefined) return;
+      total += registry.ops.get(opKey("in", operand, target.kind))?.weight ?? 0;
+    }
+  });
+  return total;
+}
+```
+
+`Assignment` gains a `signatureWeight` field alongside `contextBonus`, for the
+same reason that one exists: `explain()` has to be able to say where a score
+came from. Default `0` keeps every existing signature scoring exactly as it does
+today, so no corpus row moves.
 
 **`tomorrow - today` is untouched**, because neither operand has a `time`
 reading: chrono reports no certain hour, so `@smartput/time`'s matcher declines
 and only the datetime signature matches. Same for `3pm - 1h`, where the right
 operand is a `duration` and no range signature applies.
 
-Priority is configured by the weight the reading carries, exported so it can be
-overridden rather than hardcoded:
+### 4.3 Configuring the priority
+
+Two dials, both exported as factory options rather than engine weights, because
+both belong to the kind that declares them:
 
 ```ts
-import { RANGE_WEIGHTS } from "@smartput/range-core";
+import { createTime } from "@smartput/time";
+import { createTimeRange } from "@smartput/time-range";
 
-createEngine({
-  weights: { kinds: { "time-range": -5 } },  // prefer subtraction
-});
+createTime({ weight: -5 });          // default -5
+createTimeRange({ dashWeight: 20 }); // default +20; 0 makes subtraction win
 ```
 
-Default is `+3`, which puts the range above subtraction: a person typing
+`dashWeight: 0` restores subtraction as the reading of `10:00 - 20:00` without
+removing the `to` form, which is the configuration someone doing clock
+arithmetic wants. The default prefers the range: a person typing
 `10:00 - 20:00` into a launcher means a span essentially always.
+
+`RANGE_WEIGHTS` in `range-core` holds both defaults as named constants so the
+numbers appear once.
 
 ## 5. The two entry paths
 
@@ -212,21 +311,25 @@ Default is `+3`, which puts the range above subtraction: a person typing
 — `keywordFor` maps them to `in`, which is how `kyiv to warsaw` reaches
 `in | place | place`. So the two-endpoint forms need no new `OpSymbol`.
 
-| Signature | Result | Input |
-| --- | --- | --- |
-| `- \| time \| time` | `time-range` | `10:00 - 20:00` |
-| `in \| time \| time` | `time-range` | `10:00 to 20:00` |
-| `in \| date \| date` | `date-range` | `today to friday` |
-| `in \| date \| datetime` | `datetime-range` | `today to friday 5pm` |
-| `in \| datetime \| date` | `datetime-range` | `9am to friday` |
-| `+ \| <range> \| duration` | same range | `whole week + 1 wk` |
-| `- \| <range> \| duration` | same range | `whole week - 1 wk` |
-| `in \| <range> \| datetime` | same range | `whole week in tokyo` |
+| Signature | Result | Weight | Input |
+| --- | --- | --- | --- |
+| `- \| time \| time` | `time-range` | +20 | `10:00 - 20:00` |
+| `in \| time \| time` | `time-range` | +20 | `10:00 to 20:00` |
+| `in \| date \| date` | `date-range` | +20 | `today to friday` |
+| `+ \| <range> \| duration` | same range | 0 | `whole week + 1 wk` |
+| `- \| <range> \| duration` | same range | 0 | `whole week - 1 wk` |
+| `in \| <range> \| datetime` | same range | 0 | `whole week in tokyo` |
 
-`in | date | datetime` and `in | datetime | date` are free for these rows only
-because §2.3 declined to spend them on zone conversion. `in | <range> | datetime`
-has no such contest — a range has no `datetime` reading of its own, so it needs
-its own conversion signature and nothing else claims one.
+**Same-kind pairs only.** `in | date | datetime` and `in | datetime | date`
+were in an earlier draft, for `today to friday 5pm`. They are dropped: a mixed
+pair collects no `contextBonus`, so it scores 15 against the zone conversion's
+30 and loses anyway, and declaring a signature that cannot win is how
+`today in tokyo` acquires a second reading nobody wants. Mixed endpoints go
+through the `from X to Y` matcher in §5.2, which claims its whole span and never
+enters a contest.
+
+`in | <range> | datetime` has no contest at all — a range has no `datetime`
+reading of its own, so nothing else claims that key.
 
 `- | date | date` is **not** a range. It stays the duration of §2.3, because
 `today - friday` reads as subtraction to everybody.
@@ -295,6 +398,48 @@ reading of a run that starts with `from`. `until Y` implies **start = now**.
 falls through as an ordinary word, and `X` keeps whatever reading it had. An
 incomplete range is not an error, it is not a range.
 
+### 5.3 Holiday endpoints
+
+`@smartput/holiday` and the `@smartput/datetime/holiday` subpath already ship, so
+`from today to closest holiday` needs no new data and no new package — only a
+route by which the range matcher can resolve an endpoint the holiday grammar
+claims.
+
+`range-core` exports the seam:
+
+```ts
+export type EndpointParser = (
+  text: string,
+  ctx: MatchCtx,
+) => { zdt: Temporal.ZonedDateTime; length: number } | null;
+
+export function resolveEndpoint(
+  text: string,
+  ctx: MatchCtx,
+  parsers: readonly EndpointParser[],
+): { zdt: Temporal.ZonedDateTime; length: number } | null;
+```
+
+`@smartput/datetime-range`'s root passes `[parseDateTime]`. Its
+**`./holiday` subpath** passes `[parseDateTime, holidayEndpoint]` and exports
+`datetimeRangeHoliday`, mirroring the split `@smartput/datetime` already makes
+for exactly this dependency:
+
+```ts
+import { datetimeRangeHoliday } from "@smartput/datetime-range/holiday";
+```
+
+The subpath is the only module that imports `@smartput/holiday`, so importing
+`@smartput/datetime-range` never reaches `date-holidays` and its 768 KB rule
+table. `check-size.ts` enforces that with a `datetime-range root (no holiday
+data)` row, the same guard the `datetime root` row already applies.
+
+Without the subpath, `today to closest holiday` still works through the op path
+— `closest holiday` is a `datetime` literal the holiday kind claims, and
+§5.1's `in | date | date` does not apply to it, so it falls to
+`in | datetime | datetime`, which is a zone conversion and wrong. The subpath is
+therefore how holiday endpoints are supported, not an optimisation of them.
+
 ## 6. Errors
 
 `range-core` exports one new error:
@@ -357,10 +502,6 @@ packages registered.
 
 ## 8. Out of scope
 
-- **`from today to closest holiday`.** Needs a holiday table, which is a data
-  package of its own. `@smartput/holiday` would feed named dates through the
-  same literal seam the range packages already read; recorded as a followup, not
-  built here.
 - **`yr` and `mo` duration units.** `duration` has `ms s min h d wk` and nothing
   larger, so `today + 1 year` still fails. A calendar year is not a fixed ratio
   and adding one to a ratio kind is a separate decision.
