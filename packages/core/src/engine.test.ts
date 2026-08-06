@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test";
 import { BUILTIN_KINDS, length, number } from "@smartput/kinds";
 import { Decimal } from "./decimal";
-import { createEngine } from "./engine";
+import { createEngine, type EngineOptions } from "./engine";
 import {
   AmbiguityError,
   DimensionMismatchError,
@@ -278,6 +278,18 @@ test("engine.complete honours engine-level weights", () => {
   expect(biased.complete("1 mi")[0]?.kind).toBe("duration");
 });
 
+test("engine.complete honours a per-call weights override", () => {
+  // Locks in that `complete()` rebuilds its `Completer` per call the same
+  // way `evaluate()` rebuilds its `Parser`: `CompleteOptions.weights` is
+  // documented as "layer 4, identical to EvalOptions.weights", so a
+  // once-built `Completer` that ignored it would silently stop honouring a
+  // per-call weights argument while every other test here still passed.
+  const plain = engine.complete("1 mi");
+  const boosted = engine.complete("1 mi", { weights: { duration: 20 } });
+  expect(plain[0]?.kind).not.toBe("duration");
+  expect(boosted[0]?.kind).toBe("duration");
+});
+
 test("engine.complete never throws on half-typed input", () => {
   for (const input of ["", " ", "10 kg +", "(((", "10 zzz", "30"]) {
     expect(Array.isArray(engine.complete(input))).toBe(true);
@@ -323,6 +335,66 @@ test("a unit ratio reads the injected rates, and the result is dated", () => {
   const r = e.evaluate("10 fln + 1 gld");
   expect(r.value.canonical.toString()).toBe("6");
   expect(r.meta.ratesAsOf).toBe("2026-08-04");
+});
+
+test("mutating the options object after createEngine does not affect later calls", () => {
+  // The concrete failure this guards against: `Evaluator` snapshots `rates`
+  // at construction, so `value.canonical` is already fixed to the table that
+  // existed when `createEngine` ran. If the engine's own formatting/meta path
+  // read the *live* options object instead of a frozen copy, a caller
+  // mutating `opts.rates` afterward would make `evaluate()` answer with one
+  // rate table baked into `value` and a different one showing up in
+  // `formatted`/`meta.ratesAsOf` — two rate tables in one `Result`.
+  const ratesA = {
+    base: "GLD",
+    asOf: "2026-08-04",
+    get: (from: string, to: string) =>
+      from === "FLN" && to === "GLD" ? new Decimal("0.5") : null,
+  };
+  const ratesB = {
+    base: "GLD",
+    asOf: "2099-01-01",
+    get: (from: string, to: string) =>
+      from === "FLN" && to === "GLD" ? new Decimal("99") : null,
+  };
+  const treasure = defineKind({
+    id: "treasure",
+    value: {
+      mode: "ratio",
+      canonical: "gld",
+      units: {
+        gld: 1,
+        fln: {
+          ratio: (ctx) => {
+            const rate = ctx.rates?.get("FLN", "GLD");
+            if (rate === null || rate === undefined) {
+              throw new MissingRateError(
+                ctx.input ?? "",
+                "FLN",
+                "GLD",
+                ctx.rates?.asOf ?? "",
+              );
+            }
+            return rate;
+          },
+        },
+      },
+    },
+    lexicon: { gld: { aliases: ["gld"] }, fln: { aliases: ["fln"] } },
+  });
+
+  const opts: EngineOptions = { locales: [en], kinds: [number, treasure], rates: ratesA };
+  const e = createEngine(opts);
+  const before = e.evaluate("10 fln + 1 gld");
+
+  // Mutate the very object `createEngine` was given, after construction.
+  opts.rates = ratesB;
+  opts.formatPrecision = 2;
+
+  const after = e.evaluate("10 fln + 1 gld");
+  expect(after.value.canonical.toString()).toBe(before.value.canonical.toString());
+  expect(after.meta.ratesAsOf).toBe(before.meta.ratesAsOf);
+  expect(after.formatted).toBe(before.formatted);
 });
 
 test("without rates, a rate-dependent unit raises MissingRateError", () => {

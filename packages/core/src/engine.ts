@@ -177,6 +177,16 @@ function buildStages(opts: EngineOptions, registry: Registry, locale: Locale) {
  * `Parser`/`Completer`, which are per-call. Built once, passed down instead of
  * closed over, the way spec §5's `toResult(program, resolution, printer,
  * evaluator)` already takes `printer` and `evaluator` as explicit arguments.
+ *
+ * `opts` must be `createEngine`'s frozen copy, never the caller's own
+ * `EngineOptions` object, because `toResult` reads `opts.formatPrecision`/
+ * `opts.rounding`/`opts.rates` live, on every call — unlike every other stage
+ * here, which snapshots its config once at construction. If `opts` aliased
+ * the caller's live object, a caller mutating `opts.rates` after
+ * `createEngine` returns would change what `evaluate()` formats and reports
+ * as `meta.ratesAsOf`, while `Evaluator` (already constructed, holding the
+ * table it was given) keeps computing `value` against the rates that existed
+ * at construction time — two rate tables in one `Result`.
  */
 interface EngineCtx {
   registry: Registry;
@@ -324,10 +334,10 @@ function orNoCandidate<T>(input: string, fn: () => T): T {
   }
 }
 
-export function createEngine(opts: EngineOptions): Engine {
+export function createEngine(callerOpts: EngineOptions): Engine {
+  const opts = Object.freeze({ ...callerOpts }); // a copy — see EngineCtx's doc for why
   const locale = opts.locales[0];
   if (locale === undefined) throw new Error("createEngine requires at least one locale");
-
   const registry = buildRegistry(opts.kinds ?? [], opts.packs ?? [], locale.id);
   const layers = (call?: Weights) => weightLayers(locale, opts, call);
   const stages = buildStages(opts, registry, locale);

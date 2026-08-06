@@ -14,11 +14,19 @@ import type { Value } from "./types";
 /**
  * The composition test spec §7 asks for and the plan calls "the real
  * deliverable": five stages, assembled by hand, with no `createEngine`
- * anywhere in this file. Every class here — `Normalizer`, `Tokenizer`,
- * `Parser` (plus the `createResolver` its constructor needs), `Solver`,
- * `Evaluator` — is exactly what `packages/core/src/index.ts` already exports;
- * nothing had to be unexported or newly reached into to write this. That is
- * the finding: the decomposition holds.
+ * anywhere in this file.
+ *
+ * The gap this test surfaces, stated rather than papered over: `Normalizer`,
+ * `Tokenizer`, `Parser`, `Solver` and `Evaluator` are all barrel exports of
+ * `packages/core/src/index.ts`, but `Parser`'s one required config field is a
+ * `Resolver`, which the barrel exports no way to construct or even name.
+ * `createResolver` (and the `Resolver` type) live in `./parse/candidates`,
+ * which this file reaches into with a relative import — not the barrel, and
+ * not a subpath a package outside `packages/core` could import at all today.
+ * Spec §6 schedules `createResolver` under a public `@smartput/core/registry`
+ * subpath in Task 12; until that lands, hand-assembling this pipeline from
+ * outside this package is not actually possible with what's public, only from
+ * inside it.
  *
  * `createEngine` below exists only as the oracle each hand-built pipeline is
  * checked against, over the same input, never as part of the pipeline itself.
@@ -55,7 +63,15 @@ test("a plain quantity: the hand-built pipeline matches createEngine", () => {
 
 test("a binary expression: the hand-built pipeline matches createEngine", () => {
   const input = "1 kg + 500 g";
-  expect(evaluateByHand(input)).toEqual(engine.evaluate(input).value);
+  const value = evaluateByHand(input);
+  expect(value).toEqual(engine.evaluate(input).value);
+  // An absolute assertion, not just an equality with the oracle: a regression
+  // shared by both the hand-built pipeline and createEngine (e.g. a bug in
+  // Evaluator itself) would still pass the toEqual check above. 1 kg + 500 g
+  // is 1500 (canonical grams) reported in the left operand's unit, "kg".
+  expect(value.kind).toBe("mass");
+  expect(value.unit).toBe("kg");
+  expect(value.canonical.toString()).toBe("1500");
 });
 
 test("a convert: the hand-built pipeline matches createEngine", () => {
