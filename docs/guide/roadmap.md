@@ -19,6 +19,7 @@ Each milestone is independently shippable and gets its own implementation plan.
 | **M5** | `@smartput/color`, the Ukrainian locale across every package, `defineLocalePack`, analyzer helpers, `assertLocaleContract`. | Planned |
 | **M6** | `@smartput/country` and its three layers below: place kind, countries and cities, `kyiv to warsaw` as a distance, postal codes, the datetime and rates bridges, GeoNames providers, place completion. | **Shipped** |
 | **Ranges** | `date` and `time` as kinds of their own, `range-core`, and the three range kinds — `whole week`, `10:00 - 20:00`, `yesterday morning`, `from today until friday`. Core's one new field: [`OpSignature.weight`](#ranges-and-the-one-field-they-cost). | **Shipped** |
+| **Stages** | `createEngine`'s 329-line closure split into [seven frozen, config-holding stage classes](/api/stages) — `Normalizer`, `Tokenizer`, `Parser`, `Solver`, `Evaluator`, `Printer`, `Autocompleter` — each importable from its own subpath, each backed by the pure function it always was. `Program` and stable node ids replace a bare AST; `Resolution` (renamed from `Assignment`) is keyed by id instead of by node object; the [`Printer`](/api/printer) is the one genuinely new stage, turning a `Program` back into text in three modes. One behaviour change: `Result.spans` now indexes the caller's string instead of the normalized one. | **Shipped** |
 | **M7** | `@smartput/http`, meta-package, npm release. | Planned |
 
 M1 carried the only real invention risk. Most of what came after it is

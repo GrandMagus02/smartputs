@@ -69,6 +69,8 @@ export const en: LocaleSpecificConfig<DefaultTheme.Config> & {
             { text: "Overview", link: "/api/" },
             { text: "createEngine", link: "/api/create-engine" },
             { text: "Engine", link: "/api/engine" },
+            { text: "Stages", link: "/api/stages" },
+            { text: "Printer", link: "/api/printer" },
             { text: "complete", link: "/api/complete" },
             { text: "defineKind", link: "/api/define-kind" },
             { text: "defineLocale", link: "/api/define-locale" },
