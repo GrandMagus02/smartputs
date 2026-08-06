@@ -1,3 +1,4 @@
+import type { Decimal } from "../decimal";
 import type { Registry } from "../kind/registry";
 import type { NodeId } from "../parse/ast";
 import type { Resolution } from "../solve/solver";
@@ -8,16 +9,17 @@ import type { Candidate, KindId, Locale } from "../types";
  * every quantity and convert target: which candidate a node's ambiguity
  * resolves to (`pickCandidate`), which of that candidate's own spellings
  * would be indistinguishable from a *different* candidate's (`avoidSpellings`),
- * and the actual word or symbol a node prints (`unitWord`).
+ * and the actual word or symbol a node prints (`unitWord`, and — Task 11's
+ * word-choice layer on top of it — `spelledUnitWord`).
  *
  * Extracted out of the `Printer` class (a refactor carried from Task 10's
  * review, done as its own commit with no behaviour change — every existing
- * print/parity test stays green through it) so that `spelled`'s own
- * word-choice layer, added on top of this cluster next, lands in a unit
- * that is still readable rather than a class that had kept growing under it.
- * Plain functions taking `registry`/`locale` explicitly, not methods on
- * `Printer`, the same shape `format/format.ts`'s `formatValue` already uses —
- * nothing here needs any other `Printer` instance state.
+ * print/parity test stayed green through it) so that `spelled`'s own layer
+ * landed in a unit that is still readable rather than a class that had kept
+ * growing under it. Plain functions taking `registry`/`locale` explicitly,
+ * not methods on `Printer`, the same shape `format/format.ts`'s
+ * `formatValue` already uses — nothing here needs any other `Printer`
+ * instance state.
  */
 
 /**
@@ -165,4 +167,62 @@ export function unitWord(
   const alias = aliases.find((a) => !avoid.has(fold(a)));
   if (alias !== undefined) return alias;
   return ambiguousSurface ?? aliases[0] ?? unitId;
+}
+
+/**
+ * The word-choice layer `spelled` adds on top of `unitWord`: `UnitLexeme.display`,
+ * selected by plural category, falling back to `unitWord`'s own alias/
+ * `ambiguousSurface` chain — the same rule `unitWord` already follows for a
+ * unit with no `symbol` — whenever there is no `display` at all, or the one
+ * category this magnitude selects is itself a spelling `avoid` rules out
+ * (mirroring `unitWord`'s own alias filter, for the identical
+ * temperature/tempdelta reason documented on `avoidSpellings`).
+ *
+ * `magnitude` is the number *this* unit word is being printed next to — the
+ * plural category comes from `Intl.PluralRules(locale.id).select`, the same
+ * call `format/format.ts`'s `formatValue` already makes for the same reason
+ * (a unit's `display` is keyed by `Intl.LDMLPluralRule` for exactly this).
+ * `undefined` when there is no such number — a convert's target
+ * (`renderTarget`) names a unit with no magnitude attached to it at all
+ * ("2 km in m" has nothing to count "metres" by), and CLDR requires every
+ * locale to define the `"other"` category, its generic/default one,
+ * precisely for a count-free case like this: that is used directly rather
+ * than synthesizing a fake magnitude just to steer `Intl.PluralRules.select`
+ * there.
+ *
+ * The fallback forces `{ symbols: false }` on the delegated `unitWord` call:
+ * a spelled print's unit label is a written word or nothing, never a glyph,
+ * so `ctx.symbols` (the non-spelled `"symbols"` option) is never consulted
+ * once `spelled` is on — see `PrintOptions.spelled`'s doc comment.
+ */
+export function spelledUnitWord(
+  kindId: KindId,
+  unitId: string,
+  magnitude: Decimal | undefined,
+  avoid: ReadonlySet<string>,
+  ambiguousSurface: string | undefined,
+  registry: Registry,
+  locale: Locale,
+): string {
+  const lexeme = registry.kinds.get(kindId)?.units.get(unitId)?.lexeme;
+  const display = lexeme?.display;
+  if (display !== undefined) {
+    const category =
+      magnitude !== undefined
+        ? new Intl.PluralRules(locale.id).select(magnitude.toNumber())
+        : "other";
+    const word = display[category];
+    if (word !== undefined && !avoid.has(word.toLocaleLowerCase(locale.id))) {
+      return word;
+    }
+  }
+  return unitWord(
+    kindId,
+    unitId,
+    { symbols: false },
+    avoid,
+    ambiguousSurface,
+    registry,
+    locale,
+  );
 }

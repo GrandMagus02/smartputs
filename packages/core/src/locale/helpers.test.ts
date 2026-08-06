@@ -1,5 +1,13 @@
 import { expect, test } from "bun:test";
-import { cardinalNumerals, identity, suffixStripper, tableAnalyzer } from "./helpers";
+import { Decimal } from "../decimal";
+import en from "./en";
+import {
+  cardinalNumerals,
+  cardinalSpeller,
+  identity,
+  suffixStripper,
+  tableAnalyzer,
+} from "./helpers";
 
 const ctx = { locale: "uk" };
 
@@ -28,12 +36,14 @@ test("tableAnalyzer maps known irregulars", () => {
   expect(a("метр", ctx)).toEqual([]);
 });
 
-const cardinals = cardinalNumerals({
+const TABLES = {
   units: { zero: 0, one: 1, two: 2, five: 5, nineteen: 19 },
   tens: { twenty: 20, thirty: 30 },
   scales: { hundred: 100, thousand: 1000, million: 1_000_000 },
   connectors: ["and"],
-});
+};
+
+const cardinals = cardinalNumerals(TABLES);
 
 const claimed = (words: string[]) => {
   const m = cardinals(words);
@@ -87,4 +97,93 @@ test("cardinalNumerals returns null when it claims nothing", () => {
 
 test("cardinalNumerals will not claim a leading connector", () => {
   expect(cardinals(["and", "five"])).toBeNull();
+});
+
+// --- cardinalSpeller: the inverse, over the same TABLES ------------------
+
+const speller = cardinalSpeller(TABLES);
+
+test("cardinalSpeller spells zero and a direct units word", () => {
+  expect(speller(new Decimal(0))).toBe("zero");
+  expect(speller(new Decimal(1))).toBe("one");
+  expect(speller(new Decimal(19))).toBe("nineteen");
+});
+
+test("cardinalSpeller composes a tens word with a units word", () => {
+  expect(speller(new Decimal(30))).toBe("thirty");
+  expect(speller(new Decimal(32))).toBe("thirty two");
+});
+
+test("cardinalSpeller spells a bare scale as one of it", () => {
+  expect(speller(new Decimal(100))).toBe("one hundred");
+  expect(speller(new Decimal(1000))).toBe("one thousand");
+});
+
+test("cardinalSpeller joins a hundred and a sub-100 remainder with the connector", () => {
+  expect(speller(new Decimal(205))).toBe("two hundred and five");
+});
+
+test("cardinalSpeller accumulates across a thousands boundary", () => {
+  expect(speller(new Decimal(1032))).toBe("one thousand thirty two");
+});
+
+test("cardinalSpeller round-trips through cardinalNumerals for a spread of magnitudes", () => {
+  // The inverse relationship stated as a property, not just spot-checked
+  // strings: spelling `n` and re-parsing the words the speller produced
+  // reproduces `n` exactly, for every value below that both TABLES.units and
+  // TABLES.tens can actually name (see the "declines a table gap" test below
+  // for what happens outside that set).
+  for (const n of [0, 1, 2, 5, 19, 20, 22, 30, 32, 100, 205, 1000, 1032]) {
+    const spelled = speller(new Decimal(n));
+    expect(spelled).not.toBeNull();
+    const words = (spelled as string).split(" ");
+    const parsed = cardinals(words);
+    expect(parsed).not.toBeNull();
+    expect(parsed?.consumed).toBe(words.length);
+    expect(parsed?.value.toString()).toBe(String(n));
+  }
+});
+
+test("cardinalSpeller declines a table gap rather than returning a partial spelling", () => {
+  // TABLES.units has no word for 3 (or 4, 6, 7, 8, 9, 10-18) — a deliberately
+  // incomplete fixture, not a real locale. Any lookup a real locale's tables
+  // are missing fails the whole value closed to `null`, never a spelling
+  // that silently drops or garbles the digit it couldn't find a word for.
+  expect(speller(new Decimal(3))).toBeNull();
+});
+
+test("cardinalSpeller declines a non-integer — the tables have no fractional grammar", () => {
+  expect(speller(new Decimal("2.5"))).toBeNull();
+});
+
+test("cardinalSpeller declines a negative value — sign is not part of the numeral fold", () => {
+  // Reachable only by calling the helper directly: `Printer` never asks it to
+  // spell a negative magnitude, because this engine's AST always keeps a
+  // negation in its own `UnaryNode`, wrapping a non-negative operand.
+  expect(speller(new Decimal(-5))).toBeNull();
+});
+
+test("cardinalSpeller spells a magnitude below 1000x its largest scale, declines at that ceiling", () => {
+  // TABLES' largest scale is a million, so the ceiling is 1000 * 1,000,000 =
+  // 1,000,000,000 — ruled out here specifically because the value is exactly
+  // at that boundary (the top-level check fires before any word is looked
+  // up), not because of a table gap like the digit-3 case above.
+  expect(speller(new Decimal(500_000_000))).toBe("five hundred million");
+  expect(speller(new Decimal(1_000_000_000))).toBeNull();
+});
+
+test("cardinalSpeller (en): spells the design doc's own done-when numbers", () => {
+  expect(en.spell?.(new Decimal(30))).toBe("thirty");
+  expect(en.spell?.(new Decimal(15))).toBe("fifteen");
+});
+
+test("cardinalSpeller (en): non-integer, negative and just-below/at-ceiling magnitudes", () => {
+  const spell = en.spell;
+  expect(spell).toBeDefined();
+  if (spell === undefined) throw new Error("unreachable — asserted above");
+  expect(spell(new Decimal("1.5"))).toBeNull();
+  expect(spell(new Decimal(-30))).toBeNull();
+  // en's largest scale is a trillion, so the ceiling is 10^15.
+  expect(spell(new Decimal("999999999999999"))).not.toBeNull();
+  expect(spell(new Decimal("1000000000000000"))).toBeNull();
 });

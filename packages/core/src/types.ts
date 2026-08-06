@@ -492,12 +492,34 @@ export interface NumeralMatch {
  */
 export type NumeralParser = (words: string[]) => NumeralMatch | null;
 
+/**
+ * The inverse of `NumeralParser`: spells a magnitude in this locale's
+ * cardinal words, or `null` for a value outside what the same tables can
+ * express — see `cardinalSpeller`'s doc comment (`locale/helpers.ts`) for
+ * exactly which values that is (a non-integer, a negative magnitude, or one
+ * beyond the locale's largest declared scale) and why each falls back to
+ * `null` rather than an invented or approximate spelling.
+ *
+ * `null` is a per-value fallback, not a feature gap: `Printer`'s `spelled`
+ * option prints that one number's digits when it sees `null`, the same way
+ * it prints a bare symbol for an operator with no word form in `keywords`.
+ */
+export type NumeralSpeller = (value: Decimal) => string | null;
+
 export interface Locale {
   id: string;
   numberFormat: "intl" | NumberFormatSpec;
   segment?: (run: string) => string[];
   analyze?: Analyzer[];
   numerals?: NumeralParser;
+  /**
+   * Spells numerals in this locale's cardinal words — `Printer`'s `spelled`
+   * option reads this, and throws if it is absent rather than silently
+   * printing digits (see `PrintOptions.spelled`). Optional because a locale
+   * with no spelling convention worth writing (or none written yet) should
+   * not be forced to declare one just to satisfy the type.
+   */
+  spell?: NumeralSpeller;
   keywords: Partial<Record<Keyword, string[]>>;
   weights?: Weights;
 }

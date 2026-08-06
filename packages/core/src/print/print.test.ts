@@ -10,7 +10,7 @@ import { Normalizer } from "../parse/normalize";
 import { Parser, type Program } from "../parse/program";
 import { Tokenizer } from "../parse/tokenizer";
 import { Solver } from "../solve/solver-class";
-import type { RateLookup, Value } from "../types";
+import type { Locale, RateLookup, Value } from "../types";
 import { Printer } from "./print";
 
 const registry = buildRegistry(BUILTIN_KINDS, [], en.id);
@@ -208,16 +208,121 @@ test("invariant: every unit the printer can emit a unit for lexes back to that (
   expect(checked).toBeGreaterThan(20);
 });
 
-// --- spelled: not yet implemented, throws, never a silent fallback ------
+// --- spelled: numbers via locale.spell, operators via keywords, units via
+// UnitLexeme.display ------------------------------------------------------
 
-test("print: { spelled: true } throws", () => {
+test("print: { spelled: true } throws when the locale declares no spell", () => {
+  // Destructuring off `spell` (not `{ ...en, spell: undefined }`) so the key
+  // is genuinely absent — `exactOptionalPropertyTypes` treats "present with
+  // `undefined`" and "absent" as different things for an optional field.
+  const { spell: _spell, ...rest } = en;
+  const noSpellLocale: Locale = rest;
+  const noSpellPrinter = new Printer({ registry, locale: noSpellLocale });
   const program = programFor("10 km");
-  expect(() => printer.print(program, { spelled: true })).toThrow();
+  expect(() => noSpellPrinter.print(program, { spelled: true })).toThrow();
 });
 
-test("node(): { spelled: true } throws", () => {
+test("node(): { spelled: true } throws when the locale declares no spell", () => {
+  const { spell: _spell, ...rest } = en;
+  const noSpellLocale: Locale = rest;
+  const noSpellPrinter = new Printer({ registry, locale: noSpellLocale });
   const program = programFor("10 km");
-  expect(() => printer.node(program, program.root.id, { spelled: true })).toThrow();
+  expect(() =>
+    noSpellPrinter.node(program, program.root.id, { spelled: true }),
+  ).toThrow();
+});
+
+test("spelled: the design doc's done-when", () => {
+  expect(printer.print(programFor("30 deg + 15 deg"), { spelled: true })).toBe(
+    "thirty degrees plus fifteen degrees",
+  );
+});
+
+test("spelled: a bare number with no unit spells the same as a quantity's magnitude", () => {
+  expect(printer.print(programFor("42"), { spelled: true })).toBe("forty two");
+});
+
+test("spelled: word math — canonicalizing to digits and spelling back out agree with the original", () => {
+  // "ten plus two times three" canonicalizes to "10 + 2 * 3" (the golden case
+  // above); spelled re-derives the same words from those digits, exercising
+  // both the number and the symbolic-operator halves of `spelled` at once.
+  expect(printer.print(programFor("ten plus two times three"), { spelled: true })).toBe(
+    "ten plus two times three",
+  );
+});
+
+test("spelled: an operator with no word form in the locale keeps its symbol, not an invented word", () => {
+  const { over: _over, ...restKeywords } = en.keywords;
+  const noOverLocale: Locale = { ...en, keywords: restKeywords };
+  const noOverPrinter = new Printer({
+    registry: buildRegistry(BUILTIN_KINDS, [], en.id),
+    locale: noOverLocale,
+  });
+  expect(noOverPrinter.print(programFor("10 km / 2 km"), { spelled: true })).toBe(
+    "ten kilometres / two kilometres",
+  );
+});
+
+test("spelled: a unary minus keeps its symbol; the operand's magnitude and unit still spell", () => {
+  // There is no `Keyword` for negation at all — `Locale.keywords` has no slot
+  // for one — so this is the same "no word form, keep the symbol" rule as
+  // above, just for an operator the type system never gave a word to.
+  expect(printer.print(programFor("-5 km"), { spelled: true })).toBe("-five kilometres");
+});
+
+test("spelled: a non-integer number falls back to digits for that value; its unit still spells", () => {
+  // `cardinalSpeller` declines a non-integer (no fractional grammar in the
+  // numeral tables) — a documented, tested fallback for this one number, not
+  // a sign the whole feature is unimplemented (see `PrintOptions.spelled`).
+  expect(printer.print(programFor("1.5 kilograms"), { spelled: true })).toBe(
+    "1.5 kilograms",
+  );
+});
+
+test("spelled: canonical still echoes an ambiguous quantity exactly, numbers included", () => {
+  // "10 m" is ambiguous (length/duration); with no `Resolution`, `canonical`
+  // has no chosen candidate to derive a unit — or a plural category — from,
+  // so the whole quantity is echoed as typed, untouched by `spelled`, the
+  // same carve-out `PrintOptions.unit` documents for rebasing. "5 km" is not
+  // ambiguous and spells normally.
+  expect(printer.print(programFor("10 m + 5 km"), { spelled: true })).toBe(
+    "10 m plus five kilometres",
+  );
+});
+
+test("spelled + resolved: spells the resolved candidate's unit and magnitude", () => {
+  const program = programFor("10 m + 5 h");
+  const resolution = solver.best(program);
+  expect(printer.print(program, { mode: "resolved", resolution, spelled: true })).toBe(
+    "ten minutes plus five hours",
+  );
+});
+
+test("spelled + unit: spells the rebased quantity's magnitude and the target unit", () => {
+  expect(printer.print(programFor("1 kg + 500 g"), { unit: "g", spelled: true })).toBe(
+    "one thousand grams plus five hundred grams",
+  );
+});
+
+test("spelled: a convert target has no magnitude of its own — spelled with the generic plural category", () => {
+  // "kg" and "g" are unambiguous (unlike "m"), so this isolates the target's
+  // own rule from the ambiguous-echo carve-out tested above: the operand is
+  // singular ("one kilogram"), but the target still spells as plural
+  // ("grams") regardless — there is no count to agree with, only the
+  // generic `"other"` category `spelledUnitWord` uses for exactly this case.
+  expect(printer.print(programFor("1 kg in g"), { spelled: true })).toBe(
+    "one kilogram in grams",
+  );
+});
+
+test("spelled + symbols: a unit with no display falls back to its alias, not its symbol", () => {
+  // area's "m2" has a symbol ("m²") but no `display` — spelled's own fallback
+  // is specifically the alias (`unitWord` called with `{ symbols: false }`),
+  // never `ctx.symbols`'s glyph: a spelled print's unit is a written word or
+  // nothing, never a symbol, so `symbols: true` makes no difference here.
+  expect(printer.print(programFor("3 m2"), { spelled: true, symbols: true })).toBe(
+    "three m2",
+  );
 });
 
 // --- verbatim: reproduces the source exactly -----------------------------

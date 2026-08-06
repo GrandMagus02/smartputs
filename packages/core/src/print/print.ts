@@ -9,12 +9,14 @@ import type { Resolution } from "../solve/solver";
 import type {
   Candidate,
   FormatOptions,
+  Keyword,
   KindId,
   Locale,
+  NumeralSpeller,
   RateLookup,
   Value,
 } from "../types";
-import { avoidSpellings, pickCandidate, unitWord } from "./unit-word";
+import { avoidSpellings, pickCandidate, spelledUnitWord, unitWord } from "./unit-word";
 
 // `format/format.ts` stays the one place `formatValue` is defined; this is a
 // re-export, not a second copy, so a caller who wants the bare function
@@ -51,7 +53,55 @@ export interface PrintOptions {
    * `renderQuantity`'s doc comment.
    */
   unit?: string;
-  /** "thirty degrees plus fifteen degrees". Task 11. */
+  /**
+   * "thirty degrees plus fifteen degrees" — reads `Locale.spell` (a
+   * `NumeralSpeller`, built by `cardinalSpeller` from the same tables that
+   * parse numerals back) for each number, `Locale.keywords`'s first word form
+   * for a symbolic operator (`+ - * /`), and `UnitLexeme.display` for each
+   * unit, selecting a plural category with `Intl.PluralRules(locale.id)`
+   * against the number printed beside it (see `spelledUnitWord`).
+   *
+   * Throws if the configured locale declares no `spell` at all — a `spelled`
+   * print that silently fell back to digits would be the same class of bug
+   * as `"resolved"` degrading to `"canonical"` for a missing `Resolution`.
+   * Once a locale does have `spell`, one specific number can still fall back
+   * to digits: `cardinalSpeller` returns `null` for a non-integer, a negative
+   * magnitude, or one beyond the locale's largest declared scale, and
+   * `renderMagnitude`'s caller prints that number's digits when it does — a
+   * documented, tested fallback for a specific value, never a silent one for
+   * the whole feature.
+   *
+   * Composes with the other options: `spelled` + `"resolved"` spells the
+   * resolved candidate's unit; `spelled` + `unit` spells the rebased
+   * quantity. It overrides `symbols` for the unit label specifically — a
+   * spelled print's unit is a written word (`UnitLexeme.display`, falling
+   * back to its alias) or nothing, never a glyph, so `symbols` is not
+   * consulted at all once `spelled` is on (see `spelledUnitWord`).
+   *
+   * An operator with no word form in the locale keeps its symbol rather than
+   * inventing one — the same rule a missing `display` follows for a unit,
+   * and a missing `symbol` follows under `symbols`. `"of"`/`"off"` already
+   * print their locale word regardless of `spelled` (`opWord`'s existing
+   * cases), so this only changes `+ - * /`; a unary minus has no word form in
+   * `Locale.keywords` at all (there is no `Keyword` for negation) and always
+   * keeps its symbol, spelled or not — only its operand's magnitude and unit
+   * spell.
+   *
+   * An ambiguous quantity under `"canonical"` (no `Resolution`, so
+   * `pickCandidate` cannot choose) is unaffected by `spelled` for the same
+   * reason it is unaffected by `unit`/`precision`: with no chosen candidate
+   * there is no unit — or plural category — to derive at all, so the whole
+   * quantity is echoed exactly as typed. See `PrintOptions.unit`'s doc
+   * comment for the same carve-out on rebasing.
+   *
+   * Breaks the round-trip contract in whatever way the number, operator or
+   * unit word cannot lex back — expected, and out of scope for
+   * `roundtrip.test.ts`, which only calls `print` with default options (see
+   * that file's own doc comment and `PrintOptions.symbols`'s).
+   *
+   * Ignored by `"verbatim"`, like `symbols`/`spacing`/`unit`: that mode never
+   * computes a value or reads the tree, only echoes source text.
+   */
   spelled?: boolean;
   /**
    * "30 m²" rather than "30 m2" — reads `UnitLexeme.symbol`, falling back to
@@ -107,6 +157,24 @@ const UNARY_OPERAND_BINDING = 30;
 const ATOM_PRECEDENCE = Number.POSITIVE_INFINITY;
 
 /**
+ * `"+ - * /"`'s locale word, under `spelled`. The deliberate mirror of
+ * `parse/wordops.ts`'s `KEYWORD_OPS` (`Keyword -> OpSymbol`, for parsing) in
+ * the opposite direction (`OpSymbol -> Keyword`, for printing) — not the same
+ * object inverted, because that map also folds the phrasal "divided by"/
+ * "multiplied by" spelling into one op, a distinction printing never needs to
+ * make (there is exactly one word to print back, `keywords.over[0]` or
+ * `keywords.times[0]`, whichever `en.ts` declares). `"of"`/`"off"` are not
+ * here: `opWord` already spells them regardless of `spelled` — they are word
+ * operators to begin with — so only the four symbolic ops need a mapping.
+ */
+const OP_KEYWORDS: Record<"+" | "-" | "*" | "/", Keyword> = {
+  "+": "plus",
+  "-": "minus",
+  "*": "times",
+  "/": "over",
+};
+
+/**
  * `node`'s own precedence, read from `parse/pratt.ts`'s `bindingOf`/
  * `CONVERT_BINDING` rather than a table restated here — the printer reads
  * the parser's precedence directly, so the two cannot disagree.
@@ -138,6 +206,15 @@ interface RenderCtx {
    * once per node — a typo in the option fails loudly exactly once. */
   readonly rebase?: { readonly kind: KindId; readonly unit: string };
   readonly precision?: number;
+  /**
+   * `this.locale.spell`, carried into the ctx only when `PrintOptions.spelled`
+   * was `true` — set here (once per call) rather than read from `this.locale`
+   * again at every node is what lets `buildCtx` be the single place that
+   * throws for a missing `spell`; every node downstream only ever asks
+   * "is `ctx.spell` set", never "is spelling on and does the locale support
+   * it", so there is exactly one place that can get that check wrong.
+   */
+  readonly spell?: NumeralSpeller;
 }
 
 /**
@@ -145,10 +222,6 @@ interface RenderCtx {
  * class because both need the same registry and locale, and a caller doing
  * both today (`createEngine`'s `toResult`) would otherwise thread the two
  * separately for no reason.
- *
- * `spelled` (Task 11) is the only option left throwing rather than falling
- * back to `canonical` — a silent fallback is how a half-built printer ships
- * looking finished.
  */
 export class Printer {
   private readonly registry: Registry;
@@ -179,7 +252,6 @@ export class Printer {
   }
 
   print(program: Program, opts: PrintOptions = {}): string {
-    this.rejectSpelled("print", opts);
     const mode = opts.mode ?? "canonical";
     if (mode === "verbatim") {
       // Reads `Program.input.source` directly, not any node's mapped span —
@@ -212,21 +284,12 @@ export class Printer {
     if (target === undefined) {
       throw new Error(`Printer.node: no node with id ${id} in this program`);
     }
-    this.rejectSpelled("node", opts);
     const mode = opts.mode ?? "canonical";
     if (mode === "verbatim") {
       return this.verbatimSlice(program, target);
     }
     const ctx = this.buildCtx(mode, opts);
     return this.printNode(target, ctx);
-  }
-
-  private rejectSpelled(caller: "print" | "node", opts: PrintOptions): void {
-    if (opts.spelled === true) {
-      throw new Error(
-        `Printer.${caller}: { spelled: true } is not implemented yet (Task 11)`,
-      );
-    }
   }
 
   /**
@@ -261,11 +324,13 @@ export class Printer {
 
   /**
    * Turns `PrintOptions` into the `RenderCtx` the recursive printer reads,
-   * doing the two checks that must happen once per call rather than once per
-   * node: `"resolved"` needs a `Resolution` at all (a missing one throws
+   * doing the three checks that must happen once per call rather than once
+   * per node: `"resolved"` needs a `Resolution` at all (a missing one throws
    * here, never silently degrading to `canonical` — see `PrintOptions.resolution`'s
-   * doc comment), and `unit` needs to name exactly one registered unit (an
-   * unknown or ambiguous one throws in `resolveRebaseTarget`).
+   * doc comment), `unit` needs to name exactly one registered unit (an
+   * unknown or ambiguous one throws in `resolveRebaseTarget`), and `spelled`
+   * needs the locale to actually declare `spell` (a missing one throws here
+   * too — see `PrintOptions.spelled`'s doc comment).
    */
   private buildCtx(mode: "canonical" | "resolved", opts: PrintOptions): RenderCtx {
     if (mode === "resolved" && opts.resolution === undefined) {
@@ -276,6 +341,14 @@ export class Printer {
     }
     const rebase =
       opts.unit !== undefined ? this.resolveRebaseTarget(opts.unit) : undefined;
+    const spell = opts.spelled === true ? this.locale.spell : undefined;
+    if (opts.spelled === true && spell === undefined) {
+      throw new Error(
+        'Printer: { spelled: true } requires the locale to declare "spell" — ' +
+          "printing digits instead would be the same silent fallback " +
+          '"resolved" refuses to make for a missing Resolution',
+      );
+    }
     return {
       mode,
       ...(opts.resolution !== undefined ? { resolution: opts.resolution } : {}),
@@ -283,6 +356,7 @@ export class Printer {
       spacing: opts.spacing ?? "normal",
       ...(rebase !== undefined ? { rebase } : {}),
       ...(opts.precision !== undefined ? { precision: opts.precision } : {}),
+      ...(spell !== undefined ? { spell } : {}),
     };
   }
 
@@ -331,7 +405,14 @@ export class Printer {
   private printNode(node: Node, ctx: RenderCtx): string {
     switch (node.type) {
       case "number":
-        return this.printDecimal(node.value);
+        // A bare number has no unit to spell, but its own magnitude still
+        // does — `ctx.spell` falls back to `printDecimal` for exactly the
+        // documented cases `cardinalSpeller` declines (non-integer, negative,
+        // too large), the same per-value fallback `renderMagnitude`'s caller
+        // uses for a quantity's number.
+        return ctx.spell !== undefined
+          ? (ctx.spell(node.value) ?? this.printDecimal(node.value))
+          : this.printDecimal(node.value);
 
       case "quantity":
         return this.renderQuantity(node.id, node.value, node.candidates, ctx);
@@ -406,7 +487,7 @@ export class Printer {
         // such risk, and are the only ones `spacing: "tight"` ever squeezes.
         const isWordOp = node.op === "of" || node.op === "off";
         const sep = ctx.spacing === "tight" && !isWordOp ? "" : " ";
-        return `${left}${sep}${this.opWord(node.op)}${sep}${right}`;
+        return `${left}${sep}${this.opWord(node.op, ctx)}${sep}${right}`;
       }
     }
   }
@@ -418,14 +499,26 @@ export class Printer {
     return value.toFixed();
   }
 
-  private opWord(op: BinaryOp): string {
+  /**
+   * `"of"`/`"off"` already print their locale word regardless of `spelled` —
+   * they are word operators to begin with, nothing for `spelled` to change.
+   * `+ - * /` print bare under every other option, but spell to
+   * `Locale.keywords`'s first word form once `ctx.spell` is set (`OP_KEYWORDS`
+   * is the deliberate mirror of `parse/wordops.ts`'s `KEYWORD_OPS`, walked in
+   * the opposite direction — not literally shared, since that map also folds
+   * the phrasal "divided by"/"multiplied by" case this one has no need of),
+   * falling back to the bare symbol when the locale has no word for it: the
+   * same "no invented word" rule a missing `display` follows for a unit.
+   */
+  private opWord(op: BinaryOp, ctx: RenderCtx): string {
     switch (op) {
       case "of":
         return this.locale.keywords.of?.[0] ?? "of";
       case "off":
         return this.locale.keywords.off?.[0] ?? "off";
       default:
-        return op;
+        if (ctx.spell === undefined) return op;
+        return this.locale.keywords[OP_KEYWORDS[op]]?.[0] ?? op;
     }
   }
 
@@ -451,19 +544,41 @@ export class Printer {
     const sep = ctx.spacing === "tight" ? "" : " ";
     const chosen = pickCandidate(candidates, nodeId, ctx);
     if (chosen === undefined) {
+      // No chosen candidate means no known kind — not just no alias to
+      // canonicalize to (as the comment above already covers) but no unit to
+      // derive a plural category from either, so `spelled` has nothing to do
+      // here and the whole quantity is echoed exactly as typed, digits
+      // included. See `PrintOptions.spelled`'s doc comment.
       return `${this.printDecimal(value)}${sep}${candidates[0]?.surface ?? ""}`;
     }
     const magnitude = this.renderMagnitude(value, chosen, ctx);
-    const unit = unitWord(
-      magnitude.kind,
-      magnitude.unit,
-      ctx,
-      avoidSpellings(candidates, chosen, this.registry, this.locale),
-      candidates.length > 1 ? candidates[0]?.surface : undefined,
-      this.registry,
-      this.locale,
-    );
-    return `${magnitude.text}${sep}${unit}`;
+    const avoid = avoidSpellings(candidates, chosen, this.registry, this.locale);
+    const ambiguousSurface = candidates.length > 1 ? candidates[0]?.surface : undefined;
+    const unit =
+      ctx.spell !== undefined
+        ? spelledUnitWord(
+            magnitude.kind,
+            magnitude.unit,
+            magnitude.magnitude,
+            avoid,
+            ambiguousSurface,
+            this.registry,
+            this.locale,
+          )
+        : unitWord(
+            magnitude.kind,
+            magnitude.unit,
+            ctx,
+            avoid,
+            ambiguousSurface,
+            this.registry,
+            this.locale,
+          );
+    const numberText =
+      ctx.spell !== undefined
+        ? (ctx.spell(magnitude.magnitude) ?? magnitude.text)
+        : magnitude.text;
+    return `${numberText}${sep}${unit}`;
   }
 
   /**
@@ -485,15 +600,29 @@ export class Printer {
       ctx.rebase !== undefined && chosen.kind === ctx.rebase.kind
         ? ctx.rebase.unit
         : chosen.unit;
-    return unitWord(
-      chosen.kind,
-      unitId,
-      ctx,
-      avoidSpellings(target, chosen, this.registry, this.locale),
-      target.length > 1 ? target[0]?.surface : undefined,
-      this.registry,
-      this.locale,
-    );
+    const avoid = avoidSpellings(target, chosen, this.registry, this.locale);
+    const ambiguousSurface = target.length > 1 ? target[0]?.surface : undefined;
+    // No magnitude of its own — `spelledUnitWord` reads that as "select the
+    // generic plural category", see its own doc comment.
+    return ctx.spell !== undefined
+      ? spelledUnitWord(
+          chosen.kind,
+          unitId,
+          undefined,
+          avoid,
+          ambiguousSurface,
+          this.registry,
+          this.locale,
+        )
+      : unitWord(
+          chosen.kind,
+          unitId,
+          ctx,
+          avoid,
+          ambiguousSurface,
+          this.registry,
+          this.locale,
+        );
   }
 
   /**
@@ -503,14 +632,27 @@ export class Printer {
    * the rebase unit and formatted with `ctx.precision`. This is the one
    * place in `Printer.print`/`node` that computes rather than reprints,
    * which is why `precision` only ever does anything here.
+   *
+   * `magnitude` (added for Task 11) is the same number as `text`, but as a
+   * `Decimal` rather than a formatted string — `renderQuantity` needs the
+   * `Decimal` for two things `text` cannot give it back: `ctx.spell`, and the
+   * plural category `spelledUnitWord` selects the unit's `display` form by.
+   * Both need the *actual* rebased number when `ctx.rebase` applied, not the
+   * literal the user typed, which is exactly what `text`/`magnitude` already
+   * agree on here.
    */
   private renderMagnitude(
     value: Decimal,
     chosen: Candidate,
     ctx: RenderCtx,
-  ): { text: string; kind: KindId; unit: string } {
+  ): { text: string; kind: KindId; unit: string; magnitude: Decimal } {
     if (ctx.rebase === undefined || chosen.kind !== ctx.rebase.kind) {
-      return { text: this.printDecimal(value), kind: chosen.kind, unit: chosen.unit };
+      return {
+        text: this.printDecimal(value),
+        kind: chosen.kind,
+        unit: chosen.unit,
+        magnitude: value,
+      };
     }
     const kind = this.registry.kinds.get(chosen.kind);
     if (kind === undefined) {
@@ -526,6 +668,6 @@ export class Printer {
       ...(ctx.precision !== undefined ? { precision: ctx.precision } : {}),
       ...(this.rounding !== undefined ? { rounding: this.rounding } : {}),
     });
-    return { text, kind: chosen.kind, unit: ctx.rebase.unit };
+    return { text, kind: chosen.kind, unit: ctx.rebase.unit, magnitude: authored };
   }
 }
