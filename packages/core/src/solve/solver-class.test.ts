@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
 import { BUILTIN_KINDS } from "@smartput/kinds";
-import { AmbiguityError } from "../errors";
+import { AmbiguityError, TooAmbiguousError } from "../errors";
 import { buildRegistry } from "../kind/registry";
 import en from "../locale/en";
 import { createResolver } from "../parse/candidates";
@@ -30,11 +30,30 @@ test("choices are keyed by node id, so a resolution is JSON-serializable", () =>
   const [best] = solver.all(program);
   expect(best).toBeDefined();
   if (best === undefined) return;
-  expect(JSON.parse(JSON.stringify(best.choices))).toEqual(
-    JSON.parse(JSON.stringify(best.choices)),
-  );
+  // Round-tripping through JSON must reproduce `choices` exactly. Under the
+  // old Map<Node, Candidate> design `JSON.stringify(map)` was always `"{}"`,
+  // so comparing the round-trip to itself would have passed either way —
+  // comparing it to the original is what actually exercises the re-key.
+  expect(JSON.parse(JSON.stringify(best.choices))).toEqual(best.choices);
   for (const key of Object.keys(best.choices)) {
     expect(program.nodes[Number(key)]).toBeDefined();
+  }
+});
+
+test("choices iterate in ascending node-id order", () => {
+  // Object.values(resolution.choices) is what every reader (solve()'s own
+  // tie-break sort, engine.ts's explain()/ambiguity paths) relies on standing
+  // in for the old Map's insertion order. "1 kg + 500 g" has two quantity
+  // slots, so this is not vacuously true for a single-slot input.
+  const program = programFor("1 kg + 500 g");
+  const [best] = solver.all(program);
+  expect(best).toBeDefined();
+  if (best === undefined) return;
+  const ids = Object.keys(best.choices).map(Number);
+  expect(ids.length).toBeGreaterThan(1);
+  expect(ids).toEqual([...ids].sort((a, b) => a - b));
+  for (let i = 1; i < ids.length; i += 1) {
+    expect((ids[i] as number) > (ids[i - 1] as number)).toBe(true);
   }
 });
 
@@ -57,6 +76,23 @@ test("tiebreak: first returns the top candidate instead of throwing", () => {
   expect(lenient.best(programFor("10 m")).kind).toBeDefined();
 });
 
+test("ambiguityEpsilon: 0 never treats a softmax gap as a tie", () => {
+  // "10 m" is the fixture that ties at the default epsilon (see the throwing
+  // test above). Two distinct scores always leave a positive gap between
+  // their softmax confidences, so an epsilon of 0 — read correctly, not left
+  // on the 0.05 default — must never call that gap a tie.
+  const decisive = new Solver({ registry, ambiguityEpsilon: 0 });
+  expect(() => decisive.best(programFor("10 m"))).not.toThrow();
+});
+
+test("maxCandidates throws TooAmbiguousError when the search space is too large", () => {
+  // "10 m" has one slot with two candidates (duration, length): a search
+  // space of 2. maxCandidates: 1 must reject it before any scoring happens —
+  // solve() itself is what raises TooAmbiguousError, not the Solver.
+  const strict = new Solver({ registry, maxCandidates: 1 });
+  expect(() => strict.all(programFor("10 m"))).toThrow(TooAmbiguousError);
+});
+
 test("best() does not throw when the winner is clear", () => {
   expect(solver.best(programFor("1 kg + 500 g")).kind).toBe("mass");
 });
@@ -77,4 +113,8 @@ test("the solver instance is frozen and stateless across runs", () => {
 test("resolutions are frozen", () => {
   const [best] = solver.all(programFor("1 kg"));
   expect(Object.isFrozen(best)).toBe(true);
+  // The nested freeze is what actually carries "a resolution is a value" —
+  // a frozen Resolution whose `choices` record could still be mutated in
+  // place would only look immutable.
+  expect(Object.isFrozen(best?.choices)).toBe(true);
 });

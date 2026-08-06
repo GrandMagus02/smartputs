@@ -19,7 +19,9 @@ export interface Program {
 
 export function buildProgram(root: Node, input: NormalizedInput): Program {
   const nodes: Node[] = [];
+  let visited = 0;
   walk(root, (node) => {
+    visited += 1;
     nodes[node.id] = node;
   });
 
@@ -30,6 +32,19 @@ export function buildProgram(root: Node, input: NormalizedInput): Program {
     if (nodes[i] === undefined) {
       throw new Error(`buildProgram: no node has id ${i} — the parser skipped one`);
     }
+  }
+
+  // A dense, hole-free array is not sufficient on its own: two nodes sharing
+  // one id leave no hole — the second write just overwrites the first — and a
+  // Resolution's Record<NodeId, Candidate> has no way to tell the two apart
+  // either, so a solve() would silently score one node's candidate against the
+  // other's slot. Counting what `walk` actually visited against how many
+  // distinct ids survived into `nodes` is what catches that a hole check
+  // cannot.
+  if (visited !== nodes.length) {
+    throw new Error(
+      `buildProgram: walk visited ${visited} nodes but only ${nodes.length} ids are distinct — two nodes share an id`,
+    );
   }
 
   // `input` is already frozen by `normalize`; freezing it again is a no-op, and

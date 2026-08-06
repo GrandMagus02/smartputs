@@ -45,7 +45,11 @@ export class Solver {
     const all = this.all(program, opts);
     const [best, second] = all;
     if (best === undefined) {
-      throw new AmbiguityError(program.input.source, [], [program.root.span]);
+      throw new AmbiguityError(
+        program.input.source,
+        [],
+        [program.input.mapSpan(program.root.span)],
+      );
     }
     if (
       this.tiebreak === "error" &&

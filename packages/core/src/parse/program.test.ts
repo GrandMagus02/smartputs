@@ -1,7 +1,9 @@
 import { expect, test } from "bun:test";
 import { BUILTIN_KINDS } from "@smartput/kinds";
+import { Decimal } from "../decimal";
 import { buildRegistry } from "../kind/registry";
 import en from "../locale/en";
+import type { BinaryNode, NumberNode } from "./ast";
 import { walk } from "./ast";
 import { createResolver } from "./candidates";
 import { lex } from "./lex";
@@ -87,6 +89,34 @@ test("the program and every node are frozen", () => {
   expect(Object.isFrozen(program)).toBe(true);
   expect(Object.isFrozen(program.nodes)).toBe(true);
   walk(program.root, (n) => expect(Object.isFrozen(n)).toBe(true));
+});
+
+// The parser's own id assignment never produces this — it is exercised by
+// hand-building a tree, since the hole check the loop above performs would
+// not catch it: two nodes sharing an id leave a dense, hole-free array.
+test("two nodes sharing an id are rejected even though no id is missing", () => {
+  const input = normalize("1 2");
+  const left: NumberNode = {
+    id: 0,
+    type: "number",
+    value: new Decimal(1),
+    span: { start: 0, end: 1 },
+  };
+  const right: NumberNode = {
+    id: 0,
+    type: "number",
+    value: new Decimal(2),
+    span: { start: 2, end: 3 },
+  };
+  const root: BinaryNode = {
+    id: 1,
+    type: "binary",
+    op: "+",
+    left,
+    right,
+    span: { start: 0, end: 3 },
+  };
+  expect(() => buildProgram(root, input)).toThrow(/share an id/);
 });
 
 test("a convert node's operand and its target both get ids", () => {
