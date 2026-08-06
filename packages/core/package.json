@@ -7,6 +7,9 @@
     "./dist/index.js",
     "./dist/locale/en.js",
     "./dist/testing/index.js",
+    "./dist/tokenize.js",
+    "./dist/parse.js",
+    "./dist/solve.js",
     "./dist/eval.js",
     "./dist/print.js",
     "./dist/registry.js"
