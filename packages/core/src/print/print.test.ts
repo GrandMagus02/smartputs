@@ -283,16 +283,24 @@ function rightOperand(program: Program): Node {
   return program.root.right;
 }
 
-// The three cases above are also testable at `print()`'s level, but only the
+// The cases below are also testable at `print()`'s level, but only the
 // padded one actually distinguishes `print()`'s "always exact" contract from
-// a hypothetical `mapSpan(root.span)`-based implementation — a double space,
-// a degree sign, or a non-ASCII dash earlier in the string leaves the root's
-// own span already covering "start of content" to "end of content" with
-// nothing outside it to lose, so `print()`-level versions of them would pass
-// under either implementation and mostly pin a `Normalizer` property, not a
-// `Printer` one. `node()` addressing the *second* operand is where each edit's
-// length change (or, for the dash, its position) actually has to be mapped
-// correctly for the slice to land right — this is that regression cover.
+// a hypothetical `mapSpan(root.span)`-based implementation — a double space
+// or a degree sign earlier in the string leaves the root's own span already
+// covering "start of content" to "end of content" with nothing outside it to
+// lose, so `print()`-level versions of them would pass under either
+// implementation and mostly pin a `Normalizer` property, not a `Printer` one.
+// `node()` addressing the *second* operand is where each edit's length
+// change actually has to be mapped correctly for the slice to land right —
+// this is that regression cover.
+//
+// A non-ASCII dash is deliberately not one of these on its own: `−` (U+2212)
+// folds to `-` one-for-one (`{ length: 1 }` in `normalize.ts`'s edit), so it
+// never shifts any later offset — `mapSpan` on a node after it returns the
+// same span a naive pass-through would, and a test built only around it
+// cannot fail against a broken `mapSpan`. It is kept below as a companion
+// inside a case that *does* shift (a zero-width character, a true deletion),
+// not as a case of its own.
 
 test("node(): verbatim after a degree sign the normalizer strips earlier in the string", () => {
   const program = programFor("30°C + 5 kg");
@@ -308,8 +316,18 @@ test("node(): verbatim after a double space the normalizer collapses earlier in 
   );
 });
 
-test("node(): verbatim after a non-ASCII dash the normalizer folds earlier in the string", () => {
-  const program = programFor("10 km − 5 km + 3 g"); // U+2212 MINUS SIGN
+test("node(): verbatim after a zero-width character and a non-ASCII dash earlier in the string", () => {
+  // U+200B ZERO WIDTH SPACE between "10" and "km" is a true deletion
+  // (`normalize.ts` records it as `{ length: 0 }`), so every offset from
+  // there on is one less in the normalized text than in the source — unlike
+  // the `−` (U+2212) MINUS SIGN a few characters later, which folds
+  // one-for-one and shifts nothing (see the comment above). Verified
+  // directly against `normalize()`'s own edits and `mapSpan` in the Task 10
+  // review-fix report: `mapSpan` on the addressed node's span differs from
+  // an identity mapping by exactly one character, and slicing at the
+  // identity span instead returns `" 3 "` — proof this case fails against a
+  // broken `mapSpan`, not just that it passes against the real one.
+  const program = programFor("10​km − 5 km + 3 g");
   expect(printer.node(program, rightOperand(program).id, { mode: "verbatim" })).toBe(
     "3 g",
   );
@@ -373,12 +391,11 @@ test("resolved: an ambiguous node with no distinguishing spelling at all coincid
   // differs from the other's, so there is nothing for `resolved` to reveal,
   // and it should print exactly what `canonical` does rather than an
   // artifact of alias-table casing (see `unitWord`'s `ambiguousSurface`
-  // fallback).
+  // fallback). Pinned to the literal string — comparing two live `print()`
+  // calls would let a bug that broke both sides identically slip through.
   const program = programFor("30 C - 20 C");
   const resolution = solver.best(program);
-  expect(printer.print(program, { mode: "resolved", resolution })).toBe(
-    printer.print(program),
-  );
+  expect(printer.print(program, { mode: "resolved", resolution })).toBe("30 C - 20 C");
 });
 
 test("resolved: node() reads the same Resolution for a single subtree", () => {
@@ -471,11 +488,13 @@ test("symbols: inert on an ambiguous resolved node with no distinguishing spelli
   // symbol ("°C" for both) — `resolved` still has nothing to reveal here
   // (see the "no distinguishing spelling" test above and `unitWord`'s doc
   // comment), so `{ symbols: true }` makes no difference: the printed unit
-  // is "C" either way, never "°C".
+  // is "C" either way, never "°C". Pinned to the literal string, not just
+  // `printer.print(program)` — comparing two live calls would let a bug
+  // that broke both sides identically slip through.
   const program = programFor("30 C - 20 C");
   const resolution = solver.best(program);
   expect(printer.print(program, { mode: "resolved", resolution, symbols: true })).toBe(
-    printer.print(program),
+    "30 C - 20 C",
   );
 });
 
