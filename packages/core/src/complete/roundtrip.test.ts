@@ -125,7 +125,7 @@ test("every completion inside an expression at least lexes", () => {
   ];
   for (const input of inputs) {
     for (const c of engine.complete(input, { limit: 50 })) {
-      expect(() => lex(normalize(c.text), en)).not.toThrow();
+      expect(() => lex(normalize(c.text).text, en)).not.toThrow();
     }
   }
 });

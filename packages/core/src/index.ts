@@ -53,6 +53,13 @@ export type { Token } from "./parse/lex";
 // Exported so a plugin author can drive a literal matcher in isolation, without
 // standing up an engine just to see what their matcher claims.
 export { foldLiterals } from "./parse/literals";
+export type {
+  Edit,
+  EditReason,
+  NormalizedInput,
+  NormalizerOptions,
+} from "./parse/normalize";
+export { Normalizer, normalize } from "./parse/normalize";
 // The score the ordinary number under a claimed span gets, which a matcher that
 // claims bare digits has to weigh itself against: a postal code must sit below
 // it to leave "90210" a number. Public for the same reason the completion

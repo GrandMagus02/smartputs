@@ -5,7 +5,7 @@ import { normalize } from "./normalize";
 import { foldWordOps } from "./wordops";
 
 const shape = (input: string) =>
-  foldWordOps(lex(normalize(input), en)).map((t) => [
+  foldWordOps(lex(normalize(input).text, en)).map((t) => [
     t.type,
     t.type === "op" ? t.op : t.type === "keyword" ? t.keyword : "",
     t.start,

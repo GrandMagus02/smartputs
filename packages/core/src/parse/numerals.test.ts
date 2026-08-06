@@ -4,7 +4,7 @@ import { lex } from "./lex";
 import { normalize } from "./normalize";
 import { foldNumerals } from "./numerals";
 
-const fold = (input: string) => foldNumerals(lex(normalize(input), en), en);
+const fold = (input: string) => foldNumerals(lex(normalize(input).text, en), en);
 
 /** Compact shape for assertions: type, surface-ish text, span. */
 const shape = (input: string) =>
@@ -80,7 +80,7 @@ test("a numeral run stops at a unit word and resumes after it", () => {
 
 test("a locale without numerals is passed through unchanged", () => {
   const { numerals: _drop, ...bare } = en;
-  const tokens = lex(normalize("one kg"), bare);
+  const tokens = lex(normalize("one kg").text, bare);
   expect(foldNumerals(tokens, bare)).toBe(tokens);
 });
 
