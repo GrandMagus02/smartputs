@@ -16,7 +16,9 @@
     }
   },
   "dependencies": {
-    "@smartput/city": "workspace:*",
     "@smartput/core": "workspace:*"
+  },
+  "devDependencies": {
+    "@smartput/city": "workspace:*"
   }
 }

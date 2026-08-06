@@ -85,18 +85,14 @@ const ALLOWED: Record<string, string[]> = {
   // The search half of geo, split out in M7.1 (geocode spec §3). One runtime
   // dependency and no data: everything that produces a `Place` is a provider,
   // every provider is network, and `@smartput/country` must stay importable
-  // without linking a fetch path.
-  //
-  // `@smartput/city` is the same edge `@smartput/country` has above, and it is
-  // here for the same reason: `BundledOptions` names `CityRow` and `Admin1Row`,
-  // the import is `import type` from the `/types` subpath, and it compiles away.
-  // `bundled()` still takes its rows as an argument, so no gazetteer is linked
-  // and the edge runs from the consumer inwards, the rule `definePlace()`
-  // follows. It is a dependency and not a devDependency because the emitted
-  // `dist/providers/bundled.d.ts` names it, and a published declaration naming a
-  // package absent from the manifest is a dependency a consumer discovers on
-  // install.
-  "packages/geocode/package.json": ["@smartput/city", "@smartput/core"],
+  // without linking a fetch path. `@smartput/city` is dev-only — `bundled()`
+  // takes rows as an argument, so the edge runs from the consumer inwards, the
+  // same rule `definePlace()` follows. `BundledOptions` names its own structural
+  // `BundledCity` and `BundledAdmin1` rather than the real row types, the way
+  // core's `RatioTable` stands in for a `UnitTable`, so the emitted
+  // `dist/providers/bundled.d.ts` names no gazetteer either; the dev-only import
+  // in `bundled.test.ts` is what proves a real `CityRow` still satisfies it.
+  "packages/geocode/package.json": ["@smartput/core"],
 
   // The micro-validation path. Zero runtime dependencies, enforced here: a
   // first one would mean decimal.js or core leaked into a 600-byte budget.

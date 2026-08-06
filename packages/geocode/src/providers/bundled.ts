@@ -1,9 +1,47 @@
-import type { Admin1Row, CityRow } from "@smartput/city/types";
 import { normalizeName, type Place, type PlaceSnapshot, placeSnapshot } from "../place";
 import type { GeocodeHit, GeocodeProvider, GeocodeQuery } from "../query";
 import { similarity } from "../rank";
 
 const ID = "bundled";
+
+/**
+ * The shape this provider reads off a `@smartput/city` `CityRow`, spelled
+ * structurally rather than imported — core's `RatioTable` does the same to a
+ * `@smartput/shared` `UnitTable`, for the same reason.
+ *
+ * The geocode spec §3 says this package takes no edge on `@smartput/city`.
+ * `import type` compiles away, but it survives into the emitted `.d.ts`, and a
+ * published declaration naming a package the manifest does not is that edge in
+ * everything but the install line: every consumer who wanted the ranker would
+ * install a 1.5 MB gazetteer to get it. A real `CityRow` satisfies this, so
+ * `bundled({ cities: CITIES })` still typechecks at every call site — the
+ * dev-only import in `bundled.test.ts` is what proves it still does.
+ *
+ * `capital` is absent because nothing here reads it: the tie-break that wants it
+ * lives in `@smartput/country`'s matcher, and a field this provider ignores has
+ * no business narrowing what a caller may pass.
+ */
+export interface BundledCity {
+  readonly geonameId: number;
+  readonly name: string;
+  readonly aliases: readonly string[];
+  /** Lowercase alpha-2, as `Place.country` carries it. */
+  readonly country: string;
+  readonly admin1: string;
+  readonly lat: number;
+  readonly lon: number;
+  /** IANA, the city's own. */
+  readonly zone: string;
+  readonly population: number;
+}
+
+/** The structural view of a `@smartput/city` `Admin1Row`; see `BundledCity`. */
+export interface BundledAdmin1 {
+  /** The country's alpha-2 uppercased, a dot, then the division code. */
+  readonly key: string;
+  readonly name: string;
+  readonly aliases: readonly string[];
+}
 
 /**
  * The string CC BY 4.0 requires a consumer to display. Duplicated from
@@ -14,9 +52,9 @@ const ID = "bundled";
 const ATTRIBUTION = "GeoNames (https://www.geonames.org/), CC BY 4.0";
 
 export interface BundledOptions {
-  readonly cities: readonly CityRow[];
+  readonly cities: readonly BundledCity[];
   /** Divisions, so `texas` is findable. Absent means cities only. */
-  readonly admin1?: readonly Admin1Row[];
+  readonly admin1?: readonly BundledAdmin1[];
   /** When the table was generated. What demotes T1 from truth to floor (§8). */
   readonly asOf: string;
   readonly id?: string;
@@ -36,7 +74,7 @@ interface Alias {
 }
 
 /** A city row as the rest of the package sees it. */
-function cityPlace(row: CityRow): Place {
+function cityPlace(row: BundledCity): Place {
   return {
     geonameId: row.geonameId,
     name: row.name,
@@ -63,7 +101,7 @@ function cityPlace(row: CityRow): Place {
  * not become is a place a *distance* is measured to — the zeroed coordinates
  * are what `UnpositionedPlaceError` in `@smartput/distance` already refuses.
  */
-function adminPlace(row: Admin1Row): Place {
+function adminPlace(row: BundledAdmin1): Place {
   const [country = "", code = ""] = row.key.split(".");
   return {
     geonameId: 0,

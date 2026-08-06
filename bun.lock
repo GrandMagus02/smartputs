@@ -150,8 +150,10 @@
       "name": "@smartput/geocode",
       "version": "0.0.0",
       "dependencies": {
-        "@smartput/city": "workspace:*",
         "@smartput/core": "workspace:*",
+      },
+      "devDependencies": {
+        "@smartput/city": "workspace:*",
       },
     },
     "packages/kinds": {
