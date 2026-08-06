@@ -992,6 +992,51 @@ The `percent/validate` row is the one to watch, and it did what it was kept for:
 1000 B before, 1126 B after. It is the smallest table in the repo, so it is the
 first row any growth in the shared parser shows up in.
 
+#### Amendment, 2026-08-07 — the stage classes, six rows over
+
+`createEngine` is now a composition of seven stage classes — `Normalizer`,
+`Tokenizer`, `Parser`, `Solver`, `Evaluator`, `Autocompleter`, `Printer` — each
+holding its own frozen config, in place of the free functions and loose
+parameter bags the earlier design threaded by hand. All seven live in
+`@smartput/core`, so the change is paid by every bundle that pulls core, which
+is every row in this file. Six rows measured over their committed ceiling;
+`bun run check-size` was the only thing that caught it, since the increase is
+20-30 B per row and no test asserts a byte count.
+
+Re-measured, then rounded up to the next 50 B, touching only the dimension
+that was actually over — a row already under budget on one side is left alone,
+per the two-sided guard this section already keeps:
+
+| Entry | Was | Measured | Committed |
+| --- | --- | --- | --- |
+| `datetime root (no holiday data)` — min | 144_350 B | 144_342 B | 144_350 B (unchanged) |
+| `datetime root (no holiday data)` — gzip | 50_750 B | 50_753 B | 50_800 B |
+| `time` — min | 145_700 B | 145_724 B | 145_750 B |
+| `time` — gzip | 50_950 B | 50_965 B | 51_000 B |
+| `range-core` — min | 144_750 B | 144_754 B | 144_800 B |
+| `range-core` — gzip | 50_800 B | 50_786 B | 50_800 B (unchanged) |
+| `date-range` — min | 149_100 B | 149_123 B | 149_150 B |
+| `date-range` — gzip | 51_900 B | 51_910 B | 51_950 B |
+| `time-range` — min | 147_050 B | 147_070 B | 147_100 B |
+| `time-range` — gzip | 51_450 B | 51_429 B | 51_450 B (unchanged) |
+| `datetime-range root (no holiday data)` — min | 147_850 B | 147_876 B | 147_900 B |
+| `datetime-range root (no holiday data)` — gzip | 51_800 B | 51_767 B | 51_800 B (unchanged) |
+
+`date` — the seventh row in the same range-package block — measured 145_431 B
+/ 50_850 B against its 145_450 B / 50_850 B ceiling and is untouched; not every
+row in a block moves together, which is why the rule is "re-measure the
+affected row," not "bump the block." No other row in the file moved: the
+stage classes are core's graph, and only a bundle that already pulls the whole
+of core (the six above, all `datetime`-family or range-package roots) pays for
+the composition change at all.
+
+Every one of the six carries the explicit `floor: 138_000` this section's
+"two-sided budgets" amendment introduced, and none of today's measurements
+come close to tripping it — the smallest, `datetime root`'s 144_342 B, still
+clears the floor by 6_342 B. The floor is what would have caught the opposite
+mistake: a bundle that lost the composition rewrite entirely and shrank back
+toward the old free-function baseline.
+
 ### The honest comparison
 
 A hand-written single-unit check is about 40 bytes:

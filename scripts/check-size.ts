@@ -518,11 +518,17 @@ export const BUDGETS: EntrySpec[] = [
     // Verified rather than assumed: the bundle this row measures contains no
     // string from the rule table — no `Easter`, no `js-yaml` — while the row
     // below contains both.
+    //
+    // Amendment, 2026-08-07: gzip rises 50_750 -> 50_800 (measured 50_753 B).
+    // Core's seven stage classes — Normalizer, Tokenizer, Parser, Solver,
+    // Evaluator, Autocompleter, Printer — and their frozen config plumbing
+    // landed in core's graph, and this bundle pulls core. Min is untouched:
+    // 144_342 B measured still clears 144_350. See spec §13's dated amendment.
     label: "datetime root (no holiday data)",
     from: "@smartput/datetime",
     names: ["datetime"],
     min: 144_350,
-    gzip: 50_750,
+    gzip: 50_800,
     floor: 138_000,
   },
   {
@@ -579,6 +585,16 @@ export const BUDGETS: EntrySpec[] = [
   // the bundle" — a kind is 0.4–4.8 KB here, so a floor tight enough to catch
   // one disappearing would also fail on any honest refactor of it, and the
   // corpus test next door fails on that far more legibly than a byte count.
+  //
+  // Amendment, 2026-08-07: five of the six rows below rose 20-30 B, each on
+  // whichever side actually measured over, for the same reason as the
+  // `datetime root` row above — core's seven stage classes (Normalizer,
+  // Tokenizer, Parser, Solver, Evaluator, Autocompleter, Printer) and their
+  // frozen config plumbing are now part of every one of these graphs, and
+  // every one of them pulls core. `date` was already under budget on both
+  // sides and is untouched. See spec §13's dated amendment for the full
+  // measured/committed table; only the dimension that was actually over
+  // moved on any row here.
   {
     label: "date",
     from: "@smartput/date",
@@ -591,8 +607,8 @@ export const BUDGETS: EntrySpec[] = [
     label: "time",
     from: "@smartput/time",
     names: ["time"],
-    min: 145_700,
-    gzip: 50_950,
+    min: 145_750,
+    gzip: 51_000,
     floor: 138_000,
   },
   {
@@ -603,7 +619,7 @@ export const BUDGETS: EntrySpec[] = [
     label: "range-core",
     from: "@smartput/range-core",
     names: ["WINDOWS", "startOfWeek"],
-    min: 144_750,
+    min: 144_800,
     gzip: 50_800,
     floor: 138_000,
   },
@@ -611,15 +627,15 @@ export const BUDGETS: EntrySpec[] = [
     label: "date-range",
     from: "@smartput/date-range",
     names: ["dateRange"],
-    min: 149_100,
-    gzip: 51_900,
+    min: 149_150,
+    gzip: 51_950,
     floor: 138_000,
   },
   {
     label: "time-range",
     from: "@smartput/time-range",
     names: ["timeRange"],
-    min: 147_050,
+    min: 147_100,
     gzip: 51_450,
     floor: 138_000,
   },
@@ -642,7 +658,7 @@ export const BUDGETS: EntrySpec[] = [
     label: "datetime-range root (no holiday data)",
     from: "@smartput/datetime-range",
     names: ["datetimeRange"],
-    min: 147_850,
+    min: 147_900,
     gzip: 51_800,
     floor: 138_000,
   },
