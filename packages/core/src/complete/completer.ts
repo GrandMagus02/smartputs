@@ -3,7 +3,7 @@ import type { Registry } from "../kind/registry";
 import type { Locale, Weights } from "../types";
 import { type CompleteOptions, type Completion, complete } from "./complete";
 
-export interface CompleterOptions {
+export interface AutocompleterOptions {
   registry: Registry;
   /** The `Locale` object, unlike `Evaluator`'s locale id — `complete()` takes
    * the object today, and this stage keeps that shape rather than papering
@@ -21,18 +21,26 @@ export interface CompleterOptions {
  * Deliberately runs on a raw input string, not a `NormalizedInput` or a
  * `Program`: a completion is offered for text that by definition does not yet
  * parse, which a `Program` cannot represent.
+ *
+ * Named `Autocompleter`, not `Completer`: `types.ts`'s `Completer` is the
+ * kind contract — `Kind.completions?: Completer` — with in-repo and possibly
+ * external consumers, and this class is the newer arrival. Barrel-exporting
+ * both under one name let the class shadow the type (an explicit named
+ * export beats a `export type *` wildcard on a collision), which is exactly
+ * the branch-level regression this rename fixes — see the branch fix report.
+ * Do not rename this back to `Completer`; the type owns that name.
  */
-export class Completer {
+export class Autocompleter {
   private readonly registry: Registry;
   private readonly locale: Locale;
   private readonly layers: (Weights | undefined)[];
 
-  constructor(cfg: CompleterOptions) {
+  constructor(cfg: AutocompleterOptions) {
     this.registry = cfg.registry;
     this.locale = cfg.locale;
     // Copied, not aliased: `layers` is an array the caller could keep pushing
-    // onto after construction, and a frozen `Completer` promising no state
-    // between runs would otherwise still see it move.
+    // onto after construction, and a frozen `Autocompleter` promising no
+    // state between runs would otherwise still see it move.
     this.layers = [...cfg.layers];
     Object.freeze(this);
   }

@@ -254,7 +254,7 @@ test("the constructor copies kindMeta rather than aliasing the caller's map", ()
   // Reassigns the whole `pixel` entry after construction, rather than
   // mutating the nested `{ dpi: 2 }` record in place — a shallow copy of the
   // outer `kindMeta` map defends against exactly this class of aliasing (the
-  // one Task 2's `Normalizer` review caught), the same way `Completer`'s
+  // one Task 2's `Normalizer` review caught), the same way `Autocompleter`'s
   // `layers` copy defends against an in-place array push.
   kindMeta.pixel = { dpi: 100 };
   const after = evaluator.run(program, resolution);

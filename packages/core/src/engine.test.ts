@@ -279,11 +279,11 @@ test("engine.complete honours engine-level weights", () => {
 });
 
 test("engine.complete honours a per-call weights override", () => {
-  // Locks in that `complete()` rebuilds its `Completer` per call the same
+  // Locks in that `complete()` rebuilds its `Autocompleter` per call the same
   // way `evaluate()` rebuilds its `Parser`: `CompleteOptions.weights` is
   // documented as "layer 4, identical to EvalOptions.weights", so a
-  // once-built `Completer` that ignored it would silently stop honouring a
-  // per-call weights argument while every other test here still passed.
+  // once-built `Autocompleter` that ignored it would silently stop honouring
+  // a per-call weights argument while every other test here still passed.
   const plain = engine.complete("1 mi");
   const boosted = engine.complete("1 mi", { weights: { duration: 20 } });
   expect(plain[0]?.kind).not.toBe("duration");

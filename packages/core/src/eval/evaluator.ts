@@ -40,7 +40,7 @@ export class Evaluator {
     this.locale = cfg.locale;
     // Copied, not aliased: `kindMeta` is a plain map a caller assembles and
     // could keep adding to or reassigning entries on after construction — the
-    // same class of bug `Completer`'s `layers` copy defends against. `rates`
+    // same class of bug `Autocompleter`'s `layers` copy defends against. `rates`
     // and `registry` are already-built service objects nobody incrementally
     // mutates the way a weights or kindMeta bag gets built up, so they are
     // held by reference, same as `Tokenizer`/`Parser` hold theirs.

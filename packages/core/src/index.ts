@@ -1,7 +1,7 @@
 export type { CompleteOptions, Completion } from "./complete/complete";
 export { complete } from "./complete/complete";
-export type { CompleterOptions } from "./complete/completer";
-export { Completer } from "./complete/completer";
+export type { AutocompleterOptions } from "./complete/completer";
+export { Autocompleter } from "./complete/completer";
 export { EXACT_BONUS, LENGTH_PENALTY, SCALE_BONUS } from "./complete/score";
 export { Decimal } from "./decimal";
 export type { Engine, EngineOptions, EvalOptions, Explanation, Result } from "./engine";

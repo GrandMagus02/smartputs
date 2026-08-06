@@ -1,5 +1,5 @@
 import type { CompleteOptions, Completion } from "./complete/complete";
-import { Completer } from "./complete/completer";
+import { Autocompleter } from "./complete/completer";
 import type { Decimal } from "./decimal";
 import {
   KindConflictError,
@@ -140,7 +140,7 @@ function weightLayers(
 /**
  * One instance each of the stages that hold no per-call state, built once and
  * reused across every call `createEngine`'s returned `Engine` receives. The
- * `Parser` and `Completer` are conspicuously missing: both close over a weight
+ * `Parser` and `Autocompleter` are conspicuously missing: both close over a weight
  * layer that `EvalOptions.weights`/`CompleteOptions.weights` can override per
  * call, so `createEngine` builds a fresh one per call instead (`parserFor`,
  * `completerFor`).
@@ -180,7 +180,7 @@ function buildStages(opts: EngineOptions, registry: Registry, locale: Locale) {
 /**
  * The stage instances and options every entry point method needs but no
  * single call supplies — as opposed to `layers(call?.weights)` and a fresh
- * `Parser`/`Completer`, which are per-call. Built once, passed down instead of
+ * `Parser`/`Autocompleter`, which are per-call. Built once, passed down instead of
  * closed over, the way spec §5's `toResult(program, resolution, printer,
  * evaluator)` already takes `printer` and `evaluator` as explicit arguments.
  *
@@ -361,8 +361,8 @@ export function createEngine(callerOpts: EngineOptions): Engine {
     printer: stages.printer,
     opts,
   };
-  // The Parser (and Completer) is rebuilt per call: it closes over the weight
-  // layers, and `EvalOptions.weights` is a per-call override.
+  // The Parser (and Autocompleter) is rebuilt per call: it closes over the
+  // weight layers, and `EvalOptions.weights` is a per-call override.
   const parserFor = (call?: EvalOptions) =>
     new Parser({
       resolver: createResolver({
@@ -373,7 +373,7 @@ export function createEngine(callerOpts: EngineOptions): Engine {
       }),
     });
   const completerFor = (call?: EvalOptions) =>
-    new Completer({ registry, locale, layers: layers(call?.weights) });
+    new Autocompleter({ registry, locale, layers: layers(call?.weights) });
   const tokenize = (input: string, call?: EvalOptions): TokenStream => {
     const normalized = stages.normalizer.run(input);
     if (normalized.empty) throw new UnitParseError(input);
