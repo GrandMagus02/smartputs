@@ -13,13 +13,10 @@ import { evaluateNode } from "./eval/evaluate";
 import { formatValue } from "./format/format";
 import { buildRegistry, NUMBER_KIND } from "./kind/registry";
 import { createResolver } from "./parse/candidates";
-import { lex, type Token } from "./parse/lex";
-import { foldLiterals } from "./parse/literals";
+import type { Token } from "./parse/lex";
 import { type NormalizedInput, Normalizer } from "./parse/normalize";
-import { foldNumerals } from "./parse/numerals";
-import { parse } from "./parse/pratt";
-import { buildProgram } from "./parse/program";
-import { foldWordOps } from "./parse/wordops";
+import { Parser, type Program } from "./parse/program";
+import { Tokenizer } from "./parse/tokenizer";
 import { type Resolution, solve } from "./solve/solver";
 import { weightBreakdown } from "./solve/weights";
 import type {
@@ -29,7 +26,6 @@ import type {
   KindId,
   Locale,
   LocalePack,
-  MatchCtx,
   RateLookup,
   ResultCandidate,
   Span,
@@ -148,8 +144,11 @@ export function createEngine(opts: EngineOptions): Engine {
   const now = opts.now ?? (() => Date.now());
   const hostZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
   const timeZone = opts.timeZone ?? hostZone;
-  // One instance, frozen, reused across every call: it holds only options.
+  // One instance each, frozen, reused across every call: they hold only
+  // options, and the Tokenizer's `now` is still called once per `run()`
+  // inside it, not once here at construction.
   const normalizer = new Normalizer();
+  const tokenizer = new Tokenizer({ locale: locale as Locale, registry, now, timeZone });
 
   const layersFor = (call?: Weights) => [locale.weights, opts.weights, call];
 
@@ -162,34 +161,22 @@ export function createEngine(opts: EngineOptions): Engine {
       packs,
       layers: layersFor(call?.weights),
     });
-    const lexed = lex(normalized.text, locale as Locale);
-    const matchCtx: MatchCtx = {
-      locale: (locale as Locale).id,
-      now: now(),
-      timeZone: call?.timeZone ?? timeZone,
-      isUnitAlias: (text) =>
-        registry.aliasIndex.has(text.toLocaleLowerCase((locale as Locale).id)),
-    };
-    const tokens = foldWordOps(
-      foldNumerals(
-        foldLiterals(lexed, normalized.text, registry, matchCtx),
-        locale as Locale,
-      ),
+    const stream = tokenizer.run(
+      normalized,
+      call?.timeZone === undefined ? undefined : { timeZone: call.timeZone },
     );
-    const node = parse(tokens, resolver, input);
-    const program = buildProgram(node, normalized);
+    const program = new Parser({ resolver }).run(stream);
     const assignments = solve(program, registry, {
       maxCandidates,
       input,
       ...(call?.kinds ? { kinds: call.kinds } : {}),
     });
-    return { normalized, resolver, tokens, program, node, assignments };
+    return { normalized, resolver, tokens: [...stream.tokens], program, assignments };
   }
 
   function toResult(
     normalized: NormalizedInput,
-    node: ReturnType<typeof pipeline>["node"],
-    program: ReturnType<typeof pipeline>["program"],
+    program: Program,
     resolution: Resolution,
     input: string,
   ): Result {
@@ -214,7 +201,7 @@ export function createEngine(opts: EngineOptions): Engine {
       // Spans are produced against the normalized text; the caller reads them
       // against the string they passed in. Without this they disagree whenever
       // normalization changed a length.
-      spans: [normalized.mapSpan(node.span)],
+      spans: [normalized.mapSpan(program.root.span)],
       meta: {
         assumptions,
         ...(rates ? { ratesAsOf: rates.asOf } : {}),
@@ -224,7 +211,7 @@ export function createEngine(opts: EngineOptions): Engine {
 
   return {
     evaluate(input, call) {
-      const { normalized, node, program, assignments } = pipeline(input, call);
+      const { normalized, program, assignments } = pipeline(input, call);
       const [best, second] = assignments;
       if (best === undefined) throw new SmartputError("No interpretation", input);
 
@@ -238,16 +225,16 @@ export function createEngine(opts: EngineOptions): Engine {
           unit: Object.values(a.choices)[0]?.unit ?? "",
           confidence: a.confidence,
         }));
-        throw new AmbiguityError(input, listed, [normalized.mapSpan(node.span)]);
+        throw new AmbiguityError(input, listed, [normalized.mapSpan(program.root.span)]);
       }
 
-      return toResult(normalized, node, program, best, input);
+      return toResult(normalized, program, best, input);
     },
 
     suggest(input, call) {
       try {
-        const { normalized, node, program, assignments } = pipeline(input, call);
-        return assignments.map((a) => toResult(normalized, node, program, a, input));
+        const { normalized, program, assignments } = pipeline(input, call);
+        return assignments.map((a) => toResult(normalized, program, a, input));
       } catch (e) {
         // Only the library's own errors mean "this input has no interpretation",
         // and not even all of those — see NEVER_SWALLOWED. A TypeError from a

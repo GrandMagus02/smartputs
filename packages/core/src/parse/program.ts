@@ -1,7 +1,10 @@
 import { deepFreeze } from "../freeze";
 import type { Node, NodeId } from "./ast";
 import { walk } from "./ast";
+import type { Resolver } from "./candidates";
 import type { NormalizedInput } from "./normalize";
+import { parse } from "./pratt";
+import type { TokenStream } from "./tokenizer";
 
 /**
  * A parsed expression, plus the input it came from. This is the "list of
@@ -58,3 +61,37 @@ export function buildProgram(root: Node, input: NormalizedInput): Program {
 }
 
 export type { NodeId };
+
+export interface ParserOptions {
+  resolver: Resolver;
+}
+
+/**
+ * Pratt parsing over a `Resolver`, plus `buildProgram`, holding the resolver so
+ * a caller reusing one `Parser` across a thousand keystrokes does not have to
+ * restate it. `TokenStream` carries its own `NormalizedInput`, which is what
+ * lets `parse` map a `NoCandidateError`'s span back to the caller's string
+ * instead of leaving it normalized-relative — see `pratt.ts`.
+ */
+export class Parser {
+  private readonly resolver: Resolver;
+
+  constructor(cfg: ParserOptions) {
+    this.resolver = cfg.resolver;
+    Object.freeze(this);
+  }
+
+  run(stream: TokenStream): Program {
+    const node = parse(
+      // `parse` takes a mutable Token[]; a TokenStream's is frozen, so this is
+      // a shallow copy, not a cast past the readonly modifier.
+      [...stream.tokens],
+      this.resolver,
+      stream.input.source,
+      // Not `stream.input.mapSpan` bare: that detaches the method from its
+      // receiver, and `mapSpan` reads `this.offsets` and `this.nfkcShifted`.
+      (span) => stream.input.mapSpan(span),
+    );
+    return buildProgram(node, stream.input);
+  }
+}

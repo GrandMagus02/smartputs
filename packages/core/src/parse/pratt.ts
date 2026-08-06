@@ -47,7 +47,22 @@ const BINDING: Record<Exclude<OpSymbol, "in">, number> = {
 };
 const CONVERT_BINDING = 5;
 
-export function parse(tokens: Token[], resolver: Resolver, input: string): Node {
+export function parse(
+  tokens: Token[],
+  resolver: Resolver,
+  input: string,
+  /**
+   * Maps a normalized-relative span to one indexing `input`. Defaults to the
+   * identity: every direct caller of `parse` today (this file's own tests,
+   * `program.test.ts`) hands it an already-raw string with no normalization
+   * step of its own, so nothing to map. `Parser.run` is the one caller that
+   * has a real `NormalizedInput` and threads its `mapSpan` through — see
+   * `program.ts` — which is what keeps a `NoCandidateError` thrown from the
+   * engine's pipeline pointing at the caller's string rather than the
+   * normalized one.
+   */
+  mapSpan: (span: Span) => Span = (span) => span,
+): Node {
   let pos = 0;
 
   // Depth-first, matching `walk`'s order, so a reader can predict an id from
@@ -205,7 +220,7 @@ export function parse(tokens: Token[], resolver: Resolver, input: string): Node 
         // city, not a number beside a bad unit.
         if (candidates.length === 0 && next.type === "word") {
           throw new NoCandidateError(input, word.text, resolver.nearest(word.text), [
-            next,
+            mapSpan({ start: next.start, end: next.end }),
           ]);
         }
         if (candidates.length > 0) {
@@ -338,7 +353,7 @@ export function parse(tokens: Token[], resolver: Resolver, input: string): Node 
         const target = resolver.resolve(unit.text);
         if (target.length === 0) {
           throw new NoCandidateError(input, unit.text, resolver.nearest(unit.text), [
-            unit,
+            mapSpan({ start: unit.start, end: unit.end }),
           ]);
         }
         pos += 1;

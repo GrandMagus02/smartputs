@@ -68,8 +68,10 @@ export { Normalizer, normalize } from "./parse/normalize";
 // constants above are — a plugin cannot pick a weight against a number it
 // cannot name, and this file is the only path out of the package.
 export { NUMBER_FALLBACK_WEIGHT } from "./parse/pratt";
-export type { Program } from "./parse/program";
-export { buildProgram } from "./parse/program";
+export type { ParserOptions, Program } from "./parse/program";
+export { buildProgram, Parser } from "./parse/program";
+export type { TokenizerOptions, TokenStream } from "./parse/tokenizer";
+export { Tokenizer } from "./parse/tokenizer";
 export type { Resolution } from "./solve/solver";
 export { solve } from "./solve/solver";
 export type { SolverOptions } from "./solve/solver-class";

@@ -9,7 +9,8 @@ import { createResolver } from "./candidates";
 import { lex } from "./lex";
 import { normalize } from "./normalize";
 import { parse } from "./pratt";
-import { buildProgram } from "./program";
+import { buildProgram, Parser } from "./program";
+import { Tokenizer } from "./tokenizer";
 
 const registry = buildRegistry(BUILTIN_KINDS, [], "en");
 const resolver = createResolver({
@@ -124,4 +125,37 @@ test("a convert node's operand and its target both get ids", () => {
   const types = program.nodes.map((n) => n.type);
   expect(types).toContain("convert");
   expect(types).toContain("quantity");
+});
+
+// ---------------------------------------------------------------------------
+// Parser — parse + buildProgram, held on a class over a TokenStream. No
+// solver import: these tests build a Program and stop there.
+// ---------------------------------------------------------------------------
+
+const tokenizer = new Tokenizer({ locale: en, registry });
+const shape = (nodes: readonly { id: number; type: string }[]) =>
+  nodes.map((n) => [n.id, n.type]);
+
+test("Parser.run agrees with parse + buildProgram over the same tokens", () => {
+  const source = "2 * (3 kg + 4 kg)";
+  const viaClass = new Parser({ resolver }).run(tokenizer.run(source));
+  const viaFunctions = programFor(source);
+  expect(shape(viaClass.nodes)).toEqual(shape(viaFunctions.nodes));
+  expect(viaClass.input.text).toBe(viaFunctions.input.text);
+});
+
+test("the Parser instance and every Program it produces are frozen", () => {
+  const parser = new Parser({ resolver });
+  expect(Object.isFrozen(parser)).toBe(true);
+  const program = parser.run(tokenizer.run("1 kg"));
+  expect(Object.isFrozen(program)).toBe(true);
+  walk(program.root, (n) => expect(Object.isFrozen(n)).toBe(true));
+});
+
+test("two Parser.run calls on the same TokenStream return equal output", () => {
+  const parser = new Parser({ resolver });
+  const stream = tokenizer.run("1 kg + 2 kg");
+  const a = parser.run(stream);
+  const b = parser.run(stream);
+  expect(shape(a.nodes)).toEqual(shape(b.nodes));
 });
