@@ -116,3 +116,20 @@ test("the constructor destructures cfg rather than retaining it", () => {
   const after = completer.run("30 ho");
   expect(after).toEqual(before);
 });
+
+test("the constructor copies the layers array rather than aliasing it", () => {
+  const layers: (Weights | undefined)[] = [en.weights];
+  const completer = new Completer({ registry, locale: en, layers });
+  const before = completer.run("1 mi");
+  // Pushed in place *after* construction: a `Completer` that stored `layers`
+  // by reference (`this.layers = cfg.layers`) would pick this up on the next
+  // `run()` and flip the top result to `duration` — the "layers in the
+  // constructor reach complete()" test above shows this exact boost does
+  // that. The `[...cfg.layers]` copy in the constructor is what keeps a
+  // later push on the caller's own array from mattering, the same class of
+  // aliasing bug a Task 2 review caught in `Normalizer`.
+  layers.push({ duration: 20 });
+  const after = completer.run("1 mi");
+  expect(after[0]?.kind).toBe(before[0]?.kind);
+  expect(JSON.stringify(after)).toBe(JSON.stringify(before));
+});

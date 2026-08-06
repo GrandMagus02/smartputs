@@ -245,3 +245,18 @@ test("the constructor destructures cfg rather than retaining it", () => {
   const out = evaluator.run(program, resolution);
   expect(out.value.canonical.toString()).toBe("2");
 });
+
+test("the constructor copies kindMeta rather than aliasing the caller's map", () => {
+  const { registry, program, resolution } = resolve("10 px");
+  const kindMeta: Record<string, Record<string, unknown>> = { pixel: { dpi: 2 } };
+  const evaluator = new Evaluator({ registry, locale: "en", kindMeta });
+  const before = evaluator.run(program, resolution);
+  // Reassigns the whole `pixel` entry after construction, rather than
+  // mutating the nested `{ dpi: 2 }` record in place — a shallow copy of the
+  // outer `kindMeta` map defends against exactly this class of aliasing (the
+  // one Task 2's `Normalizer` review caught), the same way `Completer`'s
+  // `layers` copy defends against an in-place array push.
+  kindMeta.pixel = { dpi: 100 };
+  const after = evaluator.run(program, resolution);
+  expect(after.value.canonical.toString()).toBe(before.value.canonical.toString());
+});

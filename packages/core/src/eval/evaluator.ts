@@ -38,7 +38,13 @@ export class Evaluator {
   constructor(cfg: EvaluatorOptions) {
     this.registry = cfg.registry;
     this.locale = cfg.locale;
-    if (cfg.kindMeta !== undefined) this.kindMeta = cfg.kindMeta;
+    // Copied, not aliased: `kindMeta` is a plain map a caller assembles and
+    // could keep adding to or reassigning entries on after construction — the
+    // same class of bug `Completer`'s `layers` copy defends against. `rates`
+    // and `registry` are already-built service objects nobody incrementally
+    // mutates the way a weights or kindMeta bag gets built up, so they are
+    // held by reference, same as `Tokenizer`/`Parser` hold theirs.
+    if (cfg.kindMeta !== undefined) this.kindMeta = Object.freeze({ ...cfg.kindMeta });
     if (cfg.rates !== undefined) this.rates = cfg.rates;
     Object.freeze(this);
   }
