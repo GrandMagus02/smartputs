@@ -1,5 +1,10 @@
 import { expect, test } from "bun:test";
+import { BUILTIN_KINDS } from "@smartput/kinds";
+import { createEngine } from "./engine";
+import en from "./locale/en";
 import { INPUTS, snapshot } from "./parity";
+
+const engine = createEngine({ locales: [en], kinds: BUILTIN_KINDS });
 
 const expected = (
   (await Bun.file(new URL("../parity/en.json", import.meta.url)).exists())
@@ -13,6 +18,6 @@ test("the parity fixture covers every corpus input", () => {
 
 for (const input of INPUTS) {
   test(`parity: ${input}`, () => {
-    expect(snapshot(input)).toEqual(expected[input]);
+    expect(snapshot(engine, input)).toEqual(expected[input]);
   });
 }

@@ -1,17 +1,28 @@
-import { BUILTIN_KINDS } from "@smartput/kinds";
-import { createEngine } from "./engine";
-import en from "./locale/en";
+import type { Engine } from "./engine";
 
 /**
  * The acceptance criterion for the whole stage restructuring: every public
- * result, over the whole corpus, byte for byte.
+ * result, over the whole corpus, byte for byte — for the one engine every
+ * caller builds it with (`BUILTIN_KINDS`, locale `en`; see the callers of
+ * `snapshot`/`record` for the exact construction). Callers build that engine
+ * themselves and pass it in, so this module names no `@smartput/kinds`
+ * dependency of its own: importing that package at module scope from
+ * shipping (non-test) source is exactly what `check-deps` forbids for a
+ * package that only devDependencies it.
  *
  * Recorded with `bun run parity:record` and committed. A later task that
  * changes an output has to change this file too, in a diff a reviewer reads —
  * which is the point. The one expected diff is the span fix in Task 3, and it
  * gets its own explicit expectations rather than a blanket re-record.
+ *
+ * Two known blind spots, not fixed here, just named: (a) no corpus input
+ * exercises a length-changing normalization, so a length-changing `mapSpan`
+ * regression is invisible to this net — `span.test.ts`'s padded-corpus loop
+ * covers that instead; (b) `BUILTIN_KINDS` registers no literal matchers, so
+ * the fixture contains no `literal` token, no `LiteralNode`, and no claimed
+ * convert target — the paths where node-object identity mattered before the
+ * re-key are untouched by this net.
  */
-const engine = createEngine({ locales: [en], kinds: BUILTIN_KINDS });
 
 const corpus = await Bun.file(new URL("../corpus/en.tsv", import.meta.url)).text();
 const completeCorpus = await Bun.file(
@@ -32,7 +43,7 @@ export const INPUTS: string[] = [
 ].filter((v, i, a) => a.indexOf(v) === i);
 
 /** JSON-safe, and deliberately lossy in no place a later task could hide in. */
-export function snapshot(input: string): unknown {
+export function snapshot(engine: Engine, input: string): unknown {
   const capture = <T>(f: () => T): unknown => {
     try {
       return { ok: f() };
@@ -90,8 +101,8 @@ export function snapshot(input: string): unknown {
   };
 }
 
-export function record(): Record<string, unknown> {
+export function record(engine: Engine): Record<string, unknown> {
   const out: Record<string, unknown> = {};
-  for (const input of INPUTS) out[input] = snapshot(input);
+  for (const input of INPUTS) out[input] = snapshot(engine, input);
   return out;
 }

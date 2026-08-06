@@ -108,8 +108,10 @@ export interface Explanation {
   input: string;
   // Token.start/end index the normalized text, not `input`. Unlike
   // Result.spans, these are not mapped back: Explanation's shape is frozen
-  // for this restructuring, and the parity fixture records these offsets, so
-  // mapping them is deferred rather than done here.
+  // for this restructuring, and mapping them belongs with the Task 6
+  // tokenizer work. (Not a parity constraint — no corpus input triggers a
+  // length-changing normalization, so mapping these offsets would re-record
+  // byte-identical; the fixture would not notice either way.)
   tokens: Token[];
   candidates: Candidate[];
   assignments: Array<{

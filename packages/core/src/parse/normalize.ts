@@ -31,10 +31,21 @@ export interface NormalizedInput {
 }
 
 export interface NormalizerOptions {
+  /**
+   * Also gates zero-width stripping: there is no separate flag for it even
+   * though `EditReason` has a dedicated `"zero-width"` value. `normalize("30​deg",
+   * { nfkc: false }).text` keeps the ZWSP.
+   */
   nfkc?: boolean;
   dashes?: boolean;
   degree?: boolean;
   whitespace?: boolean;
+  /**
+   * Silently depends on `whitespace`: the trim branches live inside the
+   * pending-whitespace flush, so with `whitespace: false` nothing is ever
+   * pending and `trim` has no effect —
+   * `normalize("  30deg  ", { whitespace: false }).text` is `"  30deg  "`.
+   */
   trim?: boolean;
   /**
    * Ran after the built-in passes, on the already-normalized text. The seam
@@ -42,6 +53,11 @@ export interface NormalizerOptions {
    * path's `resolve`. Its edits are appended to `edits`, and it must not change
    * `text` — a repair that rewrites the string is a second normalizer, not a
    * hook.
+   *
+   * `Edit.at` is documented as indexing the source, but this hook receives
+   * `text` (the already-normalized string) and naturally produces
+   * `text`-relative spans — which is what the built-in test for this hook
+   * does. Unsettled for now; to be resolved when the fuzzy-repair seam lands.
    */
   repair?: (text: string, ctx: { source: string }) => readonly Edit[];
 }
@@ -168,8 +184,11 @@ export function normalize(input: string, opts: NormalizerOptions = {}): Normaliz
     if (pendingWhitespace) {
       pendingWhitespace = false;
       if (text.length === 0 && doTrim) {
-        // Leading run: dropped entirely.
-        edits.push({ at: { start: 0, end: i }, length: 0, reason: "trim" });
+        // Leading run: dropped entirely. `wsStart`, not 0 — a zero-width or
+        // degree character before the run already reported its own position
+        // under its own reason, and re-covering it here would report the
+        // same source position twice under two reasons.
+        edits.push({ at: { start: wsStart, end: i }, length: 0, reason: "trim" });
       } else {
         offsets.push(i - 1);
         text += " ";

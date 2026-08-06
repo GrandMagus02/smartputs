@@ -71,6 +71,7 @@ export { NUMBER_FALLBACK_WEIGHT } from "./parse/pratt";
 export type { Program } from "./parse/program";
 export { buildProgram } from "./parse/program";
 export type { Resolution } from "./solve/solver";
+export { solve } from "./solve/solver";
 export type { SolverOptions } from "./solve/solver-class";
 export { Solver } from "./solve/solver-class";
 export type * from "./types";

@@ -67,6 +67,19 @@ test("edits record what changed and why", () => {
   }
 });
 
+test("a leading trim edit does not re-cover a degree/zero-width position under a second reason", () => {
+  // Regression: the leading-trim edit used to be recorded as
+  // { start: 0, end: i }, which re-reported the degree sign's own position
+  // (already covered by its own "degree" edit) under "trim" too.
+  const n = normalize("°  30");
+  expect(n.text).toBe("30");
+  expect(n.edits).toEqual([
+    { at: { start: 0, end: 1 }, length: 0, reason: "degree" },
+    { at: { start: 2, end: 3 }, length: 0, reason: "whitespace" },
+    { at: { start: 1, end: 3 }, length: 0, reason: "trim" },
+  ]);
+});
+
 test("the repair hook runs after the built-in passes and its edits are recorded", () => {
   const seen: string[] = [];
   const n = normalize("30 d", {
