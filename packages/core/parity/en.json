@@ -1,0 +1,7719 @@
+{
+  "10 km": {
+    "evaluate": {
+      "ok": {
+        "kind": "length",
+        "canonical": "10000",
+        "unit": "km",
+        "formatted": "10 kilometres",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 5
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "length",
+          "canonical": "10000",
+          "formatted": "10 kilometres",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "10",
+            "start": 0,
+            "end": 2
+          },
+          {
+            "type": "word",
+            "text": "km",
+            "start": 3,
+            "end": 5
+          }
+        ],
+        "candidates": [
+          {
+            "kind": "length",
+            "unit": "km",
+            "weight": 0,
+            "form": "km"
+          }
+        ],
+        "assignments": [
+          {
+            "kind": "length",
+            "score": 0,
+            "confidence": 1,
+            "units": ["km"],
+            "contributions": [
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "contextBonus",
+                "value": 0,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "km",
+          "span": {
+            "start": 3,
+            "end": 5
+          },
+          "text": "10 kilometres",
+          "kind": "length",
+          "unit": "km",
+          "score": 13
+        },
+        {
+          "alias": "km2",
+          "span": {
+            "start": 3,
+            "end": 5
+          },
+          "text": "10 km2",
+          "kind": "area",
+          "unit": "km2",
+          "score": 2
+        },
+        {
+          "alias": "kmh",
+          "span": {
+            "start": 3,
+            "end": 5
+          },
+          "text": "10 kmh",
+          "kind": "speed",
+          "unit": "kph",
+          "score": 2
+        }
+      ]
+    },
+    "coerce": {
+      "ok": {
+        "kind": "length",
+        "canonical": "10000",
+        "unit": "km"
+      }
+    }
+  },
+  "1 kg + 500 g": {
+    "evaluate": {
+      "ok": {
+        "kind": "mass",
+        "canonical": "1500",
+        "unit": "kg",
+        "formatted": "1.5 kilograms",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 12
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "mass",
+          "canonical": "1500",
+          "formatted": "1.5 kilograms",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "1",
+            "start": 0,
+            "end": 1
+          },
+          {
+            "type": "word",
+            "text": "kg",
+            "start": 2,
+            "end": 4
+          },
+          {
+            "type": "op",
+            "op": "+",
+            "start": 5,
+            "end": 6
+          },
+          {
+            "type": "number",
+            "text": "500",
+            "start": 7,
+            "end": 10
+          },
+          {
+            "type": "word",
+            "text": "g",
+            "start": 11,
+            "end": 12
+          }
+        ],
+        "candidates": [
+          {
+            "kind": "mass",
+            "unit": "kg",
+            "weight": 0,
+            "form": "kg"
+          },
+          {
+            "kind": "mass",
+            "unit": "g",
+            "weight": 0,
+            "form": "g"
+          }
+        ],
+        "assignments": [
+          {
+            "kind": "mass",
+            "score": 30,
+            "confidence": 1,
+            "units": ["kg", "g"],
+            "contributions": [
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "contextBonus",
+                "value": 30,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "g",
+          "span": {
+            "start": 11,
+            "end": 12
+          },
+          "text": "1 kg + 500 grams",
+          "kind": "mass",
+          "unit": "g",
+          "score": 13
+        },
+        {
+          "alias": "gb",
+          "span": {
+            "start": 11,
+            "end": 12
+          },
+          "text": "1 kg + 500 gigabytes",
+          "kind": "datasize",
+          "unit": "gb",
+          "score": 2
+        },
+        {
+          "alias": "gib",
+          "span": {
+            "start": 11,
+            "end": 12
+          },
+          "text": "1 kg + 500 gibibytes",
+          "kind": "datasize",
+          "unit": "gib",
+          "score": 1
+        },
+        {
+          "alias": "gw",
+          "span": {
+            "start": 11,
+            "end": 12
+          },
+          "text": "1 kg + 500 gigawatts",
+          "kind": "power",
+          "unit": "gw",
+          "score": -1
+        },
+        {
+          "alias": "gon",
+          "span": {
+            "start": 11,
+            "end": 12
+          },
+          "text": "1 kg + 500 gradians",
+          "kind": "angle",
+          "unit": "grad",
+          "score": -2
+        },
+        {
+          "alias": "gal",
+          "span": {
+            "start": 11,
+            "end": 12
+          },
+          "text": "1 kg + 500 gallons",
+          "kind": "volume",
+          "unit": "gal",
+          "score": -2
+        },
+        {
+          "alias": "gbps",
+          "span": {
+            "start": 11,
+            "end": 12
+          },
+          "text": "1 kg + 500 gbps",
+          "kind": "datarate",
+          "unit": "gbps",
+          "score": -3
+        }
+      ]
+    },
+    "coerce": {
+      "ok": {
+        "kind": "mass",
+        "canonical": "1500",
+        "unit": "kg"
+      }
+    }
+  },
+  "30 h - 30 min": {
+    "evaluate": {
+      "ok": {
+        "kind": "duration",
+        "canonical": "106200",
+        "unit": "h",
+        "formatted": "29.5 hours",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 13
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "duration",
+          "canonical": "106200",
+          "formatted": "29.5 hours",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "30",
+            "start": 0,
+            "end": 2
+          },
+          {
+            "type": "word",
+            "text": "h",
+            "start": 3,
+            "end": 4
+          },
+          {
+            "type": "op",
+            "op": "-",
+            "start": 5,
+            "end": 6
+          },
+          {
+            "type": "number",
+            "text": "30",
+            "start": 7,
+            "end": 9
+          },
+          {
+            "type": "word",
+            "text": "min",
+            "start": 10,
+            "end": 13
+          }
+        ],
+        "candidates": [
+          {
+            "kind": "duration",
+            "unit": "h",
+            "weight": 0,
+            "form": "h"
+          },
+          {
+            "kind": "duration",
+            "unit": "min",
+            "weight": 0,
+            "form": "min"
+          }
+        ],
+        "assignments": [
+          {
+            "kind": "duration",
+            "score": 30,
+            "confidence": 1,
+            "units": ["h", "min"],
+            "contributions": [
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "contextBonus",
+                "value": 30,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "min",
+          "span": {
+            "start": 10,
+            "end": 13
+          },
+          "text": "30 h - 30 minutes",
+          "kind": "duration",
+          "unit": "min",
+          "score": 13
+        }
+      ]
+    },
+    "coerce": {
+      "ok": {
+        "kind": "duration",
+        "canonical": "106200",
+        "unit": "h"
+      }
+    }
+  },
+  "10 m + 5 h": {
+    "evaluate": {
+      "ok": {
+        "kind": "duration",
+        "canonical": "18600",
+        "unit": "min",
+        "formatted": "310 minutes",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 10
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "duration",
+          "canonical": "18600",
+          "formatted": "310 minutes",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "10",
+            "start": 0,
+            "end": 2
+          },
+          {
+            "type": "word",
+            "text": "m",
+            "start": 3,
+            "end": 4
+          },
+          {
+            "type": "op",
+            "op": "+",
+            "start": 5,
+            "end": 6
+          },
+          {
+            "type": "number",
+            "text": "5",
+            "start": 7,
+            "end": 8
+          },
+          {
+            "type": "word",
+            "text": "h",
+            "start": 9,
+            "end": 10
+          }
+        ],
+        "candidates": [
+          {
+            "kind": "duration",
+            "unit": "min",
+            "weight": 0,
+            "form": "m"
+          },
+          {
+            "kind": "duration",
+            "unit": "h",
+            "weight": 0,
+            "form": "h"
+          }
+        ],
+        "assignments": [
+          {
+            "kind": "duration",
+            "score": 30,
+            "confidence": 1,
+            "units": ["min", "h"],
+            "contributions": [
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "contextBonus",
+                "value": 30,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "h",
+          "span": {
+            "start": 9,
+            "end": 10
+          },
+          "text": "10 m + 5 hours",
+          "kind": "duration",
+          "unit": "h",
+          "score": 13
+        },
+        {
+          "alias": "ha",
+          "span": {
+            "start": 9,
+            "end": 10
+          },
+          "text": "10 m + 5 hectares",
+          "kind": "area",
+          "unit": "hectare",
+          "score": 2
+        },
+        {
+          "alias": "hp",
+          "span": {
+            "start": 9,
+            "end": 10
+          },
+          "text": "10 m + 5 horsepower",
+          "kind": "power",
+          "unit": "hp",
+          "score": 2
+        },
+        {
+          "alias": "hz",
+          "span": {
+            "start": 9,
+            "end": 10
+          },
+          "text": "10 m + 5 hertz",
+          "kind": "tempo",
+          "unit": "hz",
+          "score": 2
+        }
+      ]
+    },
+    "coerce": {
+      "ok": {
+        "kind": "duration",
+        "canonical": "18600",
+        "unit": "min"
+      }
+    }
+  },
+  "10 m + 5 km": {
+    "evaluate": {
+      "ok": {
+        "kind": "length",
+        "canonical": "5010",
+        "unit": "m",
+        "formatted": "5,010 metres",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 11
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "length",
+          "canonical": "5010",
+          "formatted": "5,010 metres",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "10",
+            "start": 0,
+            "end": 2
+          },
+          {
+            "type": "word",
+            "text": "m",
+            "start": 3,
+            "end": 4
+          },
+          {
+            "type": "op",
+            "op": "+",
+            "start": 5,
+            "end": 6
+          },
+          {
+            "type": "number",
+            "text": "5",
+            "start": 7,
+            "end": 8
+          },
+          {
+            "type": "word",
+            "text": "km",
+            "start": 9,
+            "end": 11
+          }
+        ],
+        "candidates": [
+          {
+            "kind": "length",
+            "unit": "m",
+            "weight": 0,
+            "form": "m"
+          },
+          {
+            "kind": "length",
+            "unit": "km",
+            "weight": 0,
+            "form": "km"
+          }
+        ],
+        "assignments": [
+          {
+            "kind": "length",
+            "score": 30,
+            "confidence": 1,
+            "units": ["m", "km"],
+            "contributions": [
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "contextBonus",
+                "value": 30,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "km",
+          "span": {
+            "start": 9,
+            "end": 11
+          },
+          "text": "10 m + 5 kilometres",
+          "kind": "length",
+          "unit": "km",
+          "score": 13
+        },
+        {
+          "alias": "km2",
+          "span": {
+            "start": 9,
+            "end": 11
+          },
+          "text": "10 m + 5 km2",
+          "kind": "area",
+          "unit": "km2",
+          "score": 2
+        },
+        {
+          "alias": "kmh",
+          "span": {
+            "start": 9,
+            "end": 11
+          },
+          "text": "10 m + 5 kmh",
+          "kind": "speed",
+          "unit": "kph",
+          "score": 2
+        }
+      ]
+    },
+    "coerce": {
+      "ok": {
+        "kind": "length",
+        "canonical": "5010",
+        "unit": "m"
+      }
+    }
+  },
+  "2 km in m": {
+    "evaluate": {
+      "ok": {
+        "kind": "length",
+        "canonical": "2000",
+        "unit": "m",
+        "formatted": "2,000 metres",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 9
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "length",
+          "canonical": "2000",
+          "formatted": "2,000 metres",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "2",
+            "start": 0,
+            "end": 1
+          },
+          {
+            "type": "word",
+            "text": "km",
+            "start": 2,
+            "end": 4
+          },
+          {
+            "type": "keyword",
+            "keyword": "in",
+            "start": 5,
+            "end": 7
+          },
+          {
+            "type": "word",
+            "text": "m",
+            "start": 8,
+            "end": 9
+          }
+        ],
+        "candidates": [
+          {
+            "kind": "length",
+            "unit": "m",
+            "weight": 0,
+            "form": "m"
+          },
+          {
+            "kind": "length",
+            "unit": "km",
+            "weight": 0,
+            "form": "km"
+          }
+        ],
+        "assignments": [
+          {
+            "kind": "length",
+            "score": 0,
+            "confidence": 1,
+            "units": ["m", "km"],
+            "contributions": [
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "contextBonus",
+                "value": 0,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "m",
+          "span": {
+            "start": 8,
+            "end": 9
+          },
+          "text": "2 km in minute",
+          "kind": "duration",
+          "unit": "min",
+          "score": 10
+        },
+        {
+          "alias": "m",
+          "span": {
+            "start": 8,
+            "end": 9
+          },
+          "text": "2 km in metre",
+          "kind": "length",
+          "unit": "m",
+          "score": 10
+        },
+        {
+          "alias": "m2",
+          "span": {
+            "start": 8,
+            "end": 9
+          },
+          "text": "2 km in m2",
+          "kind": "area",
+          "unit": "m2",
+          "score": -1
+        },
+        {
+          "alias": "mb",
+          "span": {
+            "start": 8,
+            "end": 9
+          },
+          "text": "2 km in megabyte",
+          "kind": "datasize",
+          "unit": "mb",
+          "score": -1
+        },
+        {
+          "alias": "ms",
+          "span": {
+            "start": 8,
+            "end": 9
+          },
+          "text": "2 km in millisecond",
+          "kind": "duration",
+          "unit": "ms",
+          "score": -1
+        },
+        {
+          "alias": "mj",
+          "span": {
+            "start": 8,
+            "end": 9
+          },
+          "text": "2 km in megajoule",
+          "kind": "energy",
+          "unit": "mj",
+          "score": -1
+        },
+        {
+          "alias": "mi",
+          "span": {
+            "start": 8,
+            "end": 9
+          },
+          "text": "2 km in mile",
+          "kind": "length",
+          "unit": "mi",
+          "score": -1
+        },
+        {
+          "alias": "mm",
+          "span": {
+            "start": 8,
+            "end": 9
+          },
+          "text": "2 km in millimetre",
+          "kind": "length",
+          "unit": "mm",
+          "score": -1
+        },
+        {
+          "alias": "mg",
+          "span": {
+            "start": 8,
+            "end": 9
+          },
+          "text": "2 km in milligram",
+          "kind": "mass",
+          "unit": "mg",
+          "score": -1
+        },
+        {
+          "alias": "mw",
+          "span": {
+            "start": 8,
+            "end": 9
+          },
+          "text": "2 km in megawatt",
+          "kind": "power",
+          "unit": "mw",
+          "score": -1
+        }
+      ]
+    },
+    "coerce": {
+      "ok": {
+        "kind": "length",
+        "canonical": "2000",
+        "unit": "m"
+      }
+    }
+  },
+  "10 km * 3": {
+    "evaluate": {
+      "ok": {
+        "kind": "length",
+        "canonical": "30000",
+        "unit": "km",
+        "formatted": "30 kilometres",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 9
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "length",
+          "canonical": "30000",
+          "formatted": "30 kilometres",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "10",
+            "start": 0,
+            "end": 2
+          },
+          {
+            "type": "word",
+            "text": "km",
+            "start": 3,
+            "end": 5
+          },
+          {
+            "type": "op",
+            "op": "*",
+            "start": 6,
+            "end": 7
+          },
+          {
+            "type": "number",
+            "text": "3",
+            "start": 8,
+            "end": 9
+          }
+        ],
+        "candidates": [
+          {
+            "kind": "length",
+            "unit": "km",
+            "weight": 0,
+            "form": "km"
+          }
+        ],
+        "assignments": [
+          {
+            "kind": "length",
+            "score": 0,
+            "confidence": 1,
+            "units": ["km"],
+            "contributions": [
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "contextBonus",
+                "value": 0,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": []
+    },
+    "coerce": {
+      "ok": {
+        "kind": "length",
+        "canonical": "30000",
+        "unit": "km"
+      }
+    }
+  },
+  "(1 + 2) * 3": {
+    "evaluate": {
+      "ok": {
+        "kind": "number",
+        "canonical": "9",
+        "unit": "one",
+        "formatted": "9",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 1,
+            "end": 11
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "number",
+          "canonical": "9",
+          "formatted": "9",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "lparen",
+            "start": 0,
+            "end": 1
+          },
+          {
+            "type": "number",
+            "text": "1",
+            "start": 1,
+            "end": 2
+          },
+          {
+            "type": "op",
+            "op": "+",
+            "start": 3,
+            "end": 4
+          },
+          {
+            "type": "number",
+            "text": "2",
+            "start": 5,
+            "end": 6
+          },
+          {
+            "type": "rparen",
+            "start": 6,
+            "end": 7
+          },
+          {
+            "type": "op",
+            "op": "*",
+            "start": 8,
+            "end": 9
+          },
+          {
+            "type": "number",
+            "text": "3",
+            "start": 10,
+            "end": 11
+          }
+        ],
+        "candidates": [],
+        "assignments": [
+          {
+            "kind": "number",
+            "score": 0,
+            "confidence": 1,
+            "units": [],
+            "contributions": [
+              {
+                "selector": "contextBonus",
+                "value": 0,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": []
+    },
+    "coerce": {
+      "ok": {
+        "kind": "number",
+        "canonical": "9",
+        "unit": "one"
+      }
+    }
+  },
+  "-5 km": {
+    "evaluate": {
+      "ok": {
+        "kind": "length",
+        "canonical": "-5000",
+        "unit": "km",
+        "formatted": "-5 kilometres",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 5
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "length",
+          "canonical": "-5000",
+          "formatted": "-5 kilometres",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "op",
+            "op": "-",
+            "start": 0,
+            "end": 1
+          },
+          {
+            "type": "number",
+            "text": "5",
+            "start": 1,
+            "end": 2
+          },
+          {
+            "type": "word",
+            "text": "km",
+            "start": 3,
+            "end": 5
+          }
+        ],
+        "candidates": [
+          {
+            "kind": "length",
+            "unit": "km",
+            "weight": 0,
+            "form": "km"
+          }
+        ],
+        "assignments": [
+          {
+            "kind": "length",
+            "score": 0,
+            "confidence": 1,
+            "units": ["km"],
+            "contributions": [
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "contextBonus",
+                "value": 0,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "km",
+          "span": {
+            "start": 3,
+            "end": 5
+          },
+          "text": "-5 kilometres",
+          "kind": "length",
+          "unit": "km",
+          "score": 13
+        },
+        {
+          "alias": "km2",
+          "span": {
+            "start": 3,
+            "end": 5
+          },
+          "text": "-5 km2",
+          "kind": "area",
+          "unit": "km2",
+          "score": 2
+        },
+        {
+          "alias": "kmh",
+          "span": {
+            "start": 3,
+            "end": 5
+          },
+          "text": "-5 kmh",
+          "kind": "speed",
+          "unit": "kph",
+          "score": 2
+        }
+      ]
+    },
+    "coerce": {
+      "ok": {
+        "kind": "length",
+        "canonical": "-5000",
+        "unit": "km"
+      }
+    }
+  },
+  "1,500 g": {
+    "evaluate": {
+      "ok": {
+        "kind": "mass",
+        "canonical": "1500",
+        "unit": "g",
+        "formatted": "1,500 grams",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 7
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "mass",
+          "canonical": "1500",
+          "formatted": "1,500 grams",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "1,500",
+            "start": 0,
+            "end": 5
+          },
+          {
+            "type": "word",
+            "text": "g",
+            "start": 6,
+            "end": 7
+          }
+        ],
+        "candidates": [
+          {
+            "kind": "mass",
+            "unit": "g",
+            "weight": 0,
+            "form": "g"
+          }
+        ],
+        "assignments": [
+          {
+            "kind": "mass",
+            "score": 0,
+            "confidence": 1,
+            "units": ["g"],
+            "contributions": [
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "contextBonus",
+                "value": 0,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "g",
+          "span": {
+            "start": 6,
+            "end": 7
+          },
+          "text": "1,500 grams",
+          "kind": "mass",
+          "unit": "g",
+          "score": 10
+        },
+        {
+          "alias": "gb",
+          "span": {
+            "start": 6,
+            "end": 7
+          },
+          "text": "1,500 gigabytes",
+          "kind": "datasize",
+          "unit": "gb",
+          "score": -1
+        },
+        {
+          "alias": "gw",
+          "span": {
+            "start": 6,
+            "end": 7
+          },
+          "text": "1,500 gigawatts",
+          "kind": "power",
+          "unit": "gw",
+          "score": -1
+        },
+        {
+          "alias": "gon",
+          "span": {
+            "start": 6,
+            "end": 7
+          },
+          "text": "1,500 gradians",
+          "kind": "angle",
+          "unit": "grad",
+          "score": -2
+        },
+        {
+          "alias": "gib",
+          "span": {
+            "start": 6,
+            "end": 7
+          },
+          "text": "1,500 gibibytes",
+          "kind": "datasize",
+          "unit": "gib",
+          "score": -2
+        },
+        {
+          "alias": "gal",
+          "span": {
+            "start": 6,
+            "end": 7
+          },
+          "text": "1,500 gallons",
+          "kind": "volume",
+          "unit": "gal",
+          "score": -2
+        },
+        {
+          "alias": "gbps",
+          "span": {
+            "start": 6,
+            "end": 7
+          },
+          "text": "1,500 gbps",
+          "kind": "datarate",
+          "unit": "gbps",
+          "score": -3
+        }
+      ]
+    },
+    "coerce": {
+      "ok": {
+        "kind": "mass",
+        "canonical": "1500",
+        "unit": "g"
+      }
+    }
+  },
+  "12 inch": {
+    "evaluate": {
+      "ok": {
+        "kind": "length",
+        "canonical": "0.3048",
+        "unit": "in",
+        "formatted": "12 inches",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 7
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "length",
+          "canonical": "0.3048",
+          "formatted": "12 inches",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "12",
+            "start": 0,
+            "end": 2
+          },
+          {
+            "type": "word",
+            "text": "inch",
+            "start": 3,
+            "end": 7
+          }
+        ],
+        "candidates": [
+          {
+            "kind": "length",
+            "unit": "in",
+            "weight": 0,
+            "form": "inch"
+          }
+        ],
+        "assignments": [
+          {
+            "kind": "length",
+            "score": 0,
+            "confidence": 1,
+            "units": ["in"],
+            "contributions": [
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "contextBonus",
+                "value": 0,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "inch",
+          "span": {
+            "start": 3,
+            "end": 7
+          },
+          "text": "12 inches",
+          "kind": "length",
+          "unit": "in",
+          "score": 13
+        }
+      ]
+    },
+    "coerce": {
+      "ok": {
+        "kind": "length",
+        "canonical": "0.3048",
+        "unit": "in"
+      }
+    }
+  },
+  "3 lbs": {
+    "evaluate": {
+      "ok": {
+        "kind": "mass",
+        "canonical": "1360.77711",
+        "unit": "lb",
+        "formatted": "3 pounds",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 5
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "mass",
+          "canonical": "1360.77711",
+          "formatted": "3 pounds",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "3",
+            "start": 0,
+            "end": 1
+          },
+          {
+            "type": "word",
+            "text": "lbs",
+            "start": 2,
+            "end": 5
+          }
+        ],
+        "candidates": [
+          {
+            "kind": "mass",
+            "unit": "lb",
+            "weight": 0,
+            "form": "lbs"
+          }
+        ],
+        "assignments": [
+          {
+            "kind": "mass",
+            "score": 0,
+            "confidence": 1,
+            "units": ["lb"],
+            "contributions": [
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "contextBonus",
+                "value": 0,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "lbs",
+          "span": {
+            "start": 2,
+            "end": 5
+          },
+          "text": "3 pounds",
+          "kind": "mass",
+          "unit": "lb",
+          "score": 13
+        }
+      ]
+    },
+    "coerce": {
+      "ok": {
+        "kind": "mass",
+        "canonical": "1360.77711",
+        "unit": "lb"
+      }
+    }
+  },
+  "2 wk": {
+    "evaluate": {
+      "ok": {
+        "kind": "duration",
+        "canonical": "1209600",
+        "unit": "wk",
+        "formatted": "2 weeks",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 4
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "duration",
+          "canonical": "1209600",
+          "formatted": "2 weeks",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "2",
+            "start": 0,
+            "end": 1
+          },
+          {
+            "type": "word",
+            "text": "wk",
+            "start": 2,
+            "end": 4
+          }
+        ],
+        "candidates": [
+          {
+            "kind": "duration",
+            "unit": "wk",
+            "weight": 0,
+            "form": "wk"
+          }
+        ],
+        "assignments": [
+          {
+            "kind": "duration",
+            "score": 0,
+            "confidence": 1,
+            "units": ["wk"],
+            "contributions": [
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "contextBonus",
+                "value": 0,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "wk",
+          "span": {
+            "start": 2,
+            "end": 4
+          },
+          "text": "2 weeks",
+          "kind": "duration",
+          "unit": "wk",
+          "score": 13
+        }
+      ]
+    },
+    "coerce": {
+      "ok": {
+        "kind": "duration",
+        "canonical": "1209600",
+        "unit": "wk"
+      }
+    }
+  },
+  "1.5 kilograms": {
+    "evaluate": {
+      "ok": {
+        "kind": "mass",
+        "canonical": "1500",
+        "unit": "kg",
+        "formatted": "1.5 kilograms",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 13
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "mass",
+          "canonical": "1500",
+          "formatted": "1.5 kilograms",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "1.5",
+            "start": 0,
+            "end": 3
+          },
+          {
+            "type": "word",
+            "text": "kilograms",
+            "start": 4,
+            "end": 13
+          }
+        ],
+        "candidates": [
+          {
+            "kind": "mass",
+            "unit": "kg",
+            "weight": -2,
+            "form": "kilogram"
+          }
+        ],
+        "assignments": [
+          {
+            "kind": "mass",
+            "score": -2,
+            "confidence": 1,
+            "units": ["kg"],
+            "contributions": [
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": -2,
+                "layer": 0
+              },
+              {
+                "selector": "contextBonus",
+                "value": 0,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "kilogram",
+          "span": {
+            "start": 4,
+            "end": 13
+          },
+          "text": "1.5 kilograms",
+          "kind": "mass",
+          "unit": "kg",
+          "score": -22.5
+        }
+      ]
+    },
+    "coerce": {
+      "ok": {
+        "kind": "mass",
+        "canonical": "1500",
+        "unit": "kg"
+      }
+    }
+  },
+  "1234567890123456789.0625 km": {
+    "evaluate": {
+      "ok": {
+        "kind": "length",
+        "canonical": "1234567890123456789062.5",
+        "unit": "km",
+        "formatted": "1,234,567,890,123,456,789.0625 kilometres",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 27
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "length",
+          "canonical": "1234567890123456789062.5",
+          "formatted": "1,234,567,890,123,456,789.0625 kilometres",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "1234567890123456789.0625",
+            "start": 0,
+            "end": 24
+          },
+          {
+            "type": "word",
+            "text": "km",
+            "start": 25,
+            "end": 27
+          }
+        ],
+        "candidates": [
+          {
+            "kind": "length",
+            "unit": "km",
+            "weight": 0,
+            "form": "km"
+          }
+        ],
+        "assignments": [
+          {
+            "kind": "length",
+            "score": 0,
+            "confidence": 1,
+            "units": ["km"],
+            "contributions": [
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "contextBonus",
+                "value": 0,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "km",
+          "span": {
+            "start": 25,
+            "end": 27
+          },
+          "text": "1234567890123456789.0625 kilometres",
+          "kind": "length",
+          "unit": "km",
+          "score": 10
+        },
+        {
+          "alias": "km2",
+          "span": {
+            "start": 25,
+            "end": 27
+          },
+          "text": "1234567890123456789.0625 km2",
+          "kind": "area",
+          "unit": "km2",
+          "score": -1
+        },
+        {
+          "alias": "kmh",
+          "span": {
+            "start": 25,
+            "end": 27
+          },
+          "text": "1234567890123456789.0625 kmh",
+          "kind": "speed",
+          "unit": "kph",
+          "score": -1
+        }
+      ]
+    },
+    "coerce": {
+      "ok": {
+        "kind": "length",
+        "canonical": "1234567890123456789062.5",
+        "unit": "km"
+      }
+    }
+  },
+  "1,234,567,890,123,456,789 g": {
+    "evaluate": {
+      "ok": {
+        "kind": "mass",
+        "canonical": "1234567890123456789",
+        "unit": "g",
+        "formatted": "1,234,567,890,123,456,789 grams",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 27
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "mass",
+          "canonical": "1234567890123456789",
+          "formatted": "1,234,567,890,123,456,789 grams",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "1,234,567,890,123,456,789",
+            "start": 0,
+            "end": 25
+          },
+          {
+            "type": "word",
+            "text": "g",
+            "start": 26,
+            "end": 27
+          }
+        ],
+        "candidates": [
+          {
+            "kind": "mass",
+            "unit": "g",
+            "weight": 0,
+            "form": "g"
+          }
+        ],
+        "assignments": [
+          {
+            "kind": "mass",
+            "score": 0,
+            "confidence": 1,
+            "units": ["g"],
+            "contributions": [
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "contextBonus",
+                "value": 0,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "g",
+          "span": {
+            "start": 26,
+            "end": 27
+          },
+          "text": "1,234,567,890,123,456,789 grams",
+          "kind": "mass",
+          "unit": "g",
+          "score": 10
+        },
+        {
+          "alias": "gb",
+          "span": {
+            "start": 26,
+            "end": 27
+          },
+          "text": "1,234,567,890,123,456,789 gigabytes",
+          "kind": "datasize",
+          "unit": "gb",
+          "score": -1
+        },
+        {
+          "alias": "gw",
+          "span": {
+            "start": 26,
+            "end": 27
+          },
+          "text": "1,234,567,890,123,456,789 gigawatts",
+          "kind": "power",
+          "unit": "gw",
+          "score": -1
+        },
+        {
+          "alias": "gon",
+          "span": {
+            "start": 26,
+            "end": 27
+          },
+          "text": "1,234,567,890,123,456,789 gradians",
+          "kind": "angle",
+          "unit": "grad",
+          "score": -2
+        },
+        {
+          "alias": "gib",
+          "span": {
+            "start": 26,
+            "end": 27
+          },
+          "text": "1,234,567,890,123,456,789 gibibytes",
+          "kind": "datasize",
+          "unit": "gib",
+          "score": -2
+        },
+        {
+          "alias": "gal",
+          "span": {
+            "start": 26,
+            "end": 27
+          },
+          "text": "1,234,567,890,123,456,789 gallons",
+          "kind": "volume",
+          "unit": "gal",
+          "score": -2
+        },
+        {
+          "alias": "gbps",
+          "span": {
+            "start": 26,
+            "end": 27
+          },
+          "text": "1,234,567,890,123,456,789 gbps",
+          "kind": "datarate",
+          "unit": "gbps",
+          "score": -3
+        }
+      ]
+    },
+    "coerce": {
+      "ok": {
+        "kind": "mass",
+        "canonical": "1234567890123456789",
+        "unit": "g"
+      }
+    }
+  },
+  "212 F in C": {
+    "evaluate": {
+      "ok": {
+        "kind": "temperature",
+        "canonical": "100",
+        "unit": "c",
+        "formatted": "100°C",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 10
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "temperature",
+          "canonical": "100",
+          "formatted": "100°C",
+          "confidence": 1
+        },
+        {
+          "kind": "tempdelta",
+          "canonical": "117.7777777777777777777777778",
+          "formatted": "117.77777777777777777777778°C",
+          "confidence": 1.8048513878454153e-35
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "212",
+            "start": 0,
+            "end": 3
+          },
+          {
+            "type": "word",
+            "text": "F",
+            "start": 4,
+            "end": 5
+          },
+          {
+            "type": "keyword",
+            "keyword": "in",
+            "start": 6,
+            "end": 8
+          },
+          {
+            "type": "word",
+            "text": "C",
+            "start": 9,
+            "end": 10
+          }
+        ],
+        "candidates": [
+          {
+            "kind": "temperature",
+            "unit": "c",
+            "weight": 0,
+            "form": "C"
+          },
+          {
+            "kind": "temperature",
+            "unit": "f",
+            "weight": 0,
+            "form": "F"
+          },
+          {
+            "kind": "tempdelta",
+            "unit": "c",
+            "weight": -40,
+            "form": "C"
+          },
+          {
+            "kind": "tempdelta",
+            "unit": "f",
+            "weight": -40,
+            "form": "F"
+          }
+        ],
+        "assignments": [
+          {
+            "kind": "temperature",
+            "score": 0,
+            "confidence": 1,
+            "units": ["c", "f"],
+            "contributions": [
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "contextBonus",
+                "value": 0,
+                "layer": 0
+              }
+            ]
+          },
+          {
+            "kind": "tempdelta",
+            "score": -80,
+            "confidence": 1.8048513878454153e-35,
+            "units": ["c", "f"],
+            "contributions": [
+              {
+                "selector": "prior",
+                "value": -40,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "prior",
+                "value": -40,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "contextBonus",
+                "value": 0,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "c",
+          "span": {
+            "start": 9,
+            "end": 10
+          },
+          "text": "212 F in c",
+          "kind": "temperature",
+          "unit": "c",
+          "score": 10
+        },
+        {
+          "alias": "cm",
+          "span": {
+            "start": 9,
+            "end": 10
+          },
+          "text": "212 F in centimetre",
+          "kind": "length",
+          "unit": "cm",
+          "score": -1
+        },
+        {
+          "alias": "cm2",
+          "span": {
+            "start": 9,
+            "end": 10
+          },
+          "text": "212 F in cm2",
+          "kind": "area",
+          "unit": "cm2",
+          "score": -2
+        },
+        {
+          "alias": "cal",
+          "span": {
+            "start": 9,
+            "end": 10
+          },
+          "text": "212 F in calorie",
+          "kind": "energy",
+          "unit": "cal",
+          "score": -2
+        },
+        {
+          "alias": "c",
+          "span": {
+            "start": 9,
+            "end": 10
+          },
+          "text": "212 F in c",
+          "kind": "tempdelta",
+          "unit": "c",
+          "score": -30
+        }
+      ]
+    },
+    "coerce": {
+      "ok": {
+        "kind": "temperature",
+        "canonical": "100",
+        "unit": "c"
+      }
+    }
+  },
+  "30 C - 20 C": {
+    "evaluate": {
+      "ok": {
+        "kind": "tempdelta",
+        "canonical": "10",
+        "unit": "c",
+        "formatted": "10°C",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 11
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "tempdelta",
+          "canonical": "10",
+          "formatted": "10°C",
+          "confidence": 1
+        },
+        {
+          "kind": "temperature",
+          "canonical": "10",
+          "formatted": "10°C",
+          "confidence": 3.975449735908647e-31
+        },
+        {
+          "kind": "tempdelta",
+          "canonical": "10",
+          "formatted": "10°C",
+          "confidence": 1.8048513878454153e-35
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "30",
+            "start": 0,
+            "end": 2
+          },
+          {
+            "type": "word",
+            "text": "C",
+            "start": 3,
+            "end": 4
+          },
+          {
+            "type": "op",
+            "op": "-",
+            "start": 5,
+            "end": 6
+          },
+          {
+            "type": "number",
+            "text": "20",
+            "start": 7,
+            "end": 9
+          },
+          {
+            "type": "word",
+            "text": "C",
+            "start": 10,
+            "end": 11
+          }
+        ],
+        "candidates": [
+          {
+            "kind": "temperature",
+            "unit": "c",
+            "weight": 0,
+            "form": "C"
+          },
+          {
+            "kind": "tempdelta",
+            "unit": "c",
+            "weight": -40,
+            "form": "C"
+          }
+        ],
+        "assignments": [
+          {
+            "kind": "tempdelta",
+            "score": 30,
+            "confidence": 1,
+            "units": ["c", "c"],
+            "contributions": [
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "contextBonus",
+                "value": 30,
+                "layer": 0
+              }
+            ]
+          },
+          {
+            "kind": "temperature",
+            "score": -40,
+            "confidence": 3.975449735908647e-31,
+            "units": ["c", "c"],
+            "contributions": [
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "prior",
+                "value": -40,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "contextBonus",
+                "value": 0,
+                "layer": 0
+              }
+            ]
+          },
+          {
+            "kind": "tempdelta",
+            "score": -50,
+            "confidence": 1.8048513878454153e-35,
+            "units": ["c", "c"],
+            "contributions": [
+              {
+                "selector": "prior",
+                "value": -40,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "prior",
+                "value": -40,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "contextBonus",
+                "value": 30,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "c",
+          "span": {
+            "start": 10,
+            "end": 11
+          },
+          "text": "30 C - 20 c",
+          "kind": "temperature",
+          "unit": "c",
+          "score": 13
+        },
+        {
+          "alias": "cm",
+          "span": {
+            "start": 10,
+            "end": 11
+          },
+          "text": "30 C - 20 centimetres",
+          "kind": "length",
+          "unit": "cm",
+          "score": 2
+        },
+        {
+          "alias": "cm2",
+          "span": {
+            "start": 10,
+            "end": 11
+          },
+          "text": "30 C - 20 cm2",
+          "kind": "area",
+          "unit": "cm2",
+          "score": 1
+        },
+        {
+          "alias": "cal",
+          "span": {
+            "start": 10,
+            "end": 11
+          },
+          "text": "30 C - 20 calories",
+          "kind": "energy",
+          "unit": "cal",
+          "score": 1
+        },
+        {
+          "alias": "c",
+          "span": {
+            "start": 10,
+            "end": 11
+          },
+          "text": "30 C - 20 c",
+          "kind": "tempdelta",
+          "unit": "c",
+          "score": -27
+        }
+      ]
+    },
+    "coerce": {
+      "ok": {
+        "kind": "tempdelta",
+        "canonical": "10",
+        "unit": "c"
+      }
+    }
+  },
+  "20% of 50": {
+    "evaluate": {
+      "ok": {
+        "kind": "number",
+        "canonical": "10",
+        "unit": "one",
+        "formatted": "10",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 9
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "number",
+          "canonical": "10",
+          "formatted": "10",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "20",
+            "start": 0,
+            "end": 2
+          },
+          {
+            "type": "word",
+            "text": "%",
+            "start": 2,
+            "end": 3
+          },
+          {
+            "type": "keyword",
+            "keyword": "of",
+            "start": 4,
+            "end": 6
+          },
+          {
+            "type": "number",
+            "text": "50",
+            "start": 7,
+            "end": 9
+          }
+        ],
+        "candidates": [
+          {
+            "kind": "percent",
+            "unit": "%",
+            "weight": 0,
+            "form": "%"
+          }
+        ],
+        "assignments": [
+          {
+            "kind": "number",
+            "score": 0,
+            "confidence": 1,
+            "units": ["%"],
+            "contributions": [
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "contextBonus",
+                "value": 0,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": []
+    },
+    "coerce": {
+      "error": "NoCandidateError: Unknown unit \"20% of 50\""
+    }
+  },
+  "50 + 20%": {
+    "evaluate": {
+      "ok": {
+        "kind": "number",
+        "canonical": "60",
+        "unit": "one",
+        "formatted": "60",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 8
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "number",
+          "canonical": "60",
+          "formatted": "60",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "50",
+            "start": 0,
+            "end": 2
+          },
+          {
+            "type": "op",
+            "op": "+",
+            "start": 3,
+            "end": 4
+          },
+          {
+            "type": "number",
+            "text": "20",
+            "start": 5,
+            "end": 7
+          },
+          {
+            "type": "word",
+            "text": "%",
+            "start": 7,
+            "end": 8
+          }
+        ],
+        "candidates": [
+          {
+            "kind": "percent",
+            "unit": "%",
+            "weight": 0,
+            "form": "%"
+          }
+        ],
+        "assignments": [
+          {
+            "kind": "number",
+            "score": 0,
+            "confidence": 1,
+            "units": ["%"],
+            "contributions": [
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "contextBonus",
+                "value": 0,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": []
+    },
+    "coerce": {
+      "error": "NoCandidateError: Unknown unit \"50 + 20%\""
+    }
+  },
+  "90 deg in rad": {
+    "evaluate": {
+      "ok": {
+        "kind": "angle",
+        "canonical": "1.570796326794896619231321692",
+        "unit": "rad",
+        "formatted": "1.5707963267948966192313217 radians",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 13
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "angle",
+          "canonical": "1.570796326794896619231321692",
+          "formatted": "1.5707963267948966192313217 radians",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "90",
+            "start": 0,
+            "end": 2
+          },
+          {
+            "type": "word",
+            "text": "deg",
+            "start": 3,
+            "end": 6
+          },
+          {
+            "type": "keyword",
+            "keyword": "in",
+            "start": 7,
+            "end": 9
+          },
+          {
+            "type": "word",
+            "text": "rad",
+            "start": 10,
+            "end": 13
+          }
+        ],
+        "candidates": [
+          {
+            "kind": "angle",
+            "unit": "rad",
+            "weight": 0,
+            "form": "rad"
+          },
+          {
+            "kind": "angle",
+            "unit": "deg",
+            "weight": 0,
+            "form": "deg"
+          }
+        ],
+        "assignments": [
+          {
+            "kind": "angle",
+            "score": 0,
+            "confidence": 1,
+            "units": ["rad", "deg"],
+            "contributions": [
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "contextBonus",
+                "value": 0,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "rad",
+          "span": {
+            "start": 10,
+            "end": 13
+          },
+          "text": "90 deg in radian",
+          "kind": "angle",
+          "unit": "rad",
+          "score": 10
+        }
+      ]
+    },
+    "coerce": {
+      "ok": {
+        "kind": "angle",
+        "canonical": "1.570796326794896619231321692",
+        "unit": "rad"
+      }
+    }
+  },
+  "1 kib in b": {
+    "evaluate": {
+      "ok": {
+        "kind": "datasize",
+        "canonical": "1024",
+        "unit": "b",
+        "formatted": "1,024 bytes",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 10
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "datasize",
+          "canonical": "1024",
+          "formatted": "1,024 bytes",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "1",
+            "start": 0,
+            "end": 1
+          },
+          {
+            "type": "word",
+            "text": "kib",
+            "start": 2,
+            "end": 5
+          },
+          {
+            "type": "keyword",
+            "keyword": "in",
+            "start": 6,
+            "end": 8
+          },
+          {
+            "type": "word",
+            "text": "b",
+            "start": 9,
+            "end": 10
+          }
+        ],
+        "candidates": [
+          {
+            "kind": "datasize",
+            "unit": "b",
+            "weight": 0,
+            "form": "b"
+          },
+          {
+            "kind": "datasize",
+            "unit": "kib",
+            "weight": 0,
+            "form": "kib"
+          }
+        ],
+        "assignments": [
+          {
+            "kind": "datasize",
+            "score": 0,
+            "confidence": 1,
+            "units": ["b", "kib"],
+            "contributions": [
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "contextBonus",
+                "value": 0,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "b",
+          "span": {
+            "start": 9,
+            "end": 10
+          },
+          "text": "1 kib in byte",
+          "kind": "datasize",
+          "unit": "b",
+          "score": 10
+        },
+        {
+          "alias": "bps",
+          "span": {
+            "start": 9,
+            "end": 10
+          },
+          "text": "1 kib in bps",
+          "kind": "datarate",
+          "unit": "bps",
+          "score": -2
+        },
+        {
+          "alias": "btu",
+          "span": {
+            "start": 9,
+            "end": 10
+          },
+          "text": "1 kib in btu",
+          "kind": "energy",
+          "unit": "btu",
+          "score": -2
+        },
+        {
+          "alias": "bpm",
+          "span": {
+            "start": 9,
+            "end": 10
+          },
+          "text": "1 kib in bpm",
+          "kind": "tempo",
+          "unit": "bpm",
+          "score": -2
+        }
+      ]
+    },
+    "coerce": {
+      "ok": {
+        "kind": "datasize",
+        "canonical": "1024",
+        "unit": "b"
+      }
+    }
+  },
+  "3 m * 4 m": {
+    "evaluate": {
+      "ok": {
+        "kind": "area",
+        "canonical": "12",
+        "unit": "m2",
+        "formatted": "12m²",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 9
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "area",
+          "canonical": "12",
+          "formatted": "12m²",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "3",
+            "start": 0,
+            "end": 1
+          },
+          {
+            "type": "word",
+            "text": "m",
+            "start": 2,
+            "end": 3
+          },
+          {
+            "type": "op",
+            "op": "*",
+            "start": 4,
+            "end": 5
+          },
+          {
+            "type": "number",
+            "text": "4",
+            "start": 6,
+            "end": 7
+          },
+          {
+            "type": "word",
+            "text": "m",
+            "start": 8,
+            "end": 9
+          }
+        ],
+        "candidates": [
+          {
+            "kind": "length",
+            "unit": "m",
+            "weight": 0,
+            "form": "m"
+          }
+        ],
+        "assignments": [
+          {
+            "kind": "area",
+            "score": 30,
+            "confidence": 1,
+            "units": ["m", "m"],
+            "contributions": [
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "contextBonus",
+                "value": 30,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "m",
+          "span": {
+            "start": 8,
+            "end": 9
+          },
+          "text": "3 m * 4 minutes",
+          "kind": "duration",
+          "unit": "min",
+          "score": 13
+        },
+        {
+          "alias": "m",
+          "span": {
+            "start": 8,
+            "end": 9
+          },
+          "text": "3 m * 4 metres",
+          "kind": "length",
+          "unit": "m",
+          "score": 13
+        },
+        {
+          "alias": "m2",
+          "span": {
+            "start": 8,
+            "end": 9
+          },
+          "text": "3 m * 4 m2",
+          "kind": "area",
+          "unit": "m2",
+          "score": 2
+        },
+        {
+          "alias": "mb",
+          "span": {
+            "start": 8,
+            "end": 9
+          },
+          "text": "3 m * 4 megabytes",
+          "kind": "datasize",
+          "unit": "mb",
+          "score": 2
+        },
+        {
+          "alias": "ms",
+          "span": {
+            "start": 8,
+            "end": 9
+          },
+          "text": "3 m * 4 milliseconds",
+          "kind": "duration",
+          "unit": "ms",
+          "score": 2
+        },
+        {
+          "alias": "mj",
+          "span": {
+            "start": 8,
+            "end": 9
+          },
+          "text": "3 m * 4 megajoules",
+          "kind": "energy",
+          "unit": "mj",
+          "score": 2
+        },
+        {
+          "alias": "mi",
+          "span": {
+            "start": 8,
+            "end": 9
+          },
+          "text": "3 m * 4 miles",
+          "kind": "length",
+          "unit": "mi",
+          "score": 2
+        },
+        {
+          "alias": "mm",
+          "span": {
+            "start": 8,
+            "end": 9
+          },
+          "text": "3 m * 4 millimetres",
+          "kind": "length",
+          "unit": "mm",
+          "score": 2
+        },
+        {
+          "alias": "mg",
+          "span": {
+            "start": 8,
+            "end": 9
+          },
+          "text": "3 m * 4 milligrams",
+          "kind": "mass",
+          "unit": "mg",
+          "score": 2
+        },
+        {
+          "alias": "mw",
+          "span": {
+            "start": 8,
+            "end": 9
+          },
+          "text": "3 m * 4 megawatts",
+          "kind": "power",
+          "unit": "mw",
+          "score": 2
+        }
+      ]
+    },
+    "coerce": {
+      "error": "NoCandidateError: Unknown unit \"3 m * 4 m\""
+    }
+  },
+  "100 km / 2 h": {
+    "evaluate": {
+      "ok": {
+        "kind": "speed",
+        "canonical": "13.88888888888888888888888889",
+        "unit": "mps",
+        "formatted": "13.888888888888888888888889m/s",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 12
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "speed",
+          "canonical": "13.88888888888888888888888889",
+          "formatted": "13.888888888888888888888889m/s",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "100",
+            "start": 0,
+            "end": 3
+          },
+          {
+            "type": "word",
+            "text": "km",
+            "start": 4,
+            "end": 6
+          },
+          {
+            "type": "op",
+            "op": "/",
+            "start": 7,
+            "end": 8
+          },
+          {
+            "type": "number",
+            "text": "2",
+            "start": 9,
+            "end": 10
+          },
+          {
+            "type": "word",
+            "text": "h",
+            "start": 11,
+            "end": 12
+          }
+        ],
+        "candidates": [
+          {
+            "kind": "length",
+            "unit": "km",
+            "weight": 0,
+            "form": "km"
+          },
+          {
+            "kind": "duration",
+            "unit": "h",
+            "weight": 0,
+            "form": "h"
+          }
+        ],
+        "assignments": [
+          {
+            "kind": "speed",
+            "score": 0,
+            "confidence": 1,
+            "units": ["km", "h"],
+            "contributions": [
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "contextBonus",
+                "value": 0,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "h",
+          "span": {
+            "start": 11,
+            "end": 12
+          },
+          "text": "100 km / 2 hours",
+          "kind": "duration",
+          "unit": "h",
+          "score": 13
+        },
+        {
+          "alias": "ha",
+          "span": {
+            "start": 11,
+            "end": 12
+          },
+          "text": "100 km / 2 hectares",
+          "kind": "area",
+          "unit": "hectare",
+          "score": 2
+        },
+        {
+          "alias": "hp",
+          "span": {
+            "start": 11,
+            "end": 12
+          },
+          "text": "100 km / 2 horsepower",
+          "kind": "power",
+          "unit": "hp",
+          "score": 2
+        },
+        {
+          "alias": "hz",
+          "span": {
+            "start": 11,
+            "end": 12
+          },
+          "text": "100 km / 2 hertz",
+          "kind": "tempo",
+          "unit": "hz",
+          "score": 2
+        }
+      ]
+    },
+    "coerce": {
+      "error": "NoCandidateError: Unknown unit \"100 km / 2 h\""
+    }
+  },
+  "one kg": {
+    "evaluate": {
+      "ok": {
+        "kind": "mass",
+        "canonical": "1000",
+        "unit": "kg",
+        "formatted": "1 kilogram",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 6
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "mass",
+          "canonical": "1000",
+          "formatted": "1 kilogram",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "one",
+            "start": 0,
+            "end": 3
+          },
+          {
+            "type": "word",
+            "text": "kg",
+            "start": 4,
+            "end": 6
+          }
+        ],
+        "candidates": [
+          {
+            "kind": "mass",
+            "unit": "kg",
+            "weight": 0,
+            "form": "kg"
+          }
+        ],
+        "assignments": [
+          {
+            "kind": "mass",
+            "score": 0,
+            "confidence": 1,
+            "units": ["kg"],
+            "contributions": [
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "contextBonus",
+                "value": 0,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "kg",
+          "span": {
+            "start": 4,
+            "end": 6
+          },
+          "text": "one kilogram",
+          "kind": "mass",
+          "unit": "kg",
+          "score": 13
+        }
+      ]
+    },
+    "coerce": {
+      "ok": {
+        "kind": "mass",
+        "canonical": "1000",
+        "unit": "kg"
+      }
+    }
+  },
+  "one thousand thirty two": {
+    "evaluate": {
+      "ok": {
+        "kind": "number",
+        "canonical": "1032",
+        "unit": "one",
+        "formatted": "1,032",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 23
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "number",
+          "canonical": "1032",
+          "formatted": "1,032",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "one thousand thirty two",
+            "start": 0,
+            "end": 23
+          }
+        ],
+        "candidates": [],
+        "assignments": [
+          {
+            "kind": "number",
+            "score": 0,
+            "confidence": 1,
+            "units": [],
+            "contributions": [
+              {
+                "selector": "contextBonus",
+                "value": 0,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": []
+    },
+    "coerce": {
+      "ok": {
+        "kind": "number",
+        "canonical": "1032",
+        "unit": "one"
+      }
+    }
+  },
+  "two hundred and five g": {
+    "evaluate": {
+      "ok": {
+        "kind": "mass",
+        "canonical": "205",
+        "unit": "g",
+        "formatted": "205 grams",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 22
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "mass",
+          "canonical": "205",
+          "formatted": "205 grams",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "two hundred and five",
+            "start": 0,
+            "end": 20
+          },
+          {
+            "type": "word",
+            "text": "g",
+            "start": 21,
+            "end": 22
+          }
+        ],
+        "candidates": [
+          {
+            "kind": "mass",
+            "unit": "g",
+            "weight": 0,
+            "form": "g"
+          }
+        ],
+        "assignments": [
+          {
+            "kind": "mass",
+            "score": 0,
+            "confidence": 1,
+            "units": ["g"],
+            "contributions": [
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "contextBonus",
+                "value": 0,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "g",
+          "span": {
+            "start": 21,
+            "end": 22
+          },
+          "text": "two hundred and five grams",
+          "kind": "mass",
+          "unit": "g",
+          "score": 13
+        },
+        {
+          "alias": "gb",
+          "span": {
+            "start": 21,
+            "end": 22
+          },
+          "text": "two hundred and five gigabytes",
+          "kind": "datasize",
+          "unit": "gb",
+          "score": 2
+        },
+        {
+          "alias": "gon",
+          "span": {
+            "start": 21,
+            "end": 22
+          },
+          "text": "two hundred and five gradians",
+          "kind": "angle",
+          "unit": "grad",
+          "score": 1
+        },
+        {
+          "alias": "gib",
+          "span": {
+            "start": 21,
+            "end": 22
+          },
+          "text": "two hundred and five gibibytes",
+          "kind": "datasize",
+          "unit": "gib",
+          "score": 1
+        },
+        {
+          "alias": "gw",
+          "span": {
+            "start": 21,
+            "end": 22
+          },
+          "text": "two hundred and five gigawatts",
+          "kind": "power",
+          "unit": "gw",
+          "score": -1
+        },
+        {
+          "alias": "gal",
+          "span": {
+            "start": 21,
+            "end": 22
+          },
+          "text": "two hundred and five gallons",
+          "kind": "volume",
+          "unit": "gal",
+          "score": -2
+        },
+        {
+          "alias": "gbps",
+          "span": {
+            "start": 21,
+            "end": 22
+          },
+          "text": "two hundred and five gbps",
+          "kind": "datarate",
+          "unit": "gbps",
+          "score": -3
+        }
+      ]
+    },
+    "coerce": {
+      "ok": {
+        "kind": "mass",
+        "canonical": "205",
+        "unit": "g"
+      }
+    }
+  },
+  "twenty-two km": {
+    "evaluate": {
+      "ok": {
+        "kind": "length",
+        "canonical": "22000",
+        "unit": "km",
+        "formatted": "22 kilometres",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 13
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "length",
+          "canonical": "22000",
+          "formatted": "22 kilometres",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "twenty two",
+            "start": 0,
+            "end": 10
+          },
+          {
+            "type": "word",
+            "text": "km",
+            "start": 11,
+            "end": 13
+          }
+        ],
+        "candidates": [
+          {
+            "kind": "length",
+            "unit": "km",
+            "weight": 0,
+            "form": "km"
+          }
+        ],
+        "assignments": [
+          {
+            "kind": "length",
+            "score": 0,
+            "confidence": 1,
+            "units": ["km"],
+            "contributions": [
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "contextBonus",
+                "value": 0,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "km",
+          "span": {
+            "start": 11,
+            "end": 13
+          },
+          "text": "twenty-two kilometres",
+          "kind": "length",
+          "unit": "km",
+          "score": 13
+        },
+        {
+          "alias": "km2",
+          "span": {
+            "start": 11,
+            "end": 13
+          },
+          "text": "twenty-two km2",
+          "kind": "area",
+          "unit": "km2",
+          "score": 2
+        },
+        {
+          "alias": "kmh",
+          "span": {
+            "start": 11,
+            "end": 13
+          },
+          "text": "twenty-two kmh",
+          "kind": "speed",
+          "unit": "kph",
+          "score": 2
+        }
+      ]
+    },
+    "coerce": {
+      "ok": {
+        "kind": "length",
+        "canonical": "22000",
+        "unit": "km"
+      }
+    }
+  },
+  "ten km plus five km": {
+    "evaluate": {
+      "ok": {
+        "kind": "length",
+        "canonical": "15000",
+        "unit": "km",
+        "formatted": "15 kilometres",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 19
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "length",
+          "canonical": "15000",
+          "formatted": "15 kilometres",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "ten",
+            "start": 0,
+            "end": 3
+          },
+          {
+            "type": "word",
+            "text": "km",
+            "start": 4,
+            "end": 6
+          },
+          {
+            "type": "op",
+            "op": "+",
+            "start": 7,
+            "end": 11
+          },
+          {
+            "type": "number",
+            "text": "five",
+            "start": 12,
+            "end": 16
+          },
+          {
+            "type": "word",
+            "text": "km",
+            "start": 17,
+            "end": 19
+          }
+        ],
+        "candidates": [
+          {
+            "kind": "length",
+            "unit": "km",
+            "weight": 0,
+            "form": "km"
+          }
+        ],
+        "assignments": [
+          {
+            "kind": "length",
+            "score": 30,
+            "confidence": 1,
+            "units": ["km", "km"],
+            "contributions": [
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "contextBonus",
+                "value": 30,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "km",
+          "span": {
+            "start": 17,
+            "end": 19
+          },
+          "text": "ten km plus five kilometres",
+          "kind": "length",
+          "unit": "km",
+          "score": 13
+        },
+        {
+          "alias": "km2",
+          "span": {
+            "start": 17,
+            "end": 19
+          },
+          "text": "ten km plus five km2",
+          "kind": "area",
+          "unit": "km2",
+          "score": 2
+        },
+        {
+          "alias": "kmh",
+          "span": {
+            "start": 17,
+            "end": 19
+          },
+          "text": "ten km plus five kmh",
+          "kind": "speed",
+          "unit": "kph",
+          "score": 2
+        }
+      ]
+    },
+    "coerce": {
+      "ok": {
+        "kind": "length",
+        "canonical": "15000",
+        "unit": "km"
+      }
+    }
+  },
+  "twenty divided by four": {
+    "evaluate": {
+      "ok": {
+        "kind": "number",
+        "canonical": "5",
+        "unit": "one",
+        "formatted": "5",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 22
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "number",
+          "canonical": "5",
+          "formatted": "5",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "twenty",
+            "start": 0,
+            "end": 6
+          },
+          {
+            "type": "op",
+            "op": "/",
+            "start": 7,
+            "end": 17
+          },
+          {
+            "type": "number",
+            "text": "four",
+            "start": 18,
+            "end": 22
+          }
+        ],
+        "candidates": [],
+        "assignments": [
+          {
+            "kind": "number",
+            "score": 0,
+            "confidence": 1,
+            "units": [],
+            "contributions": [
+              {
+                "selector": "contextBonus",
+                "value": 0,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "hour",
+          "span": {
+            "start": 18,
+            "end": 22
+          },
+          "text": "twenty divided by hour",
+          "kind": "duration",
+          "unit": "h",
+          "score": -25.75
+        }
+      ]
+    },
+    "coerce": {
+      "ok": {
+        "kind": "number",
+        "canonical": "5",
+        "unit": "one"
+      }
+    }
+  },
+  "minus five kg": {
+    "evaluate": {
+      "ok": {
+        "kind": "mass",
+        "canonical": "-5000",
+        "unit": "kg",
+        "formatted": "-5 kilograms",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 13
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "mass",
+          "canonical": "-5000",
+          "formatted": "-5 kilograms",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "op",
+            "op": "-",
+            "start": 0,
+            "end": 5
+          },
+          {
+            "type": "number",
+            "text": "five",
+            "start": 6,
+            "end": 10
+          },
+          {
+            "type": "word",
+            "text": "kg",
+            "start": 11,
+            "end": 13
+          }
+        ],
+        "candidates": [
+          {
+            "kind": "mass",
+            "unit": "kg",
+            "weight": 0,
+            "form": "kg"
+          }
+        ],
+        "assignments": [
+          {
+            "kind": "mass",
+            "score": 0,
+            "confidence": 1,
+            "units": ["kg"],
+            "contributions": [
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "contextBonus",
+                "value": 0,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "kg",
+          "span": {
+            "start": 11,
+            "end": 13
+          },
+          "text": "minus five kilograms",
+          "kind": "mass",
+          "unit": "kg",
+          "score": 13
+        }
+      ]
+    },
+    "coerce": {
+      "ok": {
+        "kind": "mass",
+        "canonical": "-5000",
+        "unit": "kg"
+      }
+    }
+  },
+  "1.5 million km": {
+    "evaluate": {
+      "ok": {
+        "kind": "length",
+        "canonical": "1500000000",
+        "unit": "km",
+        "formatted": "1,500,000 kilometres",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 14
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "length",
+          "canonical": "1500000000",
+          "formatted": "1,500,000 kilometres",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "1.5 million",
+            "start": 0,
+            "end": 11
+          },
+          {
+            "type": "word",
+            "text": "km",
+            "start": 12,
+            "end": 14
+          }
+        ],
+        "candidates": [
+          {
+            "kind": "length",
+            "unit": "km",
+            "weight": 0,
+            "form": "km"
+          }
+        ],
+        "assignments": [
+          {
+            "kind": "length",
+            "score": 0,
+            "confidence": 1,
+            "units": ["km"],
+            "contributions": [
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "contextBonus",
+                "value": 0,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "km",
+          "span": {
+            "start": 12,
+            "end": 14
+          },
+          "text": "1.5 million kilometres",
+          "kind": "length",
+          "unit": "km",
+          "score": 10
+        },
+        {
+          "alias": "km2",
+          "span": {
+            "start": 12,
+            "end": 14
+          },
+          "text": "1.5 million km2",
+          "kind": "area",
+          "unit": "km2",
+          "score": -1
+        },
+        {
+          "alias": "kmh",
+          "span": {
+            "start": 12,
+            "end": 14
+          },
+          "text": "1.5 million kmh",
+          "kind": "speed",
+          "unit": "kph",
+          "score": -1
+        }
+      ]
+    },
+    "coerce": {
+      "ok": {
+        "kind": "length",
+        "canonical": "1500000000",
+        "unit": "km"
+      }
+    }
+  },
+  "twenty - two": {
+    "evaluate": {
+      "ok": {
+        "kind": "number",
+        "canonical": "18",
+        "unit": "one",
+        "formatted": "18",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 12
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "number",
+          "canonical": "18",
+          "formatted": "18",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "twenty",
+            "start": 0,
+            "end": 6
+          },
+          {
+            "type": "op",
+            "op": "-",
+            "start": 7,
+            "end": 8
+          },
+          {
+            "type": "number",
+            "text": "two",
+            "start": 9,
+            "end": 12
+          }
+        ],
+        "candidates": [],
+        "assignments": [
+          {
+            "kind": "number",
+            "score": 0,
+            "confidence": 1,
+            "units": [],
+            "contributions": [
+              {
+                "selector": "contextBonus",
+                "value": 0,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": []
+    },
+    "coerce": {
+      "ok": {
+        "kind": "number",
+        "canonical": "18",
+        "unit": "one"
+      }
+    }
+  },
+  "ten plus two times three": {
+    "evaluate": {
+      "ok": {
+        "kind": "number",
+        "canonical": "16",
+        "unit": "one",
+        "formatted": "16",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 24
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "number",
+          "canonical": "16",
+          "formatted": "16",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "ten",
+            "start": 0,
+            "end": 3
+          },
+          {
+            "type": "op",
+            "op": "+",
+            "start": 4,
+            "end": 8
+          },
+          {
+            "type": "number",
+            "text": "two",
+            "start": 9,
+            "end": 12
+          },
+          {
+            "type": "op",
+            "op": "*",
+            "start": 13,
+            "end": 18
+          },
+          {
+            "type": "number",
+            "text": "three",
+            "start": 19,
+            "end": 24
+          }
+        ],
+        "candidates": [],
+        "assignments": [
+          {
+            "kind": "number",
+            "score": 0,
+            "confidence": 1,
+            "units": [],
+            "contributions": [
+              {
+                "selector": "contextBonus",
+                "value": 0,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": []
+    },
+    "coerce": {
+      "ok": {
+        "kind": "number",
+        "canonical": "16",
+        "unit": "one"
+      }
+    }
+  },
+  "ten minus two times three": {
+    "evaluate": {
+      "ok": {
+        "kind": "number",
+        "canonical": "4",
+        "unit": "one",
+        "formatted": "4",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 25
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "number",
+          "canonical": "4",
+          "formatted": "4",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "ten",
+            "start": 0,
+            "end": 3
+          },
+          {
+            "type": "op",
+            "op": "-",
+            "start": 4,
+            "end": 9
+          },
+          {
+            "type": "number",
+            "text": "two",
+            "start": 10,
+            "end": 13
+          },
+          {
+            "type": "op",
+            "op": "*",
+            "start": 14,
+            "end": 19
+          },
+          {
+            "type": "number",
+            "text": "three",
+            "start": 20,
+            "end": 25
+          }
+        ],
+        "candidates": [],
+        "assignments": [
+          {
+            "kind": "number",
+            "score": 0,
+            "confidence": 1,
+            "units": [],
+            "contributions": [
+              {
+                "selector": "contextBonus",
+                "value": 0,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": []
+    },
+    "coerce": {
+      "ok": {
+        "kind": "number",
+        "canonical": "4",
+        "unit": "one"
+      }
+    }
+  },
+  "(ten plus two) times three": {
+    "evaluate": {
+      "ok": {
+        "kind": "number",
+        "canonical": "36",
+        "unit": "one",
+        "formatted": "36",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 1,
+            "end": 26
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "number",
+          "canonical": "36",
+          "formatted": "36",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "lparen",
+            "start": 0,
+            "end": 1
+          },
+          {
+            "type": "number",
+            "text": "ten",
+            "start": 1,
+            "end": 4
+          },
+          {
+            "type": "op",
+            "op": "+",
+            "start": 5,
+            "end": 9
+          },
+          {
+            "type": "number",
+            "text": "two",
+            "start": 10,
+            "end": 13
+          },
+          {
+            "type": "rparen",
+            "start": 13,
+            "end": 14
+          },
+          {
+            "type": "op",
+            "op": "*",
+            "start": 15,
+            "end": 20
+          },
+          {
+            "type": "number",
+            "text": "three",
+            "start": 21,
+            "end": 26
+          }
+        ],
+        "candidates": [],
+        "assignments": [
+          {
+            "kind": "number",
+            "score": 0,
+            "confidence": 1,
+            "units": [],
+            "contributions": [
+              {
+                "selector": "contextBonus",
+                "value": 0,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": []
+    },
+    "coerce": {
+      "ok": {
+        "kind": "number",
+        "canonical": "36",
+        "unit": "one"
+      }
+    }
+  },
+  "30 ho": {
+    "evaluate": {
+      "error": "NoCandidateError: Unknown unit \"ho\". Did you mean: h, ha, hp?"
+    },
+    "suggest": {
+      "ok": []
+    },
+    "explain": {
+      "error": "NoCandidateError: Unknown unit \"ho\". Did you mean: h, ha, hp?"
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "hour",
+          "span": {
+            "start": 3,
+            "end": 5
+          },
+          "text": "30 hours",
+          "kind": "duration",
+          "unit": "h",
+          "score": 1
+        },
+        {
+          "alias": "horsepower",
+          "span": {
+            "start": 3,
+            "end": 5
+          },
+          "text": "30 horsepower",
+          "kind": "power",
+          "unit": "hp",
+          "score": -5
+        }
+      ]
+    },
+    "coerce": {
+      "error": "NoCandidateError: Unknown unit \"ho\". Did you mean: h, ha, hp?"
+    }
+  },
+  "1 ho": {
+    "evaluate": {
+      "error": "NoCandidateError: Unknown unit \"ho\". Did you mean: h, ha, hp?"
+    },
+    "suggest": {
+      "ok": []
+    },
+    "explain": {
+      "error": "NoCandidateError: Unknown unit \"ho\". Did you mean: h, ha, hp?"
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "hour",
+          "span": {
+            "start": 2,
+            "end": 4
+          },
+          "text": "1 hour",
+          "kind": "duration",
+          "unit": "h",
+          "score": 1
+        },
+        {
+          "alias": "horsepower",
+          "span": {
+            "start": 2,
+            "end": 4
+          },
+          "text": "1 horsepower",
+          "kind": "power",
+          "unit": "hp",
+          "score": -5
+        }
+      ]
+    },
+    "coerce": {
+      "error": "NoCandidateError: Unknown unit \"ho\". Did you mean: h, ha, hp?"
+    }
+  },
+  "0.5 ho": {
+    "evaluate": {
+      "error": "NoCandidateError: Unknown unit \"ho\". Did you mean: h, ha, hp?"
+    },
+    "suggest": {
+      "ok": []
+    },
+    "explain": {
+      "error": "NoCandidateError: Unknown unit \"ho\". Did you mean: h, ha, hp?"
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "hour",
+          "span": {
+            "start": 4,
+            "end": 6
+          },
+          "text": "0.5 hours",
+          "kind": "duration",
+          "unit": "h",
+          "score": -2
+        },
+        {
+          "alias": "horsepower",
+          "span": {
+            "start": 4,
+            "end": 6
+          },
+          "text": "0.5 horsepower",
+          "kind": "power",
+          "unit": "hp",
+          "score": -8
+        }
+      ]
+    },
+    "coerce": {
+      "error": "NoCandidateError: Unknown unit \"ho\". Did you mean: h, ha, hp?"
+    }
+  },
+  "45 sec": {
+    "evaluate": {
+      "ok": {
+        "kind": "duration",
+        "canonical": "45",
+        "unit": "s",
+        "formatted": "45 seconds",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 6
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "duration",
+          "canonical": "45",
+          "formatted": "45 seconds",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "45",
+            "start": 0,
+            "end": 2
+          },
+          {
+            "type": "word",
+            "text": "sec",
+            "start": 3,
+            "end": 6
+          }
+        ],
+        "candidates": [
+          {
+            "kind": "duration",
+            "unit": "s",
+            "weight": 0,
+            "form": "sec"
+          }
+        ],
+        "assignments": [
+          {
+            "kind": "duration",
+            "score": 0,
+            "confidence": 1,
+            "units": ["s"],
+            "contributions": [
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "contextBonus",
+                "value": 0,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "sec",
+          "span": {
+            "start": 3,
+            "end": 6
+          },
+          "text": "45 seconds",
+          "kind": "duration",
+          "unit": "s",
+          "score": 13
+        }
+      ]
+    },
+    "coerce": {
+      "ok": {
+        "kind": "duration",
+        "canonical": "45",
+        "unit": "s"
+      }
+    }
+  },
+  "90 minu": {
+    "evaluate": {
+      "error": "NoCandidateError: Unknown unit \"minu\". Did you mean: min, mins, minute?"
+    },
+    "suggest": {
+      "ok": []
+    },
+    "explain": {
+      "error": "NoCandidateError: Unknown unit \"minu\". Did you mean: min, mins, minute?"
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "minute",
+          "span": {
+            "start": 3,
+            "end": 7
+          },
+          "text": "90 minutes",
+          "kind": "duration",
+          "unit": "min",
+          "score": 1
+        }
+      ]
+    },
+    "coerce": {
+      "error": "NoCandidateError: Unknown unit \"minu\". Did you mean: min, mins, minute?"
+    }
+  },
+  "250 millis": {
+    "evaluate": {
+      "error": "NoCandidateError: Unknown unit \"millis\". Did you mean: miles?"
+    },
+    "suggest": {
+      "ok": []
+    },
+    "explain": {
+      "error": "NoCandidateError: Unknown unit \"millis\". Did you mean: miles?"
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "millisecond",
+          "span": {
+            "start": 4,
+            "end": 10
+          },
+          "text": "250 milliseconds",
+          "kind": "duration",
+          "unit": "ms",
+          "score": -2
+        }
+      ]
+    },
+    "coerce": {
+      "error": "NoCandidateError: Unknown unit \"millis\". Did you mean: miles?"
+    }
+  },
+  "2 wee": {
+    "evaluate": {
+      "error": "NoCandidateError: Unknown unit \"wee\". Did you mean: week, weeks, feet?"
+    },
+    "suggest": {
+      "ok": []
+    },
+    "explain": {
+      "error": "NoCandidateError: Unknown unit \"wee\". Did you mean: week, weeks, feet?"
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "week",
+          "span": {
+            "start": 2,
+            "end": 5
+          },
+          "text": "2 weeks",
+          "kind": "duration",
+          "unit": "wk",
+          "score": 2
+        }
+      ]
+    },
+    "coerce": {
+      "error": "NoCandidateError: Unknown unit \"wee\". Did you mean: week, weeks, feet?"
+    }
+  },
+  "3 da": {
+    "evaluate": {
+      "error": "NoCandidateError: Unknown unit \"da\". Did you mean: day, d, ha?"
+    },
+    "suggest": {
+      "ok": []
+    },
+    "explain": {
+      "error": "NoCandidateError: Unknown unit \"da\". Did you mean: day, d, ha?"
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "day",
+          "span": {
+            "start": 2,
+            "end": 4
+          },
+          "text": "3 days",
+          "kind": "duration",
+          "unit": "d",
+          "score": 2
+        }
+      ]
+    },
+    "coerce": {
+      "error": "NoCandidateError: Unknown unit \"da\". Did you mean: day, d, ha?"
+    }
+  },
+  "10 mil": {
+    "evaluate": {
+      "error": "NoCandidateError: Unknown unit \"mil\". Did you mean: mile, mi, ml?"
+    },
+    "suggest": {
+      "ok": []
+    },
+    "explain": {
+      "error": "NoCandidateError: Unknown unit \"mil\". Did you mean: mile, mi, ml?"
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "mile",
+          "span": {
+            "start": 3,
+            "end": 6
+          },
+          "text": "10 miles",
+          "kind": "length",
+          "unit": "mi",
+          "score": 2
+        },
+        {
+          "alias": "milligram",
+          "span": {
+            "start": 3,
+            "end": 6
+          },
+          "text": "10 milligrams",
+          "kind": "mass",
+          "unit": "mg",
+          "score": -3
+        },
+        {
+          "alias": "millimeter",
+          "span": {
+            "start": 3,
+            "end": 6
+          },
+          "text": "10 millimetres",
+          "kind": "length",
+          "unit": "mm",
+          "score": -4
+        },
+        {
+          "alias": "milliliter",
+          "span": {
+            "start": 3,
+            "end": 6
+          },
+          "text": "10 millilitres",
+          "kind": "volume",
+          "unit": "ml",
+          "score": -4
+        },
+        {
+          "alias": "millisecond",
+          "span": {
+            "start": 3,
+            "end": 6
+          },
+          "text": "10 milliseconds",
+          "kind": "duration",
+          "unit": "ms",
+          "score": -5
+        }
+      ]
+    },
+    "coerce": {
+      "error": "NoCandidateError: Unknown unit \"mil\". Did you mean: mile, mi, ml?"
+    }
+  },
+  "1 mi": {
+    "evaluate": {
+      "ok": {
+        "kind": "length",
+        "canonical": "1609.344",
+        "unit": "mi",
+        "formatted": "1 mile",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 4
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "length",
+          "canonical": "1609.344",
+          "formatted": "1 mile",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "1",
+            "start": 0,
+            "end": 1
+          },
+          {
+            "type": "word",
+            "text": "mi",
+            "start": 2,
+            "end": 4
+          }
+        ],
+        "candidates": [
+          {
+            "kind": "length",
+            "unit": "mi",
+            "weight": 0,
+            "form": "mi"
+          }
+        ],
+        "assignments": [
+          {
+            "kind": "length",
+            "score": 0,
+            "confidence": 1,
+            "units": ["mi"],
+            "contributions": [
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "contextBonus",
+                "value": 0,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "mi",
+          "span": {
+            "start": 2,
+            "end": 4
+          },
+          "text": "1 mile",
+          "kind": "length",
+          "unit": "mi",
+          "score": 13
+        },
+        {
+          "alias": "mib",
+          "span": {
+            "start": 2,
+            "end": 4
+          },
+          "text": "1 mebibyte",
+          "kind": "datasize",
+          "unit": "mib",
+          "score": 2
+        },
+        {
+          "alias": "min",
+          "span": {
+            "start": 2,
+            "end": 4
+          },
+          "text": "1 minute",
+          "kind": "duration",
+          "unit": "min",
+          "score": 2
+        },
+        {
+          "alias": "milligram",
+          "span": {
+            "start": 2,
+            "end": 4
+          },
+          "text": "1 milligram",
+          "kind": "mass",
+          "unit": "mg",
+          "score": -4
+        },
+        {
+          "alias": "millimeter",
+          "span": {
+            "start": 2,
+            "end": 4
+          },
+          "text": "1 millimetre",
+          "kind": "length",
+          "unit": "mm",
+          "score": -5
+        },
+        {
+          "alias": "milliliter",
+          "span": {
+            "start": 2,
+            "end": 4
+          },
+          "text": "1 millilitre",
+          "kind": "volume",
+          "unit": "ml",
+          "score": -5
+        },
+        {
+          "alias": "millisecond",
+          "span": {
+            "start": 2,
+            "end": 4
+          },
+          "text": "1 millisecond",
+          "kind": "duration",
+          "unit": "ms",
+          "score": -6
+        }
+      ]
+    },
+    "coerce": {
+      "ok": {
+        "kind": "length",
+        "canonical": "1609.344",
+        "unit": "mi"
+      }
+    }
+  },
+  "600 mi": {
+    "evaluate": {
+      "ok": {
+        "kind": "length",
+        "canonical": "965606.4",
+        "unit": "mi",
+        "formatted": "600 miles",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 6
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "length",
+          "canonical": "965606.4",
+          "formatted": "600 miles",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "600",
+            "start": 0,
+            "end": 3
+          },
+          {
+            "type": "word",
+            "text": "mi",
+            "start": 4,
+            "end": 6
+          }
+        ],
+        "candidates": [
+          {
+            "kind": "length",
+            "unit": "mi",
+            "weight": 0,
+            "form": "mi"
+          }
+        ],
+        "assignments": [
+          {
+            "kind": "length",
+            "score": 0,
+            "confidence": 1,
+            "units": ["mi"],
+            "contributions": [
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "contextBonus",
+                "value": 0,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "mi",
+          "span": {
+            "start": 4,
+            "end": 6
+          },
+          "text": "600 miles",
+          "kind": "length",
+          "unit": "mi",
+          "score": 10
+        },
+        {
+          "alias": "mib",
+          "span": {
+            "start": 4,
+            "end": 6
+          },
+          "text": "600 mebibytes",
+          "kind": "datasize",
+          "unit": "mib",
+          "score": 2
+        },
+        {
+          "alias": "min",
+          "span": {
+            "start": 4,
+            "end": 6
+          },
+          "text": "600 minutes",
+          "kind": "duration",
+          "unit": "min",
+          "score": -1
+        },
+        {
+          "alias": "milligram",
+          "span": {
+            "start": 4,
+            "end": 6
+          },
+          "text": "600 milligrams",
+          "kind": "mass",
+          "unit": "mg",
+          "score": -4
+        },
+        {
+          "alias": "millimeter",
+          "span": {
+            "start": 4,
+            "end": 6
+          },
+          "text": "600 millimetres",
+          "kind": "length",
+          "unit": "mm",
+          "score": -5
+        },
+        {
+          "alias": "milliliter",
+          "span": {
+            "start": 4,
+            "end": 6
+          },
+          "text": "600 millilitres",
+          "kind": "volume",
+          "unit": "ml",
+          "score": -5
+        },
+        {
+          "alias": "millisecond",
+          "span": {
+            "start": 4,
+            "end": 6
+          },
+          "text": "600 milliseconds",
+          "kind": "duration",
+          "unit": "ms",
+          "score": -6
+        }
+      ]
+    },
+    "coerce": {
+      "ok": {
+        "kind": "length",
+        "canonical": "965606.4",
+        "unit": "mi"
+      }
+    }
+  },
+  "12 inc": {
+    "evaluate": {
+      "error": "NoCandidateError: Unknown unit \"inc\". Did you mean: inch, min, mins?"
+    },
+    "suggest": {
+      "ok": []
+    },
+    "explain": {
+      "error": "NoCandidateError: Unknown unit \"inc\". Did you mean: inch, min, mins?"
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "inch",
+          "span": {
+            "start": 3,
+            "end": 6
+          },
+          "text": "12 inches",
+          "kind": "length",
+          "unit": "in",
+          "score": 2
+        }
+      ]
+    },
+    "coerce": {
+      "error": "NoCandidateError: Unknown unit \"inc\". Did you mean: inch, min, mins?"
+    }
+  },
+  "1 inc": {
+    "evaluate": {
+      "error": "NoCandidateError: Unknown unit \"inc\". Did you mean: inch, min, mins?"
+    },
+    "suggest": {
+      "ok": []
+    },
+    "explain": {
+      "error": "NoCandidateError: Unknown unit \"inc\". Did you mean: inch, min, mins?"
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "inch",
+          "span": {
+            "start": 2,
+            "end": 5
+          },
+          "text": "1 inch",
+          "kind": "length",
+          "unit": "in",
+          "score": 2
+        }
+      ]
+    },
+    "coerce": {
+      "error": "NoCandidateError: Unknown unit \"inc\". Did you mean: inch, min, mins?"
+    }
+  },
+  "6 fo": {
+    "evaluate": {
+      "error": "NoCandidateError: Unknown unit \"fo\". Did you mean: f, ft, foot?"
+    },
+    "suggest": {
+      "ok": []
+    },
+    "explain": {
+      "error": "NoCandidateError: Unknown unit \"fo\". Did you mean: f, ft, foot?"
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "foot",
+          "span": {
+            "start": 2,
+            "end": 4
+          },
+          "text": "6 feet",
+          "kind": "length",
+          "unit": "ft",
+          "score": 1
+        }
+      ]
+    },
+    "coerce": {
+      "error": "NoCandidateError: Unknown unit \"fo\". Did you mean: f, ft, foot?"
+    }
+  },
+  "1 fo": {
+    "evaluate": {
+      "error": "NoCandidateError: Unknown unit \"fo\". Did you mean: f, ft, foot?"
+    },
+    "suggest": {
+      "ok": []
+    },
+    "explain": {
+      "error": "NoCandidateError: Unknown unit \"fo\". Did you mean: f, ft, foot?"
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "foot",
+          "span": {
+            "start": 2,
+            "end": 4
+          },
+          "text": "1 foot",
+          "kind": "length",
+          "unit": "ft",
+          "score": 1
+        }
+      ]
+    },
+    "coerce": {
+      "error": "NoCandidateError: Unknown unit \"fo\". Did you mean: f, ft, foot?"
+    }
+  },
+  "10 kilom": {
+    "evaluate": {
+      "ok": {
+        "kind": "mass",
+        "canonical": "10000",
+        "unit": "kg",
+        "formatted": "10 kilograms",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 8
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "mass",
+          "canonical": "10000",
+          "formatted": "10 kilograms",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "10",
+            "start": 0,
+            "end": 2
+          },
+          {
+            "type": "word",
+            "text": "kilom",
+            "start": 3,
+            "end": 8
+          }
+        ],
+        "candidates": [
+          {
+            "kind": "mass",
+            "unit": "kg",
+            "weight": -15.3,
+            "form": "kilo"
+          }
+        ],
+        "assignments": [
+          {
+            "kind": "mass",
+            "score": -15.3,
+            "confidence": 1,
+            "units": ["kg"],
+            "contributions": [
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "fuzzy:kilo",
+                "value": -15.3,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "contextBonus",
+                "value": 0,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "kilometer",
+          "span": {
+            "start": 3,
+            "end": 8
+          },
+          "text": "10 kilometres",
+          "kind": "length",
+          "unit": "km",
+          "score": -1
+        }
+      ]
+    },
+    "coerce": {
+      "ok": {
+        "kind": "mass",
+        "canonical": "10000",
+        "unit": "kg"
+      }
+    }
+  },
+  "250 millim": {
+    "evaluate": {
+      "error": "NoCandidateError: Unknown unit \"millim\""
+    },
+    "suggest": {
+      "ok": []
+    },
+    "explain": {
+      "error": "NoCandidateError: Unknown unit \"millim\""
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "millimeter",
+          "span": {
+            "start": 4,
+            "end": 10
+          },
+          "text": "250 millimetres",
+          "kind": "length",
+          "unit": "mm",
+          "score": -1
+        }
+      ]
+    },
+    "coerce": {
+      "error": "NoCandidateError: Unknown unit \"millim\""
+    }
+  },
+  "50 centi": {
+    "evaluate": {
+      "error": "NoCandidateError: Unknown unit \"centi\""
+    },
+    "suggest": {
+      "ok": []
+    },
+    "explain": {
+      "error": "NoCandidateError: Unknown unit \"centi\""
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "centimeter",
+          "span": {
+            "start": 3,
+            "end": 8
+          },
+          "text": "50 centimetres",
+          "kind": "length",
+          "unit": "cm",
+          "score": -2
+        },
+        {
+          "alias": "centigrade",
+          "span": {
+            "start": 3,
+            "end": 8
+          },
+          "text": "50 centigrade",
+          "kind": "temperature",
+          "unit": "c",
+          "score": -2
+        },
+        {
+          "alias": "centigrade",
+          "span": {
+            "start": 3,
+            "end": 8
+          },
+          "text": "50 centigrade",
+          "kind": "tempdelta",
+          "unit": "c",
+          "score": -42
+        }
+      ]
+    },
+    "coerce": {
+      "error": "NoCandidateError: Unknown unit \"centi\""
+    }
+  },
+  "12 yar": {
+    "evaluate": {
+      "error": "NoCandidateError: Unknown unit \"yar\". Did you mean: yard, yards, ha?"
+    },
+    "suggest": {
+      "ok": []
+    },
+    "explain": {
+      "error": "NoCandidateError: Unknown unit \"yar\". Did you mean: yard, yards, ha?"
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "yard",
+          "span": {
+            "start": 3,
+            "end": 6
+          },
+          "text": "12 yards",
+          "kind": "length",
+          "unit": "yd",
+          "score": 2
+        }
+      ]
+    },
+    "coerce": {
+      "error": "NoCandidateError: Unknown unit \"yar\". Did you mean: yard, yards, ha?"
+    }
+  },
+  "5 kilog": {
+    "evaluate": {
+      "ok": {
+        "kind": "mass",
+        "canonical": "5000",
+        "unit": "kg",
+        "formatted": "5 kilograms",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 7
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "mass",
+          "canonical": "5000",
+          "formatted": "5 kilograms",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "5",
+            "start": 0,
+            "end": 1
+          },
+          {
+            "type": "word",
+            "text": "kilog",
+            "start": 2,
+            "end": 7
+          }
+        ],
+        "candidates": [
+          {
+            "kind": "mass",
+            "unit": "kg",
+            "weight": -15.3,
+            "form": "kilo"
+          }
+        ],
+        "assignments": [
+          {
+            "kind": "mass",
+            "score": -15.3,
+            "confidence": 1,
+            "units": ["kg"],
+            "contributions": [
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "fuzzy:kilo",
+                "value": -15.3,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "contextBonus",
+                "value": 0,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "kilogram",
+          "span": {
+            "start": 2,
+            "end": 7
+          },
+          "text": "5 kilograms",
+          "kind": "mass",
+          "unit": "kg",
+          "score": 0
+        }
+      ]
+    },
+    "coerce": {
+      "ok": {
+        "kind": "mass",
+        "canonical": "5000",
+        "unit": "kg"
+      }
+    }
+  },
+  "1 kilog": {
+    "evaluate": {
+      "ok": {
+        "kind": "mass",
+        "canonical": "1000",
+        "unit": "kg",
+        "formatted": "1 kilogram",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 7
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "mass",
+          "canonical": "1000",
+          "formatted": "1 kilogram",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "1",
+            "start": 0,
+            "end": 1
+          },
+          {
+            "type": "word",
+            "text": "kilog",
+            "start": 2,
+            "end": 7
+          }
+        ],
+        "candidates": [
+          {
+            "kind": "mass",
+            "unit": "kg",
+            "weight": -15.3,
+            "form": "kilo"
+          }
+        ],
+        "assignments": [
+          {
+            "kind": "mass",
+            "score": -15.3,
+            "confidence": 1,
+            "units": ["kg"],
+            "contributions": [
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "fuzzy:kilo",
+                "value": -15.3,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "contextBonus",
+                "value": 0,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "kilogram",
+          "span": {
+            "start": 2,
+            "end": 7
+          },
+          "text": "1 kilogram",
+          "kind": "mass",
+          "unit": "kg",
+          "score": 0
+        }
+      ]
+    },
+    "coerce": {
+      "ok": {
+        "kind": "mass",
+        "canonical": "1000",
+        "unit": "kg"
+      }
+    }
+  },
+  "3 poun": {
+    "evaluate": {
+      "error": "NoCandidateError: Unknown unit \"poun\". Did you mean: pound, pounds, gon?"
+    },
+    "suggest": {
+      "ok": []
+    },
+    "explain": {
+      "error": "NoCandidateError: Unknown unit \"poun\". Did you mean: pound, pounds, gon?"
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "pound",
+          "span": {
+            "start": 2,
+            "end": 6
+          },
+          "text": "3 pounds",
+          "kind": "mass",
+          "unit": "lb",
+          "score": 2
+        }
+      ]
+    },
+    "coerce": {
+      "error": "NoCandidateError: Unknown unit \"poun\". Did you mean: pound, pounds, gon?"
+    }
+  },
+  "2 ton": {
+    "evaluate": {
+      "error": "NoCandidateError: Unknown unit \"ton\". Did you mean: gon, tonne, one?"
+    },
+    "suggest": {
+      "ok": []
+    },
+    "explain": {
+      "error": "NoCandidateError: Unknown unit \"ton\". Did you mean: gon, tonne, one?"
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "tonne",
+          "span": {
+            "start": 2,
+            "end": 5
+          },
+          "text": "2 tonnes",
+          "kind": "mass",
+          "unit": "t",
+          "score": 1
+        }
+      ]
+    },
+    "coerce": {
+      "error": "NoCandidateError: Unknown unit \"ton\". Did you mean: gon, tonne, one?"
+    }
+  },
+  "3 oun": {
+    "evaluate": {
+      "error": "NoCandidateError: Unknown unit \"oun\". Did you mean: ounce, pound, gon?"
+    },
+    "suggest": {
+      "ok": []
+    },
+    "explain": {
+      "error": "NoCandidateError: Unknown unit \"oun\". Did you mean: ounce, pound, gon?"
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "ounce",
+          "span": {
+            "start": 2,
+            "end": 5
+          },
+          "text": "3 ounces",
+          "kind": "mass",
+          "unit": "oz",
+          "score": 1
+        }
+      ]
+    },
+    "coerce": {
+      "error": "NoCandidateError: Unknown unit \"oun\". Did you mean: ounce, pound, gon?"
+    }
+  },
+  "250 milligr": {
+    "evaluate": {
+      "error": "NoCandidateError: Unknown unit \"milligr\". Did you mean: milligram?"
+    },
+    "suggest": {
+      "ok": []
+    },
+    "explain": {
+      "error": "NoCandidateError: Unknown unit \"milligr\". Did you mean: milligram?"
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "milligram",
+          "span": {
+            "start": 4,
+            "end": 11
+          },
+          "text": "250 milligrams",
+          "kind": "mass",
+          "unit": "mg",
+          "score": 1
+        }
+      ]
+    },
+    "coerce": {
+      "error": "NoCandidateError: Unknown unit \"milligr\". Did you mean: milligram?"
+    }
+  },
+  "1,500 gram": {
+    "evaluate": {
+      "ok": {
+        "kind": "mass",
+        "canonical": "1500",
+        "unit": "g",
+        "formatted": "1,500 grams",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 10
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "mass",
+          "canonical": "1500",
+          "formatted": "1,500 grams",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "1,500",
+            "start": 0,
+            "end": 5
+          },
+          {
+            "type": "word",
+            "text": "gram",
+            "start": 6,
+            "end": 10
+          }
+        ],
+        "candidates": [
+          {
+            "kind": "mass",
+            "unit": "g",
+            "weight": 0,
+            "form": "gram"
+          }
+        ],
+        "assignments": [
+          {
+            "kind": "mass",
+            "score": 0,
+            "confidence": 1,
+            "units": ["g"],
+            "contributions": [
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "contextBonus",
+                "value": 0,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "gram",
+          "span": {
+            "start": 6,
+            "end": 10
+          },
+          "text": "1,500 grams",
+          "kind": "mass",
+          "unit": "g",
+          "score": 10
+        }
+      ]
+    },
+    "coerce": {
+      "ok": {
+        "kind": "mass",
+        "canonical": "1500",
+        "unit": "g"
+      }
+    }
+  },
+  "512 by": {
+    "evaluate": {
+      "error": "UnitParseError: Cannot parse \"512 by\" as a quantity"
+    },
+    "suggest": {
+      "ok": []
+    },
+    "explain": {
+      "error": "UnitParseError: Cannot parse \"512 by\" as a quantity"
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "byte",
+          "span": {
+            "start": 4,
+            "end": 6
+          },
+          "text": "512 bytes",
+          "kind": "datasize",
+          "unit": "b",
+          "score": 1
+        }
+      ]
+    },
+    "coerce": {
+      "error": "UnitParseError: Cannot parse \"512 by\" as a quantity"
+    }
+  },
+  "2 kilob": {
+    "evaluate": {
+      "ok": {
+        "kind": "mass",
+        "canonical": "2000",
+        "unit": "kg",
+        "formatted": "2 kilograms",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 7
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "mass",
+          "canonical": "2000",
+          "formatted": "2 kilograms",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "2",
+            "start": 0,
+            "end": 1
+          },
+          {
+            "type": "word",
+            "text": "kilob",
+            "start": 2,
+            "end": 7
+          }
+        ],
+        "candidates": [
+          {
+            "kind": "mass",
+            "unit": "kg",
+            "weight": -15.3,
+            "form": "kilo"
+          }
+        ],
+        "assignments": [
+          {
+            "kind": "mass",
+            "score": -15.3,
+            "confidence": 1,
+            "units": ["kg"],
+            "contributions": [
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "fuzzy:kilo",
+                "value": -15.3,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "contextBonus",
+                "value": 0,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "kilobyte",
+          "span": {
+            "start": 2,
+            "end": 7
+          },
+          "text": "2 kilobytes",
+          "kind": "datasize",
+          "unit": "kb",
+          "score": 0
+        }
+      ]
+    },
+    "coerce": {
+      "ok": {
+        "kind": "mass",
+        "canonical": "2000",
+        "unit": "kg"
+      }
+    }
+  },
+  "5 megab": {
+    "evaluate": {
+      "error": "NoCandidateError: Unknown unit \"megab\""
+    },
+    "suggest": {
+      "ok": []
+    },
+    "explain": {
+      "error": "NoCandidateError: Unknown unit \"megab\""
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "megabyte",
+          "span": {
+            "start": 2,
+            "end": 7
+          },
+          "text": "5 megabytes",
+          "kind": "datasize",
+          "unit": "mb",
+          "score": 0
+        }
+      ]
+    },
+    "coerce": {
+      "error": "NoCandidateError: Unknown unit \"megab\""
+    }
+  },
+  "1 gigab": {
+    "evaluate": {
+      "error": "NoCandidateError: Unknown unit \"gigab\". Did you mean: gib?"
+    },
+    "suggest": {
+      "ok": []
+    },
+    "explain": {
+      "error": "NoCandidateError: Unknown unit \"gigab\". Did you mean: gib?"
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "gigabyte",
+          "span": {
+            "start": 2,
+            "end": 7
+          },
+          "text": "1 gigabyte",
+          "kind": "datasize",
+          "unit": "gb",
+          "score": 0
+        }
+      ]
+    },
+    "coerce": {
+      "error": "NoCandidateError: Unknown unit \"gigab\". Did you mean: gib?"
+    }
+  },
+  "3 terab": {
+    "evaluate": {
+      "error": "NoCandidateError: Unknown unit \"terab\""
+    },
+    "suggest": {
+      "ok": []
+    },
+    "explain": {
+      "error": "NoCandidateError: Unknown unit \"terab\""
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "terabyte",
+          "span": {
+            "start": 2,
+            "end": 7
+          },
+          "text": "3 terabytes",
+          "kind": "datasize",
+          "unit": "tb",
+          "score": 0
+        }
+      ]
+    },
+    "coerce": {
+      "error": "NoCandidateError: Unknown unit \"terab\""
+    }
+  },
+  "2 kib": {
+    "evaluate": {
+      "ok": {
+        "kind": "datasize",
+        "canonical": "2048",
+        "unit": "kib",
+        "formatted": "2 kibibytes",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 5
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "datasize",
+          "canonical": "2048",
+          "formatted": "2 kibibytes",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "2",
+            "start": 0,
+            "end": 1
+          },
+          {
+            "type": "word",
+            "text": "kib",
+            "start": 2,
+            "end": 5
+          }
+        ],
+        "candidates": [
+          {
+            "kind": "datasize",
+            "unit": "kib",
+            "weight": 0,
+            "form": "kib"
+          }
+        ],
+        "assignments": [
+          {
+            "kind": "datasize",
+            "score": 0,
+            "confidence": 1,
+            "units": ["kib"],
+            "contributions": [
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "contextBonus",
+                "value": 0,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "kib",
+          "span": {
+            "start": 2,
+            "end": 5
+          },
+          "text": "2 kibibytes",
+          "kind": "datasize",
+          "unit": "kib",
+          "score": 13
+        }
+      ]
+    },
+    "coerce": {
+      "ok": {
+        "kind": "datasize",
+        "canonical": "2048",
+        "unit": "kib"
+      }
+    }
+  },
+  "4 mebib": {
+    "evaluate": {
+      "error": "NoCandidateError: Unknown unit \"mebib\". Did you mean: mib?"
+    },
+    "suggest": {
+      "ok": []
+    },
+    "explain": {
+      "error": "NoCandidateError: Unknown unit \"mebib\". Did you mean: mib?"
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "mebibyte",
+          "span": {
+            "start": 2,
+            "end": 7
+          },
+          "text": "4 mebibytes",
+          "kind": "datasize",
+          "unit": "mib",
+          "score": 0
+        }
+      ]
+    },
+    "coerce": {
+      "error": "NoCandidateError: Unknown unit \"mebib\". Did you mean: mib?"
+    }
+  },
+  "90 deg": {
+    "evaluate": {
+      "ok": {
+        "kind": "angle",
+        "canonical": "1.570796326794896619231321692",
+        "unit": "deg",
+        "formatted": "90 degrees",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 6
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "angle",
+          "canonical": "1.570796326794896619231321692",
+          "formatted": "90 degrees",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "90",
+            "start": 0,
+            "end": 2
+          },
+          {
+            "type": "word",
+            "text": "deg",
+            "start": 3,
+            "end": 6
+          }
+        ],
+        "candidates": [
+          {
+            "kind": "angle",
+            "unit": "deg",
+            "weight": 0,
+            "form": "deg"
+          }
+        ],
+        "assignments": [
+          {
+            "kind": "angle",
+            "score": 0,
+            "confidence": 1,
+            "units": ["deg"],
+            "contributions": [
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "contextBonus",
+                "value": 0,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "deg",
+          "span": {
+            "start": 3,
+            "end": 6
+          },
+          "text": "90 degrees",
+          "kind": "angle",
+          "unit": "deg",
+          "score": 13
+        }
+      ]
+    },
+    "coerce": {
+      "ok": {
+        "kind": "angle",
+        "canonical": "1.570796326794896619231321692",
+        "unit": "deg"
+      }
+    }
+  },
+  "1 rad": {
+    "evaluate": {
+      "ok": {
+        "kind": "angle",
+        "canonical": "1",
+        "unit": "rad",
+        "formatted": "1 radian",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 5
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "angle",
+          "canonical": "1",
+          "formatted": "1 radian",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "1",
+            "start": 0,
+            "end": 1
+          },
+          {
+            "type": "word",
+            "text": "rad",
+            "start": 2,
+            "end": 5
+          }
+        ],
+        "candidates": [
+          {
+            "kind": "angle",
+            "unit": "rad",
+            "weight": 0,
+            "form": "rad"
+          }
+        ],
+        "assignments": [
+          {
+            "kind": "angle",
+            "score": 0,
+            "confidence": 1,
+            "units": ["rad"],
+            "contributions": [
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "contextBonus",
+                "value": 0,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "rad",
+          "span": {
+            "start": 2,
+            "end": 5
+          },
+          "text": "1 radian",
+          "kind": "angle",
+          "unit": "rad",
+          "score": 13
+        }
+      ]
+    },
+    "coerce": {
+      "ok": {
+        "kind": "angle",
+        "canonical": "1",
+        "unit": "rad"
+      }
+    }
+  },
+  "2 turn": {
+    "evaluate": {
+      "ok": {
+        "kind": "angle",
+        "canonical": "12.56637061435917295385057353",
+        "unit": "turn",
+        "formatted": "2 turns",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 6
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "angle",
+          "canonical": "12.56637061435917295385057353",
+          "formatted": "2 turns",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "2",
+            "start": 0,
+            "end": 1
+          },
+          {
+            "type": "word",
+            "text": "turn",
+            "start": 2,
+            "end": 6
+          }
+        ],
+        "candidates": [
+          {
+            "kind": "angle",
+            "unit": "turn",
+            "weight": 0,
+            "form": "turn"
+          }
+        ],
+        "assignments": [
+          {
+            "kind": "angle",
+            "score": 0,
+            "confidence": 1,
+            "units": ["turn"],
+            "contributions": [
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "contextBonus",
+                "value": 0,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "turn",
+          "span": {
+            "start": 2,
+            "end": 6
+          },
+          "text": "2 turns",
+          "kind": "angle",
+          "unit": "turn",
+          "score": 13
+        }
+      ]
+    },
+    "coerce": {
+      "ok": {
+        "kind": "angle",
+        "canonical": "12.56637061435917295385057353",
+        "unit": "turn"
+      }
+    }
+  },
+  "100 grad": {
+    "evaluate": {
+      "ok": {
+        "kind": "angle",
+        "canonical": "1.570796326794896619231321692",
+        "unit": "grad",
+        "formatted": "100 gradians",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 8
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "angle",
+          "canonical": "1.570796326794896619231321692",
+          "formatted": "100 gradians",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "100",
+            "start": 0,
+            "end": 3
+          },
+          {
+            "type": "word",
+            "text": "grad",
+            "start": 4,
+            "end": 8
+          }
+        ],
+        "candidates": [
+          {
+            "kind": "angle",
+            "unit": "grad",
+            "weight": 0,
+            "form": "grad"
+          }
+        ],
+        "assignments": [
+          {
+            "kind": "angle",
+            "score": 0,
+            "confidence": 1,
+            "units": ["grad"],
+            "contributions": [
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "contextBonus",
+                "value": 0,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "grad",
+          "span": {
+            "start": 4,
+            "end": 8
+          },
+          "text": "100 gradians",
+          "kind": "angle",
+          "unit": "grad",
+          "score": 13
+        }
+      ]
+    },
+    "coerce": {
+      "ok": {
+        "kind": "angle",
+        "canonical": "1.570796326794896619231321692",
+        "unit": "grad"
+      }
+    }
+  },
+  "5 lit": {
+    "evaluate": {
+      "error": "NoCandidateError: Unknown unit \"lit\". Did you mean: liter, litre, pint?"
+    },
+    "suggest": {
+      "ok": []
+    },
+    "explain": {
+      "error": "NoCandidateError: Unknown unit \"lit\". Did you mean: liter, litre, pint?"
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "liter",
+          "span": {
+            "start": 2,
+            "end": 5
+          },
+          "text": "5 litres",
+          "kind": "volume",
+          "unit": "l",
+          "score": 1
+        }
+      ]
+    },
+    "coerce": {
+      "error": "NoCandidateError: Unknown unit \"lit\". Did you mean: liter, litre, pint?"
+    }
+  },
+  "500 millil": {
+    "evaluate": {
+      "error": "NoCandidateError: Unknown unit \"millil\""
+    },
+    "suggest": {
+      "ok": []
+    },
+    "explain": {
+      "error": "NoCandidateError: Unknown unit \"millil\""
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "milliliter",
+          "span": {
+            "start": 4,
+            "end": 10
+          },
+          "text": "500 millilitres",
+          "kind": "volume",
+          "unit": "ml",
+          "score": -1
+        }
+      ]
+    },
+    "coerce": {
+      "error": "NoCandidateError: Unknown unit \"millil\""
+    }
+  },
+  "2 gal": {
+    "evaluate": {
+      "ok": {
+        "kind": "volume",
+        "canonical": "7.570823568",
+        "unit": "gal",
+        "formatted": "2 gallons",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 5
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "volume",
+          "canonical": "7.570823568",
+          "formatted": "2 gallons",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "2",
+            "start": 0,
+            "end": 1
+          },
+          {
+            "type": "word",
+            "text": "gal",
+            "start": 2,
+            "end": 5
+          }
+        ],
+        "candidates": [
+          {
+            "kind": "volume",
+            "unit": "gal",
+            "weight": 0,
+            "form": "gal"
+          }
+        ],
+        "assignments": [
+          {
+            "kind": "volume",
+            "score": 0,
+            "confidence": 1,
+            "units": ["gal"],
+            "contributions": [
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "contextBonus",
+                "value": 0,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "gal",
+          "span": {
+            "start": 2,
+            "end": 5
+          },
+          "text": "2 gallons",
+          "kind": "volume",
+          "unit": "gal",
+          "score": 13
+        }
+      ]
+    },
+    "coerce": {
+      "ok": {
+        "kind": "volume",
+        "canonical": "7.570823568",
+        "unit": "gal"
+      }
+    }
+  },
+  "1 pin": {
+    "evaluate": {
+      "error": "NoCandidateError: Unknown unit \"pin\". Did you mean: pint, min, pints?"
+    },
+    "suggest": {
+      "ok": []
+    },
+    "explain": {
+      "error": "NoCandidateError: Unknown unit \"pin\". Did you mean: pint, min, pints?"
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "pint",
+          "span": {
+            "start": 2,
+            "end": 5
+          },
+          "text": "1 pint",
+          "kind": "volume",
+          "unit": "pint",
+          "score": 2
+        }
+      ]
+    },
+    "coerce": {
+      "error": "NoCandidateError: Unknown unit \"pin\". Did you mean: pint, min, pints?"
+    }
+  },
+  "3 hect": {
+    "evaluate": {
+      "error": "NoCandidateError: Unknown unit \"hect\". Did you mean: hertz, pct, sec?"
+    },
+    "suggest": {
+      "ok": []
+    },
+    "explain": {
+      "error": "NoCandidateError: Unknown unit \"hect\". Did you mean: hertz, pct, sec?"
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "hectare",
+          "span": {
+            "start": 2,
+            "end": 6
+          },
+          "text": "3 hectares",
+          "kind": "area",
+          "unit": "hectare",
+          "score": 0
+        }
+      ]
+    },
+    "coerce": {
+      "error": "NoCandidateError: Unknown unit \"hect\". Did you mean: hertz, pct, sec?"
+    }
+  },
+  "2 acr": {
+    "evaluate": {
+      "error": "NoCandidateError: Unknown unit \"acr\". Did you mean: acre, acres, c?"
+    },
+    "suggest": {
+      "ok": []
+    },
+    "explain": {
+      "error": "NoCandidateError: Unknown unit \"acr\". Did you mean: acre, acres, c?"
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "acre",
+          "span": {
+            "start": 2,
+            "end": 5
+          },
+          "text": "2 acres",
+          "kind": "area",
+          "unit": "acre",
+          "score": 2
+        }
+      ]
+    },
+    "coerce": {
+      "error": "NoCandidateError: Unknown unit \"acr\". Did you mean: acre, acres, c?"
+    }
+  },
+  "10 kno": {
+    "evaluate": {
+      "error": "NoCandidateError: Unknown unit \"kno\". Did you mean: knot, knots, kilo?"
+    },
+    "suggest": {
+      "ok": []
+    },
+    "explain": {
+      "error": "NoCandidateError: Unknown unit \"kno\". Did you mean: knot, knots, kilo?"
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "knot",
+          "span": {
+            "start": 3,
+            "end": 6
+          },
+          "text": "10 knots",
+          "kind": "speed",
+          "unit": "knot",
+          "score": 2
+        }
+      ]
+    },
+    "coerce": {
+      "error": "NoCandidateError: Unknown unit \"kno\". Did you mean: knot, knots, kilo?"
+    }
+  },
+  "20 cel": {
+    "evaluate": {
+      "error": "NoCandidateError: Unknown unit \"cel\". Did you mean: cal, kcal, c?"
+    },
+    "suggest": {
+      "ok": []
+    },
+    "explain": {
+      "error": "NoCandidateError: Unknown unit \"cel\". Did you mean: cal, kcal, c?"
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "celsius",
+          "span": {
+            "start": 3,
+            "end": 6
+          },
+          "text": "20 celsius",
+          "kind": "temperature",
+          "unit": "c",
+          "score": -1
+        },
+        {
+          "alias": "celsius",
+          "span": {
+            "start": 3,
+            "end": 6
+          },
+          "text": "20 celsius",
+          "kind": "tempdelta",
+          "unit": "c",
+          "score": -41
+        }
+      ]
+    },
+    "coerce": {
+      "error": "NoCandidateError: Unknown unit \"cel\". Did you mean: cal, kcal, c?"
+    }
+  },
+  "300 kel": {
+    "evaluate": {
+      "error": "NoCandidateError: Unknown unit \"kel\". Did you mean: kcal, kilo, k?"
+    },
+    "suggest": {
+      "ok": []
+    },
+    "explain": {
+      "error": "NoCandidateError: Unknown unit \"kel\". Did you mean: kcal, kilo, k?"
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "kelvin",
+          "span": {
+            "start": 4,
+            "end": 7
+          },
+          "text": "300 kelvin",
+          "kind": "temperature",
+          "unit": "k",
+          "score": 0
+        },
+        {
+          "alias": "kelvin",
+          "span": {
+            "start": 4,
+            "end": 7
+          },
+          "text": "300 kelvin",
+          "kind": "tempdelta",
+          "unit": "k",
+          "score": -43
+        }
+      ]
+    },
+    "coerce": {
+      "error": "NoCandidateError: Unknown unit \"kel\". Did you mean: kcal, kilo, k?"
+    }
+  },
+  "10 kg + 5 gram": {
+    "evaluate": {
+      "ok": {
+        "kind": "mass",
+        "canonical": "10005",
+        "unit": "kg",
+        "formatted": "10.005 kilograms",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 14
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "mass",
+          "canonical": "10005",
+          "formatted": "10.005 kilograms",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "10",
+            "start": 0,
+            "end": 2
+          },
+          {
+            "type": "word",
+            "text": "kg",
+            "start": 3,
+            "end": 5
+          },
+          {
+            "type": "op",
+            "op": "+",
+            "start": 6,
+            "end": 7
+          },
+          {
+            "type": "number",
+            "text": "5",
+            "start": 8,
+            "end": 9
+          },
+          {
+            "type": "word",
+            "text": "gram",
+            "start": 10,
+            "end": 14
+          }
+        ],
+        "candidates": [
+          {
+            "kind": "mass",
+            "unit": "kg",
+            "weight": 0,
+            "form": "kg"
+          },
+          {
+            "kind": "mass",
+            "unit": "g",
+            "weight": 0,
+            "form": "gram"
+          }
+        ],
+        "assignments": [
+          {
+            "kind": "mass",
+            "score": 30,
+            "confidence": 1,
+            "units": ["kg", "g"],
+            "contributions": [
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "contextBonus",
+                "value": 30,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "gram",
+          "span": {
+            "start": 10,
+            "end": 14
+          },
+          "text": "10 kg + 5 grams",
+          "kind": "mass",
+          "unit": "g",
+          "score": 13
+        }
+      ]
+    },
+    "coerce": {
+      "ok": {
+        "kind": "mass",
+        "canonical": "10005",
+        "unit": "kg"
+      }
+    }
+  },
+  "10 mm + 5 centi": {
+    "evaluate": {
+      "error": "NoCandidateError: Unknown unit \"centi\""
+    },
+    "suggest": {
+      "ok": []
+    },
+    "explain": {
+      "error": "NoCandidateError: Unknown unit \"centi\""
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "centimeter",
+          "span": {
+            "start": 10,
+            "end": 15
+          },
+          "text": "10 mm + 5 centimetres",
+          "kind": "length",
+          "unit": "cm",
+          "score": -2
+        },
+        {
+          "alias": "centigrade",
+          "span": {
+            "start": 10,
+            "end": 15
+          },
+          "text": "10 mm + 5 centigrade",
+          "kind": "temperature",
+          "unit": "c",
+          "score": -2
+        },
+        {
+          "alias": "centigrade",
+          "span": {
+            "start": 10,
+            "end": 15
+          },
+          "text": "10 mm + 5 centigrade",
+          "kind": "tempdelta",
+          "unit": "c",
+          "score": -42
+        }
+      ]
+    },
+    "coerce": {
+      "error": "NoCandidateError: Unknown unit \"centi\""
+    }
+  },
+  "2 km in mil": {
+    "evaluate": {
+      "error": "NoCandidateError: Unknown unit \"mil\". Did you mean: mile, mi, ml?"
+    },
+    "suggest": {
+      "ok": []
+    },
+    "explain": {
+      "error": "NoCandidateError: Unknown unit \"mil\". Did you mean: mile, mi, ml?"
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "mile",
+          "span": {
+            "start": 8,
+            "end": 11
+          },
+          "text": "2 km in mile",
+          "kind": "length",
+          "unit": "mi",
+          "score": -1
+        },
+        {
+          "alias": "milligram",
+          "span": {
+            "start": 8,
+            "end": 11
+          },
+          "text": "2 km in milligram",
+          "kind": "mass",
+          "unit": "mg",
+          "score": -6
+        },
+        {
+          "alias": "millimeter",
+          "span": {
+            "start": 8,
+            "end": 11
+          },
+          "text": "2 km in millimetre",
+          "kind": "length",
+          "unit": "mm",
+          "score": -7
+        },
+        {
+          "alias": "milliliter",
+          "span": {
+            "start": 8,
+            "end": 11
+          },
+          "text": "2 km in millilitre",
+          "kind": "volume",
+          "unit": "ml",
+          "score": -7
+        },
+        {
+          "alias": "millisecond",
+          "span": {
+            "start": 8,
+            "end": 11
+          },
+          "text": "2 km in millisecond",
+          "kind": "duration",
+          "unit": "ms",
+          "score": -8
+        }
+      ]
+    },
+    "coerce": {
+      "error": "NoCandidateError: Unknown unit \"mil\". Did you mean: mile, mi, ml?"
+    }
+  }
+}
