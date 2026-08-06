@@ -19,6 +19,7 @@
     "@smartput/city": "workspace:*",
     "@smartput/core": "workspace:*",
     "@smartput/distance": "workspace:*",
+    "@smartput/geocode": "workspace:*",
     "@smartput/zip": "workspace:*",
     "decimal.js": "^10.6.0"
   },

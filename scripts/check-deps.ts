@@ -78,9 +78,17 @@ const ALLOWED: Record<string, string[]> = {
     "@smartput/city",
     "@smartput/core",
     "@smartput/distance",
+    "@smartput/geocode",
     "@smartput/zip",
     "decimal.js",
   ],
+  // The search half of geo, split out in M7.1 (geocode spec §3). One runtime
+  // dependency and no data: everything that produces a `Place` is a provider,
+  // every provider is network, and `@smartput/country` must stay importable
+  // without linking a fetch path. `@smartput/city` is dev-only — `bundled()`
+  // takes rows as an argument, so the edge runs from the consumer inwards, the
+  // same rule `definePlace()` follows.
+  "packages/geocode/package.json": ["@smartput/core"],
 
   // The micro-validation path. Zero runtime dependencies, enforced here: a
   // first one would mean decimal.js or core leaked into a 600-byte budget.

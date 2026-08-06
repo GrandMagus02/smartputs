@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
 import { SmartputError } from "@smartput/core";
-import { type Place, PlaceProviderError, placeSnapshot } from "./provider";
+import { type Place, PlaceProviderError, placeSnapshot } from "./place";
 
 function place(over: Partial<Place> & Pick<Place, "name">): Place {
   return {

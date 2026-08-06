@@ -80,6 +80,7 @@
         "@smartput/city": "workspace:*",
         "@smartput/core": "workspace:*",
         "@smartput/distance": "workspace:*",
+        "@smartput/geocode": "workspace:*",
         "@smartput/zip": "workspace:*",
         "decimal.js": "^10.6.0",
       },
@@ -143,6 +144,16 @@
       "dependencies": {
         "@smartput/core": "workspace:*",
         "@smartput/shared": "workspace:*",
+      },
+    },
+    "packages/geocode": {
+      "name": "@smartput/geocode",
+      "version": "0.0.0",
+      "dependencies": {
+        "@smartput/core": "workspace:*",
+      },
+      "devDependencies": {
+        "@smartput/city": "workspace:*",
       },
     },
     "packages/kinds": {
@@ -571,6 +582,8 @@
     "@smartput/docs": ["@smartput/docs@workspace:docs"],
 
     "@smartput/duration": ["@smartput/duration@workspace:packages/duration"],
+
+    "@smartput/geocode": ["@smartput/geocode@workspace:packages/geocode"],
 
     "@smartput/kinds": ["@smartput/kinds@workspace:packages/kinds"],
 
