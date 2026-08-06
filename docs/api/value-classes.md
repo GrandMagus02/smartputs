@@ -11,7 +11,7 @@ per kind, and every `@smartput/<kind>/class` subpath is a single call to it:
 
 ```ts
 // packages/angle/src/class.ts
-import { createValueClass } from "@smartput/validate";
+import { createValueClass } from "@smartput/shared";
 import { ANGLE_UNITS } from "./units";
 
 export const Angle = /*#__PURE__*/ createValueClass(ANGLE_UNITS, "angle");
@@ -135,7 +135,7 @@ b !== a; // true — every operation returns a fresh instance
 ## Errors
 
 Class methods **throw** [`ValidationError`](/api/validate#validationerror);
-the free functions in `@smartput/validate` return `Err` instead — two
+the free functions in `@smartput/shared` return `Err` instead — two
 algebras, each idiomatic for its caller. `tryParse` is the escape hatch for a
 caller that wants the class surface without a `try`/`catch` in a hot loop:
 
@@ -300,7 +300,7 @@ two kinds do not ship one.
 
 ## See also
 
-- [`@smartput/validate`](/api/validate) — `createValueClass`'s dependencies:
+- [`@smartput/shared`](/api/validate) — `createValueClass`'s dependencies:
   `parse`, the operation algebra, `ValidationError`.
 - [Validating without the engine](/guide/validating) — the three-door table
   and when to reach for a class instead of the free functions.

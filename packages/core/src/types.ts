@@ -72,7 +72,7 @@ export type Lexicon = Record<string, UnitLexeme | string[]>;
 
 /**
  * The shape the engine needs from a rate table, declared here rather than
- * imported: `@smartput/rates`'s `RateSnapshot` satisfies it structurally, and
+ * imported: `@smartput/rate`'s `RateSnapshot` satisfies it structurally, and
  * core stays free of a dependency on a package that depends on core.
  *
  * `get` returns null for an unknown pair rather than throwing, so the kind that

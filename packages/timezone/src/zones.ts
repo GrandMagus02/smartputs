@@ -1,13 +1,21 @@
 /**
- * The time zones this package registers as `datetime` units, with the words
- * people type for them.
- *
- * Aliases are single words: the alias index is keyed by one segmented word, so
- * "new york" cannot be one — "nyc" can. A caller who needs more registers a
- * `LocalePack` (spec §4.6) or an `extendsKind` patch; nothing here is a closed
- * list.
+ * One time zone, in the shape a kind registers a unit in: the words people type
+ * for it, and the symbol a formatter prints.
  */
-export const ZONES: Record<string, { aliases: string[]; symbol: string }> = {
+export interface ZoneDef {
+  aliases: string[];
+  symbol: string;
+}
+
+/**
+ * The named time zones this package ships, with the words people type for them.
+ *
+ * Aliases are single words: `@smartput/core`'s alias index is keyed by one
+ * segmented word, so "new york" cannot be one — "nyc" can. A caller who needs
+ * more registers a `LocalePack` (spec §4.6) or an `extendsKind` patch; nothing
+ * here is a closed list.
+ */
+export const ZONES: Record<string, ZoneDef> = {
   UTC: { aliases: ["utc", "gmt", "z", "zulu"], symbol: "UTC" },
   "America/New_York": { aliases: ["nyc", "est", "edt"], symbol: "ET" },
   "America/Chicago": { aliases: ["cst", "cdt", "chicago"], symbol: "CT" },

@@ -6,10 +6,10 @@ import {
   NoCandidateError,
   type Value,
 } from "@smartput/core";
+import { OFFSET_ZONES, parseOffsetZone, ZONES, zoneSymbol } from "@smartput/timezone";
 import { parseDateTime } from "./chrono-bridge";
 import { Temporal } from "./temporal";
 import { addDuration, DATETIME_KIND, durationValue, unwrap, wrap } from "./value";
-import { ZONES } from "./zones";
 
 /**
  * The one matcher this kind registers. Everything date-shaped enters the engine
@@ -36,6 +36,37 @@ const dateLiteral: LiteralMatcher = (input, offset, ctx) => {
   };
 };
 
+/**
+ * "GMT+3" standing on its own, and — the reason it exists — standing to the
+ * right of `in`.
+ *
+ * `targetable`, unlike the date literal beside it. A conversion target is a
+ * narrower thing than a value (core's `LiteralReading` docs): "today in
+ * tomorrow" must keep throwing, while "3pm in gmt+3" must not. An offset zone
+ * is only ever a zone, so it opts in.
+ *
+ * The value it carries when nothing converts into it is the current time there,
+ * which is the only instant a zone alone can mean. That makes a bare "GMT+3"
+ * answerable where a bare "utc" is not — a difference this claim introduces
+ * knowingly: "utc" reaches the engine as a unit alias, and a lone unit alias
+ * has never been a quantity.
+ */
+const zoneLiteral: LiteralMatcher = (input, offset, ctx) => {
+  const match = parseOffsetZone(input.slice(offset));
+  if (match === null) return null;
+  const value = wrap(
+    Temporal.Instant.fromEpochMilliseconds(ctx.now).toZonedDateTimeISO(match.zone),
+  );
+  return {
+    kind: DATETIME_KIND,
+    unit: value.unit,
+    canonical: value.canonical,
+    ...(value.meta ? { meta: value.meta } : {}),
+    length: match.length,
+    targetable: true,
+  };
+};
+
 const pad = (n: number, width = 2) => String(n).padStart(width, "0");
 
 /**
@@ -51,11 +82,18 @@ function formatDateTime(iso: string): string {
   const zdt = Temporal.ZonedDateTime.from(iso);
   const date = `${zdt.year}-${pad(zdt.month)}-${pad(zdt.day)}`;
   const time = `${pad(zdt.hour)}:${pad(zdt.minute)}`;
-  return `${date} ${time} ${ZONES[zdt.timeZoneId]?.symbol ?? zdt.timeZoneId}`;
+  return `${date} ${time} ${zoneSymbol(zdt.timeZoneId)}`;
 }
 
+/**
+ * The units of this kind: every zone `@smartput/timezone` ships, named and
+ * written-as-an-offset alike.
+ *
+ * Copied rather than aliased, because `defineKind` deep-freezes what it is
+ * handed and the tables belong to a package that did not ask to be frozen.
+ */
 const units: Record<string, { aliases: string[]; symbol: string }> = {};
-for (const [zone, def] of Object.entries(ZONES)) {
+for (const [zone, def] of Object.entries({ ...ZONES, ...OFFSET_ZONES })) {
   units[zone] = { aliases: [...def.aliases], symbol: def.symbol };
 }
 
@@ -91,7 +129,9 @@ function placeZone(target: Value, ctx: EvalCtx): string {
 export const datetime: Kind = defineKind({
   id: DATETIME_KIND,
   value: { mode: "opaque", units },
-  literals: [dateLiteral],
+  // Date first: on a tie the fold keeps both readings, and "3pm gmt+3" is one
+  // date whose offset the zone matcher would only ever claim a suffix of.
+  literals: [dateLiteral, zoneLiteral],
   ops: [
     {
       op: "+",

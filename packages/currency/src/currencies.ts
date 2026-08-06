@@ -119,3 +119,19 @@ export const CURRENCIES: Record<string, CurrencyDef> = {
     typical: [20, 200000],
   },
 };
+
+/**
+ * The scale this currency is written at. JPY has none; the default is two.
+ *
+ * Here rather than in `format.ts` because that module names `Decimal`, which
+ * core configures as a load-time side effect and no bundler will shake — and
+ * these two answers are worth having without it.
+ */
+export function minorUnitsOf(code: string): number {
+  return CURRENCIES[code.toLowerCase()]?.minorUnits ?? 2;
+}
+
+/** The symbol, or the uppercased code for a currency this table does not hold. */
+export function symbolOf(code: string): string {
+  return CURRENCIES[code.toLowerCase()]?.symbol ?? code.toUpperCase();
+}

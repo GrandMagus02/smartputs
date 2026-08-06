@@ -14,7 +14,7 @@ import {
   patternFor,
   scale,
   sub,
-} from "@smartput/validate";
+} from "@smartput/shared";
 import { AREA_UNITS, type AreaUnit } from "./units";
 
 export type { AreaUnit } from "./units";

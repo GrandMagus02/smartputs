@@ -8,12 +8,15 @@ import type {
 } from "@smartput/core";
 import { createEngine, SmartputError } from "@smartput/core";
 import en from "@smartput/core/locale/en";
+import { COUNTRIES, definePlace, POSTAL_FORMATS, place } from "@smartput/country";
+import { datetime } from "@smartput/datetime";
+import datetimeEn from "@smartput/datetime/locale/en";
 import { BUILTIN_KINDS } from "@smartput/kinds";
-import { CURRENCIES, money, snapshot } from "@smartput/rates";
-import moneyEn from "@smartput/rates/locale/en";
+import { CURRENCIES, money, snapshot } from "@smartput/rate";
+import moneyEn from "@smartput/rate/locale/en";
 
 export type { Completion, Engine, Result };
-export { CURRENCIES };
+export { COUNTRIES, CURRENCIES, definePlace, POSTAL_FORMATS };
 
 export interface DocsEngineOptions {
   kinds?: Kind[];
@@ -44,7 +47,7 @@ export const docsEngine: Engine = createDocsEngine();
  * A checked-in rate table, not a live quote. The docs are a static site, the
  * ECB endpoint sends no CORS header, and a demo that fails in the browser
  * teaches nothing — so the money demos run the same fixed snapshot
- * `packages/rates/src/properties.test.ts` asserts against. The date is part of
+ * `packages/rate/src/properties.test.ts` asserts against. The date is part of
  * the data and every demo shows it, because a rate without an `asOf` is a
  * number pretending to be a fact.
  */
@@ -64,7 +67,7 @@ export const DOCS_RATES = snapshot("EUR", "2026-08-04", {
 
 /**
  * Money is not in `BUILTIN_KINDS` and never will be: it needs an injected rate
- * table, so it ships in `@smartput/rates` and is registered by the caller. This
+ * table, so it ships in `@smartput/rate` and is registered by the caller. This
  * engine is what that registration looks like.
  */
 export const moneyEngine: Engine = createEngine({
@@ -72,6 +75,34 @@ export const moneyEngine: Engine = createEngine({
   kinds: [...BUILTIN_KINDS, money],
   packs: [moneyEn],
   rates: DOCS_RATES,
+});
+
+/**
+ * The place kind at T0: 252 countries and their postal formats, no gazetteer.
+ *
+ * Cities are deliberately absent and are loaded by `SpCity.vue` through a
+ * dynamic `import()`, because they are 234 KB gzipped against this tier's 27 KB
+ * — putting them here would ship the whole gazetteer to every reader of every
+ * page. That is the same argument `definePlace()` exists to let a consumer make,
+ * so the docs site makes it too rather than describing it.
+ */
+export const placeEngine: Engine = createEngine({
+  locales: [en],
+  kinds: [...BUILTIN_KINDS, place],
+});
+
+/**
+ * Datetime with places beside it, which is the only way to show the bridge:
+ * `3pm in japan` reads `meta.zone` off a place Value, and neither package knows
+ * the other exists. `now` is a live clock rather than the corpus's frozen
+ * reference — a demo that says "today" and means January is a screenshot.
+ */
+export const datetimeEngine: Engine = createEngine({
+  locales: [en],
+  kinds: [...BUILTIN_KINDS, datetime, place],
+  packs: [datetimeEn],
+  now: () => Date.now(),
+  timeZone: "UTC",
 });
 
 export type EvalOutcome =
@@ -117,6 +148,8 @@ export const KIND_ICONS: Record<string, string> = {
   area: "square",
   volume: "beaker",
   money: "banknote",
+  datetime: "calendar-clock",
+  place: "map-pin",
 };
 
 export function kindIcon(kind: string): string {

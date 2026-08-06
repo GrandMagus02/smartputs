@@ -144,3 +144,22 @@ test("a weekday after a week phrase picks the day inside that week", () => {
   // 2026-01-15 is a Thursday, so last week runs 2026-01-05..11.
   expect(iso("last week friday")).toBe("2026-01-09T00:00:00+00:00[UTC]");
 });
+
+test("a written UTC offset survives the arithmetic cut", () => {
+  // The `+` of "gmt+3" is not an operator, so the bridge may not stop the
+  // literal there — the offset is what tells the instant apart from 3pm UTC.
+  expect(iso("3pm gmt+3")).toBe("2026-01-15T12:00:00+00:00[UTC]");
+  expect(iso("3pm GMT+3")).toBe("2026-01-15T12:00:00+00:00[UTC]");
+  expect(iso("3pm utc+05:30")).toBe("2026-01-15T09:30:00+00:00[UTC]");
+  expect(iso("3pm +03:00")).toBe("2026-01-15T12:00:00+00:00[UTC]");
+  // A negative offset already worked, because `-` only cuts when spaced.
+  expect(iso("3pm gmt-3")).toBe("2026-01-15T18:00:00+00:00[UTC]");
+});
+
+test("the offset is claimed, not left behind for the parser", () => {
+  expect(parseDateTime("3pm gmt+3", 0, ctx)?.length).toBe(9);
+});
+
+test("an operator after an offset still cuts", () => {
+  expect(parseDateTime("3pm gmt+3 + 2 h", 0, ctx)?.length).toBe(9);
+});

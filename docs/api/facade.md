@@ -180,4 +180,4 @@ px.withDpi(300).to("inch").toString(); // "0.32"
 ## See also
 
 - [Kinds and units](/guide/kinds) — the `Value` model underneath.
-- [`@smartput/rates`](/api/rates) — the `rates` argument.
+- [`@smartput/rate`](/api/rate) — the `rates` argument.

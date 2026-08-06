@@ -40,7 +40,7 @@ features:
   - icon: '<span class="i-lucide-banknote"></span>'
     title: Money with the rates you supply
     details: >-
-      @smartput/rates adds a currency kind whose ratios come from an injected,
+      @smartput/rate adds a currency kind whose ratios come from an injected,
       dated table. A rate derived through the base currency is disclosed, never
       implied.
   - icon: '<span class="i-lucide-sigma"></span>'
@@ -130,11 +130,11 @@ Currencies live next door, because their unit ratios come from a table you
 supply rather than from a constant:
 
 ```sh
-bun add @smartput/rates
+bun add @smartput/rate
 ```
 
 ```ts
-import { money, snapshot } from "@smartput/rates";
+import { money, snapshot } from "@smartput/rate";
 
 const engine = createEngine({
   locales: [en],

@@ -1,5 +1,5 @@
 {
-  "name": "@smartput/rates",
+  "name": "@smartput/currency",
   "version": "0.0.0",
   "type": "module",
   "sideEffects": false,
@@ -9,18 +9,19 @@
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
-    "./locale/en": {
-      "bun": "./src/locale/en.ts",
-      "types": "./dist/locale/en.d.ts",
-      "default": "./dist/locale/en.js"
+    "./validate": {
+      "bun": "./src/validate.ts",
+      "types": "./dist/validate.d.ts",
+      "default": "./dist/validate.js"
+    },
+    "./class": {
+      "bun": "./src/class.ts",
+      "types": "./dist/class.d.ts",
+      "default": "./dist/class.js"
     }
   },
   "dependencies": {
     "@smartput/core": "workspace:*",
     "decimal.js": "^10.6.0"
-  },
-  "devDependencies": {
-    "@smartput/country": "workspace:*",
-    "@smartput/number": "workspace:*"
   }
 }

@@ -346,6 +346,25 @@ export const BUDGETS: EntrySpec[] = [
     gzip: 1950,
   },
 
+  // Currency recognition with no engine in the graph — the half of `money` that
+  // a rate cannot change, and the only micro-path row whose package exports no
+  // kind. Above the other parse rows because the currency table carries plural
+  // display forms and a typical band that a ratio table does not.
+  //
+  // The row exists for a claim a comment cannot hold: `Decimal` must stay out
+  // of this graph. Core configures its precision in a module-load side effect,
+  // which a bundler may not drop, so one re-export of `formatAmount` from
+  // `./validate` takes this from 2.6 KB to 35 KB — measured, before the two
+  // table lookups it needed were moved out of that module. Nothing about the
+  // source says so; this number does.
+  {
+    label: "currency/validate parseAmount only",
+    from: "@smartput/currency/validate",
+    names: ["parseAmount"],
+    min: 2650,
+    gzip: 1050,
+  },
+
   // `@smartput/country` is not a ratio kind and owes none of the subpaths above
   // — a place has no ratios to convert. It gets a row for a different claim its
   // own source makes: `place.ts` says the T1 tables are `@smartput/city`'s "so

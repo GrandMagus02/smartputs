@@ -67,7 +67,7 @@ addAngle("30smth", "15deg");
 
 Strings are accepted directly — `addAngle` parses both operands internally —
 so importing an op pulls `parse`, and importing only `parse` does not pull the
-ops. See [`@smartput/validate`](/api/validate) for the complete surface,
+ops. See [`@smartput/shared`](/api/validate) for the complete surface,
 including the six `ErrCode`s and the full `strict`/`loose` table.
 
 ## The micro-path class
@@ -184,6 +184,6 @@ built on, and all three are available today.
 
 ## Next
 
-- [`@smartput/validate`](/api/validate) — the full parser, ops and `patternFor` surface.
+- [`@smartput/shared`](/api/validate) — the full parser, ops and `patternFor` surface.
 - [Value classes](/api/value-classes) — the class surface and the `Quantity` bridge.
 - [Kinds and units](/guide/kinds) — which kinds ship a micro path and why two do not.

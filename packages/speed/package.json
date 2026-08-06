@@ -27,7 +27,7 @@
   },
   "dependencies": {
     "@smartput/core": "workspace:*",
-    "@smartput/validate": "workspace:*"
+    "@smartput/shared": "workspace:*"
   },
   "devDependencies": {
     "@smartput/kinds": "workspace:*"

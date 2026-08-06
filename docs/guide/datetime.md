@@ -72,6 +72,8 @@ Two behaviours worth stating outright, because both are choices:
   how `chrono-node` reads a `next` modifier, and it is asserted in the corpus so
   an upgrade that changes it fails loudly rather than quietly.
 
+<SpDatetime />
+
 The value is an ordinary `Value` — no new field, nothing a `JSON.stringify` will
 choke on:
 
@@ -135,10 +137,11 @@ target is looked up in the same alias index.
 `in` keeps the instant and relabels the wall clock — `canonical` is unchanged
 across the conversion.
 
-Eighteen zones ship in `ZONES`, keyed by IANA id:
+Eighteen named zones ship in `ZONES`, keyed by IANA id — from
+[`@smartput/timezone`](#the-zone-tables), not from this package:
 
 ```ts
-import { ZONES } from "@smartput/datetime";
+import { ZONES } from "@smartput/timezone";
 
 ZONES["Asia/Tokyo"]; // { aliases: ["tokyo", "jst", "japan"], symbol: "JST" }
 ```
@@ -146,6 +149,44 @@ ZONES["Asia/Tokyo"]; // { aliases: ["tokyo", "jst", "japan"], symbol: "JST" }
 **Aliases are single words.** The alias index is keyed by one segmented word, so
 `nyc` can be an alias and `"new york"` cannot. Multi-word aliases need a
 multi-word index, which is [recorded as a followup](#limits).
+
+### Offset zones
+
+A zone written as an offset from UTC — `GMT+3`, `utc-05:30`, `gmt+5:45` — is a
+unit too, on every quarter hour from `-12:00` to `+14:00`:
+
+| Input | Result |
+| --- | --- |
+| `3pm gmt+3` | `2026-01-15 12:00 UTC` |
+| `3pm utc+0530` | `2026-01-15 09:30 UTC` |
+| `3pm in gmt+3` | `2026-01-15 18:00 UTC+03:00` |
+| `9:30 in gmt+5:45` | `2026-01-15 15:15 UTC+05:45` |
+| `GMT+3` | `2026-01-15 15:00 UTC+03:00` |
+
+Read the first two rows the same way as `3pm est`: an offset **inside** a date
+literal says which instant `3pm` was, and the engine zone still decides how the
+answer reads. An offset **after `in`** is a conversion target like `tokyo`.
+
+Written offsets accept `±H`, `±H:MM` and `±HHMM`, with or without spaces around
+the sign, after either `gmt` or `utc`. Anything outside the range, or off the
+quarter hour, is not claimed: `gmt+15` and `gmt+3:20` are no zone anyone keeps
+time in, and `gmt` with no sign after it is still the plain `UTC` alias.
+
+`GMT+3` on its own is the current time there — the only instant a zone alone can
+mean. That is one thing a bare zone *word* does not do: `utc` reaches the engine
+as a unit alias, and a lone unit alias has never been a quantity.
+
+These units carry no aliases, because `gmt+3` lexes as three tokens (a word, an
+operator, a number) and no single-word alias lookup could ever reach it. A
+literal matcher claims the run instead, over a parser the zone package owns:
+
+```ts
+import { OFFSET_ZONES, parseOffsetZone } from "@smartput/timezone";
+
+parseOffsetZone("gmt+5:30 tomorrow"); // { zone: "+05:30", length: 8 }
+OFFSET_ZONES["+05:30"];               // { aliases: [], symbol: "UTC+05:30" }
+OFFSET_ZONES["+00:00"];               // { aliases: [], symbol: "UTC" }
+```
 
 Time zones also change what a bare time *means*, so the engine zone is not only
 a display setting:
@@ -157,6 +198,25 @@ engine.evaluate("3pm", { timeZone: "Asia/Tokyo" }).formatted;
 
 `EvalOptions.timeZone` overrides `EngineOptions.timeZone` per call, which is
 what a server handling requests from many places needs.
+
+### The zone tables
+
+Both tables, the offset parser and the symbol lookup live in
+**`@smartput/timezone`**, which has no runtime dependency at all:
+
+```ts
+import { OFFSET_ZONES, parseOffsetZone, ZONES, zoneSymbol } from "@smartput/timezone";
+```
+
+They are a package of their own so that a zone picker costs a zone picker. A
+form field listing zones, or checking that a user typed a real one, needs the
+tables and nothing else; `@smartput/datetime` is those plus `chrono-node` and
+`temporal-polyfill`, which are several times the size of the engine. The
+dependency therefore runs from the consumer inwards — the same argument that
+keeps `@smartput/city` out of `@smartput/country`.
+
+`@smartput/datetime` registers both tables as its units and adds nothing to
+them, which is why a zone id from either one works in every position.
 
 ### Adding vocabulary
 
@@ -197,7 +257,8 @@ createEngine({
 // "2026-01-15 16:00 Africa/Lagos"
 ```
 
-The formatter reads its zone symbol from `ZONES`, so a zone added this way
+The formatter reads its zone symbol from `ZONES` and `OFFSET_ZONES`, so a zone
+added this way
 prints its IANA id rather than `WAT`. Registering the symbol for display is
 `format`'s business, and overriding `format` in the patch is the way to get it.
 

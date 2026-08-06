@@ -1,5 +1,18 @@
 # smartputs — Design Spec
 
+**Amended 2026-08-06: `@smartput/rates` is `@smartput/rate`, and it is two
+packages.** The currency table, the vocabulary a money kind registers, and an
+engine-free parser and formatter moved to `@smartput/currency`, which
+`@smartput/rate` depends on. Nothing about the design below changed — the kind,
+the canonical euro, the injected `RateLookup` and the cross-rate disclosure are
+all as specified — but read `@smartput/rates` as `@smartput/rate` throughout.
+
+§3's exclusion of `money` from the micro path still holds and is now narrower
+than it reads: it is an exclusion of *conversion*, which needs a rate table a
+`UnitTable` cannot express. Recognition and rendering need neither, and ship as
+`@smartput/currency/validate` — a package that exports no kind, so the
+`exportsRatioKind` test that decides who owes `./units` never sees it.
+
 **Date:** 2026-08-04
 **Status:** Approved, pending implementation plan
 

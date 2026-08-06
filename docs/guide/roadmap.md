@@ -12,10 +12,10 @@ Each milestone is independently shippable and gets its own implementation plan.
 | **M1** | Contracts, registry, lexer, Pratt parser, solver, layered weights, softmax confidence, `explain()`. Kinds: `number`, `length`, `mass`, `duration`. Locale: `en`. | **Shipped** |
 | **M2** | Temperature (affine), measure (dpi via `Value.meta`), angle, datasize, percent, speed/area/volume as explicit op signatures. Facade class generator. | **Shipped** |
 | **M2.5** | `Engine.complete()`, prefix completion, `typical` bands, `display` on every unit, consistent word-form output. | **Shipped** |
-| **M3** | Money kind, `@smartput/rates`, ECB provider, `createLiveEngine`. | **Shipped** |
+| **M3** | Money kind, `@smartput/rate`, ECB provider, `createLiveEngine`. | **Shipped** |
 | **Word math** | `NumeralParser`, `cardinalNumerals`, numeral folding, word operators — `"twenty two kg"`, `"ten km plus five km"`. | **Shipped** |
 | **M4** | `@smartput/datetime`: datetime kind, chrono bridge, Temporal ops, timezones. Core's literal-matcher seam and opaque-kind units. | **Shipped** |
-| **M4.5** | `@smartput/validate`: an engine-free parser, operation algebra and value-class factory. Every ratio kind gains `./units`, `./validate`, `./class` subpaths, plus `@smartput/kinds/validate` and `/class` barrels. Per-entry byte budgets enforced in CI. | **Shipped** |
+| **M4.5** | `@smartput/shared`: an engine-free parser, operation algebra and value-class factory. Every ratio kind gains `./units`, `./validate`, `./class` subpaths, plus `@smartput/kinds/validate` and `/class` barrels. Per-entry byte budgets enforced in CI. | **Shipped** |
 | **M5** | `@smartput/color`, the Ukrainian locale across every package, `defineLocalePack`, analyzer helpers, `assertLocaleContract`. | Planned |
 | **M6** | `@smartput/country` and its three layers below: place kind, countries and cities, `kyiv to warsaw` as a distance, postal codes, the datetime and rates bridges, GeoNames providers, place completion. | **Shipped** |
 | **M7** | `@smartput/http`, meta-package, npm release. | Planned |
@@ -45,7 +45,7 @@ in the plugin.
 M4.5 shipped a second entry point into every ratio kind — see
 [Validating without the engine](/guide/validating). It cost every kind package
 a build step and three subpath exports, and cost `@smartput/core` nothing:
-`@smartput/validate` never imports it, the dependency runs the other way. The
+`@smartput/shared` never imports it, the dependency runs the other way. The
 byte figures that justify the split are measured, not estimated —
 `scripts/check-size.ts` builds each entry with `bun build --minify` and fails
 `bun run check` on regression, the same enforcement `check-deps.ts` already
@@ -98,8 +98,9 @@ Shipped:
 
 ```
 @smartput/core         registry, lexer, parser, solver, evaluator, ratio kinds
-@smartput/validate     engine-free parser, operation algebra, value-class factory
-@smartput/rates        money kind, RateSnapshot, ECB provider, async facade
+@smartput/shared     engine-free parser, operation algebra, value-class factory
+@smartput/rate         money kind, RateSnapshot, ECB provider, async facade
+@smartput/currency     currency table, vocabulary, engine-free parse and format
 @smartput/datetime     datetime kind, chrono bridge, Temporal ops, time zones
 @smartput/country      place kind: T0 countries, zone and currency lookup,
                        completion, GeoNames providers
@@ -123,7 +124,7 @@ Every package that defines a kind ships that kind's translations beside it under
 | --- | --- |
 | `core` | `decimal.js` — and nothing else |
 | `validate` | none — the standing target for this package, same as `core`'s one dependency |
-| any ratio kind (`angle`, `length`, …) | `@smartput/core`, `@smartput/validate` |
+| any ratio kind (`angle`, `length`, …) | `@smartput/core`, `@smartput/shared` |
 | `*/locale/*` | none — descriptors only |
 | `datetime` | `temporal-polyfill`, `chrono-node`, `@smartput/core`, `decimal.js` |
 | `rates` | `decimal.js`, `@smartput/core`; provider adapters use `fetch` only |
@@ -170,10 +171,10 @@ fractions (`half a kg`), and ordinals.
 - **`@smartput/core` ships one runtime dependency.** CI fails on a second. Still
   true after M6: the lifted snapshot cache is code, not a dependency, and geo’s
   GeoNames data is vendored as generated TypeScript inside geo. Still true after
-  M4.5: `@smartput/validate` is a devDependency of core, read structurally by
+  M4.5: `@smartput/shared` is a devDependency of core, read structurally by
   `kind/from-table.ts`, because an `import type` survives into the emitted
   `.d.ts` and would have named a dependency core does not have.
-- **`@smartput/validate` ships zero.** Not even `@smartput/core` — the
+- **`@smartput/shared` ships zero.** Not even `@smartput/core` — the
   dependency, and `decimal.js`’s ~30 KB, run the other way.
 - **A new ratio kind is five lines**, and needs no knowledge of the solver. Still
   true after M6, and worth stating precisely, because M6 was not free for core

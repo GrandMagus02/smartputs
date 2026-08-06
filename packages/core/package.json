@@ -30,6 +30,6 @@
   },
   "devDependencies": {
     "@smartput/kinds": "workspace:*",
-    "@smartput/validate": "workspace:*"
+    "@smartput/shared": "workspace:*"
   }
 }

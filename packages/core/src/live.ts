@@ -22,7 +22,7 @@ export interface SnapshotCache<S> {
  * A TTL cache in front of one async source, with one in-flight load shared by
  * concurrent callers (spec §8.1).
  *
- * Shipped in core because `@smartput/rates` and `@smartput/geo` both need it and
+ * Shipped in core because `@smartput/rate` and `@smartput/country` both need it and
  * a TTL-plus-in-flight-promise cache written twice is where two copies start to
  * drift. Copying the twenty lines into geo was the alternative, and the second
  * consumer is the point at which the shape is proven rather than guessed.

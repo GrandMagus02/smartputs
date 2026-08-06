@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test";
 import { createEngine } from "@smartput/core";
 import en from "@smartput/core/locale/en";
-import { toCanonical } from "@smartput/validate";
+import { toCanonical } from "@smartput/shared";
 import { percent } from "./index";
 import { PERCENT_UNITS, type PercentUnit } from "./units";
 import {

@@ -306,7 +306,7 @@ which, for money, would mean reaching the rate table from inside the formatter.
 
 ```ts
 /**
- * The shape the engine needs from a rate table. `@smartput/rates`'s
+ * The shape the engine needs from a rate table. `@smartput/rate`'s
  * RateSnapshot satisfies it structurally; core imports nothing.
  */
 interface RateLookup {
@@ -374,7 +374,7 @@ interface Engine {
 
 ## Snapshot cache
 
-The caching half of the provider path, lifted out of `@smartput/rates` so that
+The caching half of the provider path, lifted out of `@smartput/rate` so that
 more than one package can fetch a snapshot and rebuild an engine from it.
 
 ```ts
@@ -411,7 +411,7 @@ Concurrent callers on a cold cache share one in-flight load, and a rejection
 clears the slot so the next call retries rather than awaiting a settled
 rejection. `current`, `engine` and `snapshot` are `undefined` until a load
 succeeds; a consumer that owes its callers a named error throws it from its own
-getter — `@smartput/rates` raises `RatesNotReadyError` there.
+getter — `@smartput/rate` raises `RatesNotReadyError` there.
 
 `createCachedEngine` caches the snapshot and the engine built from it as one
 pair, so a rebuild happens inside the shared load rather than once per waiting

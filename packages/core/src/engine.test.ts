@@ -277,7 +277,7 @@ test("engine.complete never throws on half-typed input", () => {
 
 test("a unit ratio reads the injected rates, and the result is dated", () => {
   // Half a "florin" per "guilder" — an invented pair, so nothing here depends
-  // on a real currency table or on @smartput/rates existing yet.
+  // on a real currency table or on @smartput/rate existing yet.
   const rates = {
     base: "GLD",
     asOf: "2026-08-04",

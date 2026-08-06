@@ -75,7 +75,7 @@ import {
  */
 /**
  * Just enough of `UnitTable` for the assertions below. Spelled structurally
- * rather than imported from `@smartput/validate`, because every real
+ * rather than imported from `@smartput/shared`, because every real
  * `UnitTable` satisfies it and importing the type would make the aggregator
  * depend on a package it does not otherwise use — a dependency added for a
  * test is still a dependency in the manifest `check-deps` reads.
@@ -88,7 +88,7 @@ type TableLike = {
   readonly alias: Readonly<Record<string, string>>;
 };
 
-/** What a parsed result looks like from outside `@smartput/validate`. */
+/** What a parsed result looks like from outside `@smartput/shared`. */
 type ParsedLike =
   | { readonly ok: true; readonly value: number; readonly unit: string }
   | { readonly ok: false; readonly code: string };

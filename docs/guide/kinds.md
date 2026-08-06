@@ -41,7 +41,7 @@ Two more kinds ship but are **not** in `BUILTIN_KINDS`:
 | Kind | Where from | Validate | Why opt-in |
 | --- | --- | --- | --- |
 | `measure` | `@smartput/kinds` | `@smartput/measure/validate` | Typographic units — `inch` `mm` `cm` `pt` `pc` `px`. Its `mm`/`cm` aliases collide with `length`, so registering it by default would make `10 cm` ambiguous for everyone. Import it by name — and note the micro path has no such conflict: `parseLength` and `parseMeasure` are two functions someone called deliberately. |
-| `money` | [`@smartput/rates`](/api/rates) | — | Its unit ratios are not constants — they come from a rate table you inject. The micro path has no engine to inject one into, so there is nowhere for a hard-coded FX table to live that would not be worse than no feature. |
+| `money` | [`@smartput/rate`](/api/rate) | — | Its unit ratios are not constants — they come from a rate table you inject. The micro path has no engine to inject one into, so there is nowhere for a hard-coded FX table to live that would not be worse than no feature. |
 | `datetime` | [`@smartput/datetime`](/guide/datetime) | — | `temporal-polyfill` and `chrono-node` together are several times the size of the engine. An engine that never sees a date should not carry them, and its recognition needs both — nothing on this path applies. |
 
 `duration` lives in `@smartput/kinds` rather than in `@smartput/datetime`
@@ -49,6 +49,8 @@ because it is a pure ratio kind — canonical seconds, no calendar.
 `30 hours - 10 minutes` needs no Temporal and no timezone. Only `datetime`,
 where DST and calendar arithmetic are genuinely hard, pulls the heavy
 dependencies.
+
+<SpDuration />
 
 <SpConvert />
 

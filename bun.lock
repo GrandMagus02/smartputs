@@ -13,10 +13,16 @@
       "name": "@smartput/docs",
       "version": "0.0.0",
       "dependencies": {
+        "@smartput/city": "workspace:*",
         "@smartput/core": "workspace:*",
+        "@smartput/country": "workspace:*",
+        "@smartput/currency": "workspace:*",
+        "@smartput/datetime": "workspace:*",
         "@smartput/kinds": "workspace:*",
         "@smartput/math": "workspace:*",
-        "@smartput/rates": "workspace:*",
+        "@smartput/rate": "workspace:*",
+        "@smartput/timezone": "workspace:*",
+        "@smartput/zip": "workspace:*",
         "katex": "^0.18.1",
       },
       "devDependencies": {
@@ -32,7 +38,7 @@
       "version": "0.0.0",
       "dependencies": {
         "@smartput/core": "workspace:*",
-        "@smartput/validate": "workspace:*",
+        "@smartput/shared": "workspace:*",
       },
       "devDependencies": {
         "@smartput/kinds": "workspace:*",
@@ -43,7 +49,7 @@
       "version": "0.0.0",
       "dependencies": {
         "@smartput/core": "workspace:*",
-        "@smartput/validate": "workspace:*",
+        "@smartput/shared": "workspace:*",
       },
       "devDependencies": {
         "@smartput/kinds": "workspace:*",
@@ -64,7 +70,7 @@
       },
       "devDependencies": {
         "@smartput/kinds": "workspace:*",
-        "@smartput/validate": "workspace:*",
+        "@smartput/shared": "workspace:*",
       },
     },
     "packages/country": {
@@ -82,7 +88,15 @@
         "@smartput/kinds": "workspace:*",
         "@smartput/length": "workspace:*",
         "@smartput/number": "workspace:*",
-        "@smartput/rates": "workspace:*",
+        "@smartput/rate": "workspace:*",
+      },
+    },
+    "packages/currency": {
+      "name": "@smartput/currency",
+      "version": "0.0.0",
+      "dependencies": {
+        "@smartput/core": "workspace:*",
+        "decimal.js": "^10.6.0",
       },
     },
     "packages/datasize": {
@@ -90,7 +104,7 @@
       "version": "0.0.0",
       "dependencies": {
         "@smartput/core": "workspace:*",
-        "@smartput/validate": "workspace:*",
+        "@smartput/shared": "workspace:*",
       },
       "devDependencies": {
         "@smartput/kinds": "workspace:*",
@@ -101,6 +115,7 @@
       "version": "0.0.0",
       "dependencies": {
         "@smartput/core": "workspace:*",
+        "@smartput/timezone": "workspace:*",
         "chrono-node": "^2.9.0",
         "decimal.js": "^10.6.0",
         "temporal-polyfill": "^0.3.0",
@@ -127,7 +142,7 @@
       "version": "0.0.0",
       "dependencies": {
         "@smartput/core": "workspace:*",
-        "@smartput/validate": "workspace:*",
+        "@smartput/shared": "workspace:*",
       },
     },
     "packages/kinds": {
@@ -154,7 +169,7 @@
       "version": "0.0.0",
       "dependencies": {
         "@smartput/core": "workspace:*",
-        "@smartput/validate": "workspace:*",
+        "@smartput/shared": "workspace:*",
       },
     },
     "packages/mass": {
@@ -162,7 +177,7 @@
       "version": "0.0.0",
       "dependencies": {
         "@smartput/core": "workspace:*",
-        "@smartput/validate": "workspace:*",
+        "@smartput/shared": "workspace:*",
       },
     },
     "packages/math": {
@@ -179,7 +194,7 @@
       "version": "0.0.0",
       "dependencies": {
         "@smartput/core": "workspace:*",
-        "@smartput/validate": "workspace:*",
+        "@smartput/shared": "workspace:*",
       },
       "devDependencies": {
         "@smartput/kinds": "workspace:*",
@@ -190,7 +205,7 @@
       "version": "0.0.0",
       "dependencies": {
         "@smartput/core": "workspace:*",
-        "@smartput/validate": "workspace:*",
+        "@smartput/shared": "workspace:*",
       },
     },
     "packages/percent": {
@@ -198,17 +213,18 @@
       "version": "0.0.0",
       "dependencies": {
         "@smartput/core": "workspace:*",
-        "@smartput/validate": "workspace:*",
+        "@smartput/shared": "workspace:*",
       },
       "devDependencies": {
         "@smartput/kinds": "workspace:*",
       },
     },
-    "packages/rates": {
-      "name": "@smartput/rates",
+    "packages/rate": {
+      "name": "@smartput/rate",
       "version": "0.0.0",
       "dependencies": {
         "@smartput/core": "workspace:*",
+        "@smartput/currency": "workspace:*",
         "decimal.js": "^10.6.0",
       },
       "devDependencies": {
@@ -216,12 +232,16 @@
         "@smartput/number": "workspace:*",
       },
     },
+    "packages/shared": {
+      "name": "@smartput/shared",
+      "version": "0.0.0",
+    },
     "packages/speed": {
       "name": "@smartput/speed",
       "version": "0.0.0",
       "dependencies": {
         "@smartput/core": "workspace:*",
-        "@smartput/validate": "workspace:*",
+        "@smartput/shared": "workspace:*",
       },
       "devDependencies": {
         "@smartput/kinds": "workspace:*",
@@ -232,14 +252,14 @@
       "version": "0.0.0",
       "dependencies": {
         "@smartput/core": "workspace:*",
-        "@smartput/validate": "workspace:*",
+        "@smartput/shared": "workspace:*",
       },
       "devDependencies": {
         "@smartput/kinds": "workspace:*",
       },
     },
-    "packages/validate": {
-      "name": "@smartput/validate",
+    "packages/timezone": {
+      "name": "@smartput/timezone",
       "version": "0.0.0",
     },
     "packages/volume": {
@@ -247,7 +267,7 @@
       "version": "0.0.0",
       "dependencies": {
         "@smartput/core": "workspace:*",
-        "@smartput/validate": "workspace:*",
+        "@smartput/shared": "workspace:*",
       },
       "devDependencies": {
         "@smartput/kinds": "workspace:*",
@@ -540,6 +560,8 @@
 
     "@smartput/country": ["@smartput/country@workspace:packages/country"],
 
+    "@smartput/currency": ["@smartput/currency@workspace:packages/currency"],
+
     "@smartput/datasize": ["@smartput/datasize@workspace:packages/datasize"],
 
     "@smartput/datetime": ["@smartput/datetime@workspace:packages/datetime"],
@@ -564,13 +586,15 @@
 
     "@smartput/percent": ["@smartput/percent@workspace:packages/percent"],
 
-    "@smartput/rates": ["@smartput/rates@workspace:packages/rates"],
+    "@smartput/rate": ["@smartput/rate@workspace:packages/rate"],
+
+    "@smartput/shared": ["@smartput/shared@workspace:packages/shared"],
 
     "@smartput/speed": ["@smartput/speed@workspace:packages/speed"],
 
     "@smartput/temperature": ["@smartput/temperature@workspace:packages/temperature"],
 
-    "@smartput/validate": ["@smartput/validate@workspace:packages/validate"],
+    "@smartput/timezone": ["@smartput/timezone@workspace:packages/timezone"],
 
     "@smartput/volume": ["@smartput/volume@workspace:packages/volume"],
 

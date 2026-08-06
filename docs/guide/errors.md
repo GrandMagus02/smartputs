@@ -37,7 +37,7 @@ try {
 | `RatesNotReadyError` | `LiveEngine.sync` was read before the first successful refresh | — |
 
 The last three are defined in `@smartput/core` and raised from
-[`@smartput/rates`](/api/rates), so one `catch (e) { if (e instanceof
+[`@smartput/rate`](/api/rate), so one `catch (e) { if (e instanceof
 SmartputError) … }` covers both packages.
 
 ## Try them

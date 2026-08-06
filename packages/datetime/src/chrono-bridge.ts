@@ -59,15 +59,37 @@ export function accepts(text: string, isUnitAlias: (s: string) => boolean): bool
  *
  * `-` and `/` only count when whitespace-delimited, because both appear inside
  * dates chrono reads: the hyphens of "2026-03-01" and the slashes of "1/15/2026".
- * `+` and `*` appear in no date syntax, so they cut wherever they stand — which
- * is what makes "today+3d" work. Unspaced "today-1d" is the residue of that
- * asymmetry and is recorded in m4-followups.md. Parentheses cut anywhere.
+ * `*` appears in no date syntax, so it cuts wherever it stands. `+` cuts the
+ * same way — which is what makes "today+3d" work — everywhere except inside a
+ * written UTC offset, the one date syntax that contains one. Unspaced
+ * "today-1d" is the residue of that asymmetry and is recorded in
+ * m4-followups.md. Parentheses cut anywhere.
  */
-const ARITHMETIC_TAIL = /[()+*]|\s[-/]\s/;
+const ARITHMETIC_TAIL = /[()+*]|\s[-/]\s/g;
+
+/**
+ * Runs where a `+` is part of a zone, not an operator: "3pm gmt+3", "3pm
+ * utc+0530", "3pm +03:00". Without this the cut above would hand chrono "3pm
+ * gmt" and leave "+3" to the solver, which reads it as adding a bare number to
+ * a datetime — a dimension mismatch on input that names an ordinary zone.
+ *
+ * The bare `±HH:MM` form is protected only with its colon. `±HHMM` is left out
+ * on purpose: "1000 +2000" is arithmetic a user might really type, and a colon
+ * is not something any number in this grammar contains.
+ */
+const OFFSET_SPAN =
+  /(?:gmt|utc)\s*[+-]\s*\d{1,2}(?:\s*:\s*\d{2}|\d{2})?|[+-]\d{2}:\d{2}/giu;
 
 function beforeArithmetic(rest: string): string {
-  const cut = ARITHMETIC_TAIL.exec(rest);
-  return cut === null ? rest : rest.slice(0, cut.index);
+  const zones = [...rest.matchAll(OFFSET_SPAN)].map(
+    (m) => [m.index, m.index + m[0].length] as const,
+  );
+
+  for (const cut of rest.matchAll(ARITHMETIC_TAIL)) {
+    if (zones.some(([start, end]) => cut.index >= start && cut.index < end)) continue;
+    return rest.slice(0, cut.index);
+  }
+  return rest;
 }
 
 /**

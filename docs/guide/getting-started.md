@@ -48,7 +48,7 @@ const engine = createEngine({
 subset you want, or the engine will have no vocabulary and every unit raises
 `NoCandidateError`. Two kinds are deliberately left out of `BUILTIN_KINDS` and
 must be named: `measure` (its `mm`/`cm` collide with `length`) and `money`,
-which lives in [`@smartput/rates`](/guide/money) because it needs a rate table
+which lives in [`@smartput/rate`](/guide/money) because it needs a rate table
 you supply.
 :::
 
@@ -131,16 +131,16 @@ engine.evaluate("10 m").formatted; // "10 metres"
 ## Add money
 
 Currencies are a kind like any other, except that their unit ratios are not
-constants. They live in `@smartput/rates`, which you register alongside the
+constants. They live in `@smartput/rate`, which you register alongside the
 built-ins and hand a rate table:
 
 ```sh
-bun add @smartput/rates
+bun add @smartput/rate
 ```
 
 ```ts
-import { money, snapshot } from "@smartput/rates";
-import moneyEn from "@smartput/rates/locale/en";
+import { money, snapshot } from "@smartput/rate";
+import moneyEn from "@smartput/rate/locale/en";
 
 const engine = createEngine({
   locales: [en],
@@ -160,5 +160,5 @@ derived cross-rate is disclosed.
 - [The pipeline](/guide/pipeline) — what happens between the string and the result.
 - [Ambiguity and weights](/guide/weights) — the full four-layer model.
 - [Completion](/guide/completion) — `complete()` in full.
-- [Money and rates](/guide/money) — `@smartput/rates`, providers, `createLiveEngine`.
+- [Money and rates](/guide/money) — `@smartput/rate`, providers, `createLiveEngine`.
 - [API reference](/api/) — every exported symbol.

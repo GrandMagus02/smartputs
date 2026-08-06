@@ -1,16 +1,16 @@
 ---
-title: "@smartput/validate"
+title: "@smartput/shared"
 description: The shared engine-free parser, operations, pattern generator and value-class factory behind every kind's micro path.
 ---
 
-# @smartput/validate
+# @smartput/shared
 
 The package every kind's `/validate` and `/class` subpath is built from: one
 parser, one operation algebra, one class factory, keyed by a plain data table.
 No registry, no locale, no lexer.
 
 ```sh
-bun add @smartput/validate
+bun add @smartput/shared
 ```
 
 You will rarely install this directly — a kind package like
@@ -44,7 +44,7 @@ cost to everyone else. See [the precision boundary](/api/value-classes#the-preci
 
 ## Coverage
 
-`@smartput/validate` itself is table-generic — it knows nothing about angles
+`@smartput/shared` itself is table-generic — it knows nothing about angles
 or metres. Every ratio kind wires it to a table of its own, on three
 subpaths:
 
@@ -327,7 +327,7 @@ why: threading `Ok | Err` through `a.add(b).sub(c)` is miserable, and
 
 ```ts
 import { Angle } from "@smartput/angle/class";
-import { ValidationError } from "@smartput/validate";
+import { ValidationError } from "@smartput/shared";
 
 try {
   Angle.parse("30smth");

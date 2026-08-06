@@ -47,7 +47,7 @@ export default defineConfig({
         generateLLMFriendlyDocsForEachPage: true,
       }),
     ],
-    // `@smartput/core`, `@smartput/kinds`, `@smartput/rates` and
+    // `@smartput/core`, `@smartput/kinds`, `@smartput/rate` and
     // `@smartput/math` are workspace symlinks whose exports point at TypeScript
     // source, so the demos run the same code the tests do — no build step in
     // between. Vite must transform them for the SSR pass too, and the dev
@@ -56,12 +56,12 @@ export default defineConfig({
       noExternal: [
         "@smartput/core",
         "@smartput/kinds",
-        "@smartput/rates",
+        "@smartput/rate",
         "@smartput/math",
       ],
     },
     optimizeDeps: {
-      exclude: ["@smartput/core", "@smartput/kinds", "@smartput/rates", "@smartput/math"],
+      exclude: ["@smartput/core", "@smartput/kinds", "@smartput/rate", "@smartput/math"],
     },
     server: { fs: { allow: [repoRoot] } },
   },

@@ -78,6 +78,8 @@ of a bundle that only wanted countries. See
 | `nippon` | `Japan — JPY, +81, Asia/Tokyo, 127M` |
 | `antarctica` | `Antarctica — Antarctica/Casey` |
 
+<SpPlace />
+
 A multi-word name works here and a multi-word time-zone alias
 [does not](/guide/datetime#time-zones), because the two are indexed by different
 things. Core's alias index is keyed on one segmented word — that is why `nyc`
@@ -117,6 +119,8 @@ table and a strictly smaller feature.
 
 Each call returns a fresh `Kind`, and two of them cannot share one registry —
 both are `id: "place"`. A build picks its tier once.
+
+<SpCity />
 
 ### Why it is a factory and not a flag
 
@@ -615,7 +619,7 @@ A code is a conversion target like any other place:
 ```ts
 // with @smartput/datetime, at its fixed test clock — 2026-01-15T12:00:00Z
 engine.evaluate("3pm in us 90210").formatted;     // "2026-01-15 10:00 ET"
-// with @smartput/rates
+// with @smartput/rate
 engine.evaluate("100 usd in us 90210").formatted; // "$100.00"
 ```
 
@@ -677,7 +681,7 @@ engine.evaluate("noon in vancouver").formatted;
 // "2026-01-15 04:00 America/Vancouver"
 engine.evaluate("3pm in houston texas").formatted; // "2026-01-15 09:00 CT"
 
-// with @smartput/rates registered, against the 2026-08-04 snapshot.
+// with @smartput/rate registered, against the 2026-08-04 snapshot.
 // A city has no currency of its own, so it borrows its country's.
 engine.evaluate("100 usd in japan").formatted;  // "¥15,455"
 engine.evaluate("100 usd in kyoto").formatted;  // "¥15,455"
@@ -903,7 +907,7 @@ answer in place of a true one.
 
 ### Keeping it fresh
 
-Core ships the caching half, lifted out of `@smartput/rates` so more than one
+Core ships the caching half, lifted out of `@smartput/rate` so more than one
 package can use it:
 
 ```ts
@@ -930,7 +934,7 @@ retries rather than awaiting a settled rejection forever. `current` is
 built cached as one pair so they cannot come apart.
 
 **Geo ships no live engine of its own**, and that is the honest gap in this
-section: `@smartput/rates` has `createLiveEngine`, `@smartput/country` does not. A provider row
+section: `@smartput/rate` has `createLiveEngine`, `@smartput/country` does not. A provider row
 is a `Place` and a kind is built from `CityRow`s, so anyone wiring a live place
 engine today writes that mapping themselves, deciding for their own data what a
 row with no zone and no population should become. Whether `@smartput/country` ships the mapping,
@@ -1204,6 +1208,8 @@ yourself: a `definePlace()` table, a row off a provider, a table of your own
 wrapped in `new PostalFormats(rows)`. The same instance comes back for the same
 row, which is what makes the matcher behind it worth caching.
 
+<SpPostal />
+
 Ireland is the near miss worth knowing about: the Eircode has been in GeoNames'
 column since 2015, so `for("IE")` is a format and `d02af30` normalizes to
 `D02 AF30`.
@@ -1277,7 +1283,7 @@ York City. What separates them is how much of the alias is still untyped — and
 that has to be measured against everything typed, `new yor`, not against the
 fragment `yor` that neither alias begins with.
 - **No live place engine.** The cache facade is core's and the providers are
-  the place path's, and nothing joins them: `@smartput/rates` has
+  the place path's, and nothing joins them: `@smartput/rate` has
   `createLiveEngine` and `@smartput/country` has no equivalent. M6.4 was where that was to be ruled on and it was not —
   [wiring one](#keeping-it-fresh) still means writing the `Place` → `CityRow`
   mapping yourself, deciding for your own data what a row with no zone and no

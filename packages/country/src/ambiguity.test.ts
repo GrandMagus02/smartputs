@@ -18,7 +18,7 @@ import datetimeEn from "@smartput/datetime/locale/en";
 import { BUILTIN_KINDS } from "@smartput/kinds";
 import { length } from "@smartput/length";
 import { number } from "@smartput/number";
-import { money, snapshot } from "@smartput/rates";
+import { money, snapshot } from "@smartput/rate";
 import { Glob } from "bun";
 import { definePlace } from "./place";
 
@@ -357,7 +357,7 @@ const SUITES: readonly Suite[] = [
   },
   { file: "packages/datetime/corpus/en.tsv", engine: full },
   {
-    file: "packages/rates/corpus/en.tsv",
+    file: "packages/rate/corpus/en.tsv",
     engine: createEngine({ locales: [coreEn], kinds: [number, money, geo], rates }),
   },
   { file: "packages/country/corpus/en.tsv", engine: places },

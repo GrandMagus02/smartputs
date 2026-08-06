@@ -1,4 +1,4 @@
-import type { UnitTable } from "@smartput/validate";
+import type { UnitTable } from "@smartput/shared";
 
 export type DurationUnit = "ms" | "s" | "min" | "h" | "d" | "wk";
 

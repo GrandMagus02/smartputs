@@ -10,18 +10,37 @@ import { Glob } from "bun";
  */
 const ALLOWED: Record<string, string[]> = {
   // Spec §4 and §13: core ships exactly one runtime dependency and does not
-  // depend on @smartput/validate — the dependency runs the other way. It was
+  // depend on @smartput/shared — the dependency runs the other way. It was
   // listed here for a while so that `from-table.ts` could `import type
   // { UnitTable }`; that type is now declared structurally in core as
   // `RatioTable`, so nothing in core names the package outside a dev-only test.
   "packages/core/package.json": ["decimal.js"],
+  // The zone tables and the written-offset parser, with no runtime dependency
+  // at all — a table of zone names needs no engine to be a table, and a form
+  // field offering a zone picker should not install chrono and Temporal to get
+  // one. It is underneath datetime for the same reason `@smartput/city` is
+  // underneath country: the edge runs from the consumer inwards.
+  "packages/timezone/package.json": [],
   "packages/datetime/package.json": [
     "@smartput/core",
+    "@smartput/timezone",
     "chrono-node",
     "decimal.js",
     "temporal-polyfill",
   ],
-  "packages/rates/package.json": ["decimal.js", "@smartput/core"],
+  // The rate half of money: snapshots, the ECB provider, the live-engine
+  // facade, and the `money` kind whose unit ratios read an injected table. It
+  // depends on `@smartput/currency` for the other half — the symbol, the minor
+  // units, the aliases and the parser — because none of those change when a
+  // rate does, and a form field that only wants to read "30 usd" should not
+  // have to link a provider to do it.
+  "packages/rate/package.json": ["decimal.js", "@smartput/core", "@smartput/currency"],
+  // What a currency *is*, with nothing about what it is worth: the table, the
+  // vocabulary, the parser and the formatter. Core is here for `Decimal` — the
+  // repo forbids importing decimal.js directly, because core's module-load
+  // `Decimal.set({ precision: 28 })` is what keeps every package at one
+  // precision — and for the `Lexicon` type, which compiles away.
+  "packages/currency/package.json": ["decimal.js", "@smartput/core"],
   // The number package is here for its word vocabulary, not its kind: reading
   // "one hundred and five" and spelling 105 back are what `latexFromWords` and
   // `describe` share with it.
@@ -65,23 +84,23 @@ const ALLOWED: Record<string, string[]> = {
 
   // The micro-validation path. Zero runtime dependencies, enforced here: a
   // first one would mean decimal.js or core leaked into a 600-byte budget.
-  "packages/validate/package.json": [],
+  "packages/shared/package.json": [],
 
   // Extracted built-in kinds. Each is a leaf: it defines one kind against the
   // machinery in core and depends on nothing else, which is what keeps the
   // aggregator below the only package that has to know the full set.
-  "packages/angle/package.json": ["@smartput/core", "@smartput/validate"],
-  "packages/area/package.json": ["@smartput/core", "@smartput/validate"],
-  "packages/datasize/package.json": ["@smartput/core", "@smartput/validate"],
-  "packages/duration/package.json": ["@smartput/core", "@smartput/validate"],
-  "packages/length/package.json": ["@smartput/core", "@smartput/validate"],
-  "packages/mass/package.json": ["@smartput/core", "@smartput/validate"],
-  "packages/measure/package.json": ["@smartput/core", "@smartput/validate"],
-  "packages/number/package.json": ["@smartput/core", "@smartput/validate"],
-  "packages/percent/package.json": ["@smartput/core", "@smartput/validate"],
-  "packages/speed/package.json": ["@smartput/core", "@smartput/validate"],
-  "packages/temperature/package.json": ["@smartput/core", "@smartput/validate"],
-  "packages/volume/package.json": ["@smartput/core", "@smartput/validate"],
+  "packages/angle/package.json": ["@smartput/core", "@smartput/shared"],
+  "packages/area/package.json": ["@smartput/core", "@smartput/shared"],
+  "packages/datasize/package.json": ["@smartput/core", "@smartput/shared"],
+  "packages/duration/package.json": ["@smartput/core", "@smartput/shared"],
+  "packages/length/package.json": ["@smartput/core", "@smartput/shared"],
+  "packages/mass/package.json": ["@smartput/core", "@smartput/shared"],
+  "packages/measure/package.json": ["@smartput/core", "@smartput/shared"],
+  "packages/number/package.json": ["@smartput/core", "@smartput/shared"],
+  "packages/percent/package.json": ["@smartput/core", "@smartput/shared"],
+  "packages/speed/package.json": ["@smartput/core", "@smartput/shared"],
+  "packages/temperature/package.json": ["@smartput/core", "@smartput/shared"],
+  "packages/volume/package.json": ["@smartput/core", "@smartput/shared"],
 
   // The aggregator: re-exports every kind above and owns BUILTIN_KINDS, so it
   // is the one package legitimately allowed to depend on all of them.
@@ -140,7 +159,12 @@ const SUBPATH_EXEMPT: Record<string, { subpaths: string[] | null; why: string }>
   // strings cannot express. Spec §3 excludes it: a micro path with no engine
   // has nowhere to inject rates, and a hard-coded FX table would be worse than
   // no feature.
-  "packages/rates/package.json": {
+  //
+  // The exemption is about *conversion* and always was. Everything else the
+  // micro path offers — which currency a word names, how much "30 usd" is, how
+  // to write it back — needs no rate, and ships as `@smartput/currency/validate`.
+  // That package exports no kind, so this map never sees it.
+  "packages/rate/package.json": {
     subpaths: null,
     why: "spec §3: money's ratios are live rates, not constants",
   },
@@ -171,7 +195,7 @@ async function exportsRatioKind(dir: string): Promise<boolean> {
  *
  * This is the check that runs in the direction the manifest cannot: a manifest
  * says what a package *may* depend on, and this says what it actually does.
- * Core listing `@smartput/validate` as a runtime dependency passed the manifest
+ * Core listing `@smartput/shared` as a runtime dependency passed the manifest
  * check for a milestone because someone widened the allowlist; what nothing
  * asked was whether core's source imports it at all. It does not, and §4 says
  * it must not — so the two halves together are the invariant, and either alone

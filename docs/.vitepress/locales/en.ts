@@ -76,15 +76,19 @@ export const en: LocaleSpecificConfig<DefaultTheme.Config> & {
           ],
         },
         {
-          text: "@smartput/validate",
+          text: "@smartput/shared",
           items: [
             { text: "Overview", link: "/api/validate" },
             { text: "Value classes", link: "/api/value-classes" },
           ],
         },
         {
-          text: "@smartput/rates",
-          items: [{ text: "Overview", link: "/api/rates" }],
+          text: "@smartput/rate",
+          items: [{ text: "Overview", link: "/api/rate" }],
+        },
+        {
+          text: "@smartput/currency",
+          items: [{ text: "Overview", link: "/api/currency" }],
         },
         {
           text: "@smartput/math",

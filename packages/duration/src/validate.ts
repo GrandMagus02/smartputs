@@ -14,7 +14,7 @@ import {
   patternFor,
   scale,
   sub,
-} from "@smartput/validate";
+} from "@smartput/shared";
 import { DURATION_UNITS, type DurationUnit } from "./units";
 
 export type { DurationUnit } from "./units";

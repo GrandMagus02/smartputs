@@ -10,7 +10,7 @@ import {
   type UnitDef,
   type Value,
 } from "@smartput/core";
-import { CURRENCIES } from "./currencies";
+import { CURRENCIES, currencyLexicon, formatAmount } from "@smartput/currency";
 
 const CANONICAL = "eur";
 
@@ -43,7 +43,7 @@ function rateRatio(code: string): UnitDef {
  * — because a derived rate is exactly as derived in `30 usd - 10 gbp` as it is
  * in `30 usd in gbp`, and spec §8 says cross-rates are never silent.
  *
- * One helper rather than three copies: `@smartput/rates` is the shape M4's
+ * One helper rather than three copies: `@smartput/rate` is the shape M4's
  * datetime and M5's colour packages will read, and a disclosure rule that lives
  * in three places is a disclosure rule that will be applied in two.
  *
@@ -63,19 +63,17 @@ function noteCross(ctx: EvalCtx, l: Value, r: Value): void {
 }
 
 const units: Record<string, UnitDef | number> = { [CANONICAL]: 1 };
-const lexicon: Lexicon = {};
-for (const [code, def] of Object.entries(CURRENCIES)) {
+for (const code of Object.keys(CURRENCIES)) {
   if (code !== CANONICAL) units[code] = rateRatio(code);
-  // The full lexeme shape core's own kinds carry (mass.ts is the reference):
-  // aliases and symbol alone leave `display` — what completion inserts — and
-  // `typical` — what its scaleFit scores — empty for every currency.
-  lexicon[code] = {
-    aliases: def.aliases,
-    symbol: def.symbol,
-    ...(def.display ? { display: def.display } : {}),
-    typical: def.typical,
-  };
 }
+
+/**
+ * Every currency's aliases, symbol, plural forms and magnitude band, built by
+ * `@smartput/currency`. Only the `units` above are this package's: a ratio is
+ * the one part of a currency that a date can change, and it is the only part
+ * that needs a snapshot to exist at all.
+ */
+const lexicon: Lexicon = currencyLexicon();
 
 /**
  * Canonical euro, because ECB's daily reference file quotes against it.
@@ -201,39 +199,27 @@ export const money: Kind = defineKind({
     },
   ],
   format: (value, ctx) => {
-    const def = CURRENCIES[value.unit];
-    const minorUnits = def?.minorUnits ?? 2;
-    const rounding = ctx.rounding ?? Decimal.ROUND_HALF_EVEN;
-    // Two steps, each doing a job the other can't: `toFixed(minorUnits, …)`
-    // applies the rounding mode at the minor-unit scale (cents, not guard
-    // digits), but a Decimal has no notion of a trailing zero, so
-    // `new Decimal("30.00")` is just 30 again — the ".00" is gone the moment
-    // it's reconstructed. `minFractionDigits` on the formatNumber call below
-    // is what restores it, padding back up to the minor-unit scale, using the
-    // locale's own decimal symbol rather than a hand-rolled one.
+    // The guard-digit trim is this package's and stays here, because it is
+    // repairing damage a *rate* did. For any non-canonical currency
+    // `ctx.authored` is `fromCanonical(canonical, ...)`, so the amount has
+    // passed through the rate twice and carries ±1ulp at the 28th significant
+    // digit — "0.005 usd" comes back as 0.005000000000000000000000000001.
+    // Feeding that to a half-even tie-break decides the cent by round-trip
+    // noise whose direction varies with the rate: $0.01 for one currency,
+    // €0.00 for the same nominal amount in another. Trimming to the display
+    // precision first (the same two guard digits `formatNumber` uses) restores
+    // the tie, so the rounding mode decides it — and it has to happen before
+    // the mode is applied, which is why it is not inside `formatAmount`.
     //
-    // The guard-digit trim has to happen BEFORE the mode is applied. For any
-    // non-canonical currency `ctx.authored` is `fromCanonical(canonical, ...)`,
-    // so the amount has passed through the rate twice and carries ±1ulp at the
-    // 28th significant digit — "0.005 usd" comes back as
-    // 0.005000000000000000000000000001. Feeding that to a half-even tie-break
-    // decides the cent by round-trip noise whose direction varies with the
-    // rate: $0.01 for one currency, €0.00 for the same nominal amount in
-    // another. Trimming to the display precision first (the same two guard
-    // digits `formatNumber` uses) restores the tie, so the rounding mode
-    // decides it.
+    // Everything after it — the minor-unit scale, the symbol, the sign, the
+    // padding that puts the ".00" back — is a fact about the currency and
+    // belongs to `@smartput/currency`. An amount that was never converted has
+    // no noise to trim, and that caller gets the same digits from
+    // `formatAmount` alone.
     const guarded = new Decimal(ctx.authored.toPrecision(DISPLAY_PRECISION));
-    const rounded = new Decimal(guarded.toFixed(minorUnits, rounding));
-    const symbol = def?.symbol ?? value.unit.toUpperCase();
-    // Sign outside the symbol: every locale convention writes "-$10.00", never
-    // "$-10.00". `isZero` guards the case where rounding a small negative to
-    // the minor unit lands on zero — "-$0.00" would be worse than what it
-    // replaces.
-    const sign = rounded.isNegative() && !rounded.isZero() ? "-" : "";
-    const digits = ctx.formatNumber(rounded.abs(), {
-      precision: 34,
-      minFractionDigits: minorUnits,
+    return formatAmount(guarded, value.unit, {
+      ...(ctx.rounding !== undefined ? { rounding: ctx.rounding } : {}),
+      formatNumber: ctx.formatNumber,
     });
-    return `${sign}${symbol}${digits}`;
   },
 });

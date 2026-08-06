@@ -74,3 +74,41 @@ test("the clock is injectable, so nothing depends on the wall clock", () => {
 test("AmbiguityError is still reachable for genuinely ambiguous units", () => {
   expect(() => make().evaluate("10 m")).toThrow(AmbiguityError);
 });
+
+test("a written UTC offset names the instant", () => {
+  // The engine's zone still decides how the answer reads; the offset only
+  // decides which instant "3pm" was. Same rule as "3pm est".
+  expect(make().evaluate("3pm gmt+3").formatted).toBe("2026-01-15 12:00 UTC");
+  expect(make().evaluate("3pm GMT+3").formatted).toBe("2026-01-15 12:00 UTC");
+  expect(make().evaluate("3pm utc+05:30").formatted).toBe("2026-01-15 09:30 UTC");
+});
+
+test("an offset zone is a conversion target like any other unit", () => {
+  const engine = make();
+  expect(engine.evaluate("3pm in gmt+3").formatted).toBe("2026-01-15 18:00 UTC+03:00");
+  expect(engine.evaluate("3pm in utc-5").formatted).toBe("2026-01-15 10:00 UTC-05:00");
+  expect(engine.evaluate("3pm in gmt+5:45").formatted).toBe("2026-01-15 20:45 UTC+05:45");
+  expect(engine.evaluate("3pm in gmt+3").value.unit).toBe("+03:00");
+});
+
+test("an offset of zero reads as UTC, not as +00:00", () => {
+  expect(make().evaluate("3pm in gmt+0").formatted).toBe("2026-01-15 15:00 UTC");
+});
+
+test("a bare offset zone is the current time there", () => {
+  expect(make().evaluate("GMT+3").formatted).toBe("2026-01-15 15:00 UTC+03:00");
+  expect(make().evaluate("utc-5").formatted).toBe("2026-01-15 07:00 UTC-05:00");
+});
+
+test("offset zones compose with the rest of the kind", () => {
+  const engine = make();
+  expect(engine.evaluate("3pm gmt+3 in tokyo").formatted).toBe("2026-01-15 21:00 JST");
+  expect(engine.evaluate("3pm gmt+3 + 2 h").formatted).toBe("2026-01-15 14:00 UTC");
+  expect(engine.evaluate("3pm in gmt+3 - 3pm utc").value.unit).toBe("s");
+});
+
+test("gmt keeps its plain alias reading", () => {
+  // The offset matcher must not swallow the word on its own: "gmt" with no
+  // sign after it is still the UTC alias the kind has always registered.
+  expect(make().evaluate("3pm in gmt").formatted).toBe("2026-01-15 15:00 UTC");
+});

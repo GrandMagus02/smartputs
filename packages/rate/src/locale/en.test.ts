@@ -5,7 +5,7 @@ import { number } from "@smartput/number";
 // Through the package path, not "./en": the exports map is the only route a
 // consumer has, and importing by relative path is exactly what hid the fact
 // that `./locale/en` was missing from it.
-import enMoney from "@smartput/rates/locale/en";
+import enMoney from "@smartput/rate/locale/en";
 import { money } from "../money";
 import { snapshot } from "../snapshot";
 

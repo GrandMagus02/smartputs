@@ -1,4 +1,4 @@
-import type { UnitTable } from "@smartput/validate";
+import type { UnitTable } from "@smartput/shared";
 
 export type TemperatureUnit = "c" | "f" | "k";
 /** A difference between readings is measured on the same scale as a reading. */
@@ -49,7 +49,7 @@ const ALIAS: Readonly<Record<string, TemperatureUnit>> = {
 
 /**
  * An absolute reading. `canonical = (value + offset) * ratio`, which is the
- * order both `@smartput/validate`'s convert and core's eval/convert use.
+ * order both `@smartput/shared`'s convert and core's eval/convert use.
  */
 export const TEMPERATURE_UNITS: UnitTable<TemperatureUnit> = {
   canonical: "c",

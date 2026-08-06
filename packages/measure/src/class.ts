@@ -1,5 +1,5 @@
-import type { Input, ValueClass, ValueInstance } from "@smartput/validate";
-import { createValueClass } from "@smartput/validate";
+import type { Input, ValueClass, ValueInstance } from "@smartput/shared";
+import { createValueClass } from "@smartput/shared";
 import { MEASURE_UNITS, type MeasureUnit } from "./units";
 
 export type { MeasureUnit } from "./units";

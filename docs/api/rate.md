@@ -1,22 +1,25 @@
 ---
-title: "@smartput/rates"
+title: "@smartput/rate"
 description: The money kind, rate snapshots, providers and the async facade.
 ---
 
-# @smartput/rates
+# @smartput/rate
 
 The money kind and everything it needs that core deliberately does not have: a
-currency table, a rate table, providers that fetch one, and an async facade that
-caches the result.
+rate table, providers that fetch one, and an async facade that caches the
+result. The currency table itself is [`@smartput/currency`](/api/currency), a
+dependency of this package — a symbol and a minor unit do not change when a rate
+does, and a form field that only validates `"30 usd"` should not have to link a
+provider to do it.
 
 ```sh
-bun add @smartput/rates
+bun add @smartput/rate
 ```
 
 | Subpath | Contents |
 | --- | --- |
-| `@smartput/rates` | `money`, `snapshot`, `ecb`, `custom`, `createLiveEngine`, `CURRENCIES` |
-| `@smartput/rates/locale/en` | colloquial English currency words (default export) |
+| `@smartput/rate` | `money`, `snapshot`, `ecb`, `custom`, `createLiveEngine`, `CURRENCIES` |
+| `@smartput/rate/locale/en` | colloquial English currency words (default export) |
 
 Runtime dependencies: `@smartput/core` and `decimal.js`. Provider adapters use
 `fetch` and nothing else.
@@ -38,8 +41,8 @@ engine a `rates` table — without one, every non-euro unit raises
 import { createEngine } from "@smartput/core";
 import en from "@smartput/core/locale/en";
 import { BUILTIN_KINDS } from "@smartput/kinds";
-import { money, snapshot } from "@smartput/rates";
-import moneyEn from "@smartput/rates/locale/en";
+import { money, snapshot } from "@smartput/rate";
+import moneyEn from "@smartput/rate/locale/en";
 
 const engine = createEngine({
   locales: [en],
@@ -128,7 +131,7 @@ interface LiveEngine {
 ```
 
 ```ts
-import { createLiveEngine, ecb, money } from "@smartput/rates";
+import { createLiveEngine, ecb, money } from "@smartput/rate";
 
 const live = createLiveEngine({
   locales: [en],
@@ -196,6 +199,13 @@ const provider = custom(async () => snapshot("EUR", today, await myApi.rates()))
 ```
 
 ## CURRENCIES
+
+Re-exported from [`@smartput/currency`](/api/currency), which is where the table
+and its type now live — along with the parser, the formatter and the vocabulary
+the kind registers. It stays reachable from here because a consumer registering
+`money` almost always wants to render a currency picker too, and a second import
+for the table `money`'s own units are keyed by would be a split the user pays
+for and nobody asked for.
 
 ```ts
 const CURRENCIES: Record<string, CurrencyDef>

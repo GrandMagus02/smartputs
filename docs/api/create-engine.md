@@ -61,7 +61,7 @@ createEngine({ locales: [en], kinds: [...BUILTIN_KINDS, measure, myTicker] });
 
 Two shipped kinds are not in `BUILTIN_KINDS` and must be named: `measure`, also
 from `@smartput/kinds`, whose `mm`/`cm` aliases collide with `length`, and
-`money` from [`@smartput/rates`](/api/rates), which needs a `rates` table to
+`money` from [`@smartput/rate`](/api/rate), which needs a `rates` table to
 convert at all.
 
 Two kinds claiming the same id, or the same op signature, raise
@@ -134,7 +134,7 @@ from surfacing as trailing noise.
 ### rates
 
 An FX table for kinds whose unit ratios are not constants.
-`@smartput/rates`'s `RateSnapshot` satisfies the shape structurally; core never
+`@smartput/rate`'s `RateSnapshot` satisfies the shape structurally; core never
 imports that package.
 
 ```ts
@@ -146,7 +146,7 @@ interface RateLookup {
 ```
 
 ```ts
-import { money, snapshot } from "@smartput/rates";
+import { money, snapshot } from "@smartput/rate";
 
 createEngine({
   locales: [en],

@@ -22,7 +22,7 @@ test("valid and invalid input", () => {
 // The grammar's unit character class must accept the superscript digits
 // `²`/`³` for the symbol forms to parse at all -- confirmed here rather than
 // assumed, per the task's own note that a rejection here is a blocker for
-// packages/validate, not something this package can work around.
+// packages/shared, not something this package can work around.
 test("superscript symbol forms parse", () => {
   expect(parseArea("5m²")).toMatchObject({ ok: true, value: 5, unit: "m2" });
   expect(parseArea("3cm²")).toMatchObject({ ok: true, value: 3, unit: "cm2" });

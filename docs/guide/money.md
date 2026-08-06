@@ -8,18 +8,23 @@ description: The money kind, rate snapshots, providers, and the async facade.
 Money is an ordinary kind. It parses through the same lexer, ranks through the
 same solver, and converts through the same `in`. The one thing it does not have
 is constant unit ratios — a euro is not a fixed number of dollars — so
-`@smartput/rates` supplies the kind and you supply the table.
+`@smartput/rate` supplies the kind and you supply the table.
+
+What a currency *is* — its symbol, its minor units, the words that name it — is
+[`@smartput/currency`](/api/currency), a dependency of this one. None of that
+changes when a rate does, and a form field validating `"30 usd"` should not have
+to link a provider to do it.
 
 ```sh
-bun add @smartput/rates
+bun add @smartput/rate
 ```
 
 ```ts
 import { createEngine } from "@smartput/core";
 import en from "@smartput/core/locale/en";
 import { BUILTIN_KINDS } from "@smartput/kinds";
-import { money, snapshot } from "@smartput/rates";
-import moneyEn from "@smartput/rates/locale/en";
+import { money, snapshot } from "@smartput/rate";
+import moneyEn from "@smartput/rate/locale/en";
 
 const engine = createEngine({
   locales: [en],
@@ -124,14 +129,14 @@ Deliberately not the full ISO 4217 list: a code with no rate behind it can only
 ever raise `MissingRateError`, so listing it would promise nothing.
 
 ```ts
-import { CURRENCIES } from "@smartput/rates";
+import { CURRENCIES } from "@smartput/rate"; // re-exported from @smartput/currency
 
 CURRENCIES.jpy;
 // { minorUnits: 0, symbol: "¥", aliases: ["jpy", "yen"],
 //   display: { one: "yen", other: "yen" }, typical: [100, 1000000] }
 ```
 
-`@smartput/rates/locale/en` is a separate opt-in pack carrying what only English
+`@smartput/rate/locale/en` is a separate opt-in pack carrying what only English
 speakers say — `quid`, `sterling`, `bucks`. Vocabulary ships beside the kind it
 describes, so it cannot drift from it.
 
@@ -141,7 +146,7 @@ describes, so it cannot drift from it.
 TTL live in it; the engine underneath stays pure and keystroke-fast.
 
 ```ts
-import { createLiveEngine, ecb, money } from "@smartput/rates";
+import { createLiveEngine, ecb, money } from "@smartput/rate";
 
 const live = createLiveEngine({
   locales: [en],
@@ -197,9 +202,9 @@ engine.evaluate("$30");                 // number 30 — not an error, a differe
 
 Fixing it means teaching the lexer prefix symbols, which carries its own
 ambiguity questions, so it is pinned as a known failure in
-`packages/rates/src/properties.test.ts` rather than left to be discovered.
+`packages/rate/src/properties.test.ts` rather than left to be discovered.
 
 ## Next
 
-- [`@smartput/rates` API reference](/api/rates) — every export.
+- [`@smartput/rate` API reference](/api/rate) — every export.
 - [Kinds and units](/guide/kinds) — where the value model comes from.

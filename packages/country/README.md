@@ -51,7 +51,7 @@ prevent.
 ## Nothing imports anything
 
 `3pm in japan` and `100 usd in japan` work without `@smartput/datetime` or
-`@smartput/rates` knowing what a place is. Core declares `PlaceMeta`, this kind
+`@smartput/rate` knowing what a place is. Core declares `PlaceMeta`, this kind
 produces it, and the other two read a string out of `meta` — `meta.zone` and
 `meta.currency`. The dependency graph is unchanged in both directions.
 

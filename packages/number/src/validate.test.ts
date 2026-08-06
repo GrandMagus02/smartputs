@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test";
 import { createEngine } from "@smartput/core";
 import en from "@smartput/core/locale/en";
-import { toCanonical } from "@smartput/validate";
+import { toCanonical } from "@smartput/shared";
 import { number } from "./index";
 import { NUMBER_UNITS, type NumberUnit } from "./units";
 import {
@@ -42,7 +42,7 @@ test("defaultUnit composes with caller opts: forced, not erasable, mode still ov
   });
   // ...but a bare number in strict mode is `missing-unit`, defaultUnit or
   // not: `parse`'s strict mode has no bare-number fallback regardless of
-  // what `defaultUnit` names (packages/validate/src/parse.ts's
+  // what `defaultUnit` names (packages/shared/src/parse.ts's
   // `word.length === 0` branch forces `fallback` to `undefined` whenever
   // `strict` is true). Hardcoding `defaultUnit: "one"` cannot and does not
   // change that — only loose mode gets the free pass, and loose is what a

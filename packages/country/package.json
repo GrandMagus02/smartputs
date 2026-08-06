@@ -27,6 +27,6 @@
     "@smartput/kinds": "workspace:*",
     "@smartput/length": "workspace:*",
     "@smartput/number": "workspace:*",
-    "@smartput/rates": "workspace:*"
+    "@smartput/rate": "workspace:*"
   }
 }

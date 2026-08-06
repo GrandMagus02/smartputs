@@ -17,7 +17,7 @@ import {
   scale,
   sub,
   toCanonical,
-} from "@smartput/validate";
+} from "@smartput/shared";
 import {
   TEMPDELTA_UNITS,
   TEMPERATURE_UNITS,

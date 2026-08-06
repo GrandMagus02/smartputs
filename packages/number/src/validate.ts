@@ -14,7 +14,7 @@ import {
   patternFor,
   scale,
   sub,
-} from "@smartput/validate";
+} from "@smartput/shared";
 import { NUMBER_UNITS, type NumberUnit } from "./units";
 
 export type { NumberUnit } from "./units";
@@ -34,7 +34,7 @@ type I = Input<NumberUnit>;
 //
 // This does not make `missing-unit` unreachable: `parse`'s strict mode has
 // no bare-number fallback regardless of `defaultUnit` (see
-// packages/validate/src/parse.ts's `word.length === 0` branch), so
+// packages/shared/src/parse.ts's `word.length === 0` branch), so
 // `parseNumber("30", { mode: "strict" })` is still `missing-unit`. Only
 // loose mode — the default — gets the free pass, which is the case that
 // actually matters: a caller has to opt into strict mode by name.

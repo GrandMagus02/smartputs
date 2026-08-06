@@ -70,7 +70,7 @@ export interface EngineOptions {
    */
   formatPrecision?: number;
   /**
-   * FX rates for kinds whose unit ratios are not constants. `@smartput/rates`'s
+   * FX rates for kinds whose unit ratios are not constants. `@smartput/rate`'s
    * RateSnapshot satisfies this structurally; core never imports it.
    */
   rates?: RateLookup;
