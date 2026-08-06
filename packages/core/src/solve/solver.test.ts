@@ -9,7 +9,9 @@ import { defineLocale } from "../locale/define";
 import enLocale from "../locale/en";
 import { createResolver } from "../parse/candidates";
 import { lex } from "../parse/lex";
+import { normalize } from "../parse/normalize";
 import { parse } from "../parse/pratt";
+import { buildProgram } from "../parse/program";
 import type { LiteralMatcher } from "../types";
 import { solve } from "./solver";
 
@@ -33,8 +35,13 @@ const registry = buildRegistry([number, length, duration]);
 
 function run(input: string, layers: Parameters<typeof createResolver>[0]["layers"] = []) {
   const resolver = createResolver({ registry, locale: en, packs: [], layers });
-  const node = parse(lex(input, en), resolver, input);
-  return { node, assignments: solve(node, registry, { maxCandidates: 10_000, input }) };
+  const normalized = normalize(input);
+  const node = parse(lex(normalized.text, en), resolver, input);
+  const program = buildProgram(node, normalized);
+  return {
+    node,
+    assignments: solve(program, registry, { maxCandidates: 10_000, input }),
+  };
 }
 
 test("an unambiguous input yields one assignment at confidence 1", () => {
@@ -162,8 +169,10 @@ test("a convert takes its result kind from the signature, not from the target", 
   const reg = buildRegistry([number, length, duration, paces]);
   const resolver = createResolver({ registry: reg, locale: en, packs: [], layers: [] });
   const input = "10 km in h";
-  const node = parse(lex(input, en), resolver, input);
-  const assignments = solve(node, reg, { maxCandidates: 10_000, input });
+  const normalized = normalize(input);
+  const node = parse(lex(normalized.text, en), resolver, input);
+  const program = buildProgram(node, normalized);
+  const assignments = solve(program, reg, { maxCandidates: 10_000, input });
   expect(assignments[0]?.kind).toBe("pace");
 });
 
@@ -198,8 +207,10 @@ test("the context bonus decides when both assignments type-check", () => {
     layers: [{ "length:m": 10 }],
   });
   const input = "10 m + 5 h";
-  const node = parse(lex(input, en), resolver, input);
-  const assignments = solve(node, bridged, { maxCandidates: 10_000, input });
+  const normalized = normalize(input);
+  const node = parse(lex(normalized.text, en), resolver, input);
+  const program = buildProgram(node, normalized);
+  const assignments = solve(program, bridged, { maxCandidates: 10_000, input });
 
   expect(assignments).toHaveLength(2);
   // duration: 0 weight + 30 context bonus. length: 10 weight, no bonus.
@@ -210,8 +221,10 @@ test("the context bonus decides when both assignments type-check", () => {
 test("exceeding maxCandidates throws TooAmbiguousError", () => {
   const resolver = createResolver({ registry, locale: en, packs: [], layers: [] });
   const input = "1 m + 1 m + 1 m + 1 m";
-  const node = parse(lex(input, en), resolver, input);
-  expect(() => solve(node, registry, { maxCandidates: 4, input })).toThrow(
+  const normalized = normalize(input);
+  const node = parse(lex(normalized.text, en), resolver, input);
+  const program = buildProgram(node, normalized);
+  expect(() => solve(program, registry, { maxCandidates: 4, input })).toThrow(
     TooAmbiguousError,
   );
 });
@@ -219,8 +232,10 @@ test("exceeding maxCandidates throws TooAmbiguousError", () => {
 test("the kinds filter drops candidates outside the allowed set", () => {
   const resolver = createResolver({ registry, locale: en, packs: [], layers: [] });
   const input = "10 m";
-  const node = parse(lex(input, en), resolver, input);
-  const assignments = solve(node, registry, {
+  const normalized = normalize(input);
+  const node = parse(lex(normalized.text, en), resolver, input);
+  const program = buildProgram(node, normalized);
+  const assignments = solve(program, registry, {
     maxCandidates: 10_000,
     kinds: ["length"],
     input,
@@ -384,8 +399,10 @@ test("a signature weight lifts its candidate above an equal-scoring rival", () =
     layers: [],
   });
   const input = "10 m - 5 m";
-  const node = parse(lex(input, en), resolver, input);
-  const assignments = solve(node, weighted, { maxCandidates: 10_000, input });
+  const normalized = normalize(input);
+  const node = parse(lex(normalized.text, en), resolver, input);
+  const program = buildProgram(node, normalized);
+  const assignments = solve(program, weighted, { maxCandidates: 10_000, input });
 
   expect(assignments[0]?.kind).toBe("length");
   expect(assignments[0]?.signatureWeight).toBe(20);

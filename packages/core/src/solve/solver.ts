@@ -1,21 +1,29 @@
 import { DimensionMismatchError, TooAmbiguousError } from "../errors";
 import { NUMBER_KIND, opKey, type Registry } from "../kind/registry";
-import type { Node } from "../parse/ast";
+import type { Node, NodeId } from "../parse/ast";
 import { walk } from "../parse/ast";
+import type { Program } from "../parse/program";
 import type { Candidate, KindId } from "../types";
 
 export const CONTEXT_BONUS = 30;
 
-export interface Assignment {
-  choices: Map<Node, Candidate>;
-  kind: KindId;
-  score: number;
+export interface Resolution {
+  /**
+   * Keyed by NodeId, never by node object. Keying by identity made a
+   * resolution meaningless without the exact tree that produced it.
+   */
+  readonly choices: Readonly<Record<NodeId, Candidate>>;
+  readonly kind: KindId;
+  readonly score: number;
   /** The part of `score` that came from context agreement, so explain() can list it. */
-  contextBonus: number;
+  readonly contextBonus: number;
   /** The part of `score` that came from op signatures, so explain() can list it. */
-  signatureWeight: number;
-  confidence: number;
+  readonly signatureWeight: number;
+  readonly confidence: number;
 }
+
+/** @deprecated Renamed to `Resolution`. Kept for one minor version. */
+export type Assignment = Resolution;
 
 interface Slot {
   node: Node;
@@ -80,21 +88,21 @@ function collectSlots(root: Node, kinds: KindId[] | undefined): Slot[] {
 /** Returns the kind of `node` under `choices`, or null when no op signature applies. */
 function typeOf(
   node: Node,
-  choices: Map<Node, Candidate>,
+  choices: Readonly<Record<NodeId, Candidate>>,
   registry: Registry,
 ): KindId | null {
   switch (node.type) {
     case "number":
       return NUMBER_KIND;
     case "quantity":
-      return choices.get(node)?.kind ?? null;
+      return choices[node.id]?.kind ?? null;
     case "literal":
-      return choices.get(node)?.kind ?? null;
+      return choices[node.id]?.kind ?? null;
     case "unary":
       return typeOf(node.operand, choices, registry);
     case "convert": {
       const operand = typeOf(node.operand, choices, registry);
-      const target = choices.get(node);
+      const target = choices[node.id];
       if (operand === null || target === undefined) return null;
       // Take the result from the signature rather than assuming it is the
       // target's own kind: the signature is already in hand, and a declared
@@ -112,7 +120,7 @@ function typeOf(
 
 function contextBonus(
   node: Node,
-  choices: Map<Node, Candidate>,
+  choices: Readonly<Record<NodeId, Candidate>>,
   registry: Registry,
 ): number {
   let bonus = 0;
@@ -140,7 +148,7 @@ function contextBonus(
  */
 function signatureWeight(
   node: Node,
-  choices: Map<Node, Candidate>,
+  choices: Readonly<Record<NodeId, Candidate>>,
   registry: Registry,
 ): number {
   let total = 0;
@@ -152,7 +160,7 @@ function signatureWeight(
       total += registry.ops.get(opKey(n.op, left, right))?.weight ?? 0;
     } else if (n.type === "convert") {
       const operand = typeOf(n.operand, choices, registry);
-      const target = choices.get(n);
+      const target = choices[n.id];
       if (operand === null || target === undefined) return;
       total += registry.ops.get(opKey("in", operand, target.kind))?.weight ?? 0;
     }
@@ -169,10 +177,11 @@ function softmax(scores: number[]): number[] {
 }
 
 export function solve(
-  root: Node,
+  program: Program,
   registry: Registry,
   opts: { maxCandidates: number; kinds?: KindId[]; input: string },
-): Assignment[] {
+): Resolution[] {
+  const root = program.root;
   const slots = collectSlots(root, opts.kinds);
 
   const space = slots.reduce((n, s) => n * Math.max(s.candidates.length, 1), 1);
@@ -181,7 +190,7 @@ export function solve(
   }
 
   const viable: Array<{
-    choices: Map<Node, Candidate>;
+    choices: Record<NodeId, Candidate>;
     kind: KindId;
     score: number;
     contextBonus: number;
@@ -190,7 +199,7 @@ export function solve(
 
   const enumerate = (
     index: number,
-    choices: Map<Node, Candidate>,
+    choices: Record<NodeId, Candidate>,
     weight: number,
   ): void => {
     if (index === slots.length) {
@@ -199,7 +208,7 @@ export function solve(
       const bonus = contextBonus(root, choices, registry);
       const signature = signatureWeight(root, choices, registry);
       viable.push({
-        choices: new Map(choices),
+        choices: { ...choices },
         kind,
         score: weight + bonus + signature,
         contextBonus: bonus,
@@ -210,13 +219,13 @@ export function solve(
     const slot = slots[index];
     if (slot === undefined) return;
     for (const candidate of slot.candidates) {
-      choices.set(slot.node, candidate);
+      choices[slot.node.id] = candidate;
       enumerate(index + 1, choices, weight + candidate.weight);
-      choices.delete(slot.node);
+      delete choices[slot.node.id];
     }
   };
 
-  enumerate(0, new Map(), 0);
+  enumerate(0, {}, 0);
 
   if (viable.length === 0) {
     const operands = reportedOperands(root, opts.kinds);
@@ -232,12 +241,22 @@ export function solve(
     (a, b) =>
       b.score - a.score ||
       a.kind.localeCompare(b.kind) ||
-      [...a.choices.values()]
+      Object.values(a.choices)
         .map((c) => c.unit)
         .join()
-        .localeCompare([...b.choices.values()].map((c) => c.unit).join()),
+        .localeCompare(
+          Object.values(b.choices)
+            .map((c) => c.unit)
+            .join(),
+        ),
   );
 
   const confidences = softmax(viable.map((v) => v.score));
-  return viable.map((v, i) => ({ ...v, confidence: confidences[i] ?? 0 }));
+  return viable.map((v, i) =>
+    Object.freeze({
+      ...v,
+      choices: Object.freeze(v.choices),
+      confidence: confidences[i] ?? 0,
+    }),
+  );
 }

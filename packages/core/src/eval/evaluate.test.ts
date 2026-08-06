@@ -8,7 +8,9 @@ import { defineLocale } from "../locale/define";
 import enLocale from "../locale/en";
 import { createResolver } from "../parse/candidates";
 import { lex } from "../parse/lex";
+import { normalize } from "../parse/normalize";
 import { parse } from "../parse/pratt";
+import { buildProgram } from "../parse/program";
 import { solve } from "../solve/solver";
 import { evaluateNode } from "./evaluate";
 
@@ -36,10 +38,12 @@ const registry = buildRegistry([number, length, duration]);
 
 function evaluate(input: string) {
   const resolver = createResolver({ registry, locale: en, packs: [], layers: [] });
-  const node = parse(lex(input, en), resolver, input);
-  const [best] = solve(node, registry, { maxCandidates: 10_000, input });
+  const normalized = normalize(input);
+  const node = parse(lex(normalized.text, en), resolver, input);
+  const program = buildProgram(node, normalized);
+  const [best] = solve(program, registry, { maxCandidates: 10_000, input });
   if (best === undefined) throw new Error("no assignment");
-  return evaluateNode({ node, assignment: best, registry, locale: "en", input });
+  return evaluateNode({ program, resolution: best, registry, locale: "en", input });
 }
 
 test("evaluates a single quantity in its authored unit", () => {
@@ -113,11 +117,19 @@ test("evaluateNode collects the assumption of every signature it applies", () =>
   const r = buildRegistry([number, length, duration, noted]);
   const resolver = createResolver({ registry: r, locale: en, packs: [], layers: [] });
   const input = "2 of 10 km";
-  const node = parse(lex(input, en), resolver, input);
-  const [best] = solve(node, r, { maxCandidates: 10_000, input });
+  const normalized = normalize(input);
+  const node = parse(lex(normalized.text, en), resolver, input);
+  const program = buildProgram(node, normalized);
+  const [best] = solve(program, r, { maxCandidates: 10_000, input });
   if (best === undefined) throw new Error("no assignment");
 
-  const out = evaluateNode({ node, assignment: best, registry: r, locale: "en", input });
+  const out = evaluateNode({
+    program,
+    resolution: best,
+    registry: r,
+    locale: "en",
+    input,
+  });
   expect(out.value.canonical.toString()).toBe("20000");
   expect(out.assumptions).toEqual([
     { code: "scale-factor", message: "read as a scale factor" },

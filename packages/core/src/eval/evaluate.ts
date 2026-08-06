@@ -3,7 +3,8 @@ import { DimensionMismatchError, DivideByZeroError } from "../errors";
 import { deepFreeze } from "../freeze";
 import { NUMBER_KIND, opKey, type Registry } from "../kind/registry";
 import type { Node } from "../parse/ast";
-import type { Assignment } from "../solve/solver";
+import type { Program } from "../parse/program";
+import type { Resolution } from "../solve/solver";
 import type { Assumption, EvalCtx, OpSignature, RateLookup, Value } from "../types";
 import { toCanonical } from "./convert";
 
@@ -13,8 +14,8 @@ export interface EvalResult {
 }
 
 export interface EvaluateOptions {
-  node: Node;
-  assignment: Assignment;
+  program: Program;
+  resolution: Resolution;
   registry: Registry;
   locale: string;
   input: string;
@@ -23,7 +24,7 @@ export interface EvaluateOptions {
 }
 
 export function evaluateNode(opts: EvaluateOptions): EvalResult {
-  const { node, assignment, registry, locale, input, rates } = opts;
+  const { program, resolution, registry, locale, input, rates } = opts;
   const kindMeta = opts.kindMeta ?? {};
   const assumptions: Assumption[] = [];
   const seen = new Set<string>();
@@ -55,7 +56,7 @@ export function evaluateNode(opts: EvaluateOptions): EvalResult {
         // nothing is picked here either, which is why "90210" can be a number
         // under `evaluate` and a postal code under `suggest` without the two
         // disagreeing about what the parser saw.
-        const choice = assignment.choices.get(n);
+        const choice = resolution.choices[n.id];
         const value = choice === undefined ? undefined : n.values.get(choice);
         if (value === undefined) {
           const kind = choice?.kind ?? n.candidates[0]?.kind ?? "?";
@@ -65,7 +66,7 @@ export function evaluateNode(opts: EvaluateOptions): EvalResult {
       }
 
       case "quantity": {
-        const choice = assignment.choices.get(n);
+        const choice = resolution.choices[n.id];
         if (choice === undefined)
           throw new DimensionMismatchError(input, "quantity", "?", "?");
         const kind = registry.kinds.get(choice.kind);
@@ -93,7 +94,7 @@ export function evaluateNode(opts: EvaluateOptions): EvalResult {
 
       case "convert": {
         const operand = evalNode(n.operand);
-        const target = assignment.choices.get(n);
+        const target = resolution.choices[n.id];
         if (target === undefined)
           throw new DimensionMismatchError(input, "in", operand.kind, "?");
         const sig = registry.ops.get(opKey("in", operand.kind, target.kind));
@@ -132,5 +133,5 @@ export function evaluateNode(opts: EvaluateOptions): EvalResult {
     }
   };
 
-  return { value: evalNode(node), assumptions };
+  return { value: evalNode(program.root), assumptions };
 }

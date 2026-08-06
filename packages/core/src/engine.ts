@@ -18,8 +18,9 @@ import { foldLiterals } from "./parse/literals";
 import { type NormalizedInput, Normalizer } from "./parse/normalize";
 import { foldNumerals } from "./parse/numerals";
 import { parse } from "./parse/pratt";
+import { buildProgram } from "./parse/program";
 import { foldWordOps } from "./parse/wordops";
-import { type Assignment, solve } from "./solve/solver";
+import { type Resolution, solve } from "./solve/solver";
 import { weightBreakdown } from "./solve/weights";
 import type {
   Assumption,
@@ -174,23 +175,25 @@ export function createEngine(opts: EngineOptions): Engine {
       ),
     );
     const node = parse(tokens, resolver, input);
-    const assignments = solve(node, registry, {
+    const program = buildProgram(node, normalized);
+    const assignments = solve(program, registry, {
       maxCandidates,
       input,
       ...(call?.kinds ? { kinds: call.kinds } : {}),
     });
-    return { normalized, resolver, tokens, node, assignments };
+    return { normalized, resolver, tokens, program, node, assignments };
   }
 
   function toResult(
     normalized: NormalizedInput,
     node: ReturnType<typeof pipeline>["node"],
-    assignment: Assignment,
+    program: ReturnType<typeof pipeline>["program"],
+    resolution: Resolution,
     input: string,
   ): Result {
     const { value, assumptions } = evaluateNode({
-      node,
-      assignment,
+      program,
+      resolution,
       registry,
       locale: (locale as Locale).id,
       input,
@@ -205,7 +208,7 @@ export function createEngine(opts: EngineOptions): Engine {
         ...(rates ? { rates } : {}),
       }),
       kind: value.kind,
-      confidence: assignment.confidence,
+      confidence: resolution.confidence,
       // Spans are produced against the normalized text; the caller reads them
       // against the string they passed in. Without this they disagree whenever
       // normalization changed a length.
@@ -219,7 +222,7 @@ export function createEngine(opts: EngineOptions): Engine {
 
   return {
     evaluate(input, call) {
-      const { normalized, node, assignments } = pipeline(input, call);
+      const { normalized, node, program, assignments } = pipeline(input, call);
       const [best, second] = assignments;
       if (best === undefined) throw new SmartputError("No interpretation", input);
 
@@ -230,19 +233,19 @@ export function createEngine(opts: EngineOptions): Engine {
       ) {
         const listed: ResultCandidate[] = assignments.slice(0, 5).map((a) => ({
           kind: a.kind,
-          unit: [...a.choices.values()][0]?.unit ?? "",
+          unit: Object.values(a.choices)[0]?.unit ?? "",
           confidence: a.confidence,
         }));
         throw new AmbiguityError(input, listed, [normalized.mapSpan(node.span)]);
       }
 
-      return toResult(normalized, node, best, input);
+      return toResult(normalized, node, program, best, input);
     },
 
     suggest(input, call) {
       try {
-        const { normalized, node, assignments } = pipeline(input, call);
-        return assignments.map((a) => toResult(normalized, node, a, input));
+        const { normalized, node, program, assignments } = pipeline(input, call);
+        return assignments.map((a) => toResult(normalized, node, program, a, input));
       } catch (e) {
         // Only the library's own errors mean "this input has no interpretation",
         // and not even all of those — see NEVER_SWALLOWED. A TypeError from a
@@ -257,12 +260,12 @@ export function createEngine(opts: EngineOptions): Engine {
 
     coerce(kind, input, call) {
       const merged: EvalOptions = { ...call, kinds: [kind, NUMBER_KIND] };
-      let assignments: Assignment[];
-      let node: ReturnType<typeof pipeline>["node"];
+      let assignments: Resolution[];
+      let program: ReturnType<typeof pipeline>["program"];
       try {
         const run = pipeline(input, merged);
         assignments = run.assignments;
-        node = run.node;
+        program = run.program;
       } catch (e) {
         if (e instanceof NoCandidateError) throw e;
         // Same rule as suggest: never convert a genuine bug into "no candidate".
@@ -272,8 +275,8 @@ export function createEngine(opts: EngineOptions): Engine {
       const best = assignments.find((a) => a.kind === kind);
       if (best === undefined) throw new NoCandidateError(input, input, []);
       return evaluateNode({
-        node,
-        assignment: best,
+        program,
+        resolution: best,
         registry,
         locale: locale.id,
         input,
@@ -286,7 +289,7 @@ export function createEngine(opts: EngineOptions): Engine {
       const { tokens, assignments } = pipeline(input, call);
       const candidates: Candidate[] = [];
       for (const assignment of assignments) {
-        for (const candidate of assignment.choices.values()) {
+        for (const candidate of Object.values(assignment.choices)) {
           if (
             !candidates.some(
               (c) => c.kind === candidate.kind && c.unit === candidate.unit,
@@ -302,7 +305,7 @@ export function createEngine(opts: EngineOptions): Engine {
         tokens,
         candidates,
         assignments: assignments.map((a) => {
-          const chosen = [...a.choices.values()];
+          const chosen = Object.values(a.choices);
           return {
             kind: a.kind,
             score: a.score,
