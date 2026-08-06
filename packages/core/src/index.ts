@@ -43,6 +43,8 @@ export {
   suffixStripper,
   tableAnalyzer,
 } from "./locale/helpers";
+export type { Node, NodeId } from "./parse/ast";
+export { walk } from "./parse/ast";
 // One edit distance for the whole repo. A package that reads through a typo —
 // math's spoken words, completion's fragments — measures the slip the same way
 // the error hints do, because two implementations of "how near is this" drift
@@ -66,4 +68,6 @@ export { Normalizer, normalize } from "./parse/normalize";
 // constants above are — a plugin cannot pick a weight against a number it
 // cannot name, and this file is the only path out of the package.
 export { NUMBER_FALLBACK_WEIGHT } from "./parse/pratt";
+export type { Program } from "./parse/program";
+export { buildProgram } from "./parse/program";
 export type * from "./types";

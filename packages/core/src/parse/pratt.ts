@@ -2,7 +2,7 @@ import { Decimal } from "../decimal";
 import { NoCandidateError, UnitParseError } from "../errors";
 import { NUMBER_KIND } from "../kind/ratio-ops";
 import type { Candidate, LiteralReading, OpSymbol, Span, Value } from "../types";
-import type { Node } from "./ast";
+import type { Node, NodeId } from "./ast";
 import type { Resolver } from "./candidates";
 import type { Token, WordToken } from "./lex";
 
@@ -49,6 +49,21 @@ const CONVERT_BINDING = 5;
 
 export function parse(tokens: Token[], resolver: Resolver, input: string): Node {
   let pos = 0;
+
+  // Depth-first, matching `walk`'s order, so a reader can predict an id from
+  // the source position rather than having to look it up.
+  let nextId = 0;
+  const id = () => nextId++;
+
+  // A binary or convert node wraps an already-parsed `left`, which already
+  // has an id of its own — unlike a leaf or a freshly-parsed operand, there is
+  // no "just call id()" for the wrap itself. The wrap takes over `left`'s id
+  // and `left` is demoted to a fresh one, which is what keeps a parent's id
+  // smaller than the child it wraps, matching `walk`'s visit order.
+  const demote = (node: Node): { nodeId: NodeId; demoted: Node } => ({
+    nodeId: node.id,
+    demoted: { ...node, id: id() },
+  });
 
   const peek = (): Token | undefined => tokens[pos];
   const span = (a: Span, b: Span): Span => ({ start: a.start, end: b.end });
@@ -122,6 +137,7 @@ export function parse(tokens: Token[], resolver: Resolver, input: string): Node 
       }
 
       return {
+        id: id(),
         type: "literal",
         candidates,
         values,
@@ -131,8 +147,16 @@ export function parse(tokens: Token[], resolver: Resolver, input: string): Node 
 
     if (token.type === "op" && token.op === "-") {
       pos += 1;
+      // Taken before the operand is parsed, so ids run parent-then-child.
+      const nodeId = id();
       const operand = parseExpr(30);
-      return { type: "unary", op: "-", operand, span: span(token, operand.span) };
+      return {
+        id: nodeId,
+        type: "unary",
+        op: "-",
+        operand,
+        span: span(token, operand.span),
+      };
     }
 
     if (token.type === "number") {
@@ -154,6 +178,7 @@ export function parse(tokens: Token[], resolver: Resolver, input: string): Node 
         if (candidates.length > 0) {
           pos += 1;
           return {
+            id: id(),
             type: "quantity",
             value: token.value,
             candidates,
@@ -162,6 +187,7 @@ export function parse(tokens: Token[], resolver: Resolver, input: string): Node 
         }
       }
       return {
+        id: id(),
         type: "number",
         value: token.value,
         span: { start: token.start, end: token.end },
@@ -188,6 +214,7 @@ export function parse(tokens: Token[], resolver: Resolver, input: string): Node 
       if (candidates.length > 0) {
         pos += 1;
         return {
+          id: id(),
           type: "quantity",
           value: IMPLIED_COUNT,
           candidates,
@@ -259,14 +286,18 @@ export function parse(tokens: Token[], resolver: Resolver, input: string): Node 
 
           if (target.length === 0) throw new UnitParseError(input);
           pos += 1;
-          left = {
-            type: "convert",
-            operand: left,
-            target,
-            ...(targetValues.size > 0 ? { targetValues } : {}),
-            span: span(left.span, unit),
-            targetSpan: { start: unit.start, end: unit.end },
-          };
+          {
+            const { nodeId, demoted: operand } = demote(left);
+            left = {
+              id: nodeId,
+              type: "convert",
+              operand,
+              target,
+              ...(targetValues.size > 0 ? { targetValues } : {}),
+              span: span(operand.span, unit),
+              targetSpan: { start: unit.start, end: unit.end },
+            };
+          }
           continue;
         }
 
@@ -278,13 +309,17 @@ export function parse(tokens: Token[], resolver: Resolver, input: string): Node 
           ]);
         }
         pos += 1;
-        left = {
-          type: "convert",
-          operand: left,
-          target,
-          span: span(left.span, unit),
-          targetSpan: { start: unit.start, end: unit.end },
-        };
+        {
+          const { nodeId, demoted: operand } = demote(left);
+          left = {
+            id: nodeId,
+            type: "convert",
+            operand,
+            target,
+            span: span(operand.span, unit),
+            targetSpan: { start: unit.start, end: unit.end },
+          };
+        }
         continue;
       }
 
@@ -301,13 +336,15 @@ export function parse(tokens: Token[], resolver: Resolver, input: string): Node 
         const binding = BINDING[op];
         if (binding < minBinding) break;
         pos += 1;
+        const { nodeId, demoted: demotedLeft } = demote(left);
         const right = parseExpr(binding + 1);
         left = {
+          id: nodeId,
           type: "binary",
           op,
-          left,
+          left: demotedLeft,
           right,
-          span: span(left.span, right.span),
+          span: span(demotedLeft.span, right.span),
         };
         continue;
       }
@@ -317,13 +354,15 @@ export function parse(tokens: Token[], resolver: Resolver, input: string): Node 
       if (binding === undefined || binding < minBinding) break;
 
       pos += 1;
+      const { nodeId, demoted: demotedLeft } = demote(left);
       const right = parseExpr(binding + 1);
       left = {
+        id: nodeId,
         type: "binary",
         op: token.op as Exclude<OpSymbol, "in">,
-        left,
+        left: demotedLeft,
         right,
-        span: span(left.span, right.span),
+        span: span(demotedLeft.span, right.span),
       };
     }
 
