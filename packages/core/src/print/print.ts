@@ -16,7 +16,7 @@ import type {
   RateLookup,
   Value,
 } from "../types";
-import { avoidSpellings, pickCandidate, spelledUnitWord, unitWord } from "./unit-word";
+import { avoidSpellings, pickCandidate, unitWord } from "./unit-word";
 
 // `format/format.ts` stays the one place `formatValue` is defined; this is a
 // re-export, not a second copy, so a caller who wants the bare function
@@ -59,7 +59,7 @@ export interface PrintOptions {
    * parse numerals back) for each number, `Locale.keywords`'s first word form
    * for a symbolic operator (`+ - * /`), and `UnitLexeme.display` for each
    * unit, selecting a plural category with `Intl.PluralRules(locale.id)`
-   * against the number printed beside it (see `spelledUnitWord`).
+   * against the number printed beside it (see `unitWord`'s `spell` option).
    *
    * Throws if the configured locale declares no `spell` at all — a `spelled`
    * print that silently fell back to digits would be the same class of bug
@@ -76,7 +76,7 @@ export interface PrintOptions {
    * quantity. It overrides `symbols` for the unit label specifically — a
    * spelled print's unit is a written word (`UnitLexeme.display`, falling
    * back to its alias) or nothing, never a glyph, so `symbols` is not
-   * consulted at all once `spelled` is on (see `spelledUnitWord`).
+   * consulted at all once `spelled` is on (see `unitWord`'s doc comment).
    *
    * An operator with no word form in the locale keeps its symbol rather than
    * inventing one — the same rule a missing `display` follows for a unit,
@@ -552,28 +552,18 @@ export class Printer {
       return `${this.printDecimal(value)}${sep}${candidates[0]?.surface ?? ""}`;
     }
     const magnitude = this.renderMagnitude(value, chosen, ctx);
-    const avoid = avoidSpellings(candidates, chosen, this.registry, this.locale);
-    const ambiguousSurface = candidates.length > 1 ? candidates[0]?.surface : undefined;
-    const unit =
-      ctx.spell !== undefined
-        ? spelledUnitWord(
-            magnitude.kind,
-            magnitude.unit,
-            magnitude.magnitude,
-            avoid,
-            ambiguousSurface,
-            this.registry,
-            this.locale,
-          )
-        : unitWord(
-            magnitude.kind,
-            magnitude.unit,
-            ctx,
-            avoid,
-            ambiguousSurface,
-            this.registry,
-            this.locale,
-          );
+    const unit = unitWord(
+      {
+        kindId: magnitude.kind,
+        unitId: magnitude.unit,
+        avoid: avoidSpellings(candidates, chosen, this.registry, this.locale),
+        ambiguousSurface: candidates.length > 1 ? candidates[0]?.surface : undefined,
+        symbols: ctx.symbols,
+        ...(ctx.spell !== undefined ? { spell: { magnitude: magnitude.magnitude } } : {}),
+      },
+      this.registry,
+      this.locale,
+    );
     const numberText =
       ctx.spell !== undefined
         ? (ctx.spell(magnitude.magnitude) ?? magnitude.text)
@@ -600,29 +590,21 @@ export class Printer {
       ctx.rebase !== undefined && chosen.kind === ctx.rebase.kind
         ? ctx.rebase.unit
         : chosen.unit;
-    const avoid = avoidSpellings(target, chosen, this.registry, this.locale);
-    const ambiguousSurface = target.length > 1 ? target[0]?.surface : undefined;
-    // No magnitude of its own — `spelledUnitWord` reads that as "select the
-    // generic plural category", see its own doc comment.
-    return ctx.spell !== undefined
-      ? spelledUnitWord(
-          chosen.kind,
-          unitId,
-          undefined,
-          avoid,
-          ambiguousSurface,
-          this.registry,
-          this.locale,
-        )
-      : unitWord(
-          chosen.kind,
-          unitId,
-          ctx,
-          avoid,
-          ambiguousSurface,
-          this.registry,
-          this.locale,
-        );
+    // No magnitude of its own — `unitWord`'s `spell` option with no
+    // `magnitude` reads that as "select the generic plural category", see
+    // its own doc comment.
+    return unitWord(
+      {
+        kindId: chosen.kind,
+        unitId,
+        avoid: avoidSpellings(target, chosen, this.registry, this.locale),
+        ambiguousSurface: target.length > 1 ? target[0]?.surface : undefined,
+        symbols: ctx.symbols,
+        ...(ctx.spell !== undefined ? { spell: {} } : {}),
+      },
+      this.registry,
+      this.locale,
+    );
   }
 
   /**
@@ -636,7 +618,7 @@ export class Printer {
    * `magnitude` (added for Task 11) is the same number as `text`, but as a
    * `Decimal` rather than a formatted string — `renderQuantity` needs the
    * `Decimal` for two things `text` cannot give it back: `ctx.spell`, and the
-   * plural category `spelledUnitWord` selects the unit's `display` form by.
+   * plural category `unitWord`'s `spell` option selects the `display` form by.
    * Both need the *actual* rebased number when `ctx.rebase` applied, not the
    * literal the user typed, which is exactly what `text`/`magnitude` already
    * agree on here.

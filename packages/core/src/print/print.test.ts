@@ -219,7 +219,10 @@ test("print: { spelled: true } throws when the locale declares no spell", () => 
   const noSpellLocale: Locale = rest;
   const noSpellPrinter = new Printer({ registry, locale: noSpellLocale });
   const program = programFor("10 km");
-  expect(() => noSpellPrinter.print(program, { spelled: true })).toThrow();
+  // Pinned to the message, not a bare `.toThrow()` — an unrelated cause
+  // (a typo in `programFor`, say) would also throw and still pass a bare
+  // assertion here.
+  expect(() => noSpellPrinter.print(program, { spelled: true })).toThrow(/spell/);
 });
 
 test("node(): { spelled: true } throws when the locale declares no spell", () => {
@@ -227,9 +230,9 @@ test("node(): { spelled: true } throws when the locale declares no spell", () =>
   const noSpellLocale: Locale = rest;
   const noSpellPrinter = new Printer({ registry, locale: noSpellLocale });
   const program = programFor("10 km");
-  expect(() =>
-    noSpellPrinter.node(program, program.root.id, { spelled: true }),
-  ).toThrow();
+  expect(() => noSpellPrinter.node(program, program.root.id, { spelled: true })).toThrow(
+    /spell/,
+  );
 });
 
 test("spelled: the design doc's done-when", () => {
@@ -251,13 +254,29 @@ test("spelled: word math — canonicalizing to digits and spelling back out agre
   );
 });
 
+test("spelled: binary minus spells to its locale word", () => {
+  // Positive coverage for `OP_KEYWORDS["-"]`, distinct from the unary-minus
+  // test below: that one exercises `UnaryNode`, which never consults
+  // `OP_KEYWORDS` at all — only a `BinaryNode`'s "-" does.
+  expect(printer.print(programFor("10 km - 2 km"), { spelled: true })).toBe(
+    "ten kilometres minus two kilometres",
+  );
+});
+
+test("spelled: binary division spells to its locale word", () => {
+  // Positive coverage for `OP_KEYWORDS["/"]` against the *unmodified* `en`
+  // locale — the "no word form" test below deletes `keywords.over` and only
+  // proves the symbol survives that absence, which a mistyped or misdirected
+  // `OP_KEYWORDS["/"]` entry would still pass.
+  expect(printer.print(programFor("10 km / 2 km"), { spelled: true })).toBe(
+    "ten kilometres over two kilometres",
+  );
+});
+
 test("spelled: an operator with no word form in the locale keeps its symbol, not an invented word", () => {
   const { over: _over, ...restKeywords } = en.keywords;
   const noOverLocale: Locale = { ...en, keywords: restKeywords };
-  const noOverPrinter = new Printer({
-    registry: buildRegistry(BUILTIN_KINDS, [], en.id),
-    locale: noOverLocale,
-  });
+  const noOverPrinter = new Printer({ registry, locale: noOverLocale });
   expect(noOverPrinter.print(programFor("10 km / 2 km"), { spelled: true })).toBe(
     "ten kilometres / two kilometres",
   );

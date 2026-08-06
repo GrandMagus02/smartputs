@@ -177,6 +177,18 @@ export function cardinalSpeller(opts: CardinalTables): NumeralSpeller {
 
   const unitsByValue = wordFor(opts.units);
   const tensByValue = wordFor(opts.tens);
+  // Derived, not hardcoded: `cardinalNumerals` merges `units` and `tens` into
+  // one flat `addends` map with no boundary assumption of its own (a locale
+  // whose `tens` table started at 10, say, would still parse "ten one" fine),
+  // so hardcoding "20" here — the boundary that happens to hold for `en` —
+  // would make this speller decline values that same table's parser reads
+  // without trouble, quietly breaking the inverse-of-the-same-tables property
+  // that is the whole reason these two functions share `CardinalTables`. The
+  // smallest declared `tens` value is the actual boundary: below it, a value
+  // has no `tens` word to combine with, so only a direct `units` entry (see
+  // `spellUnderHundred`'s own `direct` lookup) can name it.
+  const tensFloor =
+    tensByValue.size > 0 ? Math.min(...tensByValue.keys()) : Number.POSITIVE_INFINITY;
 
   const HUNDRED = new Decimal(100);
   const THOUSAND = new Decimal(1000);
@@ -199,7 +211,7 @@ export function cardinalSpeller(opts: CardinalTables): NumeralSpeller {
     const value = n.toNumber();
     const direct = unitsByValue.get(value);
     if (direct !== undefined) return direct;
-    if (value < 20) return null; // a units gap below the tens table starts
+    if (value < tensFloor) return null; // below any declared tens word
     const tensValue = Math.floor(value / 10) * 10;
     const tensWord = tensByValue.get(tensValue);
     if (tensWord === undefined) return null;

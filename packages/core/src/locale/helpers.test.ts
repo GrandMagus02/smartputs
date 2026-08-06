@@ -152,6 +152,24 @@ test("cardinalSpeller declines a table gap rather than returning a partial spell
   expect(speller(new Decimal(3))).toBeNull();
 });
 
+test("cardinalSpeller derives the units/tens boundary from the table, not a hardcoded 20", () => {
+  // A table shaped nothing like `en`'s: `tens` starts at 10, not 20.
+  // `cardinalNumerals` merges `units`/`tens` into one flat `addends` map with
+  // no boundary assumption at all, so it reads "ten five" as 15 without
+  // trouble — a speller that hardcoded 20 as the units/tens split would
+  // decline 15 even though the very table it was given can name it.
+  const lowTens = cardinalSpeller({
+    units: { zero: 0, one: 1, two: 2, three: 3, four: 4, five: 5, six: 6 },
+    tens: { ten: 10, twenty: 20 },
+    scales: {},
+  });
+  expect(lowTens(new Decimal(15))).toBe("ten five");
+  expect(lowTens(new Decimal(10))).toBe("ten");
+  // Still declines below the table's actual boundary (nothing names 7-9 here
+  // beyond a direct `units` entry, and there is none for those digits).
+  expect(lowTens(new Decimal(7))).toBeNull();
+});
+
 test("cardinalSpeller declines a non-integer — the tables have no fractional grammar", () => {
   expect(speller(new Decimal("2.5"))).toBeNull();
 });
