@@ -499,13 +499,18 @@ function unitPrefixes(): string[] {
 /**
  * The fragments where a place leads, listed rather than counted.
  *
- * Eleven of the twelve are a *shorter* name winning on `prefixQuality` alone —
- * "kenia" is five letters where "kelvin" is six, "togo" four where "tonne" is
+ * Twelve of the thirteen are a *shorter* name winning on `prefixQuality` alone
+ * — "kenia" is five letters where "kelvin" is six, "togo" four where "tonne" is
  * five — which is the alias index's own rule applied to a place, and a ranking
- * anyone can explain. The twelfth, `li`, is a true tie at -3.00 between "libia"
- * and "liter", decided by core's last resort of kind id ascending, and it is in
- * the list rather than fixed because a per-kind thumb on that tie is the very
- * thing the rebase below removed.
+ * anyone can explain. The thirteenth, `li`, is a true tie at -3.00 between
+ * "libia" and "liter", decided by core's last resort of kind id ascending, and
+ * it is in the list rather than fixed because a per-kind thumb on that tie is
+ * the very thing the rebase below removed.
+ *
+ * `hor` is the newest and reads the same way: `@smartput/power` put
+ * "horsepower" in the alias index, which made "hor" a unit prefix for the first
+ * time, and Horlivka is eight letters against horsepower's ten. Nothing about
+ * the ranking changed — a fragment that no unit used to claim simply appeared.
  *
  * A weight advantage is the ranking nobody can explain, and this list is how the
  * difference stays visible: at spec §6.1's own figures, which is what the
@@ -520,6 +525,7 @@ const PLACE_LED: readonly string[] = [
   "fa",
   "he",
   "hec",
+  "hor",
   "ke",
   "li",
   "meg",

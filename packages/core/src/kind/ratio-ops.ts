@@ -135,6 +135,20 @@ function ordinaryOps(id: KindId): OpSignature[] {
       result: id,
       apply: (l, r) => deriveValue(r, r.canonical.times(l.canonical)),
     },
+    // The discount reading, and deliberately not an alias for `-|K|percent`
+    // above: that one takes the base on the left, this one takes it on the
+    // right, so they are two signatures over the same pair of kinds rather
+    // than one signature with two spellings. Same operand order as `of`, and
+    // the same source operand for `deriveValue` — the result is the base with
+    // a bite taken out of it, so it carries the base's unit and meta.
+    {
+      op: "off",
+      left: PERCENT_KIND,
+      right: id,
+      result: id,
+      apply: (l, r) =>
+        deriveValue(r, r.canonical.times(new Decimal(1).minus(l.canonical))),
+    },
   );
 
   return ops;

@@ -47,6 +47,14 @@ const FRAGMENTS = [
   "deg degre rad radi grad gon tur rev",
   "sq sqm m2 m3 ha hect acr l lit ml millil gal pin",
   "kno kt kph kmh mph mps % perc pct",
+  // The four kinds that bridge two others. Their symbol-only units are the
+  // reason each family is spelled out rather than left to the single letters
+  // above: "w" alone reaches power:w, but nothing typed on the way to "mwh"
+  // passes through a fragment any other group names.
+  "w wat kw kilow mw megaw gw gigaw hp hors",
+  "j jou kj kiloj mj megaj wh kwh mwh cal calo kcal kilocal btu",
+  "bps kbps mbps gbps tbps",
+  "bpm hz her",
 ].flatMap((group) => group.split(" "));
 
 // measure's own prefixes, run against the measure-only engine.

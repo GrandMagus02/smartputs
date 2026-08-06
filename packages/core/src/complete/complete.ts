@@ -1,8 +1,9 @@
 import type { Registry } from "../kind/registry";
+import { editDistance, nearestWord } from "../parse/distance";
 import { resolveWeight } from "../solve/weights";
 import type { CompleteCtx, KindId, Locale, Span, Weights } from "../types";
 import { leadingCount, trailingFragment } from "./fragment";
-import { prefixQuality, scaleFit } from "./score";
+import { prefixQuality, scaleFit, TYPO_PENALTY } from "./score";
 
 export interface Completion {
   /** The alias that matched, e.g. "hour". */
@@ -28,6 +29,36 @@ export interface CompleteOptions {
 
 const DEFAULT_LIMIT = 10;
 
+/**
+ * The one alias `fragment` is a near-miss of, or null when there is none or
+ * when two are equally near — `nearestWord`'s refusal, which is worth as much
+ * here as it is in the parser: a completion list is read at a glance, and an
+ * offer chosen by coin toss is read as an answer.
+ *
+ * The parameter is the alias index itself rather than the `Iterable<string>`
+ * `nearestWord` would take, and that narrowing is the perf gate written down
+ * where it binds. `nearestWord` walks its whole vocabulary and measures every
+ * entry: affordable over the two hundred-odd aliases core registers, and not
+ * affordable over the several thousand names a kind like @smartput/city hangs
+ * off `completions` — on every keystroke, for a fragment that by definition
+ * just matched nothing. A signature that accepted any vocabulary would make
+ * feeding it that one a one-line change nobody would think to question.
+ *
+ * How far it looks is `nearestWord`'s own tolerance and not a second knob here.
+ * The parser needs one because it reads a correction silently and a wrong read
+ * comes back as a number; a completion is an offer the writer can see beside
+ * the word they typed, so the worst a distant one costs is a row in a list
+ * that would otherwise have been empty.
+ */
+function nearestAlias(
+  aliasIndex: Registry["aliasIndex"],
+  fragment: string,
+): { alias: string; distance: number } | null {
+  const alias = nearestWord(fragment, aliasIndex.keys());
+  if (alias === null) return null;
+  return { alias, distance: editDistance(fragment, alias) };
+}
+
 export function complete(args: {
   registry: Registry;
   locale: Locale;
@@ -52,10 +83,13 @@ export function complete(args: {
   // many rows off one unit keeps them and one that does not behaves as before.
   const best = new Map<string, Completion>();
 
-  for (const [alias, entries] of registry.aliasIndex) {
-    if (!alias.startsWith(folded)) continue;
-
-    for (const entry of entries) {
+  /**
+   * Every reading of one alias of the global index, offered. `typo` is how far
+   * the alias is from what was actually typed — 0 for the prefix pass, which
+   * is the only caller that has a prefix to measure.
+   */
+  const offer = (alias: string, typo: number) => {
+    for (const entry of registry.aliasIndex.get(alias) ?? []) {
       if (opts?.kinds !== undefined && !opts.kinds.includes(entry.kind)) continue;
 
       const kind = registry.kinds.get(entry.kind);
@@ -74,8 +108,15 @@ export function complete(args: {
           prior: kind.prior,
           layers,
         }) +
-        prefixQuality(alias, folded) +
-        scaleFit(count, unit.lexeme.typical);
+        // `prefixQuality` counts the characters of the alias not typed yet,
+        // and a corrected alias is not one the fragment prefixes — had it been,
+        // the pass above would have found it and this one never run. So there
+        // is nothing to count, and it is withheld for the same reason the
+        // completer path withholds it from a row matched by some other route.
+        // The correction rides in as the term below instead.
+        (typo === 0 ? prefixQuality(alias, folded) : 0) +
+        scaleFit(count, unit.lexeme.typical) -
+        TYPO_PENALTY * typo;
 
       const word = unit.lexeme.display?.[category] ?? alias;
       const key = `${entry.kind}:${entry.unit}`;
@@ -99,6 +140,23 @@ export function complete(args: {
         });
       }
     }
+  };
+
+  for (const alias of registry.aliasIndex.keys()) {
+    if (alias.startsWith(folded)) offer(alias, 0);
+  }
+
+  // The typo fallback, and it sits here — after the prefix pass, before any
+  // kind is asked anything — for two reasons that are really one. It runs only
+  // when the prefix pass came back with nothing, so a misspelling can never
+  // push aside a word the writer actually started typing; and it runs once, on
+  // the fragment, over `registry.aliasIndex` and nothing else, so the scan it
+  // costs is bounded by what core registers rather than by what some kind
+  // happens to know. `offer` then treats the corrected alias exactly as the
+  // prefix pass treats an exact one — same filters, same weights, same map.
+  if (best.size === 0) {
+    const correction = nearestAlias(registry.aliasIndex, folded);
+    if (correction !== null) offer(correction.alias, correction.distance);
   }
 
   // The second source. Not a replacement for the loop above and not a way

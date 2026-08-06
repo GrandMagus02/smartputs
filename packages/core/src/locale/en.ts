@@ -57,6 +57,11 @@ export default defineLocale({
   keywords: {
     in: ["in", "to", "as"],
     of: ["of"],
+    // Only "off" spells this. "discount" and "less" were considered and left
+    // out: "less" is already a comparative in ordinary English input, and a
+    // second surface word for an operator that reads as a preposition is how
+    // a locale starts claiming words it has no business claiming.
+    off: ["off"],
     plus: ["plus"],
     minus: ["minus"],
     times: ["times", "multiplied"],

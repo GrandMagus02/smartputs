@@ -253,6 +253,20 @@ const parseOnly = (pkg: string, fn: string, min: number, gzip: number): EntrySpe
   gzip,
 });
 
+/**
+ * A class row for one kind: the ergonomic surface, which is that kind's table
+ * plus the one shared `createValueClass` factory. Spelled as a helper only once
+ * there were more than a couple — `angle/class` below stays written out because
+ * it carries the amendment history that explains the number.
+ */
+const classOnly = (pkg: string, cls: string, min: number, gzip: number): EntrySpec => ({
+  label: `${pkg}/class`,
+  from: `@smartput/${pkg}/class`,
+  names: [cls],
+  min,
+  gzip,
+});
+
 export const BUDGETS: EntrySpec[] = [
   // Every number here was measured first and then committed, rounded up to the
   // next 50 B — see the plan's Global Constraints. Raising one means amending
@@ -299,7 +313,12 @@ export const BUDGETS: EntrySpec[] = [
   parseOnly("length", "parseLength", 1450, 750),
   parseOnly("mass", "parseMass", 1250, 700),
   parseOnly("measure", "parseMeasure", 1400, 750),
-  parseOnly("number", "parseNumber", 1050, 600),
+  // The one row in this block that is not table cost alone: 1050 -> 1250 B is
+  // `native` mode, which lives in @smartput/number/validate rather than in the
+  // shared parser precisely so that it shows up here and nowhere else. Putting
+  // the same branch in `parse` would have moved all nineteen of these rows,
+  // and pushed percent below through a ceiling it is already sitting on.
+  parseOnly("number", "parseNumber", 1250, 700),
   // Measured at exactly 1000 B, so this row has no headroom at all: the
   // smallest table in the repo is also the tightest budget. That is the rule
   // working, not a mistake — any growth in the shared parser shows up here
@@ -316,12 +335,43 @@ export const BUDGETS: EntrySpec[] = [
   // less than the reading, and it does (1115 B against 1140 B).
   parseOnly("temperature", "parseTempDelta", 1150, 650),
 
+  // The four kinds that bridge two others. These rows shipped with placeholder
+  // budgets copied from the nearest kind by table size; every number below is
+  // now the real measurement rounded up to the next 50 B, the same rule as
+  // every other row here.
+  //
+  // The parse rows land exactly where their tables put them, and none of the
+  // four carries an op: an op signature is data on the kind, and `validate`
+  // reaches only `./units`. tempo's two units make the second-smallest table in
+  // the repo after percent's one unit; energy's nine make the largest of the
+  // four. Nothing in this spread is bridging cost.
+  //
+  // The class rows exist for a claim the parse rows cannot make: an op-carrying
+  // kind's `index.ts` imports `deriveValue` and `Decimal` from core, and if a
+  // class module ever reached its own package root instead of `./units`, that
+  // graph would arrive with it — a ~35 KB jump, not a drift. All four measure
+  // within 300 B of `angle/class` (4671 B), which is the shared
+  // `createValueClass` factory being genuinely shared: the factory is most of
+  // each number and the kind's own table is the rest.
+  parseOnly("datarate", "parseDatarate", 1100, 650),
+  parseOnly("energy", "parseEnergy", 1300, 700),
+  parseOnly("power", "parsePower", 1200, 700),
+  parseOnly("tempo", "parseTempo", 1000, 600),
+  classOnly("datarate", "Datarate", 4500, 1800),
+  classOnly("energy", "Energy", 4700, 1900),
+  classOnly("power", "Power", 4600, 1850),
+  // Measured at exactly 1750 B gzipped, so this row has no gzip headroom at
+  // all — the same situation `percent/validate` is in on the minified side.
+  classOnly("tempo", "Tempo", 4400, 1750),
+
   // The barrel's whole claim is that a bundler which follows re-exports shakes
   // it to one kind. Measured, importing one kind through `@smartput/kinds/
   // validate` costs exactly what the subpath costs — 1270 B, delta zero — while
-  // all twelve through the same barrel cost 4898 B. If the barrel ever stops
-  // shaking, this row jumps by ~3.6 KB and fails loudly, rather than the doc
-  // comment quietly becoming false.
+  // all seventeen through the same barrel cost 5994 B. If the barrel ever stops
+  // shaking, this row jumps by ~4.7 KB and fails loudly, rather than the doc
+  // comment quietly becoming false. (4898 B for twelve kinds before datarate,
+  // energy, power and tempo; the delta this row watches grows with the roster,
+  // the row's own budget does not.)
   {
     label: "kinds/validate barrel, one kind (shake check)",
     from: "@smartput/kinds/validate",
@@ -333,8 +383,9 @@ export const BUDGETS: EntrySpec[] = [
   // The same claim for the class barrel, which had no row at all. Spec §8 says
   // the `/*#__PURE__*/` annotation "is what lets an unused kind's class drop
   // out of a barrel import", and that sentence was the entire enforcement:
-  // stripping the annotation from the twelve built class modules takes one
-  // `Angle` imported through this barrel from 4218 B to 7975 B, +89%, and
+  // stripping the annotation from the built class modules took one `Angle`
+  // imported through this barrel from 4218 B to 7975 B, +89% — measured when
+  // there were twelve of them, and worse now that there are sixteen — and
   // nothing measured it. The subpath row above is unaffected by the annotation
   // — one class per module — so this barrel is the only place it can be
   // caught, which makes it exactly the place a row was missing.

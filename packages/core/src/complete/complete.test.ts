@@ -5,7 +5,7 @@ import { buildRegistry } from "../kind/registry";
 import en from "../locale/en";
 import type { CompleteCtx, Completer, Kind, KindCompletion, Weights } from "../types";
 import { complete } from "./complete";
-import { SCALE_BONUS } from "./score";
+import { EXACT_BONUS, LENGTH_PENALTY, SCALE_BONUS, TYPO_PENALTY } from "./score";
 
 const registry = buildRegistry(BUILTIN_KINDS, [], "en");
 const run = (
@@ -205,25 +205,42 @@ const gaz = (input: string, opts?: Parameters<typeof complete>[0]["opts"]) =>
   probeRun([places(gazetteer)], input, opts);
 
 /**
- * The nine rows "10 k" returned before the seam existed, in order. Pinned as a
- * literal rather than compared against a second run, because the point is that
- * the ratio path did not move — and a self-comparison would hold just as well
- * if both sides broke together.
+ * Every ratio row "10 k" returns, in order. Pinned as a literal rather than
+ * compared against a second run, because the point is that the ratio path did
+ * not move — and a self-comparison would hold just as well if both sides broke
+ * together.
+ *
+ * It was nine rows and fit inside the default limit, so one constant served
+ * both tests below. datarate, power, energy and tempo brought five more `k`
+ * units, and the unlimited list now overflows that limit — so the list stays
+ * one literal and the default-limit run is asserted against its head. Splitting
+ * it into two hand-written literals would let the two drift, which is the
+ * comparison the second test exists to make.
  */
 const TEN_K = [
   "temperature:k",
   "datasize:kb",
+  "energy:kj",
   "length:km",
   "mass:kg",
+  "power:kw",
   "speed:knot",
   "area:km2",
   "datasize:kib",
+  "energy:kwh",
   "speed:kph",
+  "datarate:kbps",
+  "energy:kcal",
   "tempdelta:k",
 ];
 
+/** How many rows `complete` returns when the caller asks for no limit. */
+const DEFAULT_LIMIT = 10;
+
 test("the ratio path is exactly what it was", () => {
-  expect(run("10 k").map((r) => `${r.kind}:${r.unit}`)).toEqual(TEN_K);
+  expect(run("10 k").map((r) => `${r.kind}:${r.unit}`)).toEqual(
+    TEN_K.slice(0, DEFAULT_LIMIT),
+  );
 });
 
 test("registering a completer does not disturb the ratio rows", () => {
@@ -440,4 +457,56 @@ test("a start outside the input is dropped rather than spliced", () => {
   expect(probeRun([places(bad(4))], "san fran").map((r) => r.text)).toEqual([
     "san Nowhere",
   ]);
+});
+
+// ---------------------------------------------------------------------------
+// Completing through a typo.
+// ---------------------------------------------------------------------------
+
+test("a fragment nothing prefixes is completed through its nearest alias", () => {
+  const [top] = run("1 klogram");
+  expect(top?.text).toBe("1 kilogram");
+  expect(top?.kind).toBe("mass");
+  expect(top?.unit).toBe("kg");
+  // The span still addresses the fragment the user typed, not the word offered.
+  expect(top?.span).toEqual({ start: 2, end: 9 });
+});
+
+test("a corrected offer scores below the prefix it would have been", () => {
+  const corrected = run("1 klogram")[0];
+  const prefix = run("1 kilogr").find((r) => r.unit === "kg");
+  expect(corrected?.text).toBe("1 kilogram");
+  // Two characters of "kilogram" still to type, and 1 kg is inside mass's band.
+  expect(prefix?.score).toBe(-2 * LENGTH_PENALTY + SCALE_BONUS);
+  expect(corrected?.score).toBeLessThan(prefix?.score as number);
+});
+
+test("the correction is one term of the ordinary sum", () => {
+  // Everything the exact offer earns except `prefixQuality`, which counts
+  // characters still untyped and has nothing to count here, less one edit.
+  const exact = run("1 kilogram").find((r) => r.unit === "kg")?.score ?? 0;
+  expect(run("1 klogram")[0]?.score).toBe(exact - EXACT_BONUS - TYPO_PENALTY);
+});
+
+test("a well-spelled fragment is untouched by the correction", () => {
+  expect(run("1 kilogram")[0]?.text).toBe("1 kilogram");
+  expect(run("1 kilogram")[0]?.score).toBe(EXACT_BONUS + SCALE_BONUS);
+  expect(JSON.stringify(run("1 mi"))).toBe(JSON.stringify(run("1 mi")));
+});
+
+/**
+ * The perf gate, asserted rather than commented. `nearestWord` walks its whole
+ * vocabulary, which is affordable once over the 214 aliases in the global index
+ * and not affordable over the 6,247 names @smartput/city hangs off one kind —
+ * on every keystroke, for a fragment that by definition matched nothing. So the
+ * correction is offered the alias index and nothing else, and a completer is
+ * asked about the fragment the user typed exactly once, however that fragment
+ * is later read.
+ */
+test("the fuzzy pass never reaches a kind's own completions", () => {
+  seen = [];
+  const rows = gaz("1 klogram");
+  expect(rows[0]?.text).toBe("1 kilogram");
+  expect(seen).toHaveLength(1);
+  expect(seen[0]?.fragment).toBe("klogram");
 });

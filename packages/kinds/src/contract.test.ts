@@ -3,22 +3,28 @@ import { ANGLE_UNITS } from "@smartput/angle/units";
 import { AREA_UNITS } from "@smartput/area/units";
 import type { Kind, UnitLexeme } from "@smartput/core";
 import en from "@smartput/core/locale/en";
+import { DATARATE_UNITS } from "@smartput/datarate/units";
 import { DATASIZE_UNITS } from "@smartput/datasize/units";
 import { DURATION_UNITS } from "@smartput/duration/units";
+import { ENERGY_UNITS } from "@smartput/energy/units";
 import { LENGTH_UNITS } from "@smartput/length/units";
 import { MASS_UNITS } from "@smartput/mass/units";
 import { MEASURE_UNITS } from "@smartput/measure/units";
 import { NUMBER_UNITS } from "@smartput/number/units";
 import { PERCENT_UNITS } from "@smartput/percent/units";
+import { POWER_UNITS } from "@smartput/power/units";
 import { SPEED_UNITS } from "@smartput/speed/units";
 import { TEMPDELTA_UNITS, TEMPERATURE_UNITS } from "@smartput/temperature/units";
+import { TEMPO_UNITS } from "@smartput/tempo/units";
 import { VOLUME_UNITS } from "@smartput/volume/units";
 
 import {
   Angle,
   Area,
+  Datarate,
   Datasize,
   Duration,
+  Energy,
   Length,
   Mass,
   Measure,
@@ -26,39 +32,49 @@ import {
   // alias is local to this file; nothing here wants the builtin.
   Number as Num,
   Percent,
+  Power,
   Speed,
   TempDelta,
   Temperature,
+  Tempo,
   Volume,
 } from "./class";
 import {
   angle,
   area,
+  datarate,
   datasize,
   duration,
+  energy,
   length,
   mass,
   measure,
   number,
   percent,
+  power,
   speed,
   tempdelta,
   temperature,
+  tempo,
   volume,
 } from "./index";
 import {
   parseAngle,
   parseArea,
+  parseDatarate,
   parseDatasize,
   parseDuration,
+  parseEnergy,
   parseLength,
   parseMass,
   parseMeasure,
   parseNumber,
   parsePercent,
+  parsePower,
   parseSpeed,
   parseTempDelta,
   parseTemperature,
+  parseTempo,
   parseVolume,
   toMeasure,
 } from "./validate";
@@ -152,6 +168,14 @@ const ROWS: Row[] = [
   },
   { id: "area", pkg: "area", table: AREA_UNITS, kind: area, cls: Area, free: parseArea },
   {
+    id: "datarate",
+    pkg: "datarate",
+    table: DATARATE_UNITS,
+    kind: datarate,
+    cls: Datarate,
+    free: parseDatarate,
+  },
+  {
     id: "datasize",
     pkg: "datasize",
     table: DATASIZE_UNITS,
@@ -166,6 +190,14 @@ const ROWS: Row[] = [
     kind: duration,
     cls: Duration,
     free: parseDuration,
+  },
+  {
+    id: "energy",
+    pkg: "energy",
+    table: ENERGY_UNITS,
+    kind: energy,
+    cls: Energy,
+    free: parseEnergy,
   },
   {
     id: "length",
@@ -201,6 +233,14 @@ const ROWS: Row[] = [
     free: parsePercent,
   },
   {
+    id: "power",
+    pkg: "power",
+    table: POWER_UNITS,
+    kind: power,
+    cls: Power,
+    free: parsePower,
+  },
+  {
     id: "speed",
     pkg: "speed",
     table: SPEED_UNITS,
@@ -225,6 +265,14 @@ const ROWS: Row[] = [
     free: parseTemperature,
   },
   {
+    id: "tempo",
+    pkg: "tempo",
+    table: TEMPO_UNITS,
+    kind: tempo,
+    cls: Tempo,
+    free: parseTempo,
+  },
+  {
     id: "volume",
     pkg: "volume",
     table: VOLUME_UNITS,
@@ -234,7 +282,7 @@ const ROWS: Row[] = [
   },
 ];
 
-/** The twelve packages that ship a ratio kind, deduplicated from the rows. */
+/** The sixteen packages that ship a ratio kind, deduplicated from the rows. */
 const PACKAGES = [...new Set(ROWS.map((r) => r.pkg))].sort();
 
 const SUBPATHS = ["./units", "./validate", "./class"] as const;
@@ -253,16 +301,20 @@ test("the roster covers every ratio kind exported by the package root", () => {
   expect(ROWS.map((r) => r.id).sort()).toEqual([
     "angle",
     "area",
+    "datarate",
     "datasize",
     "duration",
+    "energy",
     "length",
     "mass",
     "measure",
     "number",
     "percent",
+    "power",
     "speed",
     "tempdelta",
     "temperature",
+    "tempo",
     "volume",
   ]);
 });
@@ -359,7 +411,7 @@ describe("the alias map is well formed", () => {
  * all unit aliases. "in 3 days" stopped being a date.
  *
  * The reserved set is read off the locale rather than hardcoded, so adding a
- * keyword to `locale/en` re-checks all thirteen tables for free.
+ * keyword to `locale/en` re-checks all seventeen tables for free.
  */
 describe("no lexicon alias collides with a locale keyword", () => {
   const reserved = new Set(Object.values(en.keywords ?? {}).flat());
@@ -397,7 +449,7 @@ describe("no lexicon alias collides with a locale keyword", () => {
  * test at all — which is how `Number.parse("30")` shipped throwing
  * `missing-unit` on the one input spec §7.1 says the kind exists for, while
  * `parseNumber("30")` returned 30. Every assertion below runs against all
- * thirteen rows, so a kind cannot be added without being covered.
+ * seventeen rows, so a kind cannot be added without being covered.
  *
  * Sample inputs are derived from each table rather than listed per kind: a unit
  * is its own alias (asserted above), so `1<canonical>` parses for every kind,

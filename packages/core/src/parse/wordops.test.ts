@@ -51,6 +51,15 @@ test("conversion and percentage keywords are untouched", () => {
   expect(shape("20 % of 50")[2]).toEqual(["keyword", "of", 5, 7]);
 });
 
+// `off` has no arithmetic op token to be rewritten into — it is its own
+// operator, consumed by the parser's own branch — so this fold must leave it
+// alone. A stray one therefore reaches the parser and is rejected there, the
+// same way a stray "as" is, rather than being silently turned into a "-".
+test("off reaches the parser as a keyword", () => {
+  expect(shape("20 % off 50")[2]).toEqual(["keyword", "off", 5, 8]);
+  expect(shape("50 off")[1]).toEqual(["keyword", "off", 3, 6]);
+});
+
 test("symbolic operators pass through", () => {
   expect(shape("10 + 5")[1]).toEqual(["op", "+", 3, 4]);
 });

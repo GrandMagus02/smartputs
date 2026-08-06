@@ -32,6 +32,53 @@ test("valid and invalid input", () => {
   expect(parseNumber("")).toMatchObject({ ok: false, code: "empty" });
 });
 
+test("native mode reads the leading number and ignores what follows it", () => {
+  // The case this mode exists for: a number that arrives already formatted,
+  // from a form field, a CSV cell or an API that spells its own unit.
+  expect(parseNumber("20%", { mode: "native" })).toMatchObject({
+    ok: true,
+    value: 20,
+    unit: "one",
+  });
+  // Another kind's unit word is not an error here — it is trailing text, the
+  // same as any other. This is exactly the contract loose mode refuses.
+  expect(parseNumber("30kg", { mode: "native" })).toMatchObject({
+    ok: true,
+    value: 30,
+  });
+  expect(parseNumber("  1.5e3 apples ", { mode: "native" })).toMatchObject({
+    ok: true,
+    value: 1500,
+  });
+});
+
+test("native mode is native, not clever", () => {
+  // `parseFloat("1,234")` is 1, and so is this. A thousands separator needs
+  // the locale's numberFormat, which is the engine's job — the same line
+  // `parse`'s NUMBER regex already draws.
+  expect(parseNumber("1,234", { mode: "native" })).toMatchObject({
+    ok: true,
+    value: 1,
+  });
+  // Nothing numeric to read is still the error it always was, named the same
+  // way: native mode widens what counts as a number, not what counts as one.
+  expect(parseNumber("kg", { mode: "native" })).toMatchObject({
+    ok: false,
+    code: "nan",
+  });
+  expect(parseNumber("", { mode: "native" })).toMatchObject({
+    ok: false,
+    code: "empty",
+  });
+});
+
+test("native mode is opt-in: the default modes are untouched", () => {
+  expect(parseNumber("20%")).toMatchObject({ ok: false, code: "unknown-unit" });
+  expect(parseNumber("30kg")).toMatchObject({ ok: false, code: "unknown-unit" });
+  expect(isNumber("20%")).toBe(false);
+  expect(isNumber("20%", { mode: "native" })).toBe(true);
+});
+
 test("defaultUnit composes with caller opts: forced, not erasable, mode still overrides", () => {
   // Loose (the default) needs no unit at all.
   expect(parseNumber("30")).toMatchObject({ ok: true, unit: "one" });

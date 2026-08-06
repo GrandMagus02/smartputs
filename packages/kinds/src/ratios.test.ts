@@ -2,15 +2,19 @@ import { describe, expect, test } from "bun:test";
 import { ANGLE_UNITS } from "@smartput/angle/units";
 import { AREA_UNITS } from "@smartput/area/units";
 import { Decimal } from "@smartput/core";
+import { DATARATE_UNITS } from "@smartput/datarate/units";
 import { DATASIZE_UNITS } from "@smartput/datasize/units";
 import { DURATION_UNITS } from "@smartput/duration/units";
+import { ENERGY_UNITS } from "@smartput/energy/units";
 import { LENGTH_UNITS } from "@smartput/length/units";
 import { MASS_UNITS } from "@smartput/mass/units";
 import { MEASURE_UNITS } from "@smartput/measure/units";
 import { NUMBER_UNITS } from "@smartput/number/units";
 import { PERCENT_UNITS } from "@smartput/percent/units";
+import { POWER_UNITS } from "@smartput/power/units";
 import { SPEED_UNITS } from "@smartput/speed/units";
 import { TEMPDELTA_UNITS, TEMPERATURE_UNITS } from "@smartput/temperature/units";
+import { TEMPO_UNITS } from "@smartput/tempo/units";
 import { VOLUME_UNITS } from "@smartput/volume/units";
 
 /**
@@ -101,6 +105,19 @@ const KINDS: Kind[] = [
     },
   },
   {
+    id: "datarate",
+    table: DATARATE_UNITS,
+    // Network rates are decimal by definition: a kilobit per second is 1000
+    // bps, never 1024, which is the whole difference from datasize below.
+    defs: {
+      bps: d(1),
+      kbps: d(1000).pow(1),
+      mbps: d(1000).pow(2),
+      gbps: d(1000).pow(3),
+      tbps: d(1000).pow(4),
+    },
+  },
+  {
     id: "datasize",
     table: DATASIZE_UNITS,
     defs: {
@@ -125,6 +142,26 @@ const KINDS: Kind[] = [
       h: HOUR_S,
       d: HOUR_S.times(24),
       wk: HOUR_S.times(24).times(7),
+    },
+  },
+  {
+    id: "energy",
+    table: ENERGY_UNITS,
+    // Canonical joule. The watt-hour family is a watt sustained for an hour, so
+    // each of the three is the SI prefix times HOUR_S rather than a constant of
+    // its own. The calorie and the BTU are stated as their defining decimals —
+    // 4.184 J and 1.05505585262 kJ — because that is what those definitions
+    // literally are, not a measurement being rounded here.
+    defs: {
+      j: d(1),
+      kj: d(1000),
+      mj: d(1000).pow(2),
+      wh: HOUR_S,
+      kwh: HOUR_S.times(1000),
+      mwh: HOUR_S.times(1000).times(1000),
+      cal: d("4.184"),
+      kcal: d("4.184").times(1000),
+      btu: d("1.05505585262").times(1000),
     },
   },
   {
@@ -175,6 +212,27 @@ const KINDS: Kind[] = [
     canonicalRatio: "0.01",
   },
   {
+    id: "power",
+    table: POWER_UNITS,
+    defs: {
+      w: d(1),
+      kw: d(1000),
+      mw: d(1000).pow(2),
+      gw: d(1000).pow(3),
+      // Mechanical horsepower is 550 ft·lbf/s, and a pound-force is one
+      // avoirdupois pound under standard gravity — 9.80665 m/s², exact by
+      // definition. Written out because the package's own units.test.ts records
+      // two shorter spellings that look like this and are not: 76.0402249 is
+      // the ft·lbf intermediate already rounded, and 745.6998715822702 is this
+      // product round-tripped through a double.
+      hp: INCH_MM.times(12)
+        .div(1000)
+        .times(POUND_G.div(1000))
+        .times("9.80665")
+        .times(550),
+    },
+  },
+  {
     id: "speed",
     table: SPEED_UNITS,
     // Every one of these is a distance per hour, in metres per second.
@@ -199,6 +257,13 @@ const KINDS: Kind[] = [
     offsets: { f: "-32", k: "-273.15" },
   },
   {
+    id: "tempo",
+    table: TEMPO_UNITS,
+    // Canonical is the beat per minute, so hertz — one cycle per second — is
+    // sixty of them.
+    defs: { bpm: d(1), hz: d(60) },
+  },
+  {
     id: "volume",
     table: VOLUME_UNITS,
     defs: {
@@ -218,16 +283,20 @@ test("every kind in the repo is covered here", () => {
   expect(KINDS.map((k) => k.id).sort()).toEqual([
     "angle",
     "area",
+    "datarate",
     "datasize",
     "duration",
+    "energy",
     "length",
     "mass",
     "measure",
     "number",
     "percent",
+    "power",
     "speed",
     "tempdelta",
     "temperature",
+    "tempo",
     "volume",
   ]);
 });
@@ -318,12 +387,15 @@ test("a ratio is either exact or carries the full engine precision", () => {
       }).toEqual({ unit: `${kind.id}.${unit}`, enough: true });
     }
   }
-  // Sixty constant ratios across thirteen tables, plus `measure.px`, which is a
-  // function and is checked above instead. Nine of the sixty are irrational or
-  // non-terminating: angle's three, measure's four, speed's kph and knot, and
-  // temperature/tempdelta's `f` twice over — eleven in total.
+  // Eighty-one constant ratios across seventeen tables, plus `measure.px`,
+  // which is a function and is checked above instead. Eleven of the eighty-one
+  // are non-terminating: angle's three, measure's four, speed's kph and knot,
+  // and temperature/tempdelta's `f` twice over. Every ratio the four
+  // power-and-signal kinds added is exact — decimal prefixes, whole seconds,
+  // and definitions that are themselves written as terminating decimals — so
+  // the approximate count did not move when they arrived.
   expect({ exactCount, approximateCount }).toEqual({
-    exactCount: 49,
+    exactCount: 70,
     approximateCount: 11,
   });
 });

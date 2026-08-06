@@ -43,6 +43,11 @@ export {
   suffixStripper,
   tableAnalyzer,
 } from "./locale/helpers";
+// One edit distance for the whole repo. A package that reads through a typo —
+// math's spoken words, completion's fragments — measures the slip the same way
+// the error hints do, because two implementations of "how near is this" drift
+// apart and the one that drifts is the one nobody is looking at.
+export { EDIT_HEADROOM, editDistance, nearestWord } from "./parse/distance";
 // Explanation.tokens is Token[]; without this the type is unnameable downstream.
 export type { Token } from "./parse/lex";
 // Exported so a plugin author can drive a literal matcher in isolation, without

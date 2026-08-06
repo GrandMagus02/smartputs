@@ -102,21 +102,41 @@ const ALLOWED: Record<string, string[]> = {
   "packages/temperature/package.json": ["@smartput/core", "@smartput/shared"],
   "packages/volume/package.json": ["@smartput/core", "@smartput/shared"],
 
+  // The four kinds that bridge two other kinds rather than standing alone. They
+  // are leaves too, and that is the point worth stating: an op signature names
+  // its operand kinds by *string*, so `datarate` can answer "500 mb / 20 s"
+  // without depending on `@smartput/datasize` or `@smartput/duration`, and
+  // `energy` can own the whole power x duration bridge without depending on
+  // `@smartput/power`. A dependency here would mean someone reached for an
+  // import where an id would do, and would drag two more tables into a bundle
+  // that asked for one.
+  "packages/datarate/package.json": ["@smartput/core", "@smartput/shared"],
+  "packages/energy/package.json": ["@smartput/core", "@smartput/shared"],
+  "packages/power/package.json": ["@smartput/core", "@smartput/shared"],
+  // Reciprocal rather than linear — 120 bpm is a half-second beat — so its
+  // bridge to `duration` is an `in` signature instead of a ratio row. Same
+  // string-named operands, same empty edge list.
+  "packages/tempo/package.json": ["@smartput/core", "@smartput/shared"],
+
   // The aggregator: re-exports every kind above and owns BUILTIN_KINDS, so it
   // is the one package legitimately allowed to depend on all of them.
   "packages/kinds/package.json": [
     "@smartput/core",
     "@smartput/angle",
     "@smartput/area",
+    "@smartput/datarate",
     "@smartput/datasize",
     "@smartput/duration",
+    "@smartput/energy",
     "@smartput/length",
     "@smartput/mass",
     "@smartput/measure",
     "@smartput/number",
     "@smartput/percent",
+    "@smartput/power",
     "@smartput/speed",
     "@smartput/temperature",
+    "@smartput/tempo",
     "@smartput/volume",
   ],
 };
@@ -147,7 +167,7 @@ const CONDITION_ORDER = ["bun", "types", "default"];
  * path by name.
  */
 const SUBPATH_EXEMPT: Record<string, { subpaths: string[] | null; why: string }> = {
-  // Re-exports all thirteen kinds, so the detection below sees a kind package.
+  // Re-exports all seventeen kinds, so the detection below sees a kind package.
   // It owes the `./validate` and `./class` barrels, which it has, but no
   // `./units`: it publishes no table of its own.
   "packages/kinds/package.json": {

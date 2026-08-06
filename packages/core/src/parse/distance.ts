@@ -7,6 +7,12 @@
  * the word allows, and it refuses to choose between two words it is equally
  * near. A silent wrong guess in an expression is worse than an error naming
  * the word, because the answer that comes back is still a number.
+ *
+ * This lives in core rather than in the one package that first needed it
+ * because there is no second-best implementation of a distance: two of them
+ * drift, and the one that drifts is always the one nobody is looking at. Core
+ * is the only package every other package already depends on, so putting it
+ * here adds no edge to the dependency graph.
  */
 
 /**
@@ -34,6 +40,13 @@ function tolerance(length: number): number {
   return 2;
 }
 
+/**
+ * Half an edit of headroom over a whole number of edits: the weights above put
+ * one slip a little over 1, and this is what keeps that from reading as two.
+ * Anything that counts edits and then caps has to add it.
+ */
+export const EDIT_HEADROOM = 0.5;
+
 /** Below this two costs are the same slip counted twice, not two candidates. */
 const SAME = 1e-9;
 
@@ -45,9 +58,7 @@ const SAME = 1e-9;
 export function nearestWord(word: string, vocabulary: Iterable<string>): string | null {
   const edits = tolerance(word.length);
   if (edits === 0) return null;
-  // Half an edit of headroom: the weights above put one slip a little over 1,
-  // and this is what keeps that from reading as two.
-  const limit = edits + 0.5;
+  const limit = edits + EDIT_HEADROOM;
 
   let best: string | null = null;
   let bestDistance = limit;
@@ -78,10 +89,16 @@ export function nearestWord(word: string, vocabulary: Iterable<string>): string 
  * not the same price: a letter in `b` that `a` lacks was left out, a letter in
  * `a` that `b` lacks was typed by mistake.
  *
- * Gives up as soon as the cost passes `cap`, since the caller only cares which
- * candidate is nearest, not how far the rest are.
+ * Gives up as soon as the cost passes `cap` and answers `cap + 1`, since the
+ * caller only cares which candidate is nearest, not how far the rest are. A
+ * caller that genuinely wants the whole distance leaves `cap` off and pays for
+ * the whole table.
  */
-function editDistance(a: string, b: string, cap: number): number {
+export function editDistance(
+  a: string,
+  b: string,
+  cap = Number.POSITIVE_INFINITY,
+): number {
   if (Math.abs(a.length - b.length) > cap) return cap + 1;
 
   let twoBack: number[] = [];

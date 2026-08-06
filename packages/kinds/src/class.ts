@@ -6,7 +6,7 @@
  * under any bundler. This barrel only shakes as well as your bundler follows
  * re-exports. Each class is a `/*#__PURE__*\/`-annotated `createValueClass`
  * call, so a bundler that both follows re-exports and honours the annotation
- * drops the unused ones; one that does neither constructs all thirteen. Reach
+ * drops the unused ones; one that does neither constructs all seventeen. Reach
  * for the subpath in anything shipped to a browser.
  *
  * `Number` shadows the JS global when imported bare. That is the naming scheme
@@ -20,13 +20,17 @@
  */
 export * from "@smartput/angle/class";
 export * from "@smartput/area/class";
+export * from "@smartput/datarate/class";
 export * from "@smartput/datasize/class";
 export * from "@smartput/duration/class";
+export * from "@smartput/energy/class";
 export * from "@smartput/length/class";
 export * from "@smartput/mass/class";
 export * from "@smartput/measure/class";
 export * from "@smartput/number/class";
 export * from "@smartput/percent/class";
+export * from "@smartput/power/class";
 export * from "@smartput/speed/class";
 export * from "@smartput/temperature/class";
+export * from "@smartput/tempo/class";
 export * from "@smartput/volume/class";

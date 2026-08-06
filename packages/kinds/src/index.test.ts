@@ -9,15 +9,19 @@ test("all M1 and M2 built-in kinds are registered", () => {
   expect([...registry.kinds.keys()].sort()).toEqual([
     "angle",
     "area",
+    "datarate",
     "datasize",
     "duration",
+    "energy",
     "length",
     "mass",
     "number",
     "percent",
+    "power",
     "speed",
     "tempdelta",
     "temperature",
+    "tempo",
     "volume",
   ]);
 });

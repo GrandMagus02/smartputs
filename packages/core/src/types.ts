@@ -1,7 +1,15 @@
 import type { Decimal } from "./decimal";
 
 export type KindId = string;
-export type OpSymbol = "+" | "-" | "*" | "/" | "in" | "of";
+/**
+ * `off` is an operator rather than a spelling of `-` because it says its
+ * operands the other way round: "20% off 50" puts the percentage on the left
+ * and the base on the right, where `-|K|percent` puts the base on the left.
+ * Rewriting one into the other would mean a fold that swaps operands, and a
+ * swapping fold is indistinguishable from a bug the first time an operand has
+ * a side effect on the solver.
+ */
+export type OpSymbol = "+" | "-" | "*" | "/" | "in" | "of" | "off";
 /**
  * The keys of `Locale.keywords`, not the surface words. A locale lists every
  * word that means conversion under `in` (English: "in", "to", "as"), and
@@ -12,8 +20,13 @@ export type OpSymbol = "+" | "-" | "*" | "/" | "in" | "of";
  * parser runs. `by` exists only to be swallowed by one of those four, so that
  * "divided by" is a single operator; anywhere else it reaches the parser
  * unconsumed and fails, exactly as a stray "as" does.
+ *
+ * `of` and `off` are neither: they reach the parser as keywords and are
+ * consumed by branches of their own, because the fold rewrites a keyword into
+ * an *existing* arithmetic op token and neither of these two has one to
+ * become.
  */
-export type Keyword = "in" | "of" | "plus" | "minus" | "times" | "over" | "by";
+export type Keyword = "in" | "of" | "off" | "plus" | "minus" | "times" | "over" | "by";
 
 export interface Span {
   start: number;
@@ -25,6 +38,20 @@ export interface Value {
   readonly canonical: Decimal;
   readonly unit: string;
   readonly meta?: Readonly<Record<string, unknown>>;
+}
+
+/**
+ * How far a reading had to be corrected to be reached at all. Present only on
+ * a candidate the alias index did not contain — the surface was read as
+ * `alias` instead — and it travels on the candidate because the penalty is
+ * scored once during resolution and printed again by explain(), and those two
+ * numbers have to be the same number.
+ */
+export interface FuzzyMatch {
+  /** The alias the surface was read as. */
+  readonly alias: string;
+  /** Weighted edit distance to `alias`. One slip costs a little over 1. */
+  readonly distance: number;
 }
 
 export interface Candidate {
@@ -39,6 +66,8 @@ export interface Candidate {
   readonly form: string;
   /** Weight the analyzer chain attached to `form`; a summand of `weight`. */
   readonly analyzerWeight: number;
+  /** Set only when the surface reached this reading through a correction. */
+  readonly fuzzy?: FuzzyMatch;
 }
 
 export interface AnalyzedForm {

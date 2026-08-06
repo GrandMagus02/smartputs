@@ -64,6 +64,18 @@ export const percent = defineKind({
       result: NUMBER_KIND,
       apply: (l, r) => deriveValue(r, r.canonical.times(l.canonical)),
     },
+    // `off` is here for exactly the reason `of` above it is: generateRatioOps
+    // emits it for every ratio kind except `number`, and the arithmetic is
+    // copied from the generated case rather than shared, so the two cannot
+    // drift apart in what they do to `meta`.
+    {
+      op: "off",
+      left: "percent",
+      right: NUMBER_KIND,
+      result: NUMBER_KIND,
+      apply: (l, r) =>
+        deriveValue(r, r.canonical.times(new Decimal(1).minus(l.canonical))),
+    },
     {
       op: "+",
       left: NUMBER_KIND,
@@ -78,6 +90,36 @@ export const percent = defineKind({
       result: NUMBER_KIND,
       apply: (l, r) =>
         deriveValue(l, l.canonical.times(new Decimal(1).minus(r.canonical))),
+    },
+    // Conversion between a number and a percentage, which generateRatioOps
+    // does not reach for the same reason as the three above: it emits `in`
+    // only for a kind against itself, so number owns `in|number|number` and
+    // percent `in|percent|percent`, and neither of these two keys is claimed
+    // by anyone. Because canonical storage on both sides is the same plain
+    // 0-1 ratio, there is no arithmetic to do — 0.1 stays 0.1 and only the
+    // kind changes, which is what makes "5 / 50 in %" answer 10%.
+    //
+    // `deriveValue`'s source is the RIGHT operand in both directions: the
+    // right is the conversion target, so its kind, unit and meta are what the
+    // result must carry. Sourcing from the left would hand back a value
+    // labelled with the kind being converted away from.
+    {
+      op: "in",
+      left: NUMBER_KIND,
+      right: "percent",
+      result: "percent",
+      apply: (l, r) => deriveValue(r, l.canonical),
+    },
+    // The reverse direction has no surface spelling today — number's only
+    // unit word is "one", which foldNumerals eats as the numeral before the
+    // resolver sees it — but the signature is what makes the pair total, and
+    // it costs one entry rather than a rule about which way conversions run.
+    {
+      op: "in",
+      left: "percent",
+      right: NUMBER_KIND,
+      result: NUMBER_KIND,
+      apply: (l, r) => deriveValue(r, l.canonical),
     },
   ],
 });

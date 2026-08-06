@@ -153,6 +153,34 @@ if (ok.ok) {
 The complete strict/loose difference — every accepted and rejected form — is
 one table in [the API reference](/api/validate#strict-vs-loose).
 
+### `native`, and only for `number`
+
+`@smartput/number` carries a third point on that axis, looser than `loose`:
+
+```ts
+import { parseNumber } from "@smartput/number/validate";
+
+parseNumber("20%");                    // { ok: false, code: "unknown-unit" }
+parseNumber("20%", { mode: "native" }); // { ok: true, value: 20, unit: "one" }
+parseNumber("30kg", { mode: "native" }); // { ok: true, value: 30 }
+parseNumber("kg", { mode: "native" });   // { ok: false, code: "nan" }
+```
+
+It reads the leading number the way `parseFloat` does and lets the rest of the
+string be whatever it is — which is what a value arriving from a form field, a
+CSV cell or an API that spells its own unit usually looks like. It is native in
+the sense `parseFloat` is, not in the sense the section below is, and it is
+native all the way down: `"1,234"` is 1, because a thousands separator needs
+`Intl` and the locale's `numberFormat`, which is the engine's job.
+
+Widening what counts as a number does not blur what counts as failing to find
+one. `""` is still `empty` and `"kg"` is still `nan`.
+
+No other kind has it, and none should. `parseLength("30 kg", { mode: "native" })`
+answering 30 metres would be a wrong answer wearing a lenient mode's clothes.
+`number` is the one kind whose unit carries no information, so discarding the
+word after the value discards nothing.
+
 ## Native validation, before any JavaScript runs
 
 `patternFor` emits an HTML `pattern` attribute value covering the same

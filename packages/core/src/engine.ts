@@ -306,6 +306,10 @@ export function createEngine(opts: EngineOptions): Engine {
                   surface: c.foldedSurface,
                   prior: registry.kinds.get(c.kind)?.prior ?? 0,
                   layers: layersFor(call?.weights),
+                  // Only a corrected reading carries one, and it is what puts
+                  // the `fuzzy:` row in the list. Dropping it here would leave
+                  // the rows short of the score by exactly the penalty.
+                  ...(c.fuzzy ? { fuzzy: c.fuzzy } : {}),
                 }),
                 { selector: "analyzer", value: c.analyzerWeight, layer: 0 },
               ]),

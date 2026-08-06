@@ -63,8 +63,33 @@ test("the kind formats an unconverted amount exactly as formatAmount does", () =
 });
 
 test("a currency the parser refuses is one the engine refuses too", () => {
-  for (const word of ["dollarz", "xyz", "zzz"]) {
+  for (const word of ["xyz", "zzz", "quatloos", "zorkmids"]) {
     expect(parseCurrency(word)).toBeNull();
     expect(() => engine.evaluate(`30 ${word}`)).toThrow();
   }
+});
+
+/**
+ * The exception, and the reason it is not a hole. `dollarz` used to sit in the
+ * list above; the engine now reads it as USD, because a misspelling that the
+ * alias index misses by one slip is corrected rather than refused. That is not
+ * the engine holding an alias the parser was not given — the correction fires
+ * only when nothing matched exactly, and what it lands on is `dollars`, a word
+ * both sides know. The disagreement is therefore about *spelling*, not about
+ * vocabulary, and it runs in the direction this file's opening paragraph calls
+ * the less confusing one: the standalone parser is the stricter of the two.
+ *
+ * Pinning it here rather than deleting the case keeps the boundary honest. If
+ * the correction ever reaches a word the parser genuinely does not know, this
+ * test still passes and the one above starts failing, which is the alarm we
+ * actually want.
+ */
+test("the one word the two disagree about, the engine reached by correcting", () => {
+  expect(parseCurrency("dollarz")).toBeNull();
+  expect(parseCurrency("dollars")).not.toBeNull();
+  // The corrected reading and the well-spelled one are the same reading, which
+  // is the claim: `dollarz` did not reach a currency of its own.
+  expect(engine.evaluate("30 dollarz").value).toEqual(
+    engine.evaluate("30 dollars").value,
+  );
 });

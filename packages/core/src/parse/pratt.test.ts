@@ -21,7 +21,7 @@ const length = defineKind({
 const en = defineLocale({
   id: "en",
   numberFormat: "intl",
-  keywords: { in: ["in", "to", "as"], of: ["of"] },
+  keywords: { in: ["in", "to", "as"], of: ["of"], off: ["off"] },
 });
 const registry = buildRegistry([number, length]);
 const resolver = createResolver({ registry, locale: en, packs: [], layers: [] });
@@ -127,6 +127,29 @@ test("nodes carry spans back to the source", () => {
 test("the of keyword produces a binary node", () => {
   const node = ast("2 of 3");
   expect(node).toMatchObject({ type: "binary", op: "of" });
+});
+
+test("the off keyword produces a binary node", () => {
+  const node = ast("2 off 3");
+  expect(node).toMatchObject({ type: "binary", op: "off" });
+});
+
+// `off` shares `of`'s binding, so "10 + 2 off 3" is 10 + (2 off 3). The
+// grouping is the whole reason it needs a binding rather than being folded
+// into an existing operator.
+test("off binds tighter than addition", () => {
+  const node = ast("10 + 2 off 3");
+  if (node.type !== "binary") throw new Error("unreachable");
+  expect(node.op).toBe("+");
+  expect(node.right).toMatchObject({ type: "binary", op: "off" });
+});
+
+test("a trailing off is left unconsumed and fails", () => {
+  expect(() => ast("2 off")).toThrow(UnitParseError);
+});
+
+test("an off with nothing on its left is not an atom", () => {
+  expect(() => ast("off 50")).toThrow(UnitParseError);
 });
 
 // ---------------------------------------------------------------------------

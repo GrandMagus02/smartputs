@@ -10,7 +10,7 @@ Each milestone is independently shippable and gets its own implementation plan.
 | Milestone | Scope | Status |
 | --- | --- | --- |
 | **M1** | Contracts, registry, lexer, Pratt parser, solver, layered weights, softmax confidence, `explain()`. Kinds: `number`, `length`, `mass`, `duration`. Locale: `en`. | **Shipped** |
-| **M2** | Temperature (affine), measure (dpi via `Value.meta`), angle, datasize, percent, speed/area/volume as explicit op signatures. Facade class generator. | **Shipped** |
+| **M2** | Temperature (affine), measure (dpi via `Value.meta`), angle, datasize, percent (`of`, `+`, `-` — [`in` and `off` came later](#percent-finished)), speed/area/volume as explicit op signatures. Facade class generator. | **Shipped** |
 | **M2.5** | `Engine.complete()`, prefix completion, `typical` bands, `display` on every unit, consistent word-form output. | **Shipped** |
 | **M3** | Money kind, `@smartput/rate`, ECB provider, `createLiveEngine`. | **Shipped** |
 | **Word math** | `NumeralParser`, `cardinalNumerals`, numeral folding, word operators — `"twenty two kg"`, `"ten km plus five km"`. | **Shipped** |
@@ -92,6 +92,36 @@ costing any input its reading, `90210` stayed 90,210 with a postcode ranked
 underneath it, and the eighteen hand-written zones in `@smartput/datetime`
 stopped being the only places the engine knows.
 
+## Percent, finished
+
+`percent` shipped in M2 with `of`, `+` and `-`. Two readings people actually
+type were missing, and they cost core very different amounts.
+
+| Reading | | Cost to core |
+| --- | --- | --- |
+| `5 / 50 in %` → `10%` | also `as %`, and `0.1 in %` | **none** — two op signatures in `@smartput/percent` |
+| `20% off 50` → `40` | `20% off 50 kg` → `40 kg` | one new `OpSymbol` |
+
+The first is a conversion the engine could always have done and had no route
+to: percent's canonical storage *is* the 0–1 ratio, so `in` between `number` and
+`percent` is the identity plus a change of kind. Neither direction's key was
+claimed by anything, so both are declared by the kind and core does not know
+they exist.
+
+The second is the first new `OpSymbol` since M1, and it earned that by not being
+an alias for anything. `20% off 50` puts the percentage on the left and the base
+on the right; `50 - 20%` puts the same two operands the other way round.
+Rewriting one into the other means a token fold that swaps operands, which is
+indistinguishable from a bug the first time anyone reads the parse tree. So
+`off` is a keyword the Pratt parser consumes at `of`'s binding — `10 + 20% off
+50` is `50`, not `36` — and `generateRatioOps` emits `off | percent | K` beside
+`of | percent | K` for every non-affine ratio kind. The affine branch closes the
+new key without being told to: `20% off 20 c` throws, because twenty percent
+less than a temperature is not a temperature.
+
+That is what a new operator costs when the design holds: five files, all of them
+the ones that enumerate operators, and no change to the solver.
+
 ## Packages
 
 Shipped:
@@ -107,6 +137,12 @@ Shipped:
 @smartput/city         T1 gazetteer: 6,247 cities, 1,664 divisions, no code
 @smartput/zip          postal literal matcher, format validation, no data
 @smartput/distance     great-circle op for two place values, no data
+@smartput/datarate     datarate kind: bits per second, the datasize/duration
+                       bridge in both directions
+@smartput/power        power kind: watts through gigawatts, mechanical horsepower
+@smartput/energy       energy kind: joules, watt-hours, calories, BTU, and the
+                       power x duration bridge
+@smartput/tempo        tempo kind: bpm and hertz, reciprocal bridge to duration
 ```
 
 Planned:
@@ -125,6 +161,7 @@ Every package that defines a kind ships that kind's translations beside it under
 | `core` | `decimal.js` — and nothing else |
 | `validate` | none — the standing target for this package, same as `core`'s one dependency |
 | any ratio kind (`angle`, `length`, …) | `@smartput/core`, `@smartput/shared` |
+| `datarate`, `energy`, `power`, `tempo` | `@smartput/core`, `@smartput/shared` — a bridging kind names its operand kinds by string, so it depends on neither side of the bridge |
 | `*/locale/*` | none — descriptors only |
 | `datetime` | `temporal-polyfill`, `chrono-node`, `@smartput/core`, `decimal.js` |
 | `rates` | `decimal.js`, `@smartput/core`; provider adapters use `fetch` only |

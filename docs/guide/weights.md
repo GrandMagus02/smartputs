@@ -57,6 +57,7 @@ able to override the plugin. A single `0..1` prior allows neither.
 raw(candidate)    = Σ matching selectors      // all four layers
                   + contextBonus              // a matching OpSignature exists for the sibling
                   + hintBonus                 // opts.kinds, or the coerce() target
+                  − 15 × editDistance         // only if the surface had to be corrected
 
 score(assignment) = Σ raw over its candidates
 confidence        = softmax(score over all consistent assignments)
@@ -71,6 +72,64 @@ confidence        = softmax(score over all consistent assignments)
 Because raw scores are unbounded and confidence is their softmax,
 `ambiguityEpsilon` always compares normalized values. Adding a weight changes
 the ranking without changing what the epsilon means.
+
+## Reading through a typo
+
+A misspelled unit used to be an error with a hint attached. It is now a reading
+with a penalty attached, which is the same decision the rest of this page makes
+about everything else: rank it, do not refuse it.
+
+```ts
+engine.evaluate("1 klogram").formatted; // "1 kilogram"
+```
+
+Three constraints hold it in place, and each of them is the feature rather than
+a guard on it.
+
+**The fuzzy pass runs only when the exact pass found nothing.** If any analyzed
+form named a real alias, that is what was written, and a near miss on some other
+word is not evidence against it — so a correction can never outrank a reading,
+and no well-spelled input pays for the scan of the alias index that a correction
+costs.
+
+**The contribution is a term, not a multiplier.** `−15` per edit, carried under
+the selector `fuzzy:<alias>`, summed with the prior and all four layers like
+everything else. A corrected candidate has exactly one row more than its exact
+twin and no other difference, so `weights: { "mass:kg": 10 }` applies to a
+mistyped `kilogram` the way it applies to a well-typed one.
+
+```
+token "klogram" → mass:kg
+  prior              0
+  fuzzy:kilogram   -15    (one edit)
+  analyzer           0
+  contextBonus       0
+  ─────────────────────
+  raw              -15    confidence 1
+```
+
+Fifteen is half of `contextBonus`, and that is the trade it prices: a reading
+corrected by one edit can still be believed when its sibling operand agrees on
+kind — 30 for the agreement against 15 for the slip — while two edits plus an
+agreeing sibling cancel exactly, which is where the engine has stopped reading
+and started guessing.
+
+**Confidence is not where the penalty shows.** The softmax normalizes whatever
+it is given, so a corrected reading with no rival comes back at 1 exactly as an
+exact one does. The charge is legible in `score` and in the `fuzzy:` row, and
+`explain()` is how you see it. That is not a defect in either number: admission
+is what a lone reading gets, and 15 decides contests.
+
+Two limits are deliberately tighter than the suggestion machinery's:
+
+| Limit | Value | Why |
+| --- | --- | --- |
+| shortest surface worth correcting | 5 characters | Below that the alias index is a symbol table. `kg`, `km`, `mg`, `kt` and `kb` all sit within an edit of `kgg`; naming the nearest is not reading it, and the answer that comes back would be a number in another dimension. |
+| edits a *reading* may cross | 1 | Two is where `10 mobile` quietly becomes 16,093.44 metres. The `nearest` hint in `NoCandidateError` keeps its two, because a suggestion is read by a person who can see both words and say no. A reading is read by nobody. |
+
+And a tie still refuses. Two words equally near are a coin toss, so `1 litrr` —
+one substitution from both `litre` and `liter` — throws `NoCandidateError` with
+both named, which is the honest answer and the one the writer can act on.
 
 ## When evaluate() refuses
 

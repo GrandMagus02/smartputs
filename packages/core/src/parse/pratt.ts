@@ -29,6 +29,12 @@ const BINDING: Record<Exclude<OpSymbol, "in">, number> = {
   // a *keyword* token, not an op token, so parseExpr reads this binding from
   // its own branch below rather than from the `token.op` lookup.
   of: 15,
+  // The same binding, because "off" is "of" with different arithmetic and the
+  // two have to group identically or "10 + 20% off 50" and "10 + 20% of 50"
+  // would disagree about which addition happens first. Equal bindings are
+  // fine here: the branches below recurse at `binding + 1`, so a chain stays
+  // left-associative.
+  off: 15,
   "*": 20,
   "/": 20,
 };
@@ -247,14 +253,23 @@ export function parse(tokens: Token[], resolver: Resolver, input: string): Node 
         continue;
       }
 
-      if (token.type === "keyword" && token.keyword === "of") {
-        const binding = BINDING.of;
+      // "of" and "off" take the same shape — percentage on the left, base on
+      // the right — and differ only in the signature the evaluator then looks
+      // up, so one branch reads both. Neither is folded into an op token in
+      // `wordops`: that fold rewrites a keyword into an *existing* arithmetic
+      // operator, and these two have none to become.
+      if (
+        token.type === "keyword" &&
+        (token.keyword === "of" || token.keyword === "off")
+      ) {
+        const op = token.keyword;
+        const binding = BINDING[op];
         if (binding < minBinding) break;
         pos += 1;
         const right = parseExpr(binding + 1);
         left = {
           type: "binary",
-          op: "of",
+          op,
           left,
           right,
           span: span(left.span, right.span),

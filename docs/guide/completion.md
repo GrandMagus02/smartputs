@@ -11,7 +11,7 @@ user is actually asking while still typing: *what could this word still become?*
 ```ts
 engine.complete("30 ho");
 // [ { alias: "hour", span: { start: 3, end: 5 }, text: "30 hours",
-//     kind: "duration", unit: "h", score: 13 } ]
+//     kind: "duration", unit: "h", score: 1 } ]
 ```
 
 `text` is the **whole input rewritten**, not the unit word on its own, so the
@@ -65,6 +65,46 @@ engine.complete("600 mi")[0]; // → "600 miles", score 10
 Three points, because 600 falls outside miles' band. Omitting a band scores
 zero — the same as being out of one — so declaring a band is never a penalty,
 which is what stops the honest kinds from being punished for supplying data.
+
+## When nothing prefixes the fragment
+
+`complete("1 klogram")` used to return `[]`. Nothing in the alias index starts
+with `klogram`, and a prefix matcher has no other question to ask — so the one
+input where the user most needs help got the same answer as gibberish.
+
+When the prefix pass comes back empty, and only then, the fragment is matched
+once against the alias index by [edit distance](/guide/weights#reading-through-a-typo)
+and the single nearest alias is offered as an ordinary row:
+
+```ts
+engine.complete("1 kilogram")[0].score; //  13   exact alias, inside its band
+engine.complete("1 kilogr")[0].score;   //   1   two characters still to type
+engine.complete("1 klogram")[0].score;  // -22   the same alias, misspelled
+```
+
+`TYPO_PENALTY` is 25 per edit, and it is priced against the *range* a prefix
+offer occupies rather than against a contest — 13 at the top, about −11 for the
+longest alias in the index barely begun — because the two never meet in one
+list. What it has to hold is the comparison the user makes across keystrokes:
+the misspelling must read as visibly worse than the half-typed word, not as the
+same offer arriving by another route.
+
+`prefixQuality` is withheld from a corrected row. A corrected alias is by
+construction not one the fragment prefixes — had it been, the prefix pass would
+have found it and this one would never have run — so "characters still untyped"
+has nothing to count. That is the same rule the completer path already applies
+to a row whose alias its fragment does not prefix, and it makes the arithmetic
+above exact: a corrected row is the exact row less `EXACT_BONUS` less
+`TYPO_PENALTY`.
+
+**The scan never reaches a kind's own `completions`.** The distance pass runs
+over the global alias index and nothing else, once per unknown fragment. That is
+the difference between a few hundred names and the 6,247 city names behind
+[`Kind.completions`](/api/define-kind#completions), and between a cost paid on
+an error path and one paid on every keystroke. The boundary is structural rather
+than remembered: the helper takes the registry's alias index, not an iterable of
+strings, so a completions vocabulary cannot be handed to it by a one-line
+change. A test asserts a completions-supplying kind is never consulted.
 
 ## One row per unit
 
