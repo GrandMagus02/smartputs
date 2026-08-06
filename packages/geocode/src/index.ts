@@ -6,6 +6,7 @@
  * cache. No data of its own: a gazetteer arrives through a provider, and the
  * provider arrives through the consumer.
  */
+export { QueryCache, type QueryCacheOptions } from "./cache";
 export {
   normalizeName,
   type Place,
