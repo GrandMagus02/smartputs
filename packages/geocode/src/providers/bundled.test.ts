@@ -110,8 +110,69 @@ test("the snapshot answers a name synchronously", () => {
   expect(provider.snapshot?.find("atlantis")).toBeNull();
 });
 
-test("limit is honoured", async () => {
-  expect(await provider.search({ text: "berlin", limit: 1 })).toHaveLength(1);
+test("limit is not the provider's to apply — ranking needs every candidate", async () => {
+  // The regression this pins: the first version stopped the scan at `limit`
+  // candidates in index order, so a query whose exact match sits late in the
+  // bucket never reached it. Here "san jose" shares the token "san" with two
+  // rows that precede the real one.
+  const noise = (geonameId: number, name: string): CityRow => ({
+    geonameId,
+    name,
+    aliases: [name.toLowerCase()],
+    country: "ar",
+    admin1: "",
+    lat: 0,
+    lon: 0,
+    zone: "America/Argentina/Buenos_Aires",
+    population: 900_000,
+    capital: false,
+  });
+  const late = bundled({
+    asOf: "2026-08-06",
+    cities: [
+      noise(1, "San Miguel"),
+      noise(2, "San Salvador"),
+      {
+        geonameId: 3,
+        name: "San Jose",
+        aliases: ["san jose"],
+        country: "us",
+        admin1: "CA",
+        lat: 37.33939,
+        lon: -121.89496,
+        zone: "America/Los_Angeles",
+        population: 1_026_908,
+      },
+    ],
+  });
+
+  const hits = await late.search({ text: "san jose", limit: 1 });
+  expect(hits.map((h) => h.place.name)).toContain("San Jose");
+  // The exact match outscores the two that only share a token, so whoever
+  // applies the limit above gets the right answer.
+  expect(hits.reduce((a, b) => (a.score >= b.score ? a : b)).place.name).toBe("San Jose");
+});
+
+test("a place is reported under its best-matching alias, not its first", async () => {
+  const p = bundled({
+    asOf: "2026-08-06",
+    cities: [
+      {
+        geonameId: 3_621_849,
+        name: "San José",
+        aliases: ["san josé", "san jose"],
+        country: "cr",
+        admin1: "08",
+        lat: 9.93333,
+        lon: -84.08333,
+        zone: "America/Costa_Rica",
+        population: 335_007,
+      },
+    ],
+  });
+  const hits = await p.search({ text: "san jose" });
+  expect(hits).toHaveLength(1);
+  expect(hits[0]?.matched).toBe("san jose");
 });
 
 test("no admin1 table means no admin hits and no crash", async () => {

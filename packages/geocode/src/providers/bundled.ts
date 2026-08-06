@@ -186,22 +186,37 @@ export function bundled(opts: BundledOptions): GeocodeProvider {
       const bucket = buckets.get(text.slice(0, 1)) ?? [];
       const countries = q.countries?.map((c) => c.toLowerCase());
 
-      const out: GeocodeHit[] = [];
-      const seen = new Set<GeocodeHit>();
+      // One candidate per place, carrying its *best-matching* alias rather than
+      // its first: San José is reached by "san josé" and by "san jose", and a
+      // caller shown the one that did not match the typing reads it as a
+      // different city.
+      const best = new Map<
+        GeocodeHit,
+        { readonly score: number; readonly matched: string }
+      >();
       for (const entry of bucket) {
-        if (similarity(text, entry.key) === 0) continue;
-        // One hit per place, whichever alias reached it first: two aliases of
-        // one city are one candidate, and `dedupe` upstream would collapse them
-        // anyway — doing it here keeps `limit` meaning what a caller expects.
-        if (seen.has(entry.hit)) continue;
+        const score = similarity(text, entry.key);
+        if (score === 0) continue;
         if (countries !== undefined && !countries.includes(entry.hit.place.country)) {
           continue;
         }
-        seen.add(entry.hit);
-        out.push({ ...entry.hit, matched: entry.key });
-        if (q.limit !== undefined && out.length >= q.limit) break;
+        const seen = best.get(entry.hit);
+        if (seen === undefined || score > seen.score) {
+          best.set(entry.hit, { score, matched: entry.key });
+        }
       }
-      return out;
+
+      // `q.limit` is deliberately NOT applied here, and the first version of
+      // this file got that wrong: it stopped the scan at `limit` candidates in
+      // index order, so `san jose` limited to three returned three Argentine
+      // cities that merely share the token "san" and never reached San Jose at
+      // all. Ranking is §6's job and it needs the whole candidate set to do it;
+      // a provider that truncates first has already thrown away the answer.
+      return [...best].map(([hit, m]) => ({
+        ...hit,
+        matched: m.matched,
+        score: m.score,
+      }));
     },
   };
 }
