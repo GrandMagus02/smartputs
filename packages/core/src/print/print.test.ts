@@ -4,7 +4,7 @@ import BUILTIN_EN from "@smartput/kinds/locale/en";
 import { english } from "@smartput/locale-en";
 import { Decimal } from "../decimal";
 import { defineKind } from "../kind/define";
-import { buildRegistry, NUMBER_KIND, wordsFor } from "../kind/registry";
+import { buildRegistry, NUMBER_KIND } from "../kind/registry";
 import { composeLocale } from "../locale/compose";
 import type { Node } from "../parse/ast";
 import { createResolver } from "../parse/candidates";
@@ -14,6 +14,7 @@ import { Tokenizer } from "../parse/tokenizer";
 import { Solver } from "../solve/solver-class";
 import type { Locale, RateLookup, Value } from "../types";
 import { Printer } from "./print";
+import { unitWord } from "./unit-word";
 
 const en = composeLocale(english, BUILTIN_EN);
 
@@ -135,13 +136,26 @@ test("canonical: a bare number prints with no unit at all", () => {
 // --- the invariant unitText's single-candidate path rests on ------------
 
 test("invariant: every unit the printer can emit a unit for lexes back to that (kind, unit)", () => {
-  // `unitWord` canonicalizes an unambiguous quantity to `lexeme.aliases[0]`
-  // rather than `lexeme.symbol` specifically because the first alias is
+  // `unitWord` canonicalizes an unambiguous quantity to the unit's first
+  // alias rather than its `symbol` specifically because the first alias is
   // supposed to be parser-legal (see `unitWord`'s doc comment) — but nothing
   // enforces that ordering. It holds today only because every kind package
   // happens to declare the lexable spelling first; reversing two lines in a
   // kind package's `units.ts` would make the printer emit an unparseable
   // alias with no failing test.
+  //
+  // The word checked is `unitWord`'s own answer, not `aliases[0]` read out of
+  // the registry beside it. Those coincide for every unit an English
+  // vocabulary ships words for, which is nearly all of them — but not all,
+  // and the difference is the whole point of asking the function instead of
+  // reproducing its first branch. `boolean`'s single unit is a sentinel with
+  // no words in any language (its kind formats itself), so `aliases[0]` is
+  // `undefined` there while `unitWord` degrades to the unit's own registry
+  // key, `"bool"` — which is exactly what `buildRegistry` indexes for a kind
+  // no language has spoken for (ruling R2), so it round-trips like every
+  // other unit here and belongs in the invariant rather than outside it. A
+  // proxy that reads the table directly has to carve out an exception for
+  // that; the function has no exception to carve.
   //
   // This is that test, and it has to go through `Normalizer` + `Tokenizer`,
   // not just `resolver.resolve`: `buildRegistry`'s alias-index pass builds
@@ -183,11 +197,20 @@ test("invariant: every unit the printer can emit a unit for lexes back to that (
   for (const [kindId, kind] of registry.kinds) {
     if (kindId === NUMBER_KIND) continue;
     for (const unitId of kind.units.keys()) {
-      const alias = wordsFor(registry, en.id, kindId, unitId)?.aliases[0];
-      if (alias === undefined) {
-        failures.push(`${kindId}:${unitId} — no first alias`);
-        continue;
-      }
+      const alias = unitWord(
+        {
+          kindId,
+          unitId,
+          // An unambiguous node: nothing to avoid, no surface to fall back to,
+          // and `symbols: false` because `print`'s default options are the
+          // only ones the round-trip contract covers.
+          avoid: new Set(),
+          ambiguousSurface: undefined,
+          symbols: false,
+        },
+        registry,
+        en,
+      );
       checked += 1;
       const stream = tokenizer.run(normalizer.run(alias));
       const [token, second] = stream.tokens;
