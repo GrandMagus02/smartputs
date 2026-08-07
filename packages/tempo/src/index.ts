@@ -1,18 +1,15 @@
 import type { EvalCtx, Value } from "@smartput/core";
 import {
-  aliasesFor,
   Decimal,
   DivideByZeroError,
   decimalRatios,
   defineKind,
   deriveValue,
 } from "@smartput/core";
-import { TEMPO_UNITS, type TempoUnit } from "./units";
+import { TEMPO_UNITS } from "./units";
 
 export type { TempoUnit } from "./units";
 export { TEMPO_UNITS } from "./units";
-
-const alias = (unit: TempoUnit) => aliasesFor(TEMPO_UNITS, unit);
 
 /**
  * Seconds per minute — the whole of the bridge below. It is not a unit
@@ -53,17 +50,13 @@ export const tempo = defineKind({
     canonical: TEMPO_UNITS.canonical,
     units: decimalRatios(TEMPO_UNITS),
   },
-  lexicon: {
-    // No `display` on bpm: "beats per minute" is a compound the parser cannot
-    // read back, and a display form that does not round-trip is a dead end for
-    // completion. `hz` gets one because "hertz" is an alias and its own plural.
-    bpm: { aliases: alias("bpm"), symbol: "bpm", typical: [40, 220] },
-    hz: {
-      aliases: alias("hz"),
-      symbol: "hz",
-      display: { one: "hertz", other: "hertz" },
-      typical: [0.5, 20],
-    },
+  // Physics, not language (ruling R3): the magnitude band people actually type
+  // each unit in, inclusive at both ends, read only by completion's `scaleFit`.
+  // It stayed on the kind when the words left for `./locale/en` because a
+  // dance-floor tempo is 40–220 beats a minute in every language.
+  typical: {
+    bpm: [40, 220],
+    hz: [0.5, 20],
   },
   ops: [
     // The bridge to `duration` is reciprocal — 120 bpm is a half-second beat,

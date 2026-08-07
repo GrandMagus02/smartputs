@@ -16,9 +16,9 @@ export type TempoUnit = "bpm" | "hz";
  * bridge already says, and the two would then have to agree.
  *
  * `hertz` is spelled out as an alias because it is also its own plural, so the
- * lexicon can carry it as a `display` form that parses back. `bpm` has no
- * such form: "beats per minute" is a compound the parser rejects, the same
- * reason `speed`'s mps/kph carry no display.
+ * English vocabulary in `locale/en.ts` can carry it as a `forms` entry that
+ * parses back. `bpm` has no such form: "beats per minute" is a compound the
+ * parser rejects, the same reason `speed`'s mps/kph carry none.
  */
 export const TEMPO_UNITS: UnitTable<TempoUnit> = {
   canonical: "bpm",
