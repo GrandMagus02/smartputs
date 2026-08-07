@@ -4,6 +4,9 @@ import { buildRegistry, wordsFor } from "../kind/registry";
 import { composeLocale } from "../locale/compose";
 import type { EvalCtx, Kind, Language, Vocabulary } from "../types";
 
+export type { LocaleContractOptions } from "./locale";
+export { assertLocaleContract } from "./locale";
+
 /**
  * Assertions every kind must satisfy. Built-in and third-party kinds run the
  * same suite — this is what keeps the extension seam honest. The one

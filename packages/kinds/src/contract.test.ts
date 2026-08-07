@@ -2,6 +2,8 @@ import { describe, expect, test } from "bun:test";
 import { ANGLE_UNITS } from "@smartput/angle/units";
 import { AREA_UNITS } from "@smartput/area/units";
 import type { Kind, Vocabulary } from "@smartput/core";
+import { BOOLEAN_KIND, BOOLEAN_UNIT, composeLocale } from "@smartput/core";
+import { assertLocaleContract } from "@smartput/core/testing";
 import { DATARATE_UNITS } from "@smartput/datarate/units";
 import { DATASIZE_UNITS } from "@smartput/datasize/units";
 import { DURATION_UNITS } from "@smartput/duration/units";
@@ -42,6 +44,7 @@ import {
 import {
   angle,
   area,
+  BUILTIN_KINDS,
   datarate,
   datasize,
   duration,
@@ -451,6 +454,31 @@ describe("no vocabulary alias collides with a locale keyword", () => {
     // The exclusion is vocabulary-only. Dropping it from the table too would break
     // the strict round-trip of `formatLength(v, "in")`.
     expect(LENGTH_UNITS.alias.in).toBe("in");
+  });
+});
+
+/**
+ * The whole roster against the whole English language, in one call — spec §9's
+ * four checks, run over the pair a consumer actually wires up. The three
+ * describes above check each vocabulary against its own `units.ts`; this checks
+ * them against `english`, which is the half a table cannot see: whether every
+ * grammatical key `selectForm` will ask for at runtime exists in the `forms`
+ * table it will index.
+ *
+ * It is a single test rather than one per kind because that is how the
+ * assertion reports: it collects every problem across every unit and names them
+ * all in one message, so a gap in the sixteenth vocabulary is visible on the
+ * first run rather than on the sixteenth.
+ */
+test("the en vocabularies satisfy the locale contract", () => {
+  assertLocaleContract(composeLocale(en, BUILTIN_EN), BUILTIN_KINDS, {
+    // `boolean`'s single unit is a sentinel with no word in any language, and
+    // that is the design rather than an omission: every value of the kind
+    // prints through its `format` hook ("true"/"false"), the unit id never
+    // reaches a user, and `@smartput/boolean` ships no vocabulary at all. This
+    // is I10's degradation being taken deliberately — the one case `skip`
+    // exists for.
+    skip: [`${BOOLEAN_KIND}:${BOOLEAN_UNIT}`],
   });
 });
 
