@@ -202,7 +202,10 @@ after handing it over, while a caller-assembled bag (`kindMeta`,
 `NormalizerOptions`, `Autocompleter`'s `layers`) is copied, since a caller
 could keep adding to or reassigning entries on the object they passed in
 after construction. `Tokenizer`, `Parser` and `Solver` copy nothing at all —
-every one of their config fields is a service object under this rule.
+every one of their *object-valued* config fields is a service object under
+this rule. (Their scalars — `Tokenizer`'s `now`/`timeZone`, `Solver`'s
+`maxCandidates`/`ambiguityEpsilon`/`tiebreak` — are neither copied nor held
+by reference; a primitive has no such distinction to make.)
 
 ## Printer
 

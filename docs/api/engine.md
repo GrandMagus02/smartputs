@@ -212,17 +212,17 @@ index the string the caller passed in; spans on the remaining
 `meta.assumptions` records anything the engine inferred rather than read. Two
 kinds populate it today:
 
+| `code` | Raised by | Means |
+| --- | --- | --- |
+| `cross-rate` | `money` | the FX rate was derived through the snapshot's base currency, not quoted directly |
+| `temperature-delta` | `temperature` | `20 C + 5 C` read the right operand as a difference, because the alternative is meaningless |
+
 Each entry is frozen — mutating a returned `Assumption` throws — though the
 `assumptions` array itself, and `meta`, and `Result`, are plain, unfrozen
 objects; only the values a caller is likely to hold onto and pass around
 individually carry the freeze. (`Result.value` is frozen too, but that
 predates this restructuring — every `Completion` `complete()` returns is the
 other value newly frozen alongside `Assumption`.)
-
-| `code` | Raised by | Means |
-| --- | --- | --- |
-| `cross-rate` | `money` | the FX rate was derived through the snapshot's base currency, not quoted directly |
-| `temperature-delta` | `temperature` | `20 C + 5 C` read the right operand as a difference, because the alternative is meaningless |
 
 `meta.ratesAsOf` is the date of the rate table the result was computed against —
 absent on an engine with no `rates`. A converted amount without one is a number
