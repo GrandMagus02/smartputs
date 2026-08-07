@@ -207,6 +207,35 @@ export function unitWord(
   registry: Registry,
   locale: Locale,
 ): string {
+  return unitLabel(opts, registry, locale).text;
+}
+
+/**
+ * The label `unitWord` returns, plus which of the three chains it came out of.
+ *
+ * `Printer` needs the provenance and not just the string: a `QuantityParts` is
+ * assembled by the *language*, and a language cannot decide anything about a
+ * label it was handed as an untyped blob — "kilograms" and "kg" are spaced
+ * differently in English and declined differently in Ukrainian. `unitWord`
+ * keeps returning the bare string for every caller that only prints it.
+ *
+ * `"alias"` covers the whole tail of the chain, `ambiguousSurface` and the
+ * unit key included: all three are the same kind of thing to a renderer — a
+ * short label nobody translated — and the distinctions between them are about
+ * *which* string to pick, which is this function's business and not the
+ * language's.
+ */
+export interface UnitLabel {
+  readonly text: string;
+  readonly source: "form" | "symbol" | "alias";
+}
+
+/** `unitWord`, with the provenance kept — see `UnitLabel`. */
+export function unitLabel(
+  opts: UnitWordOptions,
+  registry: Registry,
+  locale: Locale,
+): UnitLabel {
   const { kindId, unitId, avoid, ambiguousSurface, symbols, spell } = opts;
   const words = wordsFor(registry, locale.id, kindId, unitId);
   const fold = (s: string) => s.toLocaleLowerCase(locale.id);
@@ -219,16 +248,20 @@ export function unitWord(
       slot: spell.slot,
     });
     const word = words?.forms?.[key];
-    if (word !== undefined && !avoid.has(fold(word))) return word;
+    if (word !== undefined && !avoid.has(fold(word))) {
+      return { text: word, source: "form" };
+    }
     // No forms table, no entry under the language's key, or that entry
     // collided with `avoid` — fall through to the alias chain below, never to
     // `symbols` (see this function's own doc comment).
   } else if (symbols) {
     const symbol = words?.symbol;
-    if (symbol !== undefined && !avoid.has(fold(symbol))) return symbol;
+    if (symbol !== undefined && !avoid.has(fold(symbol))) {
+      return { text: symbol, source: "symbol" };
+    }
   }
   const aliases = words?.aliases ?? [];
   const alias = aliases.find((a) => !avoid.has(fold(a)));
-  if (alias !== undefined) return alias;
-  return ambiguousSurface ?? aliases[0] ?? unitId;
+  if (alias !== undefined) return { text: alias, source: "alias" };
+  return { text: ambiguousSurface ?? aliases[0] ?? unitId, source: "alias" };
 }

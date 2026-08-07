@@ -6,13 +6,14 @@ import { Decimal } from "../decimal";
 import { defineKind } from "../kind/define";
 import { buildRegistry, NUMBER_KIND } from "../kind/registry";
 import { composeLocale } from "../locale/compose";
+import { defineLanguage } from "../locale/define";
 import type { Node } from "../parse/ast";
 import { createResolver } from "../parse/candidates";
 import { Normalizer } from "../parse/normalize";
 import { Parser, type Program } from "../parse/program";
 import { Tokenizer } from "../parse/tokenizer";
 import { Solver } from "../solve/solver-class";
-import type { Locale, RateLookup, Value } from "../types";
+import type { Language, Locale, RateLookup, Value } from "../types";
 import { Printer } from "./print";
 import { unitWord } from "./unit-word";
 
@@ -682,6 +683,87 @@ test('spacing: tight keeps the spaces around a keyword operator ("of")', () => {
 
 test('spacing: tight keeps the spaces around a convert\'s "in"', () => {
   expect(printer.print(programFor("2 km in m"), { spacing: "tight" })).toBe("2km in m");
+});
+
+// --- the language assembles the quantity --------------------------------
+
+/**
+ * A spy `Language` over the real English one — every mechanic (`spell`,
+ * `keywords`, the analyzers) kept, only the two writing hooks replaced, so a
+ * failure here is about assembly and never about a fixture language that
+ * cannot read "1 kg in g" in the first place.
+ */
+function spyLanguage(over: Partial<Language>): Locale {
+  return composeLocale(defineLanguage({ ...english, ...over }), BUILTIN_EN);
+}
+
+function spyPrinterFor(locale: Locale): Printer {
+  return new Printer({ registry: buildRegistry(BUILTIN_KINDS, [locale]), locale });
+}
+
+test("the printer renders every quantity through the language, with the real slot", () => {
+  const seen: string[] = [];
+  const locale = spyLanguage({
+    selectForm: ({ slot, unit }) => {
+      seen.push(`${slot}:${unit}`);
+      return "other";
+    },
+    renderQuantity: (p) =>
+      `[${p.slot}]${p.number}|${p.form ?? p.symbol ?? p.alias ?? p.unit}`,
+  });
+  // The operand is a quantity and goes through `renderQuantity`; the convert's
+  // target is a bare word and does not — but it still asks the language for a
+  // form key, with its own slot, which is what `seen` pins.
+  expect(spyPrinterFor(locale).print(programFor("1 kg in g"), { spelled: true })).toBe(
+    "[after-number]one|kilograms in grams",
+  );
+  expect(seen).toEqual(["after-number:kg", "conversion-target:g"]);
+});
+
+test("the printer tells the language which of form, symbol and alias it chose", () => {
+  // The three come out of `unitLabel`'s three branches and mean different
+  // things to a language: a word takes a space, a glyph sits tight, and an
+  // alias is neither the unit's key nor a word anyone translated. Passing the
+  // alias as `unit` would print length's registry key "m" here, not "metre".
+  const locale = spyLanguage({
+    renderQuantity: (p) =>
+      p.form !== undefined
+        ? `${p.number}F(${p.form})`
+        : p.symbol !== undefined
+          ? `${p.number}S(${p.symbol})`
+          : p.alias !== undefined
+            ? `${p.number}A(${p.alias})`
+            : `${p.number}U(${p.unit})`,
+  });
+  const printerHere = spyPrinterFor(locale);
+  const program = programFor("10 m + 5 km");
+  const resolution = solver.best(program);
+  expect(printerHere.print(program, { mode: "resolved", resolution })).toBe(
+    "10A(metre) + 5A(km)",
+  );
+  expect(printerHere.print(programFor("3 m2"), { symbols: true })).toBe("3S(m²)");
+  expect(printerHere.print(programFor("30 deg"), { spelled: true })).toBe(
+    "thirtyF(degrees)",
+  );
+});
+
+test("the printer hands the language the gap its spacing option resolved", () => {
+  // `spacing` is the caller's override of the language's own convention, so
+  // the language has to be told what it resolved to — a language that
+  // assembles its own quantity would otherwise silently ignore `tight`.
+  const gaps: string[] = [];
+  const locale = spyLanguage({
+    renderQuantity: (p) => {
+      gaps.push(p.gap ?? "<absent>");
+      return `${p.number}${p.gap ?? " "}${p.alias ?? p.unit}`;
+    },
+  });
+  const printerHere = spyPrinterFor(locale);
+  expect(printerHere.print(programFor("1 kg + 500 g"), { spacing: "tight" })).toBe(
+    "1kg+500g",
+  );
+  expect(printerHere.print(programFor("1 kg + 500 g"))).toBe("1 kg + 500 g");
+  expect(gaps).toEqual(["", "", " ", " "]);
 });
 
 // --- value(): today's formatValue, byte-identical -----------------------

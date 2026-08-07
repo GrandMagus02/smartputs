@@ -2,6 +2,7 @@ import type { Decimal } from "../decimal";
 import { fromCanonical, toCanonical } from "../eval/convert";
 import { formatNumber, formatValue } from "../format/format";
 import type { Registry } from "../kind/registry";
+import { defaultRenderQuantity } from "../locale/render";
 import type { Node, NodeId } from "../parse/ast";
 import { type BinaryOp, bindingOf, CONVERT_BINDING } from "../parse/pratt";
 import type { Program } from "../parse/program";
@@ -16,7 +17,7 @@ import type {
   RateLookup,
   Value,
 } from "../types";
-import { avoidSpellings, pickCandidate, unitWord } from "./unit-word";
+import { avoidSpellings, pickCandidate, unitLabel, unitWord } from "./unit-word";
 
 // `format/format.ts` stays the one place `formatValue` is defined; this is a
 // re-export, not a second copy, so a caller who wants the bare function
@@ -174,6 +175,17 @@ const ATOM_PRECEDENCE = Number.POSITIVE_INFINITY;
  * which is the same "no invented word" rule a unit with no `forms` entry
  * follows.
  */
+/**
+ * The two positions a `Printer` can put a unit word in, named once so the two
+ * places each one reaches — `Language.selectForm` (through `unitLabel`'s
+ * `spell` option) and `Language.renderQuantity` — cannot drift into disagreeing
+ * about where the same word is standing. `formatValue`'s `"bare"` is the third
+ * `Slot` and is not a printer position at all: it renders a finished `Value`
+ * with no expression around it.
+ */
+const SLOT_OPERAND = "after-number" as const;
+const SLOT_TARGET = "conversion-target" as const;
+
 const OP_KEYWORDS: Partial<Record<BinaryOp, Keyword>> = {
   "+": "plus",
   "-": "minus",
@@ -541,8 +553,16 @@ export class Printer {
   }
 
   /**
-   * A quantity's `"<number> <unit>"`, or the ambiguous echo when
-   * `pickCandidate` cannot choose.
+   * A quantity's `"<number> <unit>"` — assembled by the language
+   * (`Language.renderQuantity`, defaulting to `defaultRenderQuantity`, the same
+   * pair `formatValue` renders through) rather than by a template here, so the
+   * one place that decides what a rendered quantity looks like is the language
+   * and not two of them. This method picks the pieces: the number, the label
+   * and which chain it came from, the slot, and the gap `spacing` resolved.
+   *
+   * The ambiguous echo below is the exception, and not an assembly at all:
+   * with no chosen candidate there is no `(kind, unit)` to hand a language, and
+   * what it emits is the user's own text rather than anything rendered.
    *
    * That echo branch also means `ctx.rebase`/`ctx.precision` are silently
    * skipped for this node even when `ctx.rebase.kind` matches one of
@@ -570,7 +590,7 @@ export class Printer {
       return `${this.printDecimal(value)}${sep}${candidates[0]?.surface ?? ""}`;
     }
     const magnitude = this.renderMagnitude(value, chosen, ctx);
-    const unit = unitWord(
+    const label = unitLabel(
       {
         kindId: magnitude.kind,
         unitId: magnitude.unit,
@@ -578,7 +598,7 @@ export class Printer {
         ambiguousSurface: candidates.length > 1 ? candidates[0]?.surface : undefined,
         symbols: ctx.symbols,
         ...(ctx.spell !== undefined
-          ? { spell: { magnitude: magnitude.magnitude, slot: "after-number" as const } }
+          ? { spell: { magnitude: magnitude.magnitude, slot: SLOT_OPERAND } }
           : {}),
       },
       this.registry,
@@ -591,9 +611,23 @@ export class Printer {
     // Same gluing risk the binary case's `isWordOp` guards against: once
     // `spelled` has turned both the magnitude and the unit into locale words,
     // `tight` must not squeeze them together into a third word
-    // ("thirtydegrees") — see `PrintOptions.spelled`'s doc comment.
-    const unitSep = ctx.spacing === "tight" && ctx.spell === undefined ? "" : " ";
-    return `${numberText}${unitSep}${unit}`;
+    // ("thirtydegrees") — see `PrintOptions.spelled`'s doc comment. Resolved
+    // here rather than inside the language because it is this call's option,
+    // not this language's convention, and handed over as `gap` so a language
+    // assembling its own quantity honours it instead of dropping it.
+    const gap = ctx.spacing === "tight" && ctx.spell === undefined ? "" : " ";
+    return (this.locale.language.renderQuantity ?? defaultRenderQuantity)({
+      number: numberText,
+      // Exactly one of the three, told apart so the language knows whether it
+      // was handed a word, a glyph or a bare alias — see `UnitLabel`.
+      ...(label.source === "form" ? { form: label.text } : {}),
+      ...(label.source === "symbol" ? { symbol: label.text } : {}),
+      ...(label.source === "alias" ? { alias: label.text } : {}),
+      kind: magnitude.kind,
+      unit: magnitude.unit,
+      slot: SLOT_OPERAND,
+      gap,
+    });
   }
 
   /**
@@ -618,6 +652,12 @@ export class Printer {
     // No magnitude of its own — `unitWord`'s `spell` option with no
     // `magnitude` hands the language a count-free `FormCtx`, which English
     // answers with its generic category; see its own doc comment.
+    //
+    // `unitWord`, not `renderQuantity`: a target is a bare word, with no number
+    // beside it for a language to assemble anything around. It still declares
+    // its slot, so a language whose grammar governs the case of a conversion
+    // target (Ukrainian's does) answers for this position rather than for the
+    // operand one.
     return unitWord(
       {
         kindId: chosen.kind,
@@ -625,7 +665,7 @@ export class Printer {
         avoid: avoidSpellings(target, chosen, this.registry, this.locale),
         ambiguousSurface: target.length > 1 ? target[0]?.surface : undefined,
         symbols: ctx.symbols,
-        ...(ctx.spell !== undefined ? { spell: { slot: "conversion-target" } } : {}),
+        ...(ctx.spell !== undefined ? { spell: { slot: SLOT_TARGET } } : {}),
       },
       this.registry,
       this.locale,

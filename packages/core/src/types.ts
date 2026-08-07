@@ -599,9 +599,34 @@ export interface QuantityParts {
   /** `forms[selectForm(ctx)]`, when the vocabulary had one. */
   readonly form?: string;
   readonly symbol?: string;
+  /**
+   * The unit's registered alias, when that is the label the caller settled on
+   * — `Printer`'s ordinary answer, and never `formatValue`'s (which chooses
+   * between a `form` and a `symbol` and then degrades straight to `unit`).
+   *
+   * A distinct field rather than "just put it in `unit`" because the two are
+   * different strings for the same unit and a language needs both: the alias
+   * is the word to print (`"metre"`, chosen from the alias chain by
+   * `unitLabel` — it is what tells a resolved ambiguity apart from the
+   * canonical echo), while `unit` stays the registry key (`"m"`) a language
+   * may key its own tables by.
+   */
+  readonly alias?: string;
   readonly kind: KindId;
   readonly unit: string;
   readonly slot: Slot;
+  /**
+   * The separator to set between the number and the label, when the caller has
+   * already resolved one — `Printer.spacing`, which is a typographic choice of
+   * the caller's rather than of the language's, and is why it can be overridden
+   * at all.
+   *
+   * Absent from `formatValue`'s calls, where the language's own convention
+   * applies: `defaultRenderQuantity` spaces a word and sets a symbol tight
+   * (`"1.5 kilograms"`, `"1.5kg"`), which is the template `formatValue`
+   * inlined before there was a language to ask.
+   */
+  readonly gap?: string;
 }
 
 /**
