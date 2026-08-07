@@ -1,12 +1,6 @@
 import type { Value } from "@smartput/core";
-import {
-  aliasesFor,
-  type Decimal,
-  decimalRatios,
-  defineKind,
-  deriveValue,
-} from "@smartput/core";
-import { SPEED_UNITS, type SpeedUnit } from "./units";
+import { type Decimal, decimalRatios, defineKind, deriveValue } from "@smartput/core";
+import { SPEED_UNITS } from "./units";
 
 export type { SpeedUnit } from "./units";
 export { SPEED_UNITS } from "./units";
@@ -19,8 +13,6 @@ export { SPEED_UNITS } from "./units";
 const make = (source: Value, kind: string, unit: string, canonical: Decimal): Value =>
   deriveValue(source, canonical, { kind, unit });
 
-const alias = (unit: SpeedUnit) => aliasesFor(SPEED_UNITS, unit);
-
 /** Canonical metres per second. Produced by dividing a length by a duration. */
 export const speed = defineKind({
   id: "speed",
@@ -29,20 +21,13 @@ export const speed = defineKind({
     canonical: SPEED_UNITS.canonical,
     units: decimalRatios(SPEED_UNITS),
   },
-  lexicon: {
-    // mps, kph and mph carry no `display`: their written-out forms
-    // ("metres per second", "kilometres per hour") are compounds the parser
-    // rejects, and a display form that does not parse back is a dead end for
-    // completion. Absent display keeps formatValue on the symbol.
-    mps: { aliases: alias("mps"), symbol: "m/s", typical: [0.5, 100] },
-    kph: { aliases: alias("kph"), symbol: "kph", typical: [5, 300] },
-    mph: { aliases: alias("mph"), symbol: "mph", typical: [5, 200] },
-    knot: {
-      aliases: alias("knot"),
-      symbol: "kt",
-      display: { one: "knot", other: "knots" },
-      typical: [1, 100],
-    },
+  // Physics, not language (ruling R3): the magnitude band people actually type
+  // each unit in, inclusive at both ends, read only by completion's `scaleFit`.
+  typical: {
+    mps: [0.5, 100],
+    kph: [5, 300],
+    mph: [5, 200],
+    knot: [1, 100],
   },
   ops: [
     {
