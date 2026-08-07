@@ -166,8 +166,15 @@ const ATOM_PRECEDENCE = Number.POSITIVE_INFINITY;
  * `keywords.times[0]`, whichever `en.ts` declares). `"of"`/`"off"` are not
  * here: `opWord` already spells them regardless of `spelled` — they are word
  * operators to begin with — so only the four symbolic ops need a mapping.
+ *
+ * `Partial<Record<BinaryOp, ...>>` rather than a closed record over those four:
+ * `BinaryOp` is `Exclude<OpSymbol, "in">`, so it admits the comparison six as
+ * well, and none of them has a word form to print. A missing entry is the
+ * correct answer for them — `opWord`'s `?? op` then prints the bare symbol,
+ * which is the same "no invented word" rule a unit with no `forms` entry
+ * follows.
  */
-const OP_KEYWORDS: Record<"+" | "-" | "*" | "/", Keyword> = {
+const OP_KEYWORDS: Partial<Record<BinaryOp, Keyword>> = {
   "+": "plus",
   "-": "minus",
   "*": "times",
@@ -521,9 +528,15 @@ export class Printer {
         return this.locale.language.keywords.of?.[0] ?? "of";
       case "off":
         return this.locale.language.keywords.off?.[0] ?? "off";
-      default:
+      default: {
         if (ctx.spell === undefined) return op;
-        return this.locale.language.keywords[OP_KEYWORDS[op]]?.[0] ?? op;
+        // A comparison has no entry and no word form; the bare symbol is the
+        // answer, reached by the same `?? op` a locale with no word for `+`
+        // takes.
+        const keyword = OP_KEYWORDS[op];
+        if (keyword === undefined) return op;
+        return this.locale.language.keywords[keyword]?.[0] ?? op;
+      }
     }
   }
 

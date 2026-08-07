@@ -62,7 +62,10 @@ test("a same-unit conversion is exact, not merely close", () => {
 });
 
 test("cross-path agreement: the micro path matches the engine's canonical value", () => {
-  const engine = createEngine({ locales: [composeLocale(en, [angleEn])], kinds: [angle] });
+  const engine = createEngine({
+    locales: [composeLocale(en, [angleEn])],
+    kinds: [angle],
+  });
   for (const unit of units) {
     for (const n of ["1", "30.5", "0.25"]) {
       const parsed = parseAngle(`${n}${unit}`);
@@ -79,7 +82,10 @@ test("cross-path agreement: every alias resolves to the same unit on both paths"
   // The whole point of deriving the lexicon. An alias the engine knows and the
   // table does not — or the reverse — is exactly the drift this catches, and it
   // is invisible to any test that only exercises the unit keys.
-  const engine = createEngine({ locales: [composeLocale(en, [angleEn])], kinds: [angle] });
+  const engine = createEngine({
+    locales: [composeLocale(en, [angleEn])],
+    kinds: [angle],
+  });
   for (const [word, unit] of Object.entries(ANGLE_UNITS.alias)) {
     const parsed = parseAngle(`1${word}`);
     expect(parsed.ok, word).toBe(true);
@@ -90,7 +96,10 @@ test("cross-path agreement: every alias resolves to the same unit on both paths"
 });
 
 test("cross-path agreement: a conversion the engine states in words", () => {
-  const engine = createEngine({ locales: [composeLocale(en, [angleEn])], kinds: [angle] });
+  const engine = createEngine({
+    locales: [composeLocale(en, [angleEn])],
+    kinds: [angle],
+  });
   expect(engine.evaluate("200 grad in deg").formatted).toBe("180 degrees");
   expect(toAngle("200grad", "deg")).toBeCloseTo(180, 9);
   expect(toAngle("0.25turn", "deg")).toBeCloseTo(90, 9);
