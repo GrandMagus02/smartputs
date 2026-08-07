@@ -1,5 +1,6 @@
 import { expect, test } from "bun:test";
 import { BUILTIN_KINDS } from "@smartput/kinds";
+import BUILTIN_EN from "@smartput/kinds/locale/en";
 import { english } from "@smartput/locale-en";
 import { Decimal } from "../decimal";
 import { NoCandidateError } from "../errors";
@@ -14,9 +15,9 @@ import { parse } from "./pratt";
 import { buildProgram, Parser } from "./program";
 import { Tokenizer } from "./tokenizer";
 
-const en = composeLocale(english);
+const en = composeLocale(english, BUILTIN_EN);
 
-const registry = buildRegistry(BUILTIN_KINDS);
+const registry = buildRegistry(BUILTIN_KINDS, [en]);
 const resolver = createResolver({
   registry,
   locale: en,

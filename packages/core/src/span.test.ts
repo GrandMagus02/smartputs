@@ -1,11 +1,15 @@
 import { expect, test } from "bun:test";
 import { BUILTIN_KINDS } from "@smartput/kinds";
+import BUILTIN_EN from "@smartput/kinds/locale/en";
 import { english as en } from "@smartput/locale-en";
 import { createEngine } from "./engine";
 import { NoCandidateError } from "./errors";
 import { composeLocale } from "./locale/compose";
 
-const engine = createEngine({ locales: [composeLocale(en)], kinds: BUILTIN_KINDS });
+const engine = createEngine({
+  locales: [composeLocale(en, BUILTIN_EN)],
+  kinds: BUILTIN_KINDS,
+});
 
 const corpusRows = (await Bun.file(new URL("../corpus/en.tsv", import.meta.url)).text())
   .split("\n")

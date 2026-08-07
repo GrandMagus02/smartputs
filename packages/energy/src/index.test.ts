@@ -1,6 +1,7 @@
 import { expect, test } from "bun:test";
 import { composeLocale, createEngine } from "@smartput/core";
 import { BUILTIN_KINDS } from "@smartput/kinds";
+import BUILTIN_EN from "@smartput/kinds/locale/en";
 import { english as en } from "@smartput/locale-en";
 import { power } from "@smartput/power";
 import { energy } from "./index";
@@ -13,7 +14,7 @@ import { energy } from "./index";
 // never sees an id registered twice.
 const PAIR = new Set(["energy", "power"]);
 const engine = createEngine({
-  locales: [composeLocale(en)],
+  locales: [composeLocale(en, BUILTIN_EN)],
   kinds: [...BUILTIN_KINDS.filter((k) => !PAIR.has(k.id)), energy, power],
 });
 

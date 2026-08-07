@@ -1,5 +1,6 @@
 import { expect, test } from "bun:test";
 import { BUILTIN_KINDS, length, number } from "@smartput/kinds";
+import BUILTIN_EN from "@smartput/kinds/locale/en";
 import { english as en } from "@smartput/locale-en";
 import { Decimal } from "./decimal";
 import { createEngine, type EngineOptions } from "./engine";
@@ -16,7 +17,10 @@ import { composeLocale } from "./locale/compose";
 import { defineLanguage } from "./locale/define";
 import type { LiteralMatcher, Value } from "./types";
 
-const engine = createEngine({ locales: [composeLocale(en)], kinds: BUILTIN_KINDS });
+const engine = createEngine({
+  locales: [composeLocale(en, BUILTIN_EN)],
+  kinds: BUILTIN_KINDS,
+});
 
 test("evaluate returns a formatted result for an unambiguous input", () => {
   const r = engine.evaluate("1 kg + 500 g");
@@ -37,7 +41,7 @@ test("evaluate throws AmbiguityError on a genuine tie", () => {
 
 test("weights break the tie", () => {
   const biased = createEngine({
-    locales: [composeLocale(en)],
+    locales: [composeLocale(en, BUILTIN_EN)],
     kinds: BUILTIN_KINDS,
     weights: { "length:m": 10 },
   });
@@ -46,7 +50,7 @@ test("weights break the tie", () => {
 
 test("per-call weights override engine weights", () => {
   const biased = createEngine({
-    locales: [composeLocale(en)],
+    locales: [composeLocale(en, BUILTIN_EN)],
     kinds: BUILTIN_KINDS,
     weights: { "length:m": 10 },
   });
@@ -57,7 +61,7 @@ test("per-call weights override engine weights", () => {
 
 test("tiebreak first resolves instead of throwing", () => {
   const stable = createEngine({
-    locales: [composeLocale(en)],
+    locales: [composeLocale(en, BUILTIN_EN)],
     kinds: BUILTIN_KINDS,
     tiebreak: "first",
   });
@@ -87,7 +91,10 @@ test("suggest re-throws a genuine bug instead of swallowing it", () => {
     keywords: {},
     selectForm: () => "other",
   });
-  const e = createEngine({ locales: [composeLocale(exploding)], kinds: BUILTIN_KINDS });
+  const e = createEngine({
+    locales: [composeLocale(exploding, BUILTIN_EN)],
+    kinds: BUILTIN_KINDS,
+  });
   expect(() => e.suggest("10 kg")).toThrow(TypeError);
 });
 
@@ -103,7 +110,10 @@ test("coerce re-throws a genuine bug instead of reporting no candidate", () => {
     keywords: {},
     selectForm: () => "other",
   });
-  const e = createEngine({ locales: [composeLocale(exploding)], kinds: BUILTIN_KINDS });
+  const e = createEngine({
+    locales: [composeLocale(exploding, BUILTIN_EN)],
+    kinds: BUILTIN_KINDS,
+  });
   expect(() => e.coerce("mass", "10 kg")).toThrow(TypeError);
 });
 
@@ -169,7 +179,11 @@ test("explain contributions sum to the score for every assignment", () => {
 
   for (const [input, weights] of cases) {
     const e = weights
-      ? createEngine({ locales: [composeLocale(en)], kinds: BUILTIN_KINDS, weights })
+      ? createEngine({
+          locales: [composeLocale(en, BUILTIN_EN)],
+          kinds: BUILTIN_KINDS,
+          weights,
+        })
       : engine;
     const x = e.explain(input);
     expect(x.assignments.length).toBeGreaterThan(0);
@@ -182,7 +196,7 @@ test("explain contributions sum to the score for every assignment", () => {
 
 test("explain lists a token selector matched against non-lowercase input", () => {
   const e = createEngine({
-    locales: [composeLocale(en)],
+    locales: [composeLocale(en, BUILTIN_EN)],
     kinds: BUILTIN_KINDS,
     weights: { "token:kg": 7 },
   });
@@ -244,7 +258,7 @@ test("a custom five-line kind works end to end", () => {
     },
   });
   const e = createEngine({
-    locales: [composeLocale(en)],
+    locales: [composeLocale(en, BUILTIN_EN)],
     kinds: [...BUILTIN_KINDS, datasize2],
   });
   const r = e.evaluate("2 mib + 500 kb in kb", { kinds: ["datasize2"] });
@@ -254,7 +268,7 @@ test("a custom five-line kind works end to end", () => {
 
 test("kindMeta configured on the engine reaches Value.meta via evaluate and coerce", () => {
   const withMeta = createEngine({
-    locales: [composeLocale(en)],
+    locales: [composeLocale(en, BUILTIN_EN)],
     kinds: BUILTIN_KINDS,
     kindMeta: { length: { source: "engine-default" } },
   });
@@ -263,9 +277,12 @@ test("kindMeta configured on the engine reaches Value.meta via evaluate and coer
 });
 
 test("engines with different locales coexist", () => {
-  const a = createEngine({ locales: [composeLocale(en)], kinds: BUILTIN_KINDS });
+  const a = createEngine({
+    locales: [composeLocale(en, BUILTIN_EN)],
+    kinds: BUILTIN_KINDS,
+  });
   const b = createEngine({
-    locales: [composeLocale(en)],
+    locales: [composeLocale(en, BUILTIN_EN)],
     kinds: BUILTIN_KINDS,
     weights: { "length:m": 99 },
   });
@@ -281,7 +298,7 @@ test("engine.complete completes a partial unit", () => {
 
 test("engine.complete honours engine-level weights", () => {
   const biased = createEngine({
-    locales: [composeLocale(en)],
+    locales: [composeLocale(en, BUILTIN_EN)],
     kinds: BUILTIN_KINDS,
     weights: { duration: 20 },
   });
@@ -460,9 +477,12 @@ test("rounding does not perturb an ordinary kind's formatted output", () => {
   // let it decide the 26th significant digit of every kind — this same input
   // rendered ...334 under ROUND_UP before the scoping, purely by promoting
   // round-trip noise to a policy.
-  const plain = createEngine({ locales: [composeLocale(en)], kinds: BUILTIN_KINDS });
+  const plain = createEngine({
+    locales: [composeLocale(en, BUILTIN_EN)],
+    kinds: BUILTIN_KINDS,
+  });
   const up = createEngine({
-    locales: [composeLocale(en)],
+    locales: [composeLocale(en, BUILTIN_EN)],
     kinds: BUILTIN_KINDS,
     rounding: Decimal.ROUND_UP,
   });
@@ -472,7 +492,10 @@ test("rounding does not perturb an ordinary kind's formatted output", () => {
 });
 
 test("a result carries no ratesAsOf when no rates were supplied", () => {
-  const e = createEngine({ locales: [composeLocale(en)], kinds: BUILTIN_KINDS });
+  const e = createEngine({
+    locales: [composeLocale(en, BUILTIN_EN)],
+    kinds: BUILTIN_KINDS,
+  });
   expect(e.evaluate("1 km").meta.ratesAsOf).toBeUndefined();
 });
 

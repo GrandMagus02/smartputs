@@ -1,7 +1,8 @@
 import { expect } from "bun:test";
 import { Decimal } from "../decimal";
 import { buildRegistry, wordsFor } from "../kind/registry";
-import type { EvalCtx, Kind } from "../types";
+import { composeLocale } from "../locale/compose";
+import type { EvalCtx, Kind, Language, Vocabulary } from "../types";
 
 /**
  * Assertions every kind must satisfy. Built-in and third-party kinds run the
@@ -11,9 +12,42 @@ import type { EvalCtx, Kind } from "../types";
  * constructed directly by `evaluateNode`), so it is deliberately excluded
  * from this suite by its callers rather than exempted here — no real,
  * user-authored kind gets a pass on having typeable units.
+ *
+ * `vocabularies` are the words the kind is meant to be read and written with.
+ * They are a separate argument because a kind no longer carries any: words
+ * live in a `Vocabulary` keyed by kind id, so "every unit is typeable" is a
+ * claim about a (kind, language) pair rather than about the kind alone. Pass
+ * the kind's own `locale/<id>` module:
+ *
+ * ```ts
+ * assertKindContract(mass, [massEn]);
+ * ```
+ *
+ * Omitting them still checks a kind that declares the deprecated `lexicon`,
+ * which the registry bridges into an `en` vocabulary; a migrated kind called
+ * with no vocabulary fails the alias assertion, and that failure is correct —
+ * nothing can type its units.
  */
-export function assertKindContract(kind: Kind): void {
-  const registry = buildRegistry([kind]);
+export function assertKindContract(
+  kind: Kind,
+  vocabularies: readonly Vocabulary[] = [],
+): void {
+  // The language the words are asserted in. Taken from the vocabularies rather
+  // than hardcoded so a translation can be contract-tested on the same terms as
+  // the original; "en" is only the default because the bridge speaks it.
+  //
+  // Mechanics-free on purpose: this helper asserts that units are *typeable*,
+  // which is the alias index's business, and an analyzer chain or a plural
+  // table would only let a kind pass on the strength of its language's
+  // cleverness rather than its own aliases.
+  const localeId = vocabularies[0]?.locale ?? "en";
+  const language: Language = {
+    id: localeId,
+    numberFormat: "intl",
+    keywords: {},
+    selectForm: () => "other",
+  };
+  const registry = buildRegistry([kind], [composeLocale(language, vocabularies)]);
   const normalized = registry.kinds.get(kind.id);
 
   expect(normalized).toBeDefined();
@@ -25,11 +59,11 @@ export function assertKindContract(kind: Kind): void {
 
   for (const [unitName, unit] of normalized.units) {
     expect(
-      wordsFor(registry, "en", kind.id, unitName)?.aliases.length ?? 0,
+      wordsFor(registry, localeId, kind.id, unitName)?.aliases.length ?? 0,
     ).toBeGreaterThan(0);
     const ctx: EvalCtx = {
       self: { kind: kind.id, canonical: new Decimal(0), unit: unitName },
-      locale: "en",
+      locale: localeId,
     };
     // A zero ratio would make the unit unconvertible in both directions.
     expect(unit.ratio(ctx).isZero()).toBe(false);

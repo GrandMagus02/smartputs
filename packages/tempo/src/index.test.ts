@@ -1,6 +1,7 @@
 import { expect, test } from "bun:test";
 import { composeLocale, createEngine, DivideByZeroError } from "@smartput/core";
 import { BUILTIN_KINDS } from "@smartput/kinds";
+import BUILTIN_EN from "@smartput/kinds/locale/en";
 import { english as en } from "@smartput/locale-en";
 import { tempo } from "./index";
 
@@ -11,7 +12,7 @@ import { tempo } from "./index";
 // of `buildRegistry` rejects a kind id registered twice, and a test that breaks
 // the moment the barrel gains the kind is a test nobody trusts.
 const engine = createEngine({
-  locales: [composeLocale(en)],
+  locales: [composeLocale(en, BUILTIN_EN)],
   kinds: [...BUILTIN_KINDS.filter((k) => k.id !== "tempo"), tempo],
 });
 

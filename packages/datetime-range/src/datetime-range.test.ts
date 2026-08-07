@@ -8,13 +8,14 @@ import {
 import { date } from "@smartput/date";
 import { datetime, TEST_NOW, TEST_ZONE } from "@smartput/datetime";
 import { BUILTIN_KINDS } from "@smartput/kinds";
+import BUILTIN_EN from "@smartput/kinds/locale/en";
 import { english as coreEn } from "@smartput/locale-en";
 import { InvertedRangeError } from "@smartput/range-core";
 import { time } from "@smartput/time";
 import { createDatetimeRange, datetimeRange } from "./datetime-range";
 
 const engine = createEngine({
-  locales: [composeLocale(coreEn)],
+  locales: [composeLocale(coreEn, BUILTIN_EN)],
   kinds: [...BUILTIN_KINDS, datetime, date, time, datetimeRange],
   now: () => TEST_NOW,
   timeZone: TEST_ZONE,
@@ -117,7 +118,7 @@ test("`from X to <nothing readable>` is not claimed either", () => {
 
 test("the window table is overridable per engine", () => {
   const nightOwl = createEngine({
-    locales: [composeLocale(coreEn)],
+    locales: [composeLocale(coreEn, BUILTIN_EN)],
     kinds: [
       ...BUILTIN_KINDS,
       datetime,
@@ -145,7 +146,7 @@ test("the window table is overridable per engine", () => {
  */
 test("without the reading weight, a window phrase ties with chrono's instant", () => {
   const flat = createEngine({
-    locales: [composeLocale(coreEn)],
+    locales: [composeLocale(coreEn, BUILTIN_EN)],
     kinds: [...BUILTIN_KINDS, datetime, date, time, createDatetimeRange({ weight: 0 })],
     now: () => TEST_NOW,
     timeZone: TEST_ZONE,

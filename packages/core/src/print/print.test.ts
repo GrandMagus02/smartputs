@@ -1,5 +1,6 @@
 import { expect, test } from "bun:test";
 import { BUILTIN_KINDS } from "@smartput/kinds";
+import BUILTIN_EN from "@smartput/kinds/locale/en";
 import { english } from "@smartput/locale-en";
 import { Decimal } from "../decimal";
 import { defineKind } from "../kind/define";
@@ -14,9 +15,9 @@ import { Solver } from "../solve/solver-class";
 import type { Locale, RateLookup, Value } from "../types";
 import { Printer } from "./print";
 
-const en = composeLocale(english);
+const en = composeLocale(english, BUILTIN_EN);
 
-const registry = buildRegistry(BUILTIN_KINDS);
+const registry = buildRegistry(BUILTIN_KINDS, [en]);
 const resolver = createResolver({
   registry,
   locale: en,
@@ -219,7 +220,7 @@ test("print: { spelled: true } throws when the locale declares no spell", () => 
   // is genuinely absent — `exactOptionalPropertyTypes` treats "present with
   // `undefined`" and "absent" as different things for an optional field.
   const { spell: _spell, ...rest } = english;
-  const noSpellLocale: Locale = composeLocale(rest);
+  const noSpellLocale: Locale = composeLocale(rest, BUILTIN_EN);
   const noSpellPrinter = new Printer({ registry, locale: noSpellLocale });
   const program = programFor("10 km");
   // Pinned to the message, not a bare `.toThrow()` — an unrelated cause
@@ -230,7 +231,7 @@ test("print: { spelled: true } throws when the locale declares no spell", () => 
 
 test("node(): { spelled: true } throws when the locale declares no spell", () => {
   const { spell: _spell, ...rest } = english;
-  const noSpellLocale: Locale = composeLocale(rest);
+  const noSpellLocale: Locale = composeLocale(rest, BUILTIN_EN);
   const noSpellPrinter = new Printer({ registry, locale: noSpellLocale });
   const program = programFor("10 km");
   expect(() => noSpellPrinter.node(program, program.root.id, { spelled: true })).toThrow(
@@ -288,7 +289,10 @@ test("spelled: binary division spells to its locale word", () => {
 
 test("spelled: an operator with no word form in the locale keeps its symbol, not an invented word", () => {
   const { over: _over, ...restKeywords } = english.keywords;
-  const noOverLocale: Locale = composeLocale({ ...english, keywords: restKeywords });
+  const noOverLocale: Locale = composeLocale(
+    { ...english, keywords: restKeywords },
+    BUILTIN_EN,
+  );
   const noOverPrinter = new Printer({ registry, locale: noOverLocale });
   expect(noOverPrinter.print(programFor("10 km / 2 km"), { spelled: true })).toBe(
     "ten kilometres / two kilometres",
@@ -708,7 +712,7 @@ const roundable = defineKind({
       precision: ctx.precision ?? 5,
     })}u`,
 });
-const roundableRegistry = buildRegistry([...BUILTIN_KINDS, roundable]);
+const roundableRegistry = buildRegistry([...BUILTIN_KINDS, roundable], [en]);
 const roundableValue: Value = Object.freeze({
   kind: "roundable",
   canonical: new Decimal(10).dividedBy(3),
@@ -753,7 +757,7 @@ const coin = defineKind({
   },
   lexicon: { usd: ["usd"] },
 });
-const coinRegistry = buildRegistry([...BUILTIN_KINDS, coin]);
+const coinRegistry = buildRegistry([...BUILTIN_KINDS, coin], [en]);
 const coinValue: Value = Object.freeze({
   kind: "coin",
   canonical: new Decimal("10"),

@@ -4,10 +4,10 @@ import type { QuantitySnapshot } from "@smartput/core";
 import { composeLocale, createFacades } from "@smartput/core";
 import { Length } from "@smartput/length/class";
 import { english } from "@smartput/locale-en";
-
 import { BUILTIN_KINDS } from "./index";
+import BUILTIN_EN from "./locale/en";
 
-const en = composeLocale(english);
+const en = composeLocale(english, BUILTIN_EN);
 
 const facades = createFacades({ kinds: BUILTIN_KINDS, locale: en });
 

@@ -3,6 +3,7 @@ import { composeLocale, createEngine } from "@smartput/core";
 import { date } from "@smartput/date";
 import { datetime, TEST_NOW, TEST_ZONE, Temporal } from "@smartput/datetime";
 import { BUILTIN_KINDS } from "@smartput/kinds";
+import BUILTIN_EN from "@smartput/kinds/locale/en";
 import { english as coreEn } from "@smartput/locale-en";
 import { time } from "@smartput/time";
 import { datetimeRange } from "./datetime-range";
@@ -17,7 +18,7 @@ import { datetimeRange } from "./datetime-range";
  * that left them out would not be testing the contest the weight exists for.
  */
 const engine = createEngine({
-  locales: [composeLocale(coreEn)],
+  locales: [composeLocale(coreEn, BUILTIN_EN)],
   kinds: [...BUILTIN_KINDS, datetime, date, time, datetimeRange],
   now: () => TEST_NOW,
   timeZone: TEST_ZONE,

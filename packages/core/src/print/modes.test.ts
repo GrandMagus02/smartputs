@@ -1,5 +1,6 @@
 import { expect, test } from "bun:test";
 import { BUILTIN_KINDS } from "@smartput/kinds";
+import BUILTIN_EN from "@smartput/kinds/locale/en";
 import { english } from "@smartput/locale-en";
 import { buildRegistry } from "../kind/registry";
 import { composeLocale } from "../locale/compose";
@@ -10,7 +11,7 @@ import { Tokenizer } from "../parse/tokenizer";
 import { Solver } from "../solve/solver-class";
 import { Printer } from "./print";
 
-const en = composeLocale(english);
+const en = composeLocale(english, BUILTIN_EN);
 
 /**
  * Whether any node in `program` has more than one candidate reading —
@@ -38,7 +39,7 @@ function hasAmbiguousNode(program: Program): boolean {
  * reason `roundtrip.test.ts` is: a failure here names which stage disagreed.
  */
 
-const registry = buildRegistry(BUILTIN_KINDS);
+const registry = buildRegistry(BUILTIN_KINDS, [en]);
 const resolver = createResolver({
   registry,
   locale: en,

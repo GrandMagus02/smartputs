@@ -3,6 +3,7 @@ import { composeLocale, createEngine, type Kind, UnitParseError } from "@smartpu
 import { date } from "@smartput/date";
 import { datetime, TEST_NOW, TEST_ZONE } from "@smartput/datetime";
 import { BUILTIN_KINDS } from "@smartput/kinds";
+import BUILTIN_EN from "@smartput/kinds/locale/en";
 import { english as coreEn } from "@smartput/locale-en";
 import { time } from "@smartput/time";
 import { datetimeRange } from "./datetime-range";
@@ -16,7 +17,7 @@ import { createDatetimeRangeHoliday, datetimeRangeHoliday } from "./holiday";
  */
 function engineWith(range: Kind) {
   return createEngine({
-    locales: [composeLocale(coreEn)],
+    locales: [composeLocale(coreEn, BUILTIN_EN)],
     kinds: [...BUILTIN_KINDS, datetime, date, time, range],
     now: () => TEST_NOW,
     timeZone: TEST_ZONE,

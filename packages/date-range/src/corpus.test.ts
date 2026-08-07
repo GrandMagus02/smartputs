@@ -3,6 +3,7 @@ import { composeLocale, createEngine } from "@smartput/core";
 import { date } from "@smartput/date";
 import { datetime, TEST_NOW, TEST_ZONE, Temporal } from "@smartput/datetime";
 import { BUILTIN_KINDS } from "@smartput/kinds";
+import BUILTIN_EN from "@smartput/kinds/locale/en";
 import { english as coreEn } from "@smartput/locale-en";
 import { dateRange } from "./date-range";
 
@@ -16,7 +17,7 @@ import { dateRange } from "./date-range";
  * to win outright, so every row here asserts the unprompted answer.
  */
 const engine = createEngine({
-  locales: [composeLocale(coreEn)],
+  locales: [composeLocale(coreEn, BUILTIN_EN)],
   kinds: [...BUILTIN_KINDS, datetime, date, dateRange],
   now: () => TEST_NOW,
   timeZone: TEST_ZONE,

@@ -1,5 +1,6 @@
 import { expect, test } from "bun:test";
 import { BUILTIN_KINDS } from "@smartput/kinds";
+import BUILTIN_EN from "@smartput/kinds/locale/en";
 import { english } from "@smartput/locale-en";
 import { defineKind } from "../kind/define";
 import { buildRegistry } from "../kind/registry";
@@ -8,9 +9,9 @@ import type { CompleteCtx, Completer, Kind, KindCompletion, Weights } from "../t
 import { complete } from "./complete";
 import { EXACT_BONUS, LENGTH_PENALTY, SCALE_BONUS, TYPO_PENALTY } from "./score";
 
-const en = composeLocale(english);
+const en = composeLocale(english, BUILTIN_EN);
 
-const registry = buildRegistry(BUILTIN_KINDS);
+const registry = buildRegistry(BUILTIN_KINDS, [en]);
 const run = (
   input: string,
   opts?: Parameters<typeof complete>[0]["opts"],
@@ -201,7 +202,7 @@ const probeRun = (
   layers: (Weights | undefined)[] = [english.weights],
 ) =>
   complete({
-    registry: buildRegistry([...BUILTIN_KINDS, ...kinds]),
+    registry: buildRegistry([...BUILTIN_KINDS, ...kinds], [en]),
     locale: en,
     layers,
     input,

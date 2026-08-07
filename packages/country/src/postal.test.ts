@@ -16,6 +16,7 @@ import { datetime } from "@smartput/datetime";
 import datetimeEn from "@smartput/datetime/locale/en";
 import { PlaceDistance, UnpositionedPlaceError } from "@smartput/distance";
 import { BUILTIN_KINDS } from "@smartput/kinds";
+import BUILTIN_EN from "@smartput/kinds/locale/en";
 import { english as coreEn } from "@smartput/locale-en";
 import { createPostalLiteral } from "@smartput/zip";
 import { Glob } from "bun";
@@ -53,7 +54,7 @@ const TEST_ZONE = "UTC";
 
 const engineOf = (kind: Kind) =>
   createEngine({
-    locales: [composeLocale(coreEn)],
+    locales: [composeLocale(coreEn, BUILTIN_EN)],
     kinds: [...BUILTIN_KINDS, datetime, kind],
     packs: [datetimeEn],
     now: () => TEST_NOW,

@@ -8,10 +8,14 @@ import {
   type Value,
 } from "@smartput/core";
 import { BUILTIN_KINDS } from "@smartput/kinds";
+import BUILTIN_EN from "@smartput/kinds/locale/en";
 import { english as en } from "@smartput/locale-en";
 import { percent } from "./index";
 
-const engine = createEngine({ locales: [composeLocale(en)], kinds: BUILTIN_KINDS });
+const engine = createEngine({
+  locales: [composeLocale(en, BUILTIN_EN)],
+  kinds: BUILTIN_KINDS,
+});
 
 test("a bare percentage is a ratio", () => {
   const r = engine.evaluate("20%");

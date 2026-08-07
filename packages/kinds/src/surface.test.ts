@@ -29,6 +29,7 @@ import {
   tempo,
   volume,
 } from "./index";
+import BUILTIN_EN from "./locale/en";
 
 const NAMED: Kind[] = [
   angle,
@@ -89,7 +90,7 @@ test("measure is usable via createEngine using only package-root imports", () =>
   // unreachable without a named export, because measure cannot be opted into
   // through BUILTIN_KINDS.
   const engine = createEngine({
-    locales: [composeLocale(en)],
+    locales: [composeLocale(en, BUILTIN_EN)],
     kinds: [...BUILTIN_KINDS, measure],
   });
   expect(engine.evaluate("96 px in inch").formatted).toBe("1 inch");

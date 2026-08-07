@@ -1,5 +1,6 @@
 import { expect, test } from "bun:test";
 import { BUILTIN_KINDS } from "@smartput/kinds";
+import BUILTIN_EN from "@smartput/kinds/locale/en";
 import { english } from "@smartput/locale-en";
 import { Decimal } from "../decimal";
 import { Evaluator } from "../eval/evaluator";
@@ -13,7 +14,7 @@ import { Solver } from "../solve/solver-class";
 import type { Value } from "../types";
 import { Printer } from "./print";
 
-const en = composeLocale(english);
+const en = composeLocale(english, BUILTIN_EN);
 
 /**
  * Spec §4.6's round-trip contract: for every input in the corpus,
@@ -23,7 +24,7 @@ const en = composeLocale(english);
  * `stages.test.ts`'s composition test gives for staying off the engine.
  */
 
-const registry = buildRegistry(BUILTIN_KINDS);
+const registry = buildRegistry(BUILTIN_KINDS, [en]);
 const resolver = createResolver({
   registry,
   locale: en,

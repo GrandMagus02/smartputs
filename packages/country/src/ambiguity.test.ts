@@ -19,6 +19,7 @@ import { datetime } from "@smartput/datetime";
 import datetimeEn from "@smartput/datetime/locale/en";
 import { datetimeRange } from "@smartput/datetime-range";
 import { BUILTIN_KINDS } from "@smartput/kinds";
+import BUILTIN_EN from "@smartput/kinds/locale/en";
 import { length } from "@smartput/length";
 import { english as coreEn } from "@smartput/locale-en";
 import { number } from "@smartput/number";
@@ -69,7 +70,7 @@ const TEST_ZONE = "UTC";
 /** Everything a real consumer registers at once, which is where a name that
  * belongs to two kinds actually has to be decided. */
 const full = createEngine({
-  locales: [composeLocale(coreEn)],
+  locales: [composeLocale(coreEn, BUILTIN_EN)],
   kinds: [...BUILTIN_KINDS, datetime, geo],
   packs: [datetimeEn],
   now: () => TEST_NOW,
@@ -79,7 +80,7 @@ const full = createEngine({
 /** The same, with geo left out — the control for every "registering geo costs
  * nothing" claim below. */
 const without = createEngine({
-  locales: [composeLocale(coreEn)],
+  locales: [composeLocale(coreEn, BUILTIN_EN)],
   kinds: [...BUILTIN_KINDS, datetime],
   packs: [datetimeEn],
   now: () => TEST_NOW,
@@ -379,7 +380,7 @@ const rates = snapshot("EUR", "2026-08-04", { USD: 1.1, UAH: 45.5 });
  * exposed input the milestone shipped.
  */
 const ranges = createEngine({
-  locales: [composeLocale(coreEn)],
+  locales: [composeLocale(coreEn, BUILTIN_EN)],
   kinds: [
     ...BUILTIN_KINDS,
     datetime,
@@ -407,7 +408,7 @@ const ranges = createEngine({
  * about either.
  */
 const selections = createEngine({
-  locales: [composeLocale(coreEn)],
+  locales: [composeLocale(coreEn, BUILTIN_EN)],
   kinds: [...BUILTIN_KINDS, ...RANGE_KINDS, geo],
 });
 
@@ -415,14 +416,14 @@ const SUITES: readonly Suite[] = [
   {
     file: "packages/core/corpus/en.tsv",
     engine: createEngine({
-      locales: [composeLocale(coreEn)],
+      locales: [composeLocale(coreEn, BUILTIN_EN)],
       kinds: [...BUILTIN_KINDS, geo],
     }),
   },
   {
     file: "packages/core/corpus/en-complete.tsv",
     engine: createEngine({
-      locales: [composeLocale(coreEn)],
+      locales: [composeLocale(coreEn, BUILTIN_EN)],
       kinds: [...BUILTIN_KINDS, geo],
     }),
     completion: true,
@@ -577,7 +578,7 @@ test("what a city name changes is only ever nothing into something", () => {
  * kind now answers on every keystroke in the language.
  */
 function unitPrefixes(): string[] {
-  const registry = buildRegistry(BUILTIN_KINDS);
+  const registry = buildRegistry(BUILTIN_KINDS, [composeLocale(coreEn, BUILTIN_EN)]);
   const out = new Set<string>();
   for (const alias of registry.aliasIndex.keys()) {
     if (!/^[a-z ]+$/.test(alias)) continue;

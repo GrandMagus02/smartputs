@@ -6,12 +6,13 @@ import { buildRegistry, createResolver } from "@smartput/core/registry";
 import { Solver } from "@smartput/core/solve";
 import { Tokenizer } from "@smartput/core/tokenize";
 import { BUILTIN_KINDS } from "@smartput/kinds";
+import BUILTIN_EN from "@smartput/kinds/locale/en";
 import { english } from "@smartput/locale-en";
 import { createEngine } from "./engine";
 import { composeLocale } from "./locale/compose";
 import type { Value } from "./types";
 
-const en = composeLocale(english);
+const en = composeLocale(english, BUILTIN_EN);
 
 /**
  * The composition test spec §7 asks for and the plan calls "the real
@@ -38,7 +39,7 @@ const en = composeLocale(english);
  * relative path is a convenience inside this package, not a gap in it.
  */
 
-const registry = buildRegistry(BUILTIN_KINDS);
+const registry = buildRegistry(BUILTIN_KINDS, [en]);
 const resolver = createResolver({
   registry,
   locale: en,

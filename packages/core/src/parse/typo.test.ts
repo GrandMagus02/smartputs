@@ -1,5 +1,6 @@
 import { expect, test } from "bun:test";
 import { BUILTIN_KINDS } from "@smartput/kinds";
+import BUILTIN_EN from "@smartput/kinds/locale/en";
 import { english as en } from "@smartput/locale-en";
 import { createEngine } from "../engine";
 import { NoCandidateError } from "../errors";
@@ -35,7 +36,10 @@ const locale = composeLocale(
 const registry = buildRegistry([volume, length]);
 const resolver = () => createResolver({ registry, locale, packs: [], layers: [] });
 
-const engine = createEngine({ locales: [composeLocale(en)], kinds: BUILTIN_KINDS });
+const engine = createEngine({
+  locales: [composeLocale(en, BUILTIN_EN)],
+  kinds: BUILTIN_KINDS,
+});
 
 test("a near miss becomes a candidate when nothing matched exactly", () => {
   const [candidate, ...rest] = resolver().resolve("piont");

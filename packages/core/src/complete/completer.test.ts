@@ -1,5 +1,6 @@
 import { expect, test } from "bun:test";
 import { BUILTIN_KINDS } from "@smartput/kinds";
+import BUILTIN_EN from "@smartput/kinds/locale/en";
 import { english } from "@smartput/locale-en";
 import { defineKind } from "../kind/define";
 import { buildRegistry } from "../kind/registry";
@@ -8,12 +9,12 @@ import { defineLanguage } from "../locale/define";
 import type { CompleteCtx, Completer as CompleterFn, Locale, Weights } from "../types";
 import { Autocompleter } from "./completer";
 
-const en = composeLocale(english);
+const en = composeLocale(english, BUILTIN_EN);
 
 // Neither the parser nor the solver: an Autocompleter runs on raw, possibly
 // unparseable input, and its own fixtures never need a Program.
 
-const registry = buildRegistry(BUILTIN_KINDS);
+const registry = buildRegistry(BUILTIN_KINDS, [en]);
 
 test("a prefix that offers rows", () => {
   const completer = new Autocompleter({
@@ -82,7 +83,7 @@ test("locale in the constructor reaches complete(), not a hardcoded default", ()
     completions: probe,
     format: (v) => v.unit,
   });
-  const withPlace = buildRegistry([...BUILTIN_KINDS, place]);
+  const withPlace = buildRegistry([...BUILTIN_KINDS, place], [en]);
   const other: Locale = composeLocale(
     defineLanguage({
       id: "xx-locale",

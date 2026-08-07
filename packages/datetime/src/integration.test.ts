@@ -1,13 +1,14 @@
 import { expect, test } from "bun:test";
 import { AmbiguityError, composeLocale, createEngine } from "@smartput/core";
 import { BUILTIN_KINDS } from "@smartput/kinds";
+import BUILTIN_EN from "@smartput/kinds/locale/en";
 import { english as coreEn } from "@smartput/locale-en";
 import { datetime } from "./datetime";
 import { TEST_NOW, TEST_ZONE } from "./temporal";
 
 const make = (extra: Record<string, unknown> = {}) =>
   createEngine({
-    locales: [composeLocale(coreEn)],
+    locales: [composeLocale(coreEn, BUILTIN_EN)],
     kinds: [...BUILTIN_KINDS, datetime],
     now: () => TEST_NOW,
     timeZone: TEST_ZONE,
@@ -16,7 +17,7 @@ const make = (extra: Record<string, unknown> = {}) =>
 
 test("an engine without the datetime kind does not know what today is", () => {
   const bare = createEngine({
-    locales: [composeLocale(coreEn)],
+    locales: [composeLocale(coreEn, BUILTIN_EN)],
     kinds: [...BUILTIN_KINDS],
   });
   expect(() => bare.evaluate("today")).toThrow();

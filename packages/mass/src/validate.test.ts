@@ -2,6 +2,7 @@ import { expect, test } from "bun:test";
 import { composeLocale, createEngine } from "@smartput/core";
 import { english as en } from "@smartput/locale-en";
 import { mass } from "./index";
+import massEn from "./locale/en";
 import { MASS_UNITS, type MassUnit } from "./units";
 import { addMass, formatMass, parseMass, toMass } from "./validate";
 
@@ -46,7 +47,7 @@ test("conversion identity over every unit pair", () => {
 });
 
 test("cross-path agreement with the engine", () => {
-  const engine = createEngine({ locales: [composeLocale(en)], kinds: [mass] });
+  const engine = createEngine({ locales: [composeLocale(en, [massEn])], kinds: [mass] });
   for (const unit of units) {
     const parsed = parseMass(`7${unit}`);
     expect(parsed.ok).toBe(true);
@@ -58,12 +59,16 @@ test("cross-path agreement with the engine", () => {
   }
 });
 
-test("contract: the table and the descriptor agree", () => {
+test("contract: the table, the descriptor and the vocabulary agree", () => {
   expect(Object.keys((mass.value as { units: object }).units).sort()).toEqual(
     Object.keys(MASS_UNITS.ratio).sort(),
   );
-  for (const [unit, lexeme] of Object.entries(mass.lexicon ?? {})) {
-    const aliases = Array.isArray(lexeme) ? lexeme : lexeme.aliases;
-    for (const a of aliases) expect(MASS_UNITS.alias[a], a).toBe(unit as MassUnit);
+  // The aliases the engine indexes are the aliases the micro path inverts.
+  // They used to be checked against the kind's `lexicon`; that table now lives
+  // in `./locale/en`, and it is the same claim asked of its new home — an
+  // English word only reaches the engine if `MASS_UNITS.alias` maps it to the
+  // very unit the vocabulary filed it under.
+  for (const [unit, words] of Object.entries(massEn.units)) {
+    for (const a of words.aliases) expect(MASS_UNITS.alias[a], a).toBe(unit as MassUnit);
   }
 });

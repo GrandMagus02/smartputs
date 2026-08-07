@@ -1,9 +1,14 @@
 import { expect, test } from "bun:test";
-import { buildRegistry, Decimal } from "@smartput/core";
+import { buildRegistry, composeLocale, Decimal } from "@smartput/core";
 import { english as en } from "@smartput/locale-en";
 import { BUILTIN_KINDS } from "./index";
+import BUILTIN_EN from "./locale/en";
 
-const registry = buildRegistry(BUILTIN_KINDS);
+// The words half is installed, not bridged: a kind that has moved to
+// `locale/en` carries no `lexicon` for the registry to fall back on, so an
+// alias assertion below would be asserting the absence of a table rather than
+// the presence of a word.
+const registry = buildRegistry(BUILTIN_KINDS, [composeLocale(en, BUILTIN_EN)]);
 
 test("all M1 and M2 built-in kinds are registered", () => {
   expect([...registry.kinds.keys()].sort()).toEqual([

@@ -1,5 +1,6 @@
 import { expect, test } from "bun:test";
 import { BUILTIN_KINDS, measure, temperature } from "@smartput/kinds";
+import BUILTIN_EN from "@smartput/kinds/locale/en";
 import { english } from "@smartput/locale-en";
 import { KindConflictError } from "../errors";
 import { buildRegistry } from "../kind/registry";
@@ -7,7 +8,7 @@ import { composeLocale } from "../locale/compose";
 import { createFacades } from "./index";
 import { createFacade, type Quantity, type QuantityClass } from "./quantity";
 
-const en = composeLocale(english);
+const en = composeLocale(english, BUILTIN_EN);
 
 const F = createFacades({
   kinds: [...BUILTIN_KINDS, measure],

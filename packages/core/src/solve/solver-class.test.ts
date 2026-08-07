@@ -1,5 +1,6 @@
 import { expect, test } from "bun:test";
 import { BUILTIN_KINDS } from "@smartput/kinds";
+import BUILTIN_EN from "@smartput/kinds/locale/en";
 import { english } from "@smartput/locale-en";
 import { AmbiguityError, TooAmbiguousError } from "../errors";
 import { buildRegistry } from "../kind/registry";
@@ -11,9 +12,9 @@ import { parse } from "../parse/pratt";
 import { buildProgram } from "../parse/program";
 import { Solver } from "./solver-class";
 
-const en = composeLocale(english);
+const en = composeLocale(english, BUILTIN_EN);
 
-const registry = buildRegistry(BUILTIN_KINDS);
+const registry = buildRegistry(BUILTIN_KINDS, [en]);
 const resolver = createResolver({
   registry,
   locale: en,
