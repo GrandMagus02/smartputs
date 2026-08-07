@@ -9,10 +9,14 @@ import {
 import { CURRENCIES } from "@smartput/currency";
 import { english } from "@smartput/locale-en";
 import { number } from "@smartput/number";
+import moneyEn from "./locale/en";
 import { money } from "./money";
 import { snapshot } from "./snapshot";
 
-const en = composeLocale(english);
+// With `moneyEn`, because "every display form resolves back to its currency"
+// is a claim about the vocabulary and the kind together — the descriptor now
+// carries ISO codes and no word at all.
+const en = composeLocale(english, [moneyEn]);
 
 /**
  * Core's properties.test.ts asserts every spec §10 property over

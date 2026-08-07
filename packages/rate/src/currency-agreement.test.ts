@@ -3,6 +3,7 @@ import { composeLocale, createEngine, Decimal } from "@smartput/core";
 import { CURRENCIES, formatAmount, parseAmount, parseCurrency } from "@smartput/currency";
 import { english as en } from "@smartput/locale-en";
 import { number } from "@smartput/number";
+import moneyEn from "./locale/en";
 import { money } from "./money";
 import { snapshot } from "./snapshot";
 
@@ -32,8 +33,11 @@ const rates = snapshot("EUR", "2026-08-04", {
   NOK: 11.7,
   CZK: 24.8,
 });
+// The words are the whole subject here, so the vocabulary is composed in: the
+// kind alone carries ISO codes and nothing else, and an engine without
+// `moneyEn` reads `30 usd` but not `30 dollars`.
 const engine = createEngine({
-  locales: [composeLocale(en)],
+  locales: [composeLocale(en, [moneyEn])],
   kinds: [number, money],
   rates,
 });

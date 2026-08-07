@@ -8,10 +8,13 @@ import {
 } from "@smartput/core";
 import { english } from "@smartput/locale-en";
 import { number } from "@smartput/number";
+import moneyEn from "./locale/en";
 import { money } from "./money";
 import { snapshot } from "./snapshot";
 
-const en = composeLocale(english);
+// The kind names no language; `moneyEn` is where "dollars" lives, and
+// completion's insert text is made of its `forms`.
+const en = composeLocale(english, [moneyEn]);
 
 // One euro buys 1.1 dollars, 45.5 hryvnia and 0.8412 pounds.
 const rates = snapshot("EUR", "2026-08-04", { USD: 1.1, UAH: 45.5, GBP: 0.8412 });

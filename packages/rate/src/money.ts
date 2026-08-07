@@ -4,13 +4,12 @@ import {
   defineKind,
   type EvalCtx,
   type Kind,
-  type Lexicon,
   MissingRateError,
   SmartputError,
   type UnitDef,
   type Value,
 } from "@smartput/core";
-import { CURRENCIES, currencyLexicon, formatAmount } from "@smartput/currency";
+import { CURRENCIES, formatAmount } from "@smartput/currency";
 
 const CANONICAL = "eur";
 
@@ -68,15 +67,31 @@ for (const code of Object.keys(CURRENCIES)) {
 }
 
 /**
- * Every currency's aliases, symbol, plural forms and magnitude band, built by
- * `@smartput/currency`. Only the `units` above are this package's: a ratio is
- * the one part of a currency that a date can change, and it is the only part
- * that needs a snapshot to exist at all.
+ * The magnitude band people actually type each currency in, read only by
+ * completion's `scaleFit`. Economics, not language (ruling R3): 30 of
+ * something is an ordinary dollar amount and an implausibly small yen one, and
+ * that stays true in every language, so it belongs on the kind rather than in
+ * a vocabulary. `@smartput/currency`'s table is still where it is written
+ * down — the same rows `currencyVocabulary` reads the words from.
  */
-const lexicon: Lexicon = currencyLexicon();
+const typical: Record<string, [number, number]> = {};
+for (const [code, def] of Object.entries(CURRENCIES)) typical[code] = def.typical;
 
 /**
  * Canonical euro, because ECB's daily reference file quotes against it.
+ *
+ * The descriptor names no language: its units are ISO 4217 codes and its
+ * ratios are functions of a snapshot. Every English word money can be typed
+ * with — "dollars", "quid", "€" — lives in `@smartput/rate/locale/en`, and an
+ * engine that wants to read them composes it:
+ *
+ * ```ts
+ * createEngine({ locales: [composeLocale(english, [moneyEn])], kinds: [money] });
+ * ```
+ *
+ * Without it the codes still parse (the registry indexes every unit under its
+ * own key), and `$30.00` still prints, because the `format` hook below renders
+ * from `@smartput/currency`'s table rather than from a vocabulary.
  *
  * Rounding happens here and nowhere else: the AST carries full Decimal
  * precision, so `(1 usd / 3) * 3` is a dollar rather than 99 cents.
@@ -84,7 +99,7 @@ const lexicon: Lexicon = currencyLexicon();
 export const money: Kind = defineKind({
   id: "money",
   value: { mode: "ratio", canonical: CANONICAL, units },
-  lexicon,
+  typical,
   ops: [
     {
       // Replaces the generated `in|money|money`. Same arithmetic — the
