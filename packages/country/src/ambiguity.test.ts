@@ -86,7 +86,7 @@ const without = createEngine({
   timeZone: TEST_ZONE,
 });
 
-const registry = buildRegistry([number, length, geo], [], "en");
+const registry = buildRegistry([number, length, geo]);
 const matchCtx: MatchCtx = {
   locale: "en",
   now: 0,
@@ -577,7 +577,7 @@ test("what a city name changes is only ever nothing into something", () => {
  * kind now answers on every keystroke in the language.
  */
 function unitPrefixes(): string[] {
-  const registry = buildRegistry(BUILTIN_KINDS, [], "en");
+  const registry = buildRegistry(BUILTIN_KINDS);
   const out = new Set<string>();
   for (const alias of registry.aliasIndex.keys()) {
     if (!/^[a-z ]+$/.test(alias)) continue;

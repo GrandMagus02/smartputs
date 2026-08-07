@@ -1,4 +1,4 @@
-import type { Registry } from "../kind/registry";
+import { type Registry, wordsFor } from "../kind/registry";
 import { editDistance, nearestWord } from "../parse/distance";
 import { resolveWeight } from "../solve/weights";
 import type { CompleteCtx, KindId, Locale, Span, Weights } from "../types";
@@ -115,10 +115,11 @@ export function complete(args: {
         // completer path withholds it from a row matched by some other route.
         // The correction rides in as the term below instead.
         (typo === 0 ? prefixQuality(alias, folded) : 0) +
-        scaleFit(count, unit.lexeme.typical) -
+        scaleFit(count, unit.typical) -
         TYPO_PENALTY * typo;
 
-      const word = unit.lexeme.display?.[category] ?? alias;
+      const word =
+        wordsFor(registry, locale.id, entry.kind, entry.unit)?.forms?.[category] ?? alias;
       const key = `${entry.kind}:${entry.unit}`;
       const existing = best.get(key);
 

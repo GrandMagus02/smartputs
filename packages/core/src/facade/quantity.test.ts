@@ -8,7 +8,7 @@ import { createFacade, type Quantity, type QuantityClass } from "./quantity";
 
 const en = composeLocale(english);
 
-const registry = buildRegistry(BUILTIN_KINDS, [], "en");
+const registry = buildRegistry(BUILTIN_KINDS);
 const massKind = registry.kinds.get("mass");
 if (massKind === undefined) throw new Error("mass kind missing");
 
@@ -30,7 +30,7 @@ const Weight = createFacade({
 // `measure` is outside BUILTIN_KINDS (mm/cm collide with length), so the
 // round-trip set below builds its own registry over every kind.
 const allKinds = [...BUILTIN_KINDS, measure];
-const fullRegistry = buildRegistry(allKinds, [], "en");
+const fullRegistry = buildRegistry(allKinds);
 const facades: Record<string, QuantityClass> = {};
 const deltaFacades = new Map<string, QuantityClass>();
 for (const [id, k] of fullRegistry.kinds) {

@@ -13,7 +13,7 @@ import { Solver } from "./solver-class";
 
 const en = composeLocale(english);
 
-const registry = buildRegistry(BUILTIN_KINDS, [], "en");
+const registry = buildRegistry(BUILTIN_KINDS);
 const resolver = createResolver({
   registry,
   locale: en,

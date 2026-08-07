@@ -1,6 +1,6 @@
 import { Decimal } from "../decimal";
 import { fromCanonical } from "../eval/convert";
-import { NUMBER_KIND, type Registry } from "../kind/registry";
+import { NUMBER_KIND, type Registry, wordsFor } from "../kind/registry";
 import { numberSymbols } from "../locale/number";
 import type { FormatOptions, Language, Locale, Value } from "../types";
 
@@ -101,11 +101,10 @@ export function formatValue(
   const numberText = formatNumber(authored, locale.language, trim);
   if (value.kind === NUMBER_KIND) return numberText;
 
-  const unit = kind.units.get(value.unit);
-  const lexeme = unit?.lexeme;
+  const words = wordsFor(registry, locale.id, value.kind, value.unit);
   const category = new Intl.PluralRules(locale.id).select(authored.toNumber());
-  const display = lexeme?.display?.[category];
+  const display = words?.forms?.[category];
 
   if (display !== undefined) return `${numberText} ${display}`;
-  return `${numberText}${lexeme?.symbol ?? value.unit}`;
+  return `${numberText}${words?.symbol ?? value.unit}`;
 }

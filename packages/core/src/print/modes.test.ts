@@ -38,7 +38,7 @@ function hasAmbiguousNode(program: Program): boolean {
  * reason `roundtrip.test.ts` is: a failure here names which stage disagreed.
  */
 
-const registry = buildRegistry(BUILTIN_KINDS, [], en.id);
+const registry = buildRegistry(BUILTIN_KINDS);
 const resolver = createResolver({
   registry,
   locale: en,

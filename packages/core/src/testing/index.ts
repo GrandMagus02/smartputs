@@ -1,6 +1,6 @@
 import { expect } from "bun:test";
 import { Decimal } from "../decimal";
-import { buildRegistry } from "../kind/registry";
+import { buildRegistry, wordsFor } from "../kind/registry";
 import type { EvalCtx, Kind } from "../types";
 
 /**
@@ -24,7 +24,9 @@ export function assertKindContract(kind: Kind): void {
   expect(normalized.units.has(normalized.spec.canonical)).toBe(true);
 
   for (const [unitName, unit] of normalized.units) {
-    expect(unit.lexeme.aliases.length).toBeGreaterThan(0);
+    expect(
+      wordsFor(registry, "en", kind.id, unitName)?.aliases.length ?? 0,
+    ).toBeGreaterThan(0);
     const ctx: EvalCtx = {
       self: { kind: kind.id, canonical: new Decimal(0), unit: unitName },
       locale: "en",

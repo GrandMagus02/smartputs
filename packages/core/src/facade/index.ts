@@ -28,7 +28,7 @@ export function createFacades(args: {
   /** FX rates, threaded to every facade — see `createFacade`'s own doc. */
   rates?: RateLookup;
 }): Record<KindId, QuantityClass> {
-  const registry = buildRegistry(args.kinds, [], args.locale.id);
+  const registry = buildRegistry(args.kinds, [args.locale]);
   const classes = new Map<KindId, QuantityClass>();
 
   for (const [id, kind] of registry.kinds) {

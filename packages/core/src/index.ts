@@ -40,7 +40,7 @@ export {
 // its own units and aliases resolve to without standing up a whole engine —
 // which is the only way to see an alias collision between two kinds at all.
 export type { AliasEntry, Registry } from "./kind/registry";
-export { buildRegistry } from "./kind/registry";
+export { buildRegistry, wordsFor } from "./kind/registry";
 // The provider path's caching half, shared by every package that fetches a
 // snapshot and rebuilds an engine from it — rates does, geo does (spec §8.1).
 export type {

@@ -15,7 +15,7 @@ const en = composeLocale(english);
 // "two `.run()` calls return equal output" a fact rather than a coin flip.
 const NOW = 1_768_478_400_000;
 
-const emptyRegistry = buildRegistry([], [], "en");
+const emptyRegistry = buildRegistry([]);
 const tokenizer = new Tokenizer({
   locale: en,
   registry: emptyRegistry,
@@ -84,7 +84,7 @@ test("a literal matcher claims its span as one token", () => {
     value: { mode: "opaque", units: { UTC: ["utc"] } },
     literals: [todayMatcher],
   });
-  const registry = buildRegistry([day], [], "en");
+  const registry = buildRegistry([day]);
   const withLiterals = new Tokenizer({ locale: en, registry, now: () => NOW });
 
   const stream = withLiterals.run("today + 5 km");
@@ -151,7 +151,7 @@ test("now() is called once per run(), not fixed at construction", () => {
     value: { mode: "opaque", units: { UTC: ["utc"] } },
     literals: [clockMatcher],
   });
-  const registry = buildRegistry([day], [], "en");
+  const registry = buildRegistry([day]);
   const withLiterals = new Tokenizer({ locale: en, registry, now: clock });
 
   withLiterals.run("z");

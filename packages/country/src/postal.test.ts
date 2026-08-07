@@ -86,8 +86,8 @@ const names = engineOf(namesPlace);
 
 const registry = buildRegistry(
   [...BUILTIN_KINDS, datetime, postalPlace],
+  [],
   [datetimeEn],
-  "en",
 );
 const ctx: MatchCtx = {
   locale: "en",

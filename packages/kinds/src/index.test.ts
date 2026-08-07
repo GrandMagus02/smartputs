@@ -3,12 +3,13 @@ import { buildRegistry, Decimal } from "@smartput/core";
 import en from "@smartput/core/locale/en";
 import { BUILTIN_KINDS } from "./index";
 
-const registry = buildRegistry(BUILTIN_KINDS, [], "en");
+const registry = buildRegistry(BUILTIN_KINDS);
 
 test("all M1 and M2 built-in kinds are registered", () => {
   expect([...registry.kinds.keys()].sort()).toEqual([
     "angle",
     "area",
+    "boolean",
     "datarate",
     "datasize",
     "duration",
@@ -28,8 +29,8 @@ test("all M1 and M2 built-in kinds are registered", () => {
 
 test("m is ambiguous between length and duration", () => {
   expect(registry.aliasIndex.get("m")).toEqual([
-    { kind: "duration", unit: "min" },
-    { kind: "length", unit: "m" },
+    { kind: "duration", unit: "min", locale: "en" },
+    { kind: "length", unit: "m", locale: "en" },
   ]);
 });
 

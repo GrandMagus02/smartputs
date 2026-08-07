@@ -9,6 +9,7 @@ import {
   type MatchCtx,
   type OpaqueSpec,
   type Registry,
+  wordsFor,
 } from "@smartput/core";
 import en from "@smartput/core/locale/en";
 import { length } from "@smartput/length";
@@ -21,7 +22,7 @@ const engine = createEngine({
   locales: [composeLocale(en)],
   kinds: [number, length, place],
 });
-const registry = buildRegistry([number, length, place], [], "en");
+const registry = buildRegistry([number, length, place]);
 const units = registry.kinds.get("place")?.units;
 
 /**
@@ -36,7 +37,7 @@ const cityEngine = createEngine({
   locales: [composeLocale(en)],
   kinds: [number, length, cityPlace],
 });
-const cityRegistry = buildRegistry([number, length, cityPlace], [], "en");
+const cityRegistry = buildRegistry([number, length, cityPlace]);
 const cityUnits = cityRegistry.kinds.get("place")?.units;
 
 /**
@@ -73,8 +74,8 @@ function placeAliases(reg: Registry): string[] {
 test("countries are the units, keyed by alpha-2", () => {
   expect(units?.has("jp")).toBe(true);
   expect(units?.has("ua")).toBe(true);
-  expect(units?.get("jp")?.lexeme.symbol).toBe("Japan");
-  expect(units?.get("gb")?.lexeme.aliases).toContain("united kingdom");
+  expect(wordsFor(registry, "en", "place", "jp")?.symbol).toBe("Japan");
+  expect(wordsFor(registry, "en", "place", "gb")?.aliases).toContain("united kingdom");
 });
 
 test("a country's codes are not aliases, because the alias index is global", () => {
@@ -82,10 +83,11 @@ test("a country's codes are not aliases, because the alias index is global", () 
   // ambiguous with the kilometre, "pm" as Saint Pierre makes "3pm" a country,
   // and "ago" as Angola makes "3 days ago" unparseable. The codes stay in the
   // matcher's trie, where the fold offers them a guard the index cannot.
-  expect(units?.get("gb")?.lexeme.aliases).not.toContain("gb");
-  expect(units?.get("gb")?.lexeme.aliases).not.toContain("gbr");
-  const short = [...(units?.values() ?? [])].flatMap((u) =>
-    u.lexeme.aliases.filter((a) => a.length < 4),
+  const gb = wordsFor(registry, "en", "place", "gb")?.aliases ?? [];
+  expect(gb).not.toContain("gb");
+  expect(gb).not.toContain("gbr");
+  const short = [...(units?.keys() ?? [])].flatMap((code) =>
+    (wordsFor(registry, "en", "place", code)?.aliases ?? []).filter((a) => a.length < 4),
   );
   expect(short).toEqual([]);
 });

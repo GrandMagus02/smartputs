@@ -1,5 +1,5 @@
 import type { Decimal } from "../decimal";
-import type { Registry } from "../kind/registry";
+import { type Registry, wordsFor } from "../kind/registry";
 import type { NodeId } from "../parse/ast";
 import type { Resolution } from "../solve/solver";
 import type { Candidate, KindId, Locale } from "../types";
@@ -89,12 +89,12 @@ export function avoidSpellings(
   if (candidates.length <= 1) return avoid;
   for (const c of candidates) {
     if (c.kind === chosen.kind && c.unit === chosen.unit) continue;
-    const lexeme = registry.kinds.get(c.kind)?.units.get(c.unit)?.lexeme;
-    for (const alias of lexeme?.aliases ?? []) {
+    const words = wordsFor(registry, locale.id, c.kind, c.unit);
+    for (const alias of words?.aliases ?? []) {
       avoid.add(alias.toLocaleLowerCase(locale.id));
     }
-    if (lexeme?.symbol !== undefined) {
-      avoid.add(lexeme.symbol.toLocaleLowerCase(locale.id));
+    if (words?.symbol !== undefined) {
+      avoid.add(words.symbol.toLocaleLowerCase(locale.id));
     }
   }
   return avoid;
@@ -206,11 +206,11 @@ export function unitWord(
   locale: Locale,
 ): string {
   const { kindId, unitId, avoid, ambiguousSurface, symbols, spell } = opts;
-  const lexeme = registry.kinds.get(kindId)?.units.get(unitId)?.lexeme;
+  const words = wordsFor(registry, locale.id, kindId, unitId);
   const fold = (s: string) => s.toLocaleLowerCase(locale.id);
 
   if (spell !== undefined) {
-    const display = lexeme?.display;
+    const display = words?.forms;
     if (display !== undefined) {
       const category =
         spell.magnitude !== undefined
@@ -223,10 +223,10 @@ export function unitWord(
     // through to the alias chain below, never to `symbols` (see this
     // function's own doc comment).
   } else if (symbols) {
-    const symbol = lexeme?.symbol;
+    const symbol = words?.symbol;
     if (symbol !== undefined && !avoid.has(fold(symbol))) return symbol;
   }
-  const aliases = lexeme?.aliases ?? [];
+  const aliases = words?.aliases ?? [];
   const alias = aliases.find((a) => !avoid.has(fold(a)));
   if (alias !== undefined) return alias;
   return ambiguousSurface ?? aliases[0] ?? unitId;

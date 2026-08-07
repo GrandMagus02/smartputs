@@ -23,7 +23,7 @@ const en = composeLocale(english);
  * `stages.test.ts`'s composition test gives for staying off the engine.
  */
 
-const registry = buildRegistry(BUILTIN_KINDS, [], en.id);
+const registry = buildRegistry(BUILTIN_KINDS);
 const resolver = createResolver({
   registry,
   locale: en,

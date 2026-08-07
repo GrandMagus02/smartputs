@@ -3,7 +3,7 @@ import { KindConflictError, UnitParseError } from "../errors";
 import { fromCanonical, toCanonical } from "../eval/convert";
 import { formatValue } from "../format/format";
 import type { NormalizedKind } from "../kind/define";
-import type { Registry } from "../kind/registry";
+import { type Registry, wordsFor } from "../kind/registry";
 import { createAnalyzerChain } from "../locale/analyze";
 import { numberSymbols, parseNumber } from "../locale/number";
 import type { EvalCtx, KindId, Locale, RateLookup, Value } from "../types";
@@ -114,10 +114,11 @@ export function createFacade(args: {
   for (const [alias, entries] of registry.aliasIndex) {
     for (const entry of entries) if (entry.kind === kind.id) claim(alias, entry.unit);
   }
-  for (const [name, unit] of kind.units) {
+  for (const [name] of kind.units) {
+    const words = wordsFor(registry, locale.id, kind.id, name);
     claim(name, name);
-    claim(unit.lexeme.symbol, name);
-    for (const form of Object.values(unit.lexeme.display ?? {})) claim(form, name);
+    claim(words?.symbol, name);
+    for (const form of Object.values(words?.forms ?? {})) claim(form, name);
   }
 
   // The locale's own analyzers, the same chain the engine's resolver runs, so

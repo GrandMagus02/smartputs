@@ -45,7 +45,7 @@ const ctx: MatchCtx = {
 };
 
 const fold = (input: string, literals: LiteralMatcher[]) => {
-  const registry = buildRegistry([day(literals), length], [], "en");
+  const registry = buildRegistry([day(literals), length]);
   return foldLiterals(lex(input, en), input, registry, ctx);
 };
 
@@ -162,7 +162,7 @@ test("two kinds claiming the same span both survive, not just the first to regis
           : null,
     ],
   });
-  const registry = buildRegistry([day([todayMatcher]), other, length], [], "en");
+  const registry = buildRegistry([day([todayMatcher]), other, length]);
   const tokens = foldLiterals(lex("today", en), "today", registry, ctx);
   expect(readingsOf(tokens[0] as Token).map((r) => r.kind)).toEqual(["aday", "day"]);
 });

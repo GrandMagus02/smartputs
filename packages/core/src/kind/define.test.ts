@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test";
 import { Decimal } from "../decimal";
 import type { EvalCtx, OpSignature, RatioSpec, Value } from "../types";
-import { defineKind, normalizeKind } from "./define";
+import { defineKind, legacyVocabulary, normalizeKind } from "./define";
 
 const ctx = (v: Value): EvalCtx => ({ self: v, locale: "en" });
 const val = (unit: string): Value => ({
@@ -27,18 +27,41 @@ test("a five-line ratio kind needs only id, canonical and units", () => {
   ).toBe("1024");
 });
 
+// --- the P1 lexicon bridge (ruling R7) -----------------------------------
+//
+// `legacyVocabulary` is what `toLexeme` became: a kind that still declares a
+// `lexicon` is served an `en` vocabulary built from it, and these four cases
+// are the whole of the table it has to reproduce byte for byte while the kind
+// packages migrate. They go with the bridge in Task 7.
+
 test("aliases default to the unit key", () => {
-  const n = normalizeKind(
+  const v = legacyVocabulary(
     defineKind({
       id: "datasize",
-      value: { mode: "ratio", canonical: "b", units: { kb: 1e3 } },
+      value: { mode: "ratio", canonical: "b", units: { kb: 1e3, mb: 1e6 } },
+      lexicon: { mb: ["mb"] },
     }),
   );
-  expect(n.units.get("kb")?.lexeme.aliases).toEqual(["kb"]);
+  expect(v?.units.kb?.aliases).toEqual(["kb"]);
+  expect(v?.units.kb?.symbol).toBe("kb");
+});
+
+test("a kind with no legacy words has nothing to bridge", () => {
+  // Not the same as "has no words": the registry indexes such a kind under its
+  // unit keys instead (R2), and inventing one alias per unit here would hide
+  // that path behind a vocabulary nobody wrote.
+  expect(
+    legacyVocabulary(
+      defineKind({
+        id: "datasize",
+        value: { mode: "ratio", canonical: "b", units: { kb: 1e3 } },
+      }),
+    ),
+  ).toBeNull();
 });
 
 test("an explicit lexicon replaces the default aliases and keeps display forms", () => {
-  const n = normalizeKind(
+  const v = legacyVocabulary(
     defineKind({
       id: "mass",
       value: { mode: "ratio", canonical: "g", units: { kg: 1000 } },
@@ -53,31 +76,67 @@ test("an explicit lexicon replaces the default aliases and keeps display forms",
       },
     }),
   );
-  expect(n.units.get("kg")?.lexeme.aliases).toEqual(["kilogramme", "kilo"]);
-  expect(n.units.get("kg")?.lexeme.display?.one).toBe("kilogram");
-  expect(n.units.get("kg")?.lexeme.symbol).toBe("kg");
+  expect(v?.units.kg?.aliases).toEqual(["kilogramme", "kilo"]);
+  expect(v?.units.kg?.forms?.one).toBe("kilogram");
+  expect(v?.units.kg?.symbol).toBe("kg");
 });
 
 test("symbol falls back to the first alias when none is given", () => {
-  const n = normalizeKind(
+  const v = legacyVocabulary(
     defineKind({
       id: "mass",
       value: { mode: "ratio", canonical: "g", units: { kg: 1000 } },
       lexicon: { kg: { aliases: ["kilogramme", "kilo"] } },
     }),
   );
-  expect(n.units.get("kg")?.lexeme.symbol).toBe("kilogramme");
+  expect(v?.units.kg?.symbol).toBe("kilogramme");
 });
 
 test("a string array is lexicon shorthand for aliases", () => {
-  const n = normalizeKind(
+  const v = legacyVocabulary(
     defineKind({
       id: "mass",
       value: { mode: "ratio", canonical: "g", units: { kg: 1000 } },
       lexicon: { kg: ["kg", "kilo"] },
     }),
   );
-  expect(n.units.get("kg")?.lexeme.aliases).toEqual(["kg", "kilo"]);
+  expect(v?.units.kg?.aliases).toEqual(["kg", "kilo"]);
+  expect(v?.units.kg?.symbol).toBe("kg");
+});
+
+test("a patch kind's words belong to the kind it extends", () => {
+  const v = legacyVocabulary(
+    defineKind({
+      id: "mass-extra",
+      extendsKind: "mass",
+      value: { mode: "ratio", canonical: "g", units: { t: 1e6 } },
+      lexicon: { t: ["t", "tonne"] },
+    }),
+  );
+  expect(v?.kind).toBe("mass");
+});
+
+test("the band a legacy lexeme carried still reaches the normalized unit", () => {
+  const n = normalizeKind(
+    defineKind({
+      id: "mass",
+      value: { mode: "ratio", canonical: "g", units: { kg: 1000 } },
+      lexicon: { kg: { aliases: ["kg"], typical: [1, 100] } },
+    }),
+  );
+  expect(n.units.get("kg")?.typical).toEqual([1, 100]);
+});
+
+test("Kind.typical wins over the band the lexeme carried", () => {
+  const n = normalizeKind(
+    defineKind({
+      id: "mass",
+      value: { mode: "ratio", canonical: "g", units: { kg: 1000 } },
+      typical: { kg: [2, 200] },
+      lexicon: { kg: { aliases: ["kg"], typical: [1, 100] } },
+    }),
+  );
+  expect(n.units.get("kg")?.typical).toEqual([2, 200]);
 });
 
 test("a function ratio receives the value's own meta", () => {

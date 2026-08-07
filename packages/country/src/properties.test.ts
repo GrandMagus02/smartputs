@@ -19,7 +19,7 @@ import { createPlaceLiteral } from "./matcher";
 import { place } from "./place";
 import type { CountryRow } from "./types";
 
-const registry = buildRegistry([number, length, place], [], "en");
+const registry = buildRegistry([number, length, place]);
 const units = registry.kinds.get("place")?.units;
 
 function placeValue(a2: string): Value {
@@ -201,7 +201,7 @@ test("no reserved word is claimable, as a city or as anything else", () => {
   // harshest reading of the property: `isUnitAlias` would refuse most of these
   // words for the matcher in any engine that registered the kinds they came from,
   // and a net that only holds while its neighbours are loaded is not a net.
-  const bare = buildRegistry([place], [], "en");
+  const bare = buildRegistry([place]);
   const ctx: MatchCtx = {
     locale: "en",
     now: 0,

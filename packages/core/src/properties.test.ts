@@ -10,7 +10,7 @@ import { parseNumber } from "./locale/number";
 
 const en = composeLocale(english);
 
-const registry = buildRegistry(BUILTIN_KINDS, [], "en");
+const registry = buildRegistry(BUILTIN_KINDS);
 const SAMPLES = [
   "0",
   "1",

@@ -365,7 +365,7 @@ export function createEngine(callerOpts: EngineOptions): Engine {
   const opts = Object.freeze({ ...callerOpts }); // a copy — see EngineCtx's doc for why
   const locale = opts.locales[0];
   if (locale === undefined) throw new Error("createEngine requires at least one locale");
-  const registry = buildRegistry(opts.kinds ?? [], opts.packs ?? [], locale.id);
+  const registry = buildRegistry(opts.kinds ?? [], opts.locales, opts.packs ?? []);
   const layers = (call?: Weights) => weightLayers(locale, opts, call);
   const stages = buildStages(opts, registry, locale);
   const ctx: EngineCtx = {

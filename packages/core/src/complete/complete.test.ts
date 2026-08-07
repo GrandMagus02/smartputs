@@ -10,7 +10,7 @@ import { EXACT_BONUS, LENGTH_PENALTY, SCALE_BONUS, TYPO_PENALTY } from "./score"
 
 const en = composeLocale(english);
 
-const registry = buildRegistry(BUILTIN_KINDS, [], "en");
+const registry = buildRegistry(BUILTIN_KINDS);
 const run = (
   input: string,
   opts?: Parameters<typeof complete>[0]["opts"],
@@ -201,7 +201,7 @@ const probeRun = (
   layers: (Weights | undefined)[] = [english.weights],
 ) =>
   complete({
-    registry: buildRegistry([...BUILTIN_KINDS, ...kinds], [], "en"),
+    registry: buildRegistry([...BUILTIN_KINDS, ...kinds]),
     locale: en,
     layers,
     input,

@@ -38,7 +38,7 @@ const en = composeLocale(english);
  * relative path is a convenience inside this package, not a gap in it.
  */
 
-const registry = buildRegistry(BUILTIN_KINDS, [], en.id);
+const registry = buildRegistry(BUILTIN_KINDS);
 const resolver = createResolver({
   registry,
   locale: en,

@@ -13,7 +13,7 @@ const en = composeLocale(english);
 // Neither the parser nor the solver: an Autocompleter runs on raw, possibly
 // unparseable input, and its own fixtures never need a Program.
 
-const registry = buildRegistry(BUILTIN_KINDS, [], "en");
+const registry = buildRegistry(BUILTIN_KINDS);
 
 test("a prefix that offers rows", () => {
   const completer = new Autocompleter({
@@ -82,7 +82,7 @@ test("locale in the constructor reaches complete(), not a hardcoded default", ()
     completions: probe,
     format: (v) => v.unit,
   });
-  const withPlace = buildRegistry([...BUILTIN_KINDS, place], [], "en");
+  const withPlace = buildRegistry([...BUILTIN_KINDS, place]);
   const other: Locale = composeLocale(
     defineLanguage({
       id: "xx-locale",

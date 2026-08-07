@@ -376,11 +376,17 @@ export interface RatioSpec {
 export interface OpaqueSpec {
   mode: "opaque";
   /**
-   * The kind's units as a lexicon. An opaque unit is a *label*, not a ratio —
-   * `datetime`'s units are IANA time zones — but it is indexed, weighted,
-   * formatted and used as an `in` target exactly like a ratio kind's unit.
+   * The kind's unit **ids** — ruling R1. An opaque unit is a *label*, not a
+   * ratio (`datetime`'s are IANA zones), but it is indexed, weighted,
+   * formatted and used as an `in` target exactly like a ratio kind's unit. The
+   * words for it live in a `Vocabulary`, because words belong to a language.
+   *
+   * The lexicon shape is the P1 bridge — ruling R7. Eighteen kind packages
+   * still declare their opaque units as a table of aliases; `legacyVocabulary`
+   * turns that table into an `en` vocabulary until each package ships one of
+   * its own. Task 7 deletes the union and leaves `readonly string[]`.
    */
-  units?: Record<string, UnitLexeme | string[]>;
+  units?: readonly string[] | Record<string, UnitLexeme | string[]>;
   /**
    * Opt in to the six comparison signatures — ruling C5.
    *
@@ -516,7 +522,16 @@ export interface Kind {
   value: RatioSpec | OpaqueSpec;
   extendsKind?: KindId;
   prior?: number;
+  /** @deprecated The P1 bridge — ruling R7. Removed in Task 7. */
   lexicon?: Lexicon;
+  /**
+   * The magnitude band people actually type each unit in, inclusive at both
+   * ends — read only by completion's `scaleFit`. A kind-level map because a
+   * magnitude range is physics, not language (spec §4, ruling R3). A unit with
+   * no entry scores 0, which is the same as being out of band: declaring a
+   * band is never a penalty.
+   */
+  typical?: Readonly<Record<string, [number, number]>>;
   literals?: LiteralMatcher[];
   /**
    * Beside `lexicon`, never instead of it. A unit's aliases keep completing

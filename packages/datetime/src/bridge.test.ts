@@ -88,7 +88,7 @@ test("the whole corpus reads the same with geo registered", () => {
 test("a place carrying no zone is an unknown unit, not a Temporal RangeError", () => {
   // A place reached by its *unit alias* rather than by a claimed literal gets
   // evaluate.ts's stand-in right-hand side, which carries no zone at all.
-  const sig = buildRegistry([datetime, place], [], "en").ops.get(BRIDGE_KEY);
+  const sig = buildRegistry([datetime, place]).ops.get(BRIDGE_KEY);
   const afternoon = withoutGeo.evaluate("3pm").value;
   const bare = { kind: "place", unit: "jp", canonical: new Decimal(1861060) };
   const ctx = { self: afternoon, locale: "en", input: "3pm in jp" };
@@ -102,7 +102,7 @@ test("a place carrying no zone is an unknown unit, not a Temporal RangeError", (
 // ---- half two: geo absent, which is the claim of spec §3.1 ----
 
 test("the signature is declared even when place is not a registered kind", () => {
-  const registry = buildRegistry([...BUILTIN_KINDS, datetime], [], "en");
+  const registry = buildRegistry([...BUILTIN_KINDS, datetime]);
   expect(registry.kinds.has("place")).toBe(false);
   // Registry pass 4 never validates that a signature's operands name registered
   // kinds, so the entry is built and simply never keyed: no kind claims `place`,

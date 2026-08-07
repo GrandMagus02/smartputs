@@ -2,7 +2,7 @@ import { expect, test } from "bun:test";
 import { BUILTIN_KINDS } from "@smartput/kinds";
 import { Decimal } from "../decimal";
 import { defineKind } from "../kind/define";
-import { buildRegistry, NUMBER_KIND } from "../kind/registry";
+import { buildRegistry, NUMBER_KIND, wordsFor } from "../kind/registry";
 import { composeLocale } from "../locale/compose";
 import english from "../locale/en";
 import type { Node } from "../parse/ast";
@@ -16,7 +16,7 @@ import { Printer } from "./print";
 
 const en = composeLocale(english);
 
-const registry = buildRegistry(BUILTIN_KINDS, [], en.id);
+const registry = buildRegistry(BUILTIN_KINDS);
 const resolver = createResolver({
   registry,
   locale: en,
@@ -181,8 +181,8 @@ test("invariant: every unit the printer can emit a unit for lexes back to that (
   const failures: string[] = [];
   for (const [kindId, kind] of registry.kinds) {
     if (kindId === NUMBER_KIND) continue;
-    for (const [unitId, unit] of kind.units) {
-      const alias = unit.lexeme.aliases[0];
+    for (const unitId of kind.units.keys()) {
+      const alias = wordsFor(registry, en.id, kindId, unitId)?.aliases[0];
       if (alias === undefined) {
         failures.push(`${kindId}:${unitId} — no first alias`);
         continue;
@@ -708,7 +708,7 @@ const roundable = defineKind({
       precision: ctx.precision ?? 5,
     })}u`,
 });
-const roundableRegistry = buildRegistry([...BUILTIN_KINDS, roundable], [], en.id);
+const roundableRegistry = buildRegistry([...BUILTIN_KINDS, roundable]);
 const roundableValue: Value = Object.freeze({
   kind: "roundable",
   canonical: new Decimal(10).dividedBy(3),
@@ -753,7 +753,7 @@ const coin = defineKind({
   },
   lexicon: { usd: ["usd"] },
 });
-const coinRegistry = buildRegistry([...BUILTIN_KINDS, coin], [], en.id);
+const coinRegistry = buildRegistry([...BUILTIN_KINDS, coin]);
 const coinValue: Value = Object.freeze({
   kind: "coin",
   canonical: new Decimal("10"),
