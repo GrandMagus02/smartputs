@@ -4,6 +4,8 @@ import type { Vocabulary } from "@smartput/core";
 import datarateEn from "@smartput/datarate/locale/en";
 import datasizeEn from "@smartput/datasize/locale/en";
 import durationEn from "@smartput/duration/locale/en";
+import energyEn from "@smartput/energy/locale/en";
+import lengthEn from "@smartput/length/locale/en";
 import massEn from "@smartput/mass/locale/en";
 
 /**
@@ -30,6 +32,8 @@ const BUILTIN_EN: readonly Vocabulary[] = [
   datarateEn,
   datasizeEn,
   durationEn,
+  energyEn,
+  lengthEn,
   massEn,
 ];
 export default BUILTIN_EN;

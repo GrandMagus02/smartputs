@@ -1,12 +1,6 @@
 import type { Value } from "@smartput/core";
-import {
-  aliasesFor,
-  type Decimal,
-  decimalRatios,
-  defineKind,
-  deriveValue,
-} from "@smartput/core";
-import { ENERGY_UNITS, type EnergyUnit } from "./units";
+import { type Decimal, decimalRatios, defineKind, deriveValue } from "@smartput/core";
+import { ENERGY_UNITS } from "./units";
 
 export type { EnergyUnit } from "./units";
 export { ENERGY_UNITS } from "./units";
@@ -19,8 +13,6 @@ export { ENERGY_UNITS } from "./units";
 const make = (source: Value, kind: string, unit: string, canonical: Decimal): Value =>
   deriveValue(source, canonical, { kind, unit });
 
-const alias = (unit: EnergyUnit) => aliasesFor(ENERGY_UNITS, unit);
-
 /** Canonical joule. Produced by multiplying a power by a duration. */
 export const energy = defineKind({
   id: "energy",
@@ -29,50 +21,18 @@ export const energy = defineKind({
     canonical: ENERGY_UNITS.canonical,
     units: decimalRatios(ENERGY_UNITS),
   },
-  lexicon: {
-    j: {
-      aliases: alias("j"),
-      symbol: "j",
-      display: { one: "joule", other: "joules" },
-      typical: [1, 1000],
-    },
-    kj: {
-      aliases: alias("kj"),
-      symbol: "kj",
-      display: { one: "kilojoule", other: "kilojoules" },
-      typical: [1, 1000],
-    },
-    mj: {
-      aliases: alias("mj"),
-      symbol: "mj",
-      display: { one: "megajoule", other: "megajoules" },
-      typical: [1, 1000],
-    },
-    // wh, kwh and mwh carry no `display`: their written-out forms are compounds
-    // ("watt hours") that the parser rejects, and a display form that does not
-    // parse back is a dead end for completion. Absent display keeps formatValue
-    // on the symbol. Same call `speed` makes for "metres per second".
-    wh: { aliases: alias("wh"), symbol: "wh", typical: [1, 1000] },
-    kwh: { aliases: alias("kwh"), symbol: "kwh", typical: [1, 1000] },
-    mwh: { aliases: alias("mwh"), symbol: "mwh", typical: [0.1, 100] },
-    cal: {
-      aliases: alias("cal"),
-      symbol: "cal",
-      display: { one: "calorie", other: "calories" },
-      typical: [1, 1000],
-    },
-    kcal: {
-      aliases: alias("kcal"),
-      symbol: "kcal",
-      display: { one: "kilocalorie", other: "kilocalories" },
-      typical: [1, 5000],
-    },
-    btu: {
-      aliases: alias("btu"),
-      symbol: "btu",
-      display: { one: "btu", other: "btus" },
-      typical: [1, 100000],
-    },
+  // Physics, not language (ruling R3): the magnitude band people actually type
+  // each unit in, inclusive at both ends, read only by completion's `scaleFit`.
+  typical: {
+    j: [1, 1000],
+    kj: [1, 1000],
+    mj: [1, 1000],
+    wh: [1, 1000],
+    kwh: [1, 1000],
+    mwh: [0.1, 100],
+    cal: [1, 1000],
+    kcal: [1, 5000],
+    btu: [1, 100000],
   },
   // The whole power/duration/energy bridge lives here rather than being split
   // across the three packages, because a signature has to be declared exactly
