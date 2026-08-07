@@ -1,4 +1,5 @@
 import type { Vocabulary } from "@smartput/core";
+import durationEn from "@smartput/duration/locale/en";
 import massEn from "@smartput/mass/locale/en";
 
 /**
@@ -19,5 +20,5 @@ import massEn from "@smartput/mass/locale/en";
  * `composeLocale` refuses two vocabularies for one kind outright, so there is
  * no last-one-wins for the ordering to decide.
  */
-const BUILTIN_EN: readonly Vocabulary[] = [massEn];
+const BUILTIN_EN: readonly Vocabulary[] = [durationEn, massEn];
 export default BUILTIN_EN;
