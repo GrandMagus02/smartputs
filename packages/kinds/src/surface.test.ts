@@ -2,6 +2,7 @@ import { expect, test } from "bun:test";
 import type { Kind } from "@smartput/core";
 import { composeLocale, createEngine } from "@smartput/core";
 import { english as en } from "@smartput/locale-en";
+import measureEn from "@smartput/measure/locale/en";
 // The package root is the only surface a consumer of @smartput/kinds has, and
 // these named imports are the assertion: until they existed, the aggregator
 // re-exported four of the twelve kinds and `measure` was reachable by no route
@@ -89,8 +90,12 @@ test("measure is usable via createEngine using only package-root imports", () =>
   // This is the case that was silently broken: Task 7's entire deliverable is
   // unreachable without a named export, because measure cannot be opted into
   // through BUILTIN_KINDS.
+  //
+  // Its words are opted into by the same route, and from its own package:
+  // `./locale/en` here is the built-in barrel, and measure is as absent from it
+  // as it is from BUILTIN_KINDS, for the same mm/cm reason.
   const engine = createEngine({
-    locales: [composeLocale(en, BUILTIN_EN)],
+    locales: [composeLocale(en, [...BUILTIN_EN, measureEn])],
     kinds: [...BUILTIN_KINDS, measure],
   });
   expect(engine.evaluate("96 px in inch").formatted).toBe("1 inch");

@@ -2,6 +2,7 @@ import { expect, test } from "bun:test";
 import { BUILTIN_KINDS, measure } from "@smartput/kinds";
 import BUILTIN_EN from "@smartput/kinds/locale/en";
 import { english } from "@smartput/locale-en";
+import measureEn from "@smartput/measure/locale/en";
 import { createEngine } from "../engine";
 import { composeLocale } from "../locale/compose";
 import { lex } from "../parse/lex";
@@ -15,13 +16,13 @@ const engine = createEngine({ locales: [en], kinds: BUILTIN_KINDS });
 // with length's -- so its units get their own engine rather than being folded
 // into the corpus, which would change what every length row completes to.
 //
-// Its locale is composed bare rather than with BUILTIN_EN: a vocabulary is
-// installed against a registered kind, and `buildRegistry` refuses one naming a
-// kind this engine does not have. `measure` still reads and writes English
-// here because it declares a `lexicon` the P1 bridge turns into an `en`
-// vocabulary; when Task 6 moves those words to `@smartput/measure/locale/en`,
-// this line takes that vocabulary and only that one.
-const measures = createEngine({ locales: [composeLocale(english)], kinds: [measure] });
+// Its locale takes measure's own vocabulary and only that one, rather than
+// BUILTIN_EN: a vocabulary is installed against a registered kind, and
+// `buildRegistry` refuses one naming a kind this engine does not have.
+const measures = createEngine({
+  locales: [composeLocale(english, [measureEn])],
+  kinds: [measure],
+});
 
 const raw = await Bun.file(
   new URL("../../corpus/en-complete.tsv", import.meta.url),

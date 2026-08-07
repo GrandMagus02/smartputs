@@ -4,10 +4,14 @@ import { BUILTIN_KINDS } from "@smartput/kinds";
 import BUILTIN_EN from "@smartput/kinds/locale/en";
 import { english as en } from "@smartput/locale-en";
 import { measure } from "./index";
+import measureEn from "./locale/en";
 
+// `measure` is outside `BUILTIN_KINDS`, so it is outside the built-in barrel
+// too: its words have to be asked for by name, on the same opt-in the kind
+// itself needs.
 const at = (dpi?: number) =>
   createEngine({
-    locales: [composeLocale(en, BUILTIN_EN)],
+    locales: [composeLocale(en, [...BUILTIN_EN, measureEn])],
     kinds: [...BUILTIN_KINDS, measure],
     ...(dpi === undefined ? {} : { kindMeta: { measure: { dpi } } }),
   });

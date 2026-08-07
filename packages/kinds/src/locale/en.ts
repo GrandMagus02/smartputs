@@ -10,6 +10,7 @@ import massEn from "@smartput/mass/locale/en";
 import numberEn from "@smartput/number/locale/en";
 import percentEn from "@smartput/percent/locale/en";
 import powerEn from "@smartput/power/locale/en";
+import speedEn from "@smartput/speed/locale/en";
 
 /**
  * Every built-in `en` vocabulary, as one array — the words half of what
@@ -41,5 +42,6 @@ const BUILTIN_EN: readonly Vocabulary[] = [
   numberEn,
   percentEn,
   powerEn,
+  speedEn,
 ];
 export default BUILTIN_EN;

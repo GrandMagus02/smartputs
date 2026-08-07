@@ -2,6 +2,7 @@ import { expect, test } from "bun:test";
 import { composeLocale, createEngine } from "@smartput/core";
 import { english as en } from "@smartput/locale-en";
 import { measure } from "./index";
+import measureEn from "./locale/en";
 import { DEFAULT_DPI, MEASURE_UNITS, type MeasureUnit } from "./units";
 import {
   addMeasure,
@@ -21,10 +22,11 @@ import {
 const units = Object.keys(MEASURE_UNITS.ratio) as MeasureUnit[];
 
 // `measure` is deliberately outside BUILTIN_KINDS — its mm/cm collide with
-// `length` — so every engine here is built from `measure` alone.
+// `length` — so every engine here is built from `measure` alone, and its words
+// come from the package's own vocabulary rather than from the built-in barrel.
 const engineAt = (dpi?: number) =>
   createEngine({
-    locales: [composeLocale(en)],
+    locales: [composeLocale(en, [measureEn])],
     kinds: [measure],
     ...(dpi === undefined ? {} : { kindMeta: { measure: { dpi } } }),
   });
@@ -187,18 +189,22 @@ test("the emitted pattern agrees with isMeasure", () => {
   }
 });
 
-test("contract: units.ts and the descriptor agree on every key and alias", () => {
+test("contract: the table, the descriptor and the vocabulary agree", () => {
   const declared = Object.keys((measure.value as { units: object }).units).sort();
   expect(declared).toEqual(Object.keys(MEASURE_UNITS.ratio).sort());
   expect((measure.value as { canonical: string }).canonical).toBe(
     MEASURE_UNITS.canonical,
   );
 
-  const lexicon = measure.lexicon ?? {};
+  // The aliases the engine indexes are the aliases the micro path inverts.
+  // They used to be checked against the kind's `lexicon`; that table now lives
+  // in `./locale/en`, and it is the same claim asked of its new home — an
+  // English word only reaches the engine if `MEASURE_UNITS.alias` maps it to
+  // the very unit the vocabulary filed it under, and every word in the table
+  // reaches it at all.
   const seen = new Set<string>();
-  for (const [unit, lexeme] of Object.entries(lexicon)) {
-    const aliases = Array.isArray(lexeme) ? lexeme : lexeme.aliases;
-    for (const a of aliases) {
+  for (const [unit, words] of Object.entries(measureEn.units)) {
+    for (const a of words.aliases) {
       expect(MEASURE_UNITS.alias[a], `${a} must be in units.ts`).toBe(
         unit as MeasureUnit,
       );

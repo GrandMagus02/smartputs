@@ -3,14 +3,19 @@ import { composeLocale, createEngine } from "@smartput/core";
 import { number, percent } from "@smartput/kinds";
 import { english as en } from "@smartput/locale-en";
 import { power } from "./index";
+import powerEn from "./locale/en";
 
 // Registered by name rather than through BUILTIN_KINDS: this package's tests
 // have to be green before the kinds barrel learns `power` exists, and the only
 // other kinds a plain ratio kind reaches for are the two that its generated
 // ops name — `number` for scaling and `percent` for relative adjustment
 // (`core/kind/ratio-ops.ts`).
+//
+// The words come in the same way, one vocabulary at a time: `powerEn` is the
+// only one this file needs, because `number` and `percent` are read here
+// through `1`, `3` and `%`, none of which is a word.
 const engine = createEngine({
-  locales: [composeLocale(en)],
+  locales: [composeLocale(en, [powerEn])],
   kinds: [number, percent, power],
 });
 

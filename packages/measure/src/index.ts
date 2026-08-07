@@ -1,15 +1,8 @@
-import { aliasesFor, Decimal, decimalRatios, defineKind } from "@smartput/core";
-import {
-  DEFAULT_DPI,
-  MEASURE_UNITS,
-  type MeasureUnit,
-  type StaticMeasureUnit,
-} from "./units";
+import { Decimal, decimalRatios, defineKind } from "@smartput/core";
+import { DEFAULT_DPI, MEASURE_UNITS, type StaticMeasureUnit } from "./units";
 
 export type { MeasureUnit, StaticMeasureUnit } from "./units";
 export { DEFAULT_DPI, MEASURE_UNITS } from "./units";
-
-const alias = (unit: MeasureUnit) => aliasesFor(MEASURE_UNITS, unit);
 
 /**
  * `decimalRatios` refuses a dynamic ratio by design rather than coercing a
@@ -54,46 +47,17 @@ export const measure = defineKind({
       },
     },
   },
-  // Aliases are derived, never restated: `units.ts` is the one place a new
-  // alias is added, and it reaches both the engine and the micro path.
-  // `symbol`, `display` and `typical` stay here — the micro path has no use
-  // for any of them and should not carry their bytes.
-  lexicon: {
-    inch: {
-      aliases: alias("inch"),
-      symbol: "inch",
-      display: { one: "inch", other: "inches" },
-      typical: [1, 120],
-    },
-    mm: {
-      aliases: alias("mm"),
-      symbol: "mm",
-      display: { one: "millimetre", other: "millimetres" },
-      typical: [1, 1000],
-    },
-    cm: {
-      aliases: alias("cm"),
-      symbol: "cm",
-      display: { one: "centimetre", other: "centimetres" },
-      typical: [1, 300],
-    },
-    pt: {
-      aliases: alias("pt"),
-      symbol: "pt",
-      display: { one: "point", other: "points" },
-      typical: [1, 1000],
-    },
-    pc: {
-      aliases: alias("pc"),
-      symbol: "pc",
-      display: { one: "pica", other: "picas" },
-      typical: [1, 100],
-    },
-    px: {
-      aliases: alias("px"),
-      symbol: "px",
-      display: { one: "pixel", other: "pixels" },
-      typical: [1, 4000],
-    },
+  // Physics, not language (ruling R3): the magnitude band people actually type
+  // each unit in, inclusive at both ends, read only by completion's `scaleFit`.
+  // It stayed on the kind when the words left for `./locale/en` because a
+  // pixel spans the same range of counts in every language, and a unit with no
+  // entry simply scores 0.
+  typical: {
+    inch: [1, 120],
+    mm: [1, 1000],
+    cm: [1, 300],
+    pt: [1, 1000],
+    pc: [1, 100],
+    px: [1, 4000],
   },
 });
