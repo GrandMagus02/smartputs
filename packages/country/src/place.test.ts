@@ -12,6 +12,7 @@ import {
   wordsFor,
 } from "@smartput/core";
 import { length } from "@smartput/length";
+import lengthEn from "@smartput/length/locale/en";
 import { english as en } from "@smartput/locale-en";
 import { number } from "@smartput/number";
 import { COUNTRIES } from "./data/countries";
@@ -19,7 +20,9 @@ import { MIN_NAME_LENGTH } from "./matcher";
 import { definePlace, place } from "./place";
 
 const engine = createEngine({
-  locales: [composeLocale(en)],
+  // `lengthEn` because a distance is formatted as a length, and length's words
+  // are a vocabulary now rather than a field on the kind.
+  locales: [composeLocale(en, [lengthEn])],
   kinds: [number, length, place],
 });
 const registry = buildRegistry([number, length, place]);
@@ -34,7 +37,7 @@ const units = registry.kinds.get("place")?.units;
  */
 const cityPlace = definePlace({ cities: CITIES, admin1: ADMIN1 });
 const cityEngine = createEngine({
-  locales: [composeLocale(en)],
+  locales: [composeLocale(en, [lengthEn])],
   kinds: [number, length, cityPlace],
 });
 const cityRegistry = buildRegistry([number, length, cityPlace]);

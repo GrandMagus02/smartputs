@@ -1,5 +1,6 @@
 import { expect, test } from "bun:test";
 import { BUILTIN_KINDS } from "../../packages/kinds/src/index";
+import BUILTIN_EN from "../../packages/kinds/src/locale/en";
 import { english as en } from "../../packages/locale-en/src/english";
 import { NUMBER_WORDS } from "../../packages/number/src/words";
 import {
@@ -353,7 +354,11 @@ test("each reserved source produces the words it is the authority for", () => {
   expect(chronoWords()).toEqual(
     expect.arrayContaining(["today", "tomorrow", "yesterday", "ago", "next", "last"]),
   );
-  expect(unitWords(BUILTIN_KINDS)).toEqual(expect.arrayContaining(["km", "mile", "kg"]));
+  // The words half arrives as vocabularies now, not off the kind: "km" is a
+  // unit id either way, but "mile" only exists in `@smartput/length/locale/en`.
+  expect(unitWords(BUILTIN_KINDS, BUILTIN_EN)).toEqual(
+    expect.arrayContaining(["km", "mile", "kg", "kilometres"]),
+  );
   expect(shortPlaceCodes([{ aliases: ["no", "nor", "norway"] }])).toEqual(["no", "nor"]);
 });
 

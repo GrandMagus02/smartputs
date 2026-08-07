@@ -21,6 +21,7 @@ import { datetimeRange } from "@smartput/datetime-range";
 import { BUILTIN_KINDS } from "@smartput/kinds";
 import BUILTIN_EN from "@smartput/kinds/locale/en";
 import { length } from "@smartput/length";
+import lengthEn from "@smartput/length/locale/en";
 import { english as coreEn } from "@smartput/locale-en";
 import { number } from "@smartput/number";
 import { RANGE_KINDS } from "@smartput/range";
@@ -56,7 +57,10 @@ const geo = definePlace({ cities: CITIES, admin1: ADMIN1 });
  * entirely on what else is loaded — see "tokyo" below.
  */
 const places = createEngine({
-  locales: [composeLocale(coreEn)],
+  // `lengthEn` because this engine replays `packages/country/corpus/en.tsv`,
+  // whose distance rows record spelled answers ("878.399 kilometres"), and
+  // length's words are a vocabulary now rather than a field on the kind.
+  locales: [composeLocale(coreEn, [lengthEn])],
   kinds: [number, length, geo],
 });
 

@@ -8,10 +8,11 @@ import { join } from "node:path";
 // reaches the published packages, which still ship the two dependencies spec
 // §11 allows them. `chrono-node` has to be reached through the one package that
 // does declare it, which is why that path goes through datetime's node_modules.
-import type { Kind, Language, Lexicon } from "../../packages/core/src/types";
+import type { Kind, Language, Lexicon, Vocabulary } from "../../packages/core/src/types";
 import { MIN_NAME_LENGTH } from "../../packages/country/src/matcher";
 import * as chrono from "../../packages/datetime/node_modules/chrono-node";
 import { BUILTIN_KINDS } from "../../packages/kinds/src/index";
+import BUILTIN_EN from "../../packages/kinds/src/locale/en";
 import { english as en } from "../../packages/locale-en/src/english";
 import { NUMBER_WORDS } from "../../packages/number/src/words";
 
@@ -412,8 +413,17 @@ export function chronoWords(): string[] {
  * without building an engine, and the table has to be right before any engine
  * exists to ask. Display forms are included because they are what a formatter
  * prints — "kilometres" comes back as input often enough to matter.
+ *
+ * Words come from two places for the length of the i18n migration. A kind that
+ * has moved its English into `src/locale/en.ts` contributes through
+ * `vocabularies` — the ids stay on the descriptor, the words do not — and one
+ * that still declares `lexicon` contributes through it. Pass both; when the
+ * last `lexicon` is gone the second half of this function goes with it.
  */
-export function unitWords(kinds: readonly Kind[]): string[] {
+export function unitWords(
+  kinds: readonly Kind[],
+  vocabularies: readonly Vocabulary[] = [],
+): string[] {
   const out: string[] = [];
   const take = (lexicon: Lexicon | undefined) => {
     for (const [unit, entry] of Object.entries(lexicon ?? {})) {
@@ -430,6 +440,13 @@ export function unitWords(kinds: readonly Kind[]): string[] {
   for (const kind of kinds) {
     take(kind.lexicon);
     if (kind.value.mode === "ratio") out.push(...Object.keys(kind.value.units));
+  }
+  for (const vocabulary of vocabularies) {
+    for (const [unit, words] of Object.entries(vocabulary.units)) {
+      out.push(unit, ...words.aliases);
+      if (words.symbol !== undefined) out.push(words.symbol);
+      out.push(...Object.values(words.forms ?? {}));
+    }
   }
   return out;
 }
@@ -1314,7 +1331,7 @@ async function main(): Promise<void> {
     { id: "number NUMBER_WORDS", words: NUMBER_WORDS },
     { id: "Intl months and weekdays", words: calendarWords() },
     { id: "chrono en.casual patterns", words: chronoWords() },
-    { id: "kinds BUILTIN_KINDS aliases", words: unitWords(BUILTIN_KINDS) },
+    { id: "kinds BUILTIN_KINDS aliases", words: unitWords(BUILTIN_KINDS, BUILTIN_EN) },
     { id: "geo COUNTRIES short codes", words: shortPlaceCodes(rows) },
   ]);
   for (const word of reserved.redundant) {

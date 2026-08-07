@@ -2,6 +2,7 @@ import { expect, test } from "bun:test";
 import { ADMIN1, CITIES } from "@smartput/city";
 import { composeLocale, createEngine } from "@smartput/core";
 import { length } from "@smartput/length";
+import lengthEn from "@smartput/length/locale/en";
 import { english as en } from "@smartput/locale-en";
 import { number } from "@smartput/number";
 import { definePlace } from "./place";
@@ -16,7 +17,10 @@ import { definePlace } from "./place";
 // against both builds side by side rather than implied by which import this
 // file happens to use.
 const engine = createEngine({
-  locales: [composeLocale(en)],
+  // `lengthEn` because a distance's answer is spelled: the corpus records
+  // "878.399 kilometres", and words now arrive as a vocabulary rather than off
+  // the kind.
+  locales: [composeLocale(en, [lengthEn])],
   kinds: [number, length, definePlace({ cities: CITIES, admin1: ADMIN1 })],
 });
 const raw = await Bun.file(new URL("../corpus/en.tsv", import.meta.url)).text();
