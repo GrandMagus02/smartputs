@@ -1,4 +1,8 @@
+import angleEn from "@smartput/angle/locale/en";
+import areaEn from "@smartput/area/locale/en";
 import type { Vocabulary } from "@smartput/core";
+import datarateEn from "@smartput/datarate/locale/en";
+import datasizeEn from "@smartput/datasize/locale/en";
 import durationEn from "@smartput/duration/locale/en";
 import massEn from "@smartput/mass/locale/en";
 
@@ -20,5 +24,12 @@ import massEn from "@smartput/mass/locale/en";
  * `composeLocale` refuses two vocabularies for one kind outright, so there is
  * no last-one-wins for the ordering to decide.
  */
-const BUILTIN_EN: readonly Vocabulary[] = [durationEn, massEn];
+const BUILTIN_EN: readonly Vocabulary[] = [
+  angleEn,
+  areaEn,
+  datarateEn,
+  datasizeEn,
+  durationEn,
+  massEn,
+];
 export default BUILTIN_EN;
