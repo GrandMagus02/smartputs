@@ -1,17 +1,14 @@
 import {
-  aliasesFor,
   Decimal,
   decimalRatios,
   defineKind,
   deriveValue,
   NUMBER_KIND,
 } from "@smartput/core";
-import { PERCENT_UNITS, type PercentUnit } from "./units";
+import { PERCENT_UNITS } from "./units";
 
 export type { PercentUnit } from "./units";
 export { PERCENT_UNITS } from "./units";
-
-const alias = (unit: PercentUnit) => aliasesFor(PERCENT_UNITS, unit);
 
 /**
  * Canonical is the plain ratio, so "20%" is 0.2 and needs no special case to
@@ -45,17 +42,10 @@ export const percent = defineKind({
     canonical: PERCENT_UNITS.canonical,
     units: decimalRatios(PERCENT_UNITS),
   },
-  // No `display`: the written form of this unit is the symbol. "20 percent"
-  // does parse, but rendering it that way would make every percentage in every
-  // result read as a word, and completion falling back to the bare alias "%"
-  // is already the form a user wants to type.
-  lexicon: {
-    "%": {
-      aliases: alias("%"),
-      symbol: "%",
-      typical: [1, 100],
-    },
-  },
+  // Magnitude band, not language (spec §4): the range people type a percentage
+  // in, read only by completion's `scaleFit`. The words that used to sit beside
+  // it live in `./locale/en`.
+  typical: { "%": [1, 100] },
   ops: [
     {
       op: "of",
