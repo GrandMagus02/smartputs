@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test";
 import { composeLocale, createEngine } from "@smartput/core";
-import en from "@smartput/core/locale/en";
 import { BUILTIN_KINDS } from "@smartput/kinds";
+import { english as en } from "@smartput/locale-en";
 import { createDatetime, datetime } from "./datetime";
 import { createHolidayLiteral, datetimeWithHolidays } from "./holiday";
 import { TEST_NOW, TEST_ZONE } from "./temporal";

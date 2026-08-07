@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
 import { composeLocale, createEngine } from "@smartput/core";
-import en from "@smartput/core/locale/en";
+import { english as en } from "@smartput/locale-en";
 import { speed } from "./index";
 import { SPEED_UNITS, type SpeedUnit } from "./units";
 import { addSpeed, formatSpeed, parseSpeed, toSpeed } from "./validate";

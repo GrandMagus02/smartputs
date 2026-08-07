@@ -8,11 +8,11 @@ import { join } from "node:path";
 // reaches the published packages, which still ship the two dependencies spec
 // §11 allows them. `chrono-node` has to be reached through the one package that
 // does declare it, which is why that path goes through datetime's node_modules.
-import en from "../../packages/core/src/locale/en";
-import type { Kind, Lexicon, Locale } from "../../packages/core/src/types";
+import type { Kind, Language, Lexicon } from "../../packages/core/src/types";
 import { MIN_NAME_LENGTH } from "../../packages/country/src/matcher";
 import * as chrono from "../../packages/datetime/node_modules/chrono-node";
 import { BUILTIN_KINDS } from "../../packages/kinds/src/index";
+import { english as en } from "../../packages/locale-en/src/english";
 import { NUMBER_WORDS } from "../../packages/number/src/words";
 
 /**
@@ -352,9 +352,9 @@ export interface ReservedSource {
 /** Only whole lowercase words. A symbol like "°C" is not a word a city can be. */
 const RESERVABLE = /^[a-z][a-z']*$/;
 
-/** The locale's keyword surface forms: in, to, as, of, plus, minus, times, by. */
-export function keywordWords(locale: Locale): string[] {
-  return Object.values(locale.keywords).flatMap((forms) => forms ?? []);
+/** The language's keyword surface forms: in, to, as, of, plus, minus, times, by. */
+export function keywordWords(language: Language): string[] {
+  return Object.values(language.keywords).flatMap((forms) => forms ?? []);
 }
 
 /**

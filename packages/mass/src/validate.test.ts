@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
 import { composeLocale, createEngine } from "@smartput/core";
-import en from "@smartput/core/locale/en";
+import { english as en } from "@smartput/locale-en";
 import { mass } from "./index";
 import { MASS_UNITS, type MassUnit } from "./units";
 import { addMass, formatMass, parseMass, toMass } from "./validate";

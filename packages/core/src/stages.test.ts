@@ -1,12 +1,12 @@
 import { expect, test } from "bun:test";
 import { Evaluator } from "@smartput/core/eval";
-import english from "@smartput/core/locale/en";
 import { Normalizer } from "@smartput/core/normalize";
 import { Parser } from "@smartput/core/parse";
 import { buildRegistry, createResolver } from "@smartput/core/registry";
 import { Solver } from "@smartput/core/solve";
 import { Tokenizer } from "@smartput/core/tokenize";
 import { BUILTIN_KINDS } from "@smartput/kinds";
+import { english } from "@smartput/locale-en";
 import { createEngine } from "./engine";
 import { composeLocale } from "./locale/compose";
 import type { Value } from "./types";
@@ -22,8 +22,8 @@ const en = composeLocale(english);
  * `Normalizer`, `Tokenizer`, `Parser`, `Solver` and `Evaluator` are each
  * their own subpath (spec §6), `Parser`'s one required config field — a
  * `Resolver`, which nothing but `createResolver` constructs — comes from
- * `@smartput/core/registry`, and the locale it all runs against comes from
- * `@smartput/core/locale/en` rather than a relative import. That registry
+ * `@smartput/core/registry`, and the language it all runs against comes from
+ * `@smartput/locale-en` rather than a relative import. That registry
  * subpath is what closes the gap this test used to record: before Task 12,
  * `createResolver` and the `Resolver` type were exported from neither
  * `index.ts` nor any subpath, and this file reached into `./parse/candidates`

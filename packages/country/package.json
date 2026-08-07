@@ -29,6 +29,7 @@
     "@smartput/datetime-range": "workspace:*",
     "@smartput/kinds": "workspace:*",
     "@smartput/length": "workspace:*",
+    "@smartput/locale-en": "workspace:*",
     "@smartput/number": "workspace:*",
     "@smartput/rate": "workspace:*",
     "@smartput/time": "workspace:*",

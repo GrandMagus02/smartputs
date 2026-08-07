@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
 import { composeLocale, createEngine } from "@smartput/core";
-import en from "@smartput/core/locale/en";
+import { english as en } from "@smartput/locale-en";
 import { datarate } from "./index";
 import { DATARATE_UNITS, type DatarateUnit } from "./units";
 import { addDatarate, formatDatarate, parseDatarate, toDatarate } from "./validate";

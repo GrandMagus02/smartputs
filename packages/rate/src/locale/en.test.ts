@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
 import { composeLocale, createEngine } from "@smartput/core";
-import en from "@smartput/core/locale/en";
+import { english as en } from "@smartput/locale-en";
 import { number } from "@smartput/number";
 // Through the package path, not "./en": the exports map is the only route a
 // consumer has, and importing by relative path is exactly what hid the fact

@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test";
+import { english } from "@smartput/locale-en";
 import { composeLocale } from "../locale/compose";
 import { defineLanguage } from "../locale/define";
-import english from "../locale/en";
 import { leadingCount, trailingFragment } from "./fragment";
 
 const enLocale = composeLocale(english);

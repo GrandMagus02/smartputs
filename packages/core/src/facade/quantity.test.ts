@@ -1,9 +1,9 @@
 import { expect, test } from "bun:test";
 import { BUILTIN_KINDS, measure } from "@smartput/kinds";
+import { english } from "@smartput/locale-en";
 import { UnitParseError } from "../errors";
 import { buildRegistry } from "../kind/registry";
 import { composeLocale } from "../locale/compose";
-import english from "../locale/en";
 import { createFacade, type Quantity, type QuantityClass } from "./quantity";
 
 const en = composeLocale(english);

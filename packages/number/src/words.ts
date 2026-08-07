@@ -1,5 +1,5 @@
 import { Decimal } from "@smartput/core";
-import en from "@smartput/core/locale/en";
+import { english as en } from "@smartput/locale-en";
 
 /**
  * Numbers as they are said: "one hundred and five" read into 105, and 105

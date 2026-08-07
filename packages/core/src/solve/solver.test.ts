@@ -1,5 +1,6 @@
 import { expect, test } from "bun:test";
 import { duration as durationKind, number as numberKind } from "@smartput/kinds";
+import { english as enLocale } from "@smartput/locale-en";
 import { Decimal } from "../decimal";
 import { createEngine } from "../engine";
 import { DimensionMismatchError, TooAmbiguousError } from "../errors";
@@ -7,7 +8,6 @@ import { defineKind } from "../kind/define";
 import { buildRegistry } from "../kind/registry";
 import { composeLocale } from "../locale/compose";
 import { defineLanguage } from "../locale/define";
-import enLocale from "../locale/en";
 import { createResolver } from "../parse/candidates";
 import { lex } from "../parse/lex";
 import { normalize } from "../parse/normalize";

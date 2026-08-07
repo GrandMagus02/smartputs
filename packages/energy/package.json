@@ -31,6 +31,7 @@
   },
   "devDependencies": {
     "@smartput/kinds": "workspace:*",
+    "@smartput/locale-en": "workspace:*",
     "@smartput/power": "workspace:*"
   }
 }

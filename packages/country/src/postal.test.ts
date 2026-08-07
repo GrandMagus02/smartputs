@@ -12,11 +12,11 @@ import {
   type PlaceMeta,
   type UnitLexeme,
 } from "@smartput/core";
-import coreEn from "@smartput/core/locale/en";
 import { datetime } from "@smartput/datetime";
 import datetimeEn from "@smartput/datetime/locale/en";
 import { PlaceDistance, UnpositionedPlaceError } from "@smartput/distance";
 import { BUILTIN_KINDS } from "@smartput/kinds";
+import { english as coreEn } from "@smartput/locale-en";
 import { createPostalLiteral } from "@smartput/zip";
 import { Glob } from "bun";
 import { COUNTRIES } from "./data/countries";

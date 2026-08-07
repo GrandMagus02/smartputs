@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
 import { composeLocale, createEngine } from "@smartput/core";
-import en from "@smartput/core/locale/en";
+import { english as en } from "@smartput/locale-en";
 import { measure } from "./index";
 import { DEFAULT_DPI, MEASURE_UNITS, type MeasureUnit } from "./units";
 import {

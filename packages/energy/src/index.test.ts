@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test";
 import { composeLocale, createEngine } from "@smartput/core";
-import en from "@smartput/core/locale/en";
 import { BUILTIN_KINDS } from "@smartput/kinds";
+import { english as en } from "@smartput/locale-en";
 import { power } from "@smartput/power";
 import { energy } from "./index";
 

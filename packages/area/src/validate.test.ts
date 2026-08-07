@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
 import { composeLocale, createEngine } from "@smartput/core";
-import en from "@smartput/core/locale/en";
+import { english as en } from "@smartput/locale-en";
 import { area } from "./index";
 import { AREA_UNITS, type AreaUnit } from "./units";
 import { addArea, formatArea, parseArea, toArea } from "./validate";

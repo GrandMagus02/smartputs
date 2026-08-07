@@ -15,6 +15,7 @@
     "@smartput/datetime": "workspace:*"
   },
   "devDependencies": {
-    "@smartput/kinds": "workspace:*"
+    "@smartput/kinds": "workspace:*",
+    "@smartput/locale-en": "workspace:*"
   }
 }

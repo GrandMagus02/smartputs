@@ -27,6 +27,7 @@
   },
   "dependencies": {
     "@smartput/core": "workspace:*",
+    "@smartput/locale-en": "workspace:*",
     "@smartput/shared": "workspace:*"
   }
 }

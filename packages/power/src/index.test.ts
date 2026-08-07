@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test";
 import { composeLocale, createEngine } from "@smartput/core";
-import en from "@smartput/core/locale/en";
 import { number, percent } from "@smartput/kinds";
+import { english as en } from "@smartput/locale-en";
 import { power } from "./index";
 
 // Registered by name rather than through BUILTIN_KINDS: this package's tests

@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
+import { english as en } from "@smartput/locale-en";
 import { Decimal } from "../decimal";
-import en from "./en";
 import {
   cardinalNumerals,
   cardinalSpeller,

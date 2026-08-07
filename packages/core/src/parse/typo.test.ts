@@ -1,12 +1,12 @@
 import { expect, test } from "bun:test";
 import { BUILTIN_KINDS } from "@smartput/kinds";
+import { english as en } from "@smartput/locale-en";
 import { createEngine } from "../engine";
 import { NoCandidateError } from "../errors";
 import { defineKind } from "../kind/define";
 import { buildRegistry } from "../kind/registry";
 import { composeLocale } from "../locale/compose";
 import { defineLanguage } from "../locale/define";
-import en from "../locale/en";
 import { TYPO_PENALTY } from "../solve/weights";
 import { createResolver } from "./candidates";
 

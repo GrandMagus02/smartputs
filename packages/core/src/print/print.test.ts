@@ -1,10 +1,10 @@
 import { expect, test } from "bun:test";
 import { BUILTIN_KINDS } from "@smartput/kinds";
+import { english } from "@smartput/locale-en";
 import { Decimal } from "../decimal";
 import { defineKind } from "../kind/define";
 import { buildRegistry, NUMBER_KIND, wordsFor } from "../kind/registry";
 import { composeLocale } from "../locale/compose";
-import english from "../locale/en";
 import type { Node } from "../parse/ast";
 import { createResolver } from "../parse/candidates";
 import { Normalizer } from "../parse/normalize";

@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
+import { english } from "@smartput/locale-en";
 import { composeLocale } from "../locale/compose";
-import english from "../locale/en";
 import { lex } from "./lex";
 import { normalize } from "./normalize";
 import { foldWordOps } from "./wordops";

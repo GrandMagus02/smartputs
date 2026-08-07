@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
 import { composeLocale, createEngine } from "@smartput/core";
-import en from "@smartput/core/locale/en";
+import { english as en } from "@smartput/locale-en";
 import { toCanonical } from "@smartput/shared";
 import { number } from "./index";
 import { NUMBER_UNITS, type NumberUnit } from "./units";

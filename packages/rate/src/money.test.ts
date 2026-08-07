@@ -6,7 +6,7 @@ import {
   Decimal,
   MissingRateError,
 } from "@smartput/core";
-import english from "@smartput/core/locale/en";
+import { english } from "@smartput/locale-en";
 import { number } from "@smartput/number";
 import { money } from "./money";
 import { snapshot } from "./snapshot";

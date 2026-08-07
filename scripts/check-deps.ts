@@ -121,6 +121,21 @@ const ALLOWED: Record<string, string[]> = {
   // first one would mean decimal.js or core leaked into a 600-byte budget.
   "packages/shared/package.json": [],
 
+  // One package per language (spec §10). It is the words-free half — analyzers,
+  // cardinals, keywords, plural selection, render defaults — so it names no kind
+  // package at all: a vocabulary reaches its language through `composeLocale`,
+  // at the integrator's own wiring, never through an import here. That is what
+  // lets a Ukrainian package ship without the ratio tables, and it is why this
+  // list is core and decimal.js and will stay that length for every language
+  // after it.
+  //
+  // The edge runs the other way exactly once, and it is declared rather than
+  // hidden: `@smartput/number`'s `words.ts` reads this package's cardinal table
+  // so that "one hundred and five" is the same number in a spelled count as it
+  // is in a spelled quantity. It is the same import that file already had when
+  // the table lived in core, moved rather than added.
+  "packages/locale-en/package.json": ["@smartput/core", "decimal.js"],
+
   // Extracted built-in kinds. Each is a leaf: it defines one kind against the
   // machinery in core and depends on nothing else, which is what keeps the
   // aggregator below the only package that has to know the full set.
@@ -131,7 +146,16 @@ const ALLOWED: Record<string, string[]> = {
   "packages/length/package.json": ["@smartput/core", "@smartput/shared"],
   "packages/mass/package.json": ["@smartput/core", "@smartput/shared"],
   "packages/measure/package.json": ["@smartput/core", "@smartput/shared"],
-  "packages/number/package.json": ["@smartput/core", "@smartput/shared"],
+  // The one leaf kind with a third edge, and it is a *language* edge rather than
+  // a kind one: `words.ts` reads English cardinals to turn "one hundred and
+  // five" into 105 and back. It named the same table through
+  // `@smartput/core/locale/en` until that module moved into its own package, so
+  // this line records a move, not a new dependency.
+  "packages/number/package.json": [
+    "@smartput/core",
+    "@smartput/locale-en",
+    "@smartput/shared",
+  ],
   "packages/percent/package.json": ["@smartput/core", "@smartput/shared"],
   "packages/speed/package.json": ["@smartput/core", "@smartput/shared"],
   "packages/temperature/package.json": ["@smartput/core", "@smartput/shared"],

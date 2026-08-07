@@ -28,5 +28,8 @@
   "dependencies": {
     "@smartput/core": "workspace:*",
     "@smartput/shared": "workspace:*"
+  },
+  "devDependencies": {
+    "@smartput/locale-en": "workspace:*"
   }
 }

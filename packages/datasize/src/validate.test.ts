@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
 import { composeLocale, createEngine } from "@smartput/core";
-import en from "@smartput/core/locale/en";
+import { english as en } from "@smartput/locale-en";
 import { datasize } from "./index";
 import { DATASIZE_UNITS, type DatasizeUnit } from "./units";
 import { addDatasize, formatDatasize, parseDatasize, toDatasize } from "./validate";

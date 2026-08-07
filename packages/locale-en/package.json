@@ -1,5 +1,5 @@
 {
-  "name": "@smartput/date-range",
+  "name": "@smartput/locale-en",
   "version": "0.0.0",
   "type": "module",
   "sideEffects": false,
@@ -12,12 +12,6 @@
   },
   "dependencies": {
     "@smartput/core": "workspace:*",
-    "@smartput/date": "workspace:*",
-    "@smartput/datetime": "workspace:*",
-    "@smartput/range-core": "workspace:*"
-  },
-  "devDependencies": {
-    "@smartput/kinds": "workspace:*",
-    "@smartput/locale-en": "workspace:*"
+    "decimal.js": "^10.6.0"
   }
 }

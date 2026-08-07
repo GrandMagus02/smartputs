@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test";
 import { AmbiguityError, composeLocale, createEngine } from "@smartput/core";
-import coreEn from "@smartput/core/locale/en";
 import { BUILTIN_KINDS } from "@smartput/kinds";
+import { english as coreEn } from "@smartput/locale-en";
 import { datetime } from "./datetime";
 import { TEST_NOW, TEST_ZONE } from "./temporal";
 

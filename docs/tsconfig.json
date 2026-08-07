@@ -12,7 +12,7 @@
     "types": ["vite/client"],
     "paths": {
       "@smartput/core": ["../packages/core/src/index.ts"],
-      "@smartput/core/locale/en": ["../packages/core/src/locale/en.ts"]
+      "@smartput/locale-en": ["../packages/locale-en/src/index.ts"]
     }
   },
   "include": [".vitepress/**/*.ts", ".vitepress/**/*.vue", "unocss.config.ts"]

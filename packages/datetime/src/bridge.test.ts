@@ -7,9 +7,9 @@ import {
   type Kind,
   NoCandidateError,
 } from "@smartput/core";
-import coreEn from "@smartput/core/locale/en";
 import { place } from "@smartput/country";
 import { BUILTIN_KINDS } from "@smartput/kinds";
+import { english as coreEn } from "@smartput/locale-en";
 import { datetime } from "./datetime";
 import en from "./locale/en";
 import { TEST_NOW, TEST_ZONE } from "./temporal";

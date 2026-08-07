@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test";
 import { composeLocale, createEngine, KindConflictError } from "@smartput/core";
-import en from "@smartput/core/locale/en";
 import { BUILTIN_KINDS } from "@smartput/kinds";
+import { english as en } from "@smartput/locale-en";
 import { area } from "./index";
 
 const engine = createEngine({

@@ -1,9 +1,9 @@
 import { expect, test } from "bun:test";
 import { number } from "@smartput/kinds";
+import { english as en } from "@smartput/locale-en";
 import { createEngine } from "./engine";
 import { createCachedEngine, createSnapshotCache } from "./live";
 import { composeLocale } from "./locale/compose";
-import en from "./locale/en";
 
 /** A loader that stamps each snapshot with its call number, so a stale read shows. */
 function counting(): { load: () => Promise<{ n: number }>; calls: number } {

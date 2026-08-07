@@ -1,5 +1,6 @@
 import { expect, test } from "bun:test";
 import { BUILTIN_KINDS, length, number } from "@smartput/kinds";
+import { english as en } from "@smartput/locale-en";
 import { Decimal } from "./decimal";
 import { createEngine, type EngineOptions } from "./engine";
 import {
@@ -13,7 +14,6 @@ import { createFacades } from "./facade/index";
 import { defineKind } from "./kind/define";
 import { composeLocale } from "./locale/compose";
 import { defineLanguage } from "./locale/define";
-import en from "./locale/en";
 import type { LiteralMatcher, Value } from "./types";
 
 const engine = createEngine({ locales: [composeLocale(en)], kinds: BUILTIN_KINDS });

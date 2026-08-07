@@ -1,9 +1,9 @@
 import { expect, test } from "bun:test";
 import { BUILTIN_KINDS } from "@smartput/kinds";
+import { english } from "@smartput/locale-en";
 import { defineKind } from "../kind/define";
 import { buildRegistry } from "../kind/registry";
 import { composeLocale } from "../locale/compose";
-import english from "../locale/en";
 import type { CompleteCtx, Completer, Kind, KindCompletion, Weights } from "../types";
 import { complete } from "./complete";
 import { EXACT_BONUS, LENGTH_PENALTY, SCALE_BONUS, TYPO_PENALTY } from "./score";

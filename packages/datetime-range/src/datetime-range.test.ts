@@ -5,10 +5,10 @@ import {
   createEngine,
   UnitParseError,
 } from "@smartput/core";
-import coreEn from "@smartput/core/locale/en";
 import { date } from "@smartput/date";
 import { datetime, TEST_NOW, TEST_ZONE } from "@smartput/datetime";
 import { BUILTIN_KINDS } from "@smartput/kinds";
+import { english as coreEn } from "@smartput/locale-en";
 import { InvertedRangeError } from "@smartput/range-core";
 import { time } from "@smartput/time";
 import { createDatetimeRange, datetimeRange } from "./datetime-range";

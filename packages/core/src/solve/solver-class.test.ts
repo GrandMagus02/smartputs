@@ -1,9 +1,9 @@
 import { expect, test } from "bun:test";
 import { BUILTIN_KINDS } from "@smartput/kinds";
+import { english } from "@smartput/locale-en";
 import { AmbiguityError, TooAmbiguousError } from "../errors";
 import { buildRegistry } from "../kind/registry";
 import { composeLocale } from "../locale/compose";
-import english from "../locale/en";
 import { createResolver } from "../parse/candidates";
 import { lex } from "../parse/lex";
 import { normalize } from "../parse/normalize";

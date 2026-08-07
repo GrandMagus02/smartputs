@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test";
 import type { Kind } from "@smartput/core";
 import { composeLocale, createEngine } from "@smartput/core";
-import en from "@smartput/core/locale/en";
+import { english as en } from "@smartput/locale-en";
 // The package root is the only surface a consumer of @smartput/kinds has, and
 // these named imports are the assertion: until they existed, the aggregator
 // re-exported four of the twelve kinds and `measure` was reachable by no route

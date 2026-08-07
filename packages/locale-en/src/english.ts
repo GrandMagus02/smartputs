@@ -1,11 +1,12 @@
-import { defineLanguage } from "./define";
 import {
   type CardinalTables,
   cardinalNumerals,
   cardinalSpeller,
+  defineLanguage,
   identity,
+  type Language,
   suffixStripper,
-} from "./helpers";
+} from "@smartput/core";
 
 // One table, two directions: `cardinalNumerals` reads it to parse "thirty"
 // back to `30`, `cardinalSpeller` reads it to spell `30` as "thirty". Hoisted
@@ -58,7 +59,18 @@ const CARDINALS: CardinalTables = {
 
 const plural = new Intl.PluralRules("en");
 
-export default defineLanguage({
+/**
+ * The English language: how English is read and written, with no word for any
+ * unit in it.
+ *
+ * It lives in its own package rather than inside core (spec §10) because a
+ * language is a shippable artifact like a kind is — someone who wants Ukrainian
+ * should not link English to get it, and core should not be the place every
+ * new language has to be merged into. Words for units are not here at all: they
+ * are `Vocabulary` tables beside the kinds that declare the units, and they
+ * reach this object through `composeLocale`.
+ */
+export const english: Language = defineLanguage({
   id: "en",
   numberFormat: "intl",
   analyze: [
@@ -88,3 +100,5 @@ export default defineLanguage({
   selectForm: ({ count }) =>
     count === undefined ? "other" : plural.select(count.toNumber()),
 });
+
+export default english;

@@ -1,11 +1,11 @@
 import { expect, test } from "bun:test";
 import { BUILTIN_KINDS } from "@smartput/kinds";
+import { english } from "@smartput/locale-en";
 import { Decimal } from "./decimal";
 import { fromCanonical, toCanonical } from "./eval/convert";
 import { formatValue } from "./format/format";
 import { buildRegistry, NUMBER_KIND } from "./kind/registry";
 import { composeLocale } from "./locale/compose";
-import english from "./locale/en";
 import { parseNumber } from "./locale/number";
 
 const en = composeLocale(english);

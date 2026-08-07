@@ -1,10 +1,10 @@
 import { expect, test } from "bun:test";
 import { BUILTIN_KINDS } from "@smartput/kinds";
+import { english } from "@smartput/locale-en";
 import { Decimal } from "../decimal";
 import { NoCandidateError } from "../errors";
 import { buildRegistry } from "../kind/registry";
 import { composeLocale } from "../locale/compose";
-import english from "../locale/en";
 import type { BinaryNode, NumberNode } from "./ast";
 import { walk } from "./ast";
 import { createResolver } from "./candidates";

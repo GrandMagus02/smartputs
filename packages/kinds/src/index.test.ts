@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
 import { buildRegistry, Decimal } from "@smartput/core";
-import en from "@smartput/core/locale/en";
+import { english as en } from "@smartput/locale-en";
 import { BUILTIN_KINDS } from "./index";
 
 const registry = buildRegistry(BUILTIN_KINDS);

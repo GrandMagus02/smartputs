@@ -1,10 +1,10 @@
 import { expect, test } from "bun:test";
 import { BUILTIN_KINDS } from "@smartput/kinds";
+import { english } from "@smartput/locale-en";
 import { Decimal } from "../decimal";
 import { Evaluator } from "../eval/evaluator";
 import { buildRegistry } from "../kind/registry";
 import { composeLocale } from "../locale/compose";
-import english from "../locale/en";
 import { createResolver } from "../parse/candidates";
 import { Normalizer } from "../parse/normalize";
 import { Parser, type Program } from "../parse/program";

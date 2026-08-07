@@ -22,6 +22,7 @@
   },
   "devDependencies": {
     "@smartput/country": "workspace:*",
+    "@smartput/locale-en": "workspace:*",
     "@smartput/number": "workspace:*"
   }
 }

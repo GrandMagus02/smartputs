@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
-import en from "../../packages/core/src/locale/en";
 import { BUILTIN_KINDS } from "../../packages/kinds/src/index";
+import { english as en } from "../../packages/locale-en/src/english";
 import { NUMBER_WORDS } from "../../packages/number/src/words";
 import {
   buildAdmin1Aliases,

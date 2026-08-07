@@ -1,10 +1,10 @@
 import { expect, test } from "bun:test";
 import { length } from "@smartput/kinds";
+import { english } from "@smartput/locale-en";
 import { Decimal } from "../decimal";
 import { defineKind } from "../kind/define";
 import { buildRegistry } from "../kind/registry";
 import { composeLocale } from "../locale/compose";
-import english from "../locale/en";
 import type { LiteralMatcher, MatchCtx } from "../types";
 import { lex, type Token } from "./lex";
 import { foldLiterals } from "./literals";

@@ -1,8 +1,8 @@
 import { expect, test } from "bun:test";
 import { BUILTIN_KINDS, measure } from "@smartput/kinds";
+import { english } from "@smartput/locale-en";
 import { createEngine } from "../engine";
 import { composeLocale } from "../locale/compose";
-import english from "../locale/en";
 import { lex } from "../parse/lex";
 import { normalize } from "../parse/normalize";
 

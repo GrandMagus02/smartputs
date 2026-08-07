@@ -1,9 +1,9 @@
 import { expect, test } from "bun:test";
+import { english } from "@smartput/locale-en";
 import { Decimal } from "../decimal";
 import { defineKind } from "../kind/define";
 import { buildRegistry } from "../kind/registry";
 import { composeLocale } from "../locale/compose";
-import english from "../locale/en";
 import type { LiteralMatcher } from "../types";
 import { normalize } from "./normalize";
 import { Tokenizer } from "./tokenizer";

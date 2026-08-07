@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
 import { buildRegistry, composeLocale, createEngine, Decimal } from "@smartput/core";
-import en from "@smartput/core/locale/en";
+import { english as en } from "@smartput/locale-en";
 import { tempdelta, temperature } from "./index";
 import { TEMPDELTA_UNITS, TEMPERATURE_UNITS, type TemperatureUnit } from "./units";
 import {

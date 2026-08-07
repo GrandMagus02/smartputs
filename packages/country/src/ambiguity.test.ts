@@ -13,7 +13,6 @@ import {
   NoCandidateError,
   UnitParseError,
 } from "@smartput/core";
-import coreEn from "@smartput/core/locale/en";
 import { date } from "@smartput/date";
 import { dateRange } from "@smartput/date-range";
 import { datetime } from "@smartput/datetime";
@@ -21,6 +20,7 @@ import datetimeEn from "@smartput/datetime/locale/en";
 import { datetimeRange } from "@smartput/datetime-range";
 import { BUILTIN_KINDS } from "@smartput/kinds";
 import { length } from "@smartput/length";
+import { english as coreEn } from "@smartput/locale-en";
 import { number } from "@smartput/number";
 import { RANGE_KINDS } from "@smartput/range";
 import { money, snapshot } from "@smartput/rate";

@@ -5,10 +5,11 @@
  */
 import { BUILTIN_KINDS } from "@smartput/kinds";
 import { createEngine } from "../packages/core/src/engine";
-import en from "../packages/core/src/locale/en";
+import { composeLocale } from "../packages/core/src/locale/compose";
 import { record } from "../packages/core/src/parity";
+import { english as en } from "../packages/locale-en/src/english";
 
-const engine = createEngine({ locales: [en], kinds: BUILTIN_KINDS });
+const engine = createEngine({ locales: [composeLocale(en)], kinds: BUILTIN_KINDS });
 
 const target = new URL("../packages/core/parity/en.json", import.meta.url);
 await Bun.write(target, `${JSON.stringify(record(engine), null, 2)}\n`);

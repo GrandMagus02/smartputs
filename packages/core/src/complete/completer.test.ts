@@ -1,10 +1,10 @@
 import { expect, test } from "bun:test";
 import { BUILTIN_KINDS } from "@smartput/kinds";
+import { english } from "@smartput/locale-en";
 import { defineKind } from "../kind/define";
 import { buildRegistry } from "../kind/registry";
 import { composeLocale } from "../locale/compose";
 import { defineLanguage } from "../locale/define";
-import english from "../locale/en";
 import type { CompleteCtx, Completer as CompleterFn, Locale, Weights } from "../types";
 import { Autocompleter } from "./completer";
 
