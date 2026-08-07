@@ -5,6 +5,7 @@ import BUILTIN_EN from "@smartput/kinds/locale/en";
 import { english as en } from "@smartput/locale-en";
 import { createDatetime, datetime } from "./datetime";
 import { createHolidayLiteral, datetimeWithHolidays } from "./holiday";
+import datetimeEn from "./locale/en";
 import { TEST_NOW, TEST_ZONE } from "./temporal";
 
 /**
@@ -15,7 +16,7 @@ import { TEST_NOW, TEST_ZONE } from "./temporal";
  */
 function engineAt(now: number, opts: Parameters<typeof datetimeWithHolidays>[0] = {}) {
   return createEngine({
-    locales: [composeLocale(en, BUILTIN_EN)],
+    locales: [composeLocale(en, [...BUILTIN_EN, datetimeEn])],
     kinds: [...BUILTIN_KINDS, datetimeWithHolidays(opts)],
     now: () => now,
     timeZone: TEST_ZONE,
@@ -142,7 +143,7 @@ test("one reading, and not a conversion target", () => {
 
 test("the claim is midnight in the engine's zone, not a converted instant", () => {
   const tokyo = createEngine({
-    locales: [composeLocale(en, BUILTIN_EN)],
+    locales: [composeLocale(en, [...BUILTIN_EN, datetimeEn])],
     kinds: [...BUILTIN_KINDS, datetimeWithHolidays()],
     now: () => TEST_NOW,
     timeZone: "Asia/Tokyo",
@@ -235,7 +236,7 @@ test("the date literal keeps every span it can read on its own", () => {
  */
 function engineIn(zone: string, now: number, place?: { country: string }) {
   return createEngine({
-    locales: [composeLocale(en, BUILTIN_EN)],
+    locales: [composeLocale(en, [...BUILTIN_EN, datetimeEn])],
     kinds: [...BUILTIN_KINDS, datetimeWithHolidays(place === undefined ? {} : { place })],
     now: () => now,
     timeZone: zone,
@@ -314,7 +315,7 @@ test("a short word must be in the name, not an edit away from it", () => {
  */
 test("a bare duration word is a duration, never a holiday name", () => {
   const plain = createEngine({
-    locales: [composeLocale(en, BUILTIN_EN)],
+    locales: [composeLocale(en, [...BUILTIN_EN, datetimeEn])],
     kinds: [...BUILTIN_KINDS, datetime],
     now: () => TEST_NOW,
     timeZone: TEST_ZONE,
@@ -336,7 +337,7 @@ test("a bare duration word is a duration, never a holiday name", () => {
  */
 test("the holiday kind is the datetime kind everywhere else", () => {
   const plain = createEngine({
-    locales: [composeLocale(en, BUILTIN_EN)],
+    locales: [composeLocale(en, [...BUILTIN_EN, datetimeEn])],
     kinds: [...BUILTIN_KINDS, datetime],
     now: () => TEST_NOW,
     timeZone: TEST_ZONE,
@@ -362,7 +363,7 @@ test("the holiday kind is the datetime kind everywhere else", () => {
 
 test("the matcher can be installed by hand through createDatetime", () => {
   const byHand = createEngine({
-    locales: [composeLocale(en, BUILTIN_EN)],
+    locales: [composeLocale(en, [...BUILTIN_EN, datetimeEn])],
     kinds: [
       ...BUILTIN_KINDS,
       createDatetime({ literals: [createHolidayLiteral({ place: { country: "NL" } })] }),

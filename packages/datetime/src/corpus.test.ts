@@ -4,13 +4,12 @@ import { BUILTIN_KINDS } from "@smartput/kinds";
 import BUILTIN_EN from "@smartput/kinds/locale/en";
 import { english as coreEn } from "@smartput/locale-en";
 import { datetime } from "./datetime";
-import en from "./locale/en";
+import datetimeEn from "./locale/en";
 import { TEST_NOW, TEST_ZONE } from "./temporal";
 
 const engine = createEngine({
-  locales: [composeLocale(coreEn, BUILTIN_EN)],
+  locales: [composeLocale(coreEn, [...BUILTIN_EN, datetimeEn])],
   kinds: [...BUILTIN_KINDS, datetime],
-  packs: [en],
   now: () => TEST_NOW,
   timeZone: TEST_ZONE,
 });

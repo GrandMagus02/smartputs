@@ -12,12 +12,12 @@ import { BUILTIN_KINDS } from "@smartput/kinds";
 import BUILTIN_EN from "@smartput/kinds/locale/en";
 import { english as coreEn } from "@smartput/locale-en";
 import { datetime } from "./datetime";
-import en from "./locale/en";
+import datetimeEn from "./locale/en";
 import { TEST_NOW, TEST_ZONE } from "./temporal";
 
 const make = (kinds: Kind[]) =>
   createEngine({
-    locales: [composeLocale(coreEn, BUILTIN_EN)],
+    locales: [composeLocale(coreEn, [...BUILTIN_EN, datetimeEn])],
     kinds,
     now: () => TEST_NOW,
     timeZone: TEST_ZONE,
@@ -28,9 +28,8 @@ const withoutGeo = make([...BUILTIN_KINDS, datetime]);
 
 /** The same engine `corpus.test.ts` builds, with geo added to it. */
 const corpusEngine = createEngine({
-  locales: [composeLocale(coreEn, BUILTIN_EN)],
+  locales: [composeLocale(coreEn, [...BUILTIN_EN, datetimeEn])],
   kinds: [...BUILTIN_KINDS, datetime, place],
-  packs: [en],
   now: () => TEST_NOW,
   timeZone: TEST_ZONE,
 });
@@ -121,9 +120,17 @@ test("an engine without geo builds and behaves exactly as it did", () => {
 });
 
 test("a country is not a conversion target without geo", () => {
-  // "japan" survives only as datetime's own ZONES alias; "ukraine" is nothing.
+  // "japan" is a word this package's own vocabulary ships, so it reads with no
+  // geo anywhere. "argentina" is only ever a country — the engine at the top of
+  // this file reads it because `place` is registered there, and this one cannot.
+  //
+  // The example used to be "ukraine", back when the spelled-out zone names were
+  // a `LocalePack` a caller opted into separately from the kind's own aliases.
+  // Those two tiers are one `Vocabulary` now, so "ukraine" reaches Europe/Kyiv
+  // wherever "kyiv" does, and a country with no zone behind it is what the
+  // claim needs.
   expect(withoutGeo.evaluate("3pm in japan").formatted).toBe("2026-01-16 00:00 JST");
-  expect(() => withoutGeo.evaluate("3pm in ukraine")).toThrow(NoCandidateError);
+  expect(() => withoutGeo.evaluate("15:00 in argentina")).toThrow(NoCandidateError);
 });
 
 test("datetime declares the bridge without depending on geo", async () => {

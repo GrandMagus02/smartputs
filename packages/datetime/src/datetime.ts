@@ -87,15 +87,17 @@ function formatDateTime(iso: string): string {
 
 /**
  * The units of this kind: every zone `@smartput/timezone` ships, named and
- * written-as-an-offset alike.
+ * written-as-an-offset alike — as bare ids, per ruling R1.
  *
- * Copied rather than aliased, because `defineKind` deep-freezes what it is
- * handed and the tables belong to a package that did not ask to be frozen.
+ * The words for them — `tokyo`, `jst`, `japan`, and the symbol a formatter
+ * prints — are not here: they are a `Vocabulary`, in `./locale/en`, because
+ * words belong to a language and a zone id does not.
+ *
+ * Keys rather than a copy of the tables, because `defineKind` deep-freezes
+ * what it is handed and the tables belong to a package that did not ask to be
+ * frozen.
  */
-const units: Record<string, { aliases: string[]; symbol: string }> = {};
-for (const [zone, def] of Object.entries({ ...ZONES, ...OFFSET_ZONES })) {
-  units[zone] = { aliases: [...def.aliases], symbol: def.symbol };
-}
+const units: readonly string[] = Object.keys({ ...ZONES, ...OFFSET_ZONES });
 
 /**
  * A place does not always carry a zone. A country reached by its *unit alias*
