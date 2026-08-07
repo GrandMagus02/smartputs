@@ -1,5 +1,5 @@
 import { deepFreeze } from "../freeze";
-import type { Node, NodeId } from "./ast";
+import type { Node } from "./ast";
 import { walk } from "./ast";
 import type { Resolver } from "./candidates";
 import type { NormalizedInput } from "./normalize";
