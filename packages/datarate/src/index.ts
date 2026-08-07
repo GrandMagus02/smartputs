@@ -1,12 +1,6 @@
 import type { Value } from "@smartput/core";
-import {
-  aliasesFor,
-  type Decimal,
-  decimalRatios,
-  defineKind,
-  deriveValue,
-} from "@smartput/core";
-import { DATARATE_UNITS, type DatarateUnit } from "./units";
+import { type Decimal, decimalRatios, defineKind, deriveValue } from "@smartput/core";
+import { DATARATE_UNITS } from "./units";
 
 export type { DatarateUnit } from "./units";
 export { DATARATE_UNITS } from "./units";
@@ -18,8 +12,6 @@ export { DATARATE_UNITS } from "./units";
  */
 const make = (source: Value, kind: string, unit: string, canonical: Decimal): Value =>
   deriveValue(source, canonical, { kind, unit });
-
-const alias = (unit: DatarateUnit) => aliasesFor(DATARATE_UNITS, unit);
 
 /**
  * Canonical bits per second. Produced by dividing a datasize by a duration.
@@ -40,16 +32,14 @@ export const datarate = defineKind({
     canonical: DATARATE_UNITS.canonical,
     units: decimalRatios(DATARATE_UNITS),
   },
-  lexicon: {
-    // No `display` on any unit: the written-out forms ("megabits per second")
-    // are compounds the parser rejects, and a display form that does not parse
-    // back is a dead end for completion. Absent display keeps formatValue on
-    // the symbol.
-    bps: { aliases: alias("bps"), symbol: "bps", typical: [1, 1000] },
-    kbps: { aliases: alias("kbps"), symbol: "kbps", typical: [1, 1000] },
-    mbps: { aliases: alias("mbps"), symbol: "mbps", typical: [1, 1000] },
-    gbps: { aliases: alias("gbps"), symbol: "gbps", typical: [0.1, 100] },
-    tbps: { aliases: alias("tbps"), symbol: "tbps", typical: [0.1, 100] },
+  // Engineering, not language: the magnitude band people type each unit in,
+  // read only by completion's `scaleFit`. The words moved to `locale/en.ts`.
+  typical: {
+    bps: [1, 1000],
+    kbps: [1, 1000],
+    mbps: [1, 1000],
+    gbps: [0.1, 100],
+    tbps: [0.1, 100],
   },
   ops: [
     {
