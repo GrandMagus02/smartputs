@@ -5,6 +5,7 @@ import { BUILTIN_KINDS } from "@smartput/kinds";
 import BUILTIN_EN from "@smartput/kinds/locale/en";
 import { english as coreEn } from "@smartput/locale-en";
 import { date } from "./date";
+import { DATE_UNIT } from "./value";
 
 const engine = createEngine({
   locales: [composeLocale(coreEn, BUILTIN_EN)],
@@ -36,7 +37,7 @@ test("an ISO date-time yields no date reading", () => {
 
 test("the date value snaps to midnight and carries its zone on meta", () => {
   const { value } = engine.evaluate("today", { kinds: ["date"] });
-  expect(value.unit).toBe("day");
+  expect(value.unit).toBe(DATE_UNIT);
   expect(value.meta?.day).toBe("2026-01-15");
   expect(value.meta?.zone).toBe("UTC");
 });
@@ -45,4 +46,23 @@ test("a date plus a duration is a date", () => {
   const r = engine.evaluate("today + 3 d", { kinds: ["date", "duration"] });
   expect(r.kind).toBe("date");
   expect(r.formatted).toBe("2026-01-18");
+});
+
+test("the sentinel unit is named by id alone (R1)", () => {
+  expect(date.value.mode).toBe("opaque");
+  expect(date.value.mode === "opaque" ? date.value.units : null).toEqual([DATE_UNIT]);
+});
+
+test("the sentinel unit id is not a word the lexer can produce", () => {
+  // Ruling R2 indexes a unit under its own registry key when no language has
+  // spoken for the kind, and this kind ships no vocabulary in any language — so
+  // the id *is* the alias now, and "registers no aliases" is no longer the
+  // guard. `lex` only builds a word token out of `\p{L}` runs, so an id
+  // carrying one non-letter can never be typed.
+  expect(DATE_UNIT).toMatch(/[^\p{L}]/u);
+});
+
+test("registering date leaves duration's own word alone", () => {
+  const r = engine.evaluate("1 day");
+  expect(r.kind).toBe("duration");
 });

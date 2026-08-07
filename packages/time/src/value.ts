@@ -12,8 +12,12 @@ export const TIME_KIND = "time";
  * would match `in | time | time`, which is a time-range, and outscore the zone
  * conversion because both operands would agree on kind and collect the context
  * bonus. One unit closes that off by construction.
+ *
+ * Hyphenated for the reason `DATE_UNIT` gives at length: this kind ships no
+ * vocabulary, so ruling R2 indexes the unit under its own id, and a bare
+ * "clock" would be a typeable word that reads as a time.
  */
-export const TIME_UNIT = "clock";
+export const TIME_UNIT = "wall-clock";
 
 export const NS_PER_DAY = new Decimal("86400000000000");
 

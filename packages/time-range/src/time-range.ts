@@ -138,10 +138,7 @@ export function createTimeRange(opts: TimeRangeOptions = {}): Kind {
   };
   return defineKind({
     id: TIME_RANGE_KIND,
-    value: {
-      mode: "opaque",
-      units: { [TIME_RANGE_UNIT]: { aliases: [], symbol: "" } },
-    },
+    value: { mode: "opaque", units: [TIME_RANGE_UNIT] },
     literals: [windowLiteral(windows)],
     ops: [
       { op: "-", ...span },

@@ -20,12 +20,18 @@ export const DATE_RANGE_KIND = "date-range";
 
 /**
  * The kind's one unit, and a label rather than a scale: a span of days is not a
- * point on a ratio line. It registers no aliases for the reason `date`'s
+ * point on a ratio line. It ships no vocabulary for the reason `date`'s
  * `DATE_UNIT` gives — an alias here would be a second kind for the solver to
- * consider every time someone writes "3 spans" — and the word "span" itself is
- * claimed by nothing else in the repo.
+ * consider every time someone writes "3 spans".
+ *
+ * Hyphenated, and named for its own kind rather than the bare "span" it used to
+ * be, on the same argument `DATE_UNIT` sets out: ruling R2 indexes a unit under
+ * its own id when no language has spoken for the kind, so the id has to be
+ * something `lex` cannot build a word token out of. It also stops this kind and
+ * `@smartput/datetime-range` sharing one registry key, which they did while
+ * both were called "span".
  */
-export const DATE_RANGE_UNIT = "span";
+export const DATE_RANGE_UNIT = "date-span";
 
 /**
  * Charged to every phrase claim, and the plan did not anticipate needing it.
@@ -160,10 +166,7 @@ export function createDateRange(opts: DateRangeOptions = {}): Kind {
   const weight = opts.signatureWeight ?? RANGE_WEIGHTS.signature;
   return defineKind({
     id: DATE_RANGE_KIND,
-    value: {
-      mode: "opaque",
-      units: { [DATE_RANGE_UNIT]: { aliases: [], symbol: "" } },
-    },
+    value: { mode: "opaque", units: [DATE_RANGE_UNIT] },
     literals: [phraseLiteral(opts, opts.phraseWeight ?? DEFAULT_PHRASE_WEIGHT)],
     ops: [
       {

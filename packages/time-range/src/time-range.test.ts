@@ -5,7 +5,7 @@ import { BUILTIN_KINDS } from "@smartput/kinds";
 import BUILTIN_EN from "@smartput/kinds/locale/en";
 import { english as coreEn } from "@smartput/locale-en";
 import { time } from "@smartput/time";
-import { createTimeRange, timeRange } from "./time-range";
+import { createTimeRange, TIME_RANGE_UNIT, timeRange } from "./time-range";
 
 const build = (kinds: unknown[]) =>
   createEngine({
@@ -60,4 +60,11 @@ test("the window table is configurable", () => {
     createTimeRange({ windows: { night: { start: 21, end: 5, wraps: true } } }),
   ]);
   expect(late.evaluate("night").formatted).toBe("21:00 → 05:00");
+});
+
+test("the sentinel unit id is not a word the lexer can produce", () => {
+  // Ruling R2 makes the id the registry key for a kind no language speaks for.
+  // This one was already hyphenated, and that is now load-bearing rather than
+  // decorative: `lex` only builds a word token out of `\p{L}` runs.
+  expect(TIME_RANGE_UNIT).toMatch(/[^\p{L}]/u);
 });

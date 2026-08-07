@@ -59,7 +59,13 @@ const timeLiteral =
 export function createTime(opts: TimeOptions = {}): Kind {
   return defineKind({
     id: TIME_KIND,
-    value: { mode: "opaque", units: { [TIME_UNIT]: { aliases: [], symbol: "" } } },
+    value: {
+      mode: "opaque",
+      // Nanoseconds since midnight, so two clock times order the same way two
+      // instants do. Ruling C5.
+      ordered: true,
+      units: [TIME_UNIT],
+    },
     literals: [timeLiteral(opts.weight ?? DEFAULT_TIME_WEIGHT)],
     ops: [
       {

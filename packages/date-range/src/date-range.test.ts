@@ -2,14 +2,17 @@ import { expect, test } from "bun:test";
 import { composeLocale, createEngine } from "@smartput/core";
 import { date } from "@smartput/date";
 import { datetime, TEST_NOW, TEST_ZONE } from "@smartput/datetime";
+import datetimeEn from "@smartput/datetime/locale/en";
 import { BUILTIN_KINDS } from "@smartput/kinds";
 import BUILTIN_EN from "@smartput/kinds/locale/en";
 import { english as coreEn } from "@smartput/locale-en";
 import { InvertedRangeError } from "@smartput/range-core";
-import { createDateRange, dateRange } from "./date-range";
+import { createDateRange, DATE_RANGE_UNIT, dateRange } from "./date-range";
 
 const engine = createEngine({
-  locales: [composeLocale(coreEn, BUILTIN_EN)],
+  // `datetimeEn` because "today in tokyo" below names a zone by word, and a
+  // zone's words are a vocabulary now rather than a field on the kind.
+  locales: [composeLocale(coreEn, [...BUILTIN_EN, datetimeEn])],
   kinds: [...BUILTIN_KINDS, datetime, date, dateRange],
   now: () => TEST_NOW,
   timeZone: TEST_ZONE,
@@ -79,4 +82,12 @@ test("the +20 is on the signature, and explain() says so", () => {
     value: 20,
     layer: 0,
   });
+});
+
+test("the sentinel unit id is not a word the lexer can produce", () => {
+  // Ruling R2 makes the id the registry key for a kind no language speaks for,
+  // so "registers no aliases" is no longer the guard the id's doc comment
+  // describes — the id itself is. `lex` only builds a word token out of `\p{L}`
+  // runs, so one non-letter closes it off.
+  expect(DATE_RANGE_UNIT).toMatch(/[^\p{L}]/u);
 });

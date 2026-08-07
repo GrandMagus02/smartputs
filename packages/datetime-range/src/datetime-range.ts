@@ -16,8 +16,13 @@ export const DATETIME_RANGE_KIND = "datetime-range";
  * The kind's one unit, and a label rather than a scale. A span between two
  * instants has no second unit to convert into — "span in hours" is a duration,
  * which is `@smartput/duration`'s question, not this kind's.
+ *
+ * Hyphenated and kind-named rather than the bare "span" it used to be, for the
+ * reason `@smartput/date`'s `DATE_UNIT` gives: this kind ships no vocabulary,
+ * ruling R2 therefore indexes the unit under its own id, and "span" was both a
+ * typeable word and a key `@smartput/date-range` claimed too.
  */
-export const DATETIME_RANGE_UNIT = "span";
+export const DATETIME_RANGE_UNIT = "datetime-span";
 
 export interface DatetimeRangeOptions {
   /**
@@ -127,10 +132,7 @@ export function createDatetimeRange(opts: DatetimeRangeOptions = {}): Kind {
 
   return defineKind({
     id: DATETIME_RANGE_KIND,
-    value: {
-      mode: "opaque",
-      units: { [DATETIME_RANGE_UNIT]: { aliases: [], symbol: "" } },
-    },
+    value: { mode: "opaque", units: [DATETIME_RANGE_UNIT] },
     literals: [matcher],
     ops: [],
     format: (value) => {

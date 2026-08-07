@@ -194,7 +194,7 @@ Ordinary `Value`s, no new field, nothing `JSON.stringify` will choke on.
 const { value } = engine.evaluate("whole week");
 
 value.kind;                 // "date-range"
-value.unit;                 // "span"
+value.unit;                 // "date-span"
 value.canonical.toString(); // "1768176000000000000" — the start, epoch nanoseconds
 value.meta.start;           // "2026-01-12T00:00:00+00:00[UTC]"
 value.meta.end;             // "2026-01-19T00:00:00+00:00[UTC]"  ← exclusive

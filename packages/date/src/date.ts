@@ -74,7 +74,13 @@ function formatDate(value: { meta?: Readonly<Record<string, unknown>> }): string
 export function createDate(opts: DateOptions = {}): Kind {
   return defineKind({
     id: DATE_KIND,
-    value: { mode: "opaque", units: { [DATE_UNIT]: { aliases: [], symbol: "" } } },
+    value: {
+      mode: "opaque",
+      // See `@smartput/datetime`: canonical is an instant, so ordering is what
+      // the scalar is for. Ruling C5.
+      ordered: true,
+      units: [DATE_UNIT],
+    },
     literals: [dateLiteral(opts.weight ?? DEFAULT_DATE_WEIGHT)],
     ops: [
       {

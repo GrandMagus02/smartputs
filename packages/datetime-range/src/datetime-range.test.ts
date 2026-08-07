@@ -12,7 +12,11 @@ import BUILTIN_EN from "@smartput/kinds/locale/en";
 import { english as coreEn } from "@smartput/locale-en";
 import { InvertedRangeError } from "@smartput/range-core";
 import { time } from "@smartput/time";
-import { createDatetimeRange, datetimeRange } from "./datetime-range";
+import {
+  createDatetimeRange,
+  DATETIME_RANGE_UNIT,
+  datetimeRange,
+} from "./datetime-range";
 
 const engine = createEngine({
   locales: [composeLocale(coreEn, BUILTIN_EN)],
@@ -153,4 +157,12 @@ test("without the reading weight, a window phrase ties with chrono's instant", (
   });
   expect(() => flat.evaluate("yesterday morning")).toThrow(AmbiguityError);
   expect(flat.evaluate("until 20:00").kind).toBe("datetime-range");
+});
+
+test("the sentinel unit id is not a word the lexer can produce", () => {
+  // Ruling R2 makes the id the registry key for a kind no language speaks for,
+  // and this kind and `@smartput/date-range` both used to call their sentinel
+  // "span" — two kinds under one key, and a typeable word besides. `lex` only
+  // builds a word token out of `\p{L}` runs, so one non-letter closes it off.
+  expect(DATETIME_RANGE_UNIT).toMatch(/[^\p{L}]/u);
 });

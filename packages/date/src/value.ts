@@ -12,11 +12,20 @@ export const DATE_KIND = "date";
  * outscore the zone conversion because both operands would agree on kind and
  * collect the context bonus. One unit closes that off by construction.
  *
- * It registers no aliases at all, which is the other half of the same guard:
- * the word "day" is `duration`'s, and an alias here would give the solver a
- * second kind to consider for "3 days".
+ * It ships no vocabulary at all, which is the other half of the same guard: the
+ * word "day" is `duration`'s, and an alias here would give the solver a second
+ * kind to consider for "3 days".
+ *
+ * Which is why the id is hyphenated rather than the bare "day" it used to be.
+ * Ruling R2 indexes a unit under its own registry key whenever no installed
+ * language has spoken for the kind, and a kind that ships no vocabulary in any
+ * language is exactly that case — so the id *is* the alias now, and "registers
+ * no aliases" stopped being something a kind can arrange. `lex` builds a word
+ * token out of `\p{L}` runs alone, so one non-letter is what puts the sentinel
+ * back out of reach. `@smartput/time-range`'s `clock-span` had the shape
+ * already; this is the same convention, now load-bearing.
  */
-export const DATE_UNIT = "day";
+export const DATE_UNIT = "calendar-day";
 
 /** Midnight of `zdt`'s calendar day, in `zdt`'s own zone. */
 export function startOfDay(zdt: Temporal.ZonedDateTime): Temporal.ZonedDateTime {
