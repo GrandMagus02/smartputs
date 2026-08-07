@@ -1060,6 +1060,30 @@ above:
 No other row moved: the fix touches only `solve/solver.ts`'s return
 statement, which nothing outside `@smartput/core/solve` pulls in on its own.
 
+#### Amendment, 2026-08-07 — `core/normalize`, the last frozen-entries gap
+
+The same review found one more corner of the freeze contract loose:
+`normalize()` froze its `edits` array but not the `Edit` objects inside it,
+nor their nested `at` spans — the only stage output left half-frozen after
+the `core/solve` fix above. Fixed by hand, two `Object.freeze` calls per
+entry, deliberately *not* via the shared `deepFreeze` helper (`../freeze`):
+that helper imports `Decimal`, and this row is the one place in the file
+whose whole point is proving `@smartput/core/normalize` carries none of the
+`decimal.js` weight every row below it does — the comment two rows above
+this one says so directly. Confirmed empirically first: routing through
+`deepFreeze` measured 35_022 B, a 20x jump, before switching to the
+two-`Object.freeze` version.
+
+Measured 1_720 B min (1_665 B before the fix) against `core/normalize`'s
+1_700 B ceiling — 20 B over. Rounded up to the next 50 B, same rule:
+
+| Entry | Was | Measured | Committed |
+| --- | --- | --- | --- |
+| `core/normalize` — min | 1_700 B | 1_720 B | 1_750 B |
+| `core/normalize` — gzip | 800 B | 773 B | 800 B (unchanged) |
+
+No other row moved.
+
 ### The honest comparison
 
 A hand-written single-unit check is about 40 bytes:

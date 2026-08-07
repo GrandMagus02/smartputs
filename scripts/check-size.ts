@@ -691,10 +691,19 @@ export const BUDGETS: EntrySpec[] = [
   // ~35 KB `decimal.js` floor every other row below carries. That gap *is*
   // the separation this milestone's plan row asks to be proven.
   {
+    // Amendment, 2026-08-07: min rises 1700 -> 1750 (measured 1720 B). The
+    // whole-branch review's fix wave found `normalize()`'s `edits` array
+    // frozen but not its `Edit` entries (nor their nested `at` spans) — the
+    // last stage whose output was not fully frozen. Fixed by hand (two
+    // `Object.freeze` calls per entry), deliberately not via the shared
+    // `deepFreeze` helper: that pulls in `decimal.js`, and this row exists
+    // precisely to prove `core/normalize` carries none of the ~35 KB floor
+    // the rows below it do — see this block's own comment above. Gzip is
+    // untouched: 773 B measured still clears 800.
     label: "core/normalize",
     from: "@smartput/core/normalize",
     names: ["Normalizer", "normalize"],
-    min: 1700,
+    min: 1750,
     gzip: 800,
   },
   // The other six sit within 6 KB of each other (36_450-42_256 B measured),

@@ -236,7 +236,20 @@ export function normalize(input: string, opts: NormalizerOptions = {}): Normaliz
   return new NormalizedInputImpl({
     source: input,
     text,
-    edits: Object.freeze([...edits]) as readonly Edit[],
+    // `Object.freeze` alone froze the array but not each `Edit` object (nor
+    // its nested `at` span) inside it — the last unclosed thread of the
+    // freeze contract the whole-branch review found: every other stage's
+    // output deep-freezes. Frozen by hand, two levels, rather than by
+    // importing the shared `deepFreeze` (`../freeze`): that helper pulls in
+    // `decimal.js` for a `Decimal` guard `Edit` has no use for — every field
+    // reachable from one is a plain number or string — so importing it here
+    // would trade a correctness fix for a many-KB regression on the one
+    // subpath with no other reason to load a big-number library at all.
+    // Nothing reads `edits` mutably (they are recorded once, never
+    // revised), so freezing them cannot change a result.
+    edits: Object.freeze(
+      edits.map((e) => Object.freeze({ ...e, at: Object.freeze({ ...e.at }) })),
+    ) as readonly Edit[],
     offsets,
     preLength: pre.length,
     nfkcShifted,

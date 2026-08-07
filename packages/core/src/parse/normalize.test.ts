@@ -111,4 +111,10 @@ test("outputs are frozen", () => {
   const n = normalize("  30 deg  ");
   expect(Object.isFrozen(n)).toBe(true);
   expect(Object.isFrozen(n.edits)).toBe(true);
+  // The container being frozen does not imply each `Edit` entry is — this
+  // input's leading/trailing whitespace runs guarantee `edits` is non-empty.
+  expect(n.edits.length).toBeGreaterThan(0);
+  for (const edit of n.edits) {
+    expect(Object.isFrozen(edit)).toBe(true);
+  }
 });
