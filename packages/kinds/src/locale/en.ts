@@ -7,6 +7,9 @@ import durationEn from "@smartput/duration/locale/en";
 import energyEn from "@smartput/energy/locale/en";
 import lengthEn from "@smartput/length/locale/en";
 import massEn from "@smartput/mass/locale/en";
+import numberEn from "@smartput/number/locale/en";
+import percentEn from "@smartput/percent/locale/en";
+import powerEn from "@smartput/power/locale/en";
 
 /**
  * Every built-in `en` vocabulary, as one array — the words half of what
@@ -35,5 +38,8 @@ const BUILTIN_EN: readonly Vocabulary[] = [
   energyEn,
   lengthEn,
   massEn,
+  numberEn,
+  percentEn,
+  powerEn,
 ];
 export default BUILTIN_EN;

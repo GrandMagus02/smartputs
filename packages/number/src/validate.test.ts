@@ -3,6 +3,7 @@ import { composeLocale, createEngine } from "@smartput/core";
 import { english as en } from "@smartput/locale-en";
 import { toCanonical } from "@smartput/shared";
 import { number } from "./index";
+import numberEn from "./locale/en";
 import { NUMBER_UNITS, type NumberUnit } from "./units";
 import {
   addNumber,
@@ -180,15 +181,16 @@ test("the emitted pattern requires a unit; isNumber accepts a bare number via de
   expect(isNumber("30")).toBe(true);
 });
 
-test("contract: units.ts and the descriptor agree on every key and alias", () => {
+test("contract: units.ts, the descriptor and the vocabulary agree", () => {
   const declared = Object.keys((number.value as { units: object }).units).sort();
   expect(declared).toEqual(Object.keys(NUMBER_UNITS.ratio).sort());
 
-  const lexicon = number.lexicon ?? {};
+  // The alias the engine indexes is the alias the micro path inverts. This
+  // used to be asked of the kind's `lexicon`; that table now lives in
+  // `./locale/en`, and it is the same claim asked of its new home.
   const seen = new Set<string>();
-  for (const [unit, lexeme] of Object.entries(lexicon)) {
-    const aliases = Array.isArray(lexeme) ? lexeme : lexeme.aliases;
-    for (const a of aliases) {
+  for (const [unit, words] of Object.entries(numberEn.units)) {
+    for (const a of words.aliases) {
       expect(NUMBER_UNITS.alias[a], `${a} must be in units.ts`).toBe(unit as NumberUnit);
       seen.add(a);
     }
