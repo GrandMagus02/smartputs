@@ -13,7 +13,7 @@ import { Normalizer } from "../parse/normalize";
 import { Parser, type Program } from "../parse/program";
 import { Tokenizer } from "../parse/tokenizer";
 import { Solver } from "../solve/solver-class";
-import type { Language, Locale, RateLookup, Value } from "../types";
+import type { ExpressionParts, Language, Locale, RateLookup, Value } from "../types";
 import { Printer } from "./print";
 import { unitWord } from "./unit-word";
 
@@ -764,6 +764,46 @@ test("the printer hands the language the gap its spacing option resolved", () =>
   );
   expect(printerHere.print(programFor("1 kg + 500 g"))).toBe("1 kg + 500 g");
   expect(gaps).toEqual(["", "", " ", " "]);
+});
+
+test("the printer assembles a spelled expression through the language", () => {
+  // Word order is grammar: a language that puts its operator elsewhere, or
+  // inflects around it, has to see the two rendered operands and the word
+  // rather than receive a finished string built to English's shape.
+  const seen: ExpressionParts[] = [];
+  const locale = spyLanguage({
+    renderExpression: (p) => {
+      seen.push(p);
+      return `${p.op}(${p.left}, ${p.right})`;
+    },
+  });
+  expect(
+    spyPrinterFor(locale).print(programFor("30 deg + 15 deg"), { spelled: true }),
+  ).toBe("+(thirty degrees, fifteen degrees)");
+  expect(seen.map((p) => p.word)).toEqual(["plus"]);
+  // Digits keep the printer's own assembly: `ExpressionParts` carries no
+  // separator, so routing an unspelled expression through it would lose
+  // `spacing: "tight"` — see `printNode`'s binary case.
+  expect(spyPrinterFor(locale).print(programFor("30 deg + 15 deg"))).toBe(
+    "30 deg + 15 deg",
+  );
+  expect(seen).toHaveLength(1);
+});
+
+test("a spelled operator with no word reaches the language without one", () => {
+  // The other half of "no invented word": the printer does not substitute the
+  // symbol *for* the word before calling, it says there is no word and lets
+  // the language decide — `defaultRenderExpression`'s `?? op` is what puts the
+  // symbol back, the same answer a comparison operator (which has no `Keyword`
+  // at all) gets.
+  const { over: _over, ...restKeywords } = english.keywords;
+  const locale = spyLanguage({
+    keywords: restKeywords,
+    renderExpression: (p) => `${p.left} ${p.word ?? `<${p.op}>`} ${p.right}`,
+  });
+  expect(spyPrinterFor(locale).print(programFor("10 km / 2 km"), { spelled: true })).toBe(
+    "ten kilometres </> two kilometres",
+  );
 });
 
 // --- value(): today's formatValue, byte-identical -----------------------

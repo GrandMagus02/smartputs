@@ -2,7 +2,7 @@ import type { Decimal } from "../decimal";
 import { fromCanonical, toCanonical } from "../eval/convert";
 import { formatNumber, formatValue } from "../format/format";
 import type { Registry } from "../kind/registry";
-import { defaultRenderQuantity } from "../locale/render";
+import { defaultRenderExpression, defaultRenderQuantity } from "../locale/render";
 import type { Node, NodeId } from "../parse/ast";
 import { type BinaryOp, bindingOf, CONVERT_BINDING } from "../parse/pratt";
 import type { Program } from "../parse/program";
@@ -82,7 +82,7 @@ export interface PrintOptions {
    * An operator with no word form in the locale keeps its symbol rather than
    * inventing one — the same rule a missing `display` follows for a unit,
    * and a missing `symbol` follows under `symbols`. `"of"`/`"off"` already
-   * print their locale word regardless of `spelled` (`opWord`'s existing
+   * print their locale word regardless of `spelled` (`opKeyword`'s existing
    * cases), so this only changes `+ - * /`; a unary minus has no word form in
    * `Locale.keywords` at all (there is no `Keyword` for negation) and always
    * keeps its symbol, spelled or not — only its operand's magnitude and unit
@@ -165,15 +165,17 @@ const ATOM_PRECEDENCE = Number.POSITIVE_INFINITY;
  * "multiplied by" spelling into one op, a distinction printing never needs to
  * make (there is exactly one word to print back, `keywords.over[0]` or
  * `keywords.times[0]`, whichever `en.ts` declares). `"of"`/`"off"` are not
- * here: `opWord` already spells them regardless of `spelled` — they are word
- * operators to begin with — so only the four symbolic ops need a mapping.
+ * here: `opKeyword` already answers with their locale word regardless of
+ * `spelled` — they are word operators to begin with — so only the four
+ * symbolic ops need a mapping.
  *
  * `Partial<Record<BinaryOp, ...>>` rather than a closed record over those four:
  * `BinaryOp` is `Exclude<OpSymbol, "in">`, so it admits the comparison six as
  * well, and none of them has a word form to print. A missing entry is the
- * correct answer for them — `opWord`'s `?? op` then prints the bare symbol,
- * which is the same "no invented word" rule a unit with no `forms` entry
- * follows.
+ * correct answer for them — `opKeyword` answers `undefined`, and the `?? op`
+ * that puts the bare symbol back is `defaultRenderExpression`'s under
+ * `spelled` and the binary branch's own otherwise. Same rule a unit with no
+ * `forms` entry follows: no invented word.
  */
 /**
  * The two positions a `Printer` can put a unit word in, named once so the two
@@ -501,17 +503,36 @@ export class Printer {
         // explicit source parens, since without them the parser would have
         // folded it into `left` instead) must keep its parens on reprint.
         const right = this.printChild(node.right, binding + 1, ctx);
+        const word = this.opKeyword(node.op, ctx);
+        if (ctx.spell !== undefined) {
+          // Spelled: the language assembles, because word order around a
+          // spelled operator is grammar rather than punctuation, and a
+          // language that puts its operator elsewhere (or inflects around it)
+          // cannot express that through a template written here.
+          //
+          // Only this branch. An unspelled expression is symbols and spaces,
+          // and `spacing: "tight"` is a typographic option of the *caller*'s
+          // that `ExpressionParts` has no field for — routing it through a
+          // language would silently drop it, which is exactly the bug `gap`
+          // exists to prevent for a quantity. `defaultRenderExpression` writes
+          // the same single spaces this branch would, so nothing about the
+          // default output turns on which side of the `if` it came from.
+          return (this.locale.language.renderExpression ?? defaultRenderExpression)({
+            op: node.op,
+            left,
+            right,
+            ...(word !== undefined ? { word } : {}),
+          });
+        }
         // "of"/"off" are locale words; squeezing them against their operands
         // under `spacing: "tight"` would glue two words into a third one
         // ("20%of100") rather than just remove a space — see
         // `PrintOptions.spacing`'s doc comment. `+ - * /` are symbols, so no
-        // such risk *unless* `spelled` has turned them into locale words too
-        // (`opWord` spells them once `ctx.spell` is set) — then they carry
-        // the exact same gluing risk "of"/"off" do ("thirty" + "plus" +
-        // "fifteen" under `tight` would read "thirtyplusfifteen").
-        const isWordOp = node.op === "of" || node.op === "off" || ctx.spell !== undefined;
+        // such risk here: `spelled`, the one option that turns them into
+        // locale words too, has already returned above.
+        const isWordOp = node.op === "of" || node.op === "off";
         const sep = ctx.spacing === "tight" && !isWordOp ? "" : " ";
-        return `${left}${sep}${this.opWord(node.op, ctx)}${sep}${right}`;
+        return `${left}${sep}${word ?? node.op}${sep}${right}`;
       }
     }
   }
@@ -524,30 +545,35 @@ export class Printer {
   }
 
   /**
-   * `"of"`/`"off"` already print their locale word regardless of `spelled` —
-   * they are word operators to begin with, nothing for `spelled` to change.
-   * `+ - * /` print bare under every other option, but spell to
-   * `Locale.keywords`'s first word form once `ctx.spell` is set (`OP_KEYWORDS`
-   * is the deliberate mirror of `parse/wordops.ts`'s `KEYWORD_OPS`, walked in
-   * the opposite direction — not literally shared, since that map also folds
-   * the phrasal "divided by"/"multiplied by" case this one has no need of),
-   * falling back to the bare symbol when the locale has no word for it: the
-   * same "no invented word" rule a missing `display` follows for a unit.
+   * The language's own word for `op` in this context, or `undefined` when it
+   * has none — which is a different answer from "the symbol", and the reason
+   * this returns an optional rather than folding the fallback in: a language
+   * assembling the expression itself (`renderExpression`) has to be able to
+   * tell "here is the word" from "there is no word", and the printer must not
+   * quietly hand it a `"/"` dressed up as one.
+   *
+   * `"of"`/`"off"` always have a word regardless of `spelled` — they are word
+   * operators to begin with, nothing for `spelled` to change. `+ - * /` have
+   * one only once `ctx.spell` is set, taken from `Locale.keywords`'s first
+   * form (`OP_KEYWORDS` is the deliberate mirror of `parse/wordops.ts`'s
+   * `KEYWORD_OPS`, walked in the opposite direction — not literally shared,
+   * since that map also folds the phrasal "divided by"/"multiplied by" case
+   * this one has no need of). A comparison operator has no `OP_KEYWORDS` entry
+   * at all and never gets one: `undefined` here, and its bare symbol printed,
+   * is the same "no invented word" rule a missing `forms` entry follows for a
+   * unit.
    */
-  private opWord(op: BinaryOp, ctx: RenderCtx): string {
+  private opKeyword(op: BinaryOp, ctx: RenderCtx): string | undefined {
     switch (op) {
       case "of":
         return this.locale.language.keywords.of?.[0] ?? "of";
       case "off":
         return this.locale.language.keywords.off?.[0] ?? "off";
       default: {
-        if (ctx.spell === undefined) return op;
-        // A comparison has no entry and no word form; the bare symbol is the
-        // answer, reached by the same `?? op` a locale with no word for `+`
-        // takes.
+        if (ctx.spell === undefined) return undefined;
         const keyword = OP_KEYWORDS[op];
-        if (keyword === undefined) return op;
-        return this.locale.language.keywords[keyword]?.[0] ?? op;
+        if (keyword === undefined) return undefined;
+        return this.locale.language.keywords[keyword]?.[0];
       }
     }
   }

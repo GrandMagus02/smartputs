@@ -1,5 +1,5 @@
 import { Decimal } from "@smartput/core";
-import { english as en } from "@smartput/locale-en";
+import { english as en } from "./english";
 
 /**
  * Numbers as they are said: "one hundred and five" read into 105, and 105
@@ -8,6 +8,19 @@ import { english as en } from "@smartput/locale-en";
  * Both directions live together because they are one vocabulary, and a
  * vocabulary split across two packages drifts — a word this one learns to
  * read is a word the other has to learn to say.
+ *
+ * They live in the *language* package rather than beside the `number` kind
+ * because English cardinals are English grammar, not a property of what a
+ * number is: `@smartput/number` declares a ratio of one and a unit id, and a
+ * Ukrainian consumer of that kind has no use for "one hundred and five". This
+ * file already read `english.numerals` from here when it lived next door — the
+ * table it spells from and the table it reads back are now in one package,
+ * which is what stops the two directions drifting apart.
+ *
+ * `english.spell` is deliberately *not* this module's `spellNumber`: it stays
+ * `cardinalSpeller(CARDINALS)`, because the two answer differently for the
+ * values `cardinalSpeller` declines, and swapping one for the other would move
+ * printed output. Merging them is a separate decision, taken against parity.
  */
 
 export interface NumberWords {

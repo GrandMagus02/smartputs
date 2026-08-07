@@ -237,7 +237,9 @@ derivatives and integrals, and the rule traces behind the algebraic steps.
 Symbolic integration rules are loaded on first `integrate` call, not at engine
 construction.
 
-[`@smartput/number`](../number) supplies the number vocabulary both directions
-of the word layer need: `numberFromWords` reads "one hundred and five", and
-`spellNumber` says 105 back. Keeping the pair in one package is what stops a
-word this one learns to read from being a word the other cannot say.
+[`@smartput/locale-en`](../locale-en) supplies the number vocabulary both
+directions of the word layer need: `numberFromWords` reads "one hundred and
+five", and `spellNumber` says 105 back. Keeping the pair in one package is what
+stops a word this one learns to read from being a word the other cannot say —
+and that package is a *language*, not a kind, because cardinals are English
+grammar rather than a property of what a number is.

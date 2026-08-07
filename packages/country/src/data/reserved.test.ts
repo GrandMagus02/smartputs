@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
 import lengthEn from "@smartput/length/locale/en";
-import { NUMBER_WORDS } from "@smartput/number";
+import { NUMBER_WORDS } from "@smartput/locale-en";
 import { COUNTRIES } from "./countries";
 import { RESERVED_WORDS } from "./reserved";
 

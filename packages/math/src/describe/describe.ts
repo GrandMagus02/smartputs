@@ -1,5 +1,5 @@
 import type { ComputeEngine, Expression } from "@cortex-js/compute-engine";
-import { spellNumber } from "@smartput/number";
+import { spellNumber } from "@smartput/locale-en";
 import type { MathJson } from "../types";
 
 /**

@@ -14,7 +14,7 @@ import * as chrono from "../../packages/datetime/node_modules/chrono-node";
 import { BUILTIN_KINDS } from "../../packages/kinds/src/index";
 import BUILTIN_EN from "../../packages/kinds/src/locale/en";
 import { english as en } from "../../packages/locale-en/src/english";
-import { NUMBER_WORDS } from "../../packages/number/src/words";
+import { NUMBER_WORDS } from "../../packages/locale-en/src/words";
 
 /**
  * Builds the four vendored tables — `country/src/data/{countries,reserved}.ts`

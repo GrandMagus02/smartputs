@@ -76,13 +76,16 @@ const ALLOWED: Record<string, string[]> = {
   // `Decimal.set({ precision: 28 })` is what keeps every package at one
   // precision — and for the `Lexicon` type, which compiles away.
   "packages/currency/package.json": ["decimal.js", "@smartput/core"],
-  // The number package is here for its word vocabulary, not its kind: reading
-  // "one hundred and five" and spelling 105 back are what `latexFromWords` and
-  // `describe` share with it.
+  // The English language package is here for its word vocabulary: reading "one
+  // hundred and five" and spelling 105 back are what `latexFromWords` and
+  // `describe` share with it. It named `@smartput/number` for exactly that pair
+  // until the pair moved — a language edge rather than a kind one, which is the
+  // right shape: this package reads *spelled numbers*, and how a number is
+  // spelled is a property of the language, not of the kind whose ratio is one.
   "packages/math/package.json": [
     "@cortex-js/compute-engine",
     "@smartput/core",
-    "@smartput/number",
+    "@smartput/locale-en",
   ],
   // The four halves of what M6 shipped as `@smartput/geo`, layered so the graph
   // has one direction: zip, city and distance are underneath and country is the
@@ -129,11 +132,12 @@ const ALLOWED: Record<string, string[]> = {
   // list is core and decimal.js and will stay that length for every language
   // after it.
   //
-  // The edge runs the other way exactly once, and it is declared rather than
-  // hidden: `@smartput/number`'s `words.ts` reads this package's cardinal table
-  // so that "one hundred and five" is the same number in a spelled count as it
-  // is in a spelled quantity. It is the same import that file already had when
-  // the table lived in core, moved rather than added.
+  // `words.ts` — "one hundred and five" read into 105 and spelled back out —
+  // lives here rather than in `@smartput/number` for the same reason: cardinals
+  // are English grammar, not a property of the kind whose ratio is one. It used
+  // to sit next door and import this package's table across the edge; now the
+  // table it spells from and the table it reads back are one package's, and the
+  // edge is gone rather than reversed.
   "packages/locale-en/package.json": ["@smartput/core", "decimal.js"],
 
   // Extracted built-in kinds. Each is a leaf: it defines one kind against the
@@ -146,16 +150,13 @@ const ALLOWED: Record<string, string[]> = {
   "packages/length/package.json": ["@smartput/core", "@smartput/shared"],
   "packages/mass/package.json": ["@smartput/core", "@smartput/shared"],
   "packages/measure/package.json": ["@smartput/core", "@smartput/shared"],
-  // The one leaf kind with a third edge, and it is a *language* edge rather than
-  // a kind one: `words.ts` reads English cardinals to turn "one hundred and
-  // five" into 105 and back. It named the same table through
-  // `@smartput/core/locale/en` until that module moved into its own package, so
-  // this line records a move, not a new dependency.
-  "packages/number/package.json": [
-    "@smartput/core",
-    "@smartput/locale-en",
-    "@smartput/shared",
-  ],
+  // A leaf again, and the shortest way to say why: this package is a ratio of
+  // one and a unit id. It carried a *language* edge for as long as `words.ts`
+  // lived here — English cardinals, read through `@smartput/locale-en` — and
+  // that file has moved to the language it was always written in, taking the
+  // edge with it. A kind that named one language would have been a kind no
+  // other language could ship without.
+  "packages/number/package.json": ["@smartput/core", "@smartput/shared"],
   "packages/percent/package.json": ["@smartput/core", "@smartput/shared"],
   "packages/speed/package.json": ["@smartput/core", "@smartput/shared"],
   "packages/temperature/package.json": ["@smartput/core", "@smartput/shared"],
