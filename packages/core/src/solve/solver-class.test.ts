@@ -111,7 +111,13 @@ test("the solver instance is frozen and stateless across runs", () => {
 });
 
 test("resolutions are frozen", () => {
-  const [best] = solver.all(programFor("1 kg"));
+  const all = solver.all(programFor("1 kg"));
+  // The array container itself, not just each element: `all[0] = fake` must
+  // fail too, or a mutable container of frozen elements would still let a
+  // caller swap in a whole different resolution.
+  expect(Object.isFrozen(all)).toBe(true);
+  const [best] = all;
+  expect(best).toBeDefined();
   expect(Object.isFrozen(best)).toBe(true);
   // The nested freeze is what actually carries "a resolution is a value" —
   // a frozen Resolution whose `choices` record could still be mutated in

@@ -109,6 +109,14 @@ test("the Tokenizer instance and every TokenStream it produces are frozen", () =
   const stream = tokenizer.run("3 kg");
   expect(Object.isFrozen(stream)).toBe(true);
   expect(Object.isFrozen(stream.tokens)).toBe(true);
+  // The container being frozen does not imply its elements are: a frozen
+  // array of mutable objects still lets `stream.tokens[0].text = "HACK"`
+  // through, which `Parser.run`'s `[...stream.tokens]` (a shallow copy) would
+  // then read as if it were real input.
+  expect(stream.tokens.length).toBeGreaterThan(0);
+  for (const token of stream.tokens) {
+    expect(Object.isFrozen(token)).toBe(true);
+  }
 });
 
 test("two run() calls on the same input return equal output", () => {

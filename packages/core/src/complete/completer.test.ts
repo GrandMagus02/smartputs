@@ -93,6 +93,13 @@ test("output is frozen", () => {
   const completer = new Autocompleter({ registry, locale: en, layers: [en.weights] });
   const rows = completer.run("30 ho");
   expect(Object.isFrozen(rows)).toBe(true);
+  // The container being frozen does not imply each `Completion` is — a test
+  // that only checks `rows` itself would pass even if `deepFreeze` here
+  // regressed to a shallow `Object.freeze`.
+  expect(rows.length).toBeGreaterThan(0);
+  for (const row of rows) {
+    expect(Object.isFrozen(row)).toBe(true);
+  }
 });
 
 test("opts flow through to complete()", () => {

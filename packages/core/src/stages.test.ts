@@ -61,7 +61,14 @@ function evaluateByHand(input: string): Value {
 
 test("a plain quantity: the hand-built pipeline matches createEngine", () => {
   const input = "1 kg";
-  expect(evaluateByHand(input)).toEqual(engine.evaluate(input).value);
+  const value = evaluateByHand(input);
+  expect(value).toEqual(engine.evaluate(input).value);
+  // An absolute assertion, not just an equality with the oracle — see the
+  // binary-expression test below for why a regression shared by both sides
+  // would otherwise slip through.
+  expect(value.kind).toBe("mass");
+  expect(value.unit).toBe("kg");
+  expect(value.canonical.toString()).toBe("1000");
 });
 
 test("a binary expression: the hand-built pipeline matches createEngine", () => {
@@ -79,7 +86,14 @@ test("a binary expression: the hand-built pipeline matches createEngine", () => 
 
 test("a convert: the hand-built pipeline matches createEngine", () => {
   const input = "2 km in m";
-  expect(evaluateByHand(input)).toEqual(engine.evaluate(input).value);
+  const value = evaluateByHand(input);
+  expect(value).toEqual(engine.evaluate(input).value);
+  // An absolute assertion, not just an equality with the oracle — see the
+  // binary-expression test above for why a regression shared by both sides
+  // would otherwise slip through.
+  expect(value.kind).toBe("length");
+  expect(value.unit).toBe("m");
+  expect(value.canonical.toString()).toBe("2000");
 });
 
 test("the hand-built pipeline is not vacuously equal to itself", () => {

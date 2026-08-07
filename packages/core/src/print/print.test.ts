@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test";
 import { BUILTIN_KINDS } from "@smartput/kinds";
 import { Decimal } from "../decimal";
-import { formatValue } from "../format/format";
+import { defineKind } from "../kind/define";
 import { buildRegistry, NUMBER_KIND } from "../kind/registry";
 import en from "../locale/en";
 import type { Node } from "../parse/ast";
@@ -241,6 +241,16 @@ test("spelled: the design doc's done-when", () => {
   );
 });
 
+test('spelled + tight: spelled words never glue together, even under spacing: "tight"', () => {
+  // `isWordOp` exists to stop "of"/"off" gluing into a third word under
+  // `tight` ("20%of100"); `spelled` turns `+` into the locale word "plus",
+  // which carries the identical risk and was not covered — this used to
+  // print "thirtydegreesplusfifteendegrees".
+  expect(
+    printer.print(programFor("30 deg + 15 deg"), { spelled: true, spacing: "tight" }),
+  ).toBe("thirty degrees plus fifteen degrees");
+});
+
 test("spelled: a bare number with no unit spells the same as a quantity's magnitude", () => {
   expect(printer.print(programFor("42"), { spelled: true })).toBe("forty two");
 });
@@ -478,11 +488,13 @@ test("print: resolved mode throws without { resolution } rather than falling bac
 });
 
 test("resolved: matches canonical when every quantity is unambiguous", () => {
+  // Pinned to the literal string, not `printer.print(program)` — comparing
+  // two live calls would let a bug that broke both `canonical` and
+  // `resolved` identically slip through, the same standard the "no
+  // distinguishing spelling" test below already applies.
   const program = programFor("1 kg + 500 g");
   const resolution = solver.best(program);
-  expect(printer.print(program, { mode: "resolved", resolution })).toBe(
-    printer.print(program),
-  );
+  expect(printer.print(program, { mode: "resolved", resolution })).toBe("1 kg + 500 g");
 });
 
 test("resolved: substitutes the resolved reading for an ambiguous quantity", () => {
@@ -546,9 +558,10 @@ test("unit: rebases every quantity of the matching kind, others untouched", () =
 test("unit: a quantity of a different kind is left exactly as canonical prints it", () => {
   // "5 h" is duration, not length — { unit: "m" } (ambiguous on its own,
   // see below) still must not touch it were it to resolve to length.
-  expect(printer.print(programFor("1 kg + 500 g"), { unit: "cm" })).toBe(
-    printer.print(programFor("1 kg + 500 g")),
-  );
+  // Pinned to the literal string, not a second `printer.print()` call —
+  // comparing two live calls would let a bug that broke both sides
+  // identically slip through.
+  expect(printer.print(programFor("1 kg + 500 g"), { unit: "cm" })).toBe("1 kg + 500 g");
 });
 
 test("unit: an unknown alias throws", () => {
@@ -650,35 +663,113 @@ const massValue: Value = Object.freeze({
 });
 
 test("value(): matches formatValue with no options", () => {
-  expect(printer.value(massValue)).toBe(formatValue(massValue, registry, en));
+  // Pinned to the literal string, not a second `formatValue(massValue, ...)`
+  // call — see the two "resolved" tests above for why a live-vs-live
+  // comparison would let a bug that broke both sides identically slip
+  // through.
+  expect(printer.value(massValue)).toBe("1.5 kilograms");
+});
+
+// `massValue` above terminates at "1.5" under every precision from here on,
+// so it cannot tell a caller's `precision`/`rounding` option apart from it
+// being silently dropped — every one of the four tests below would still
+// pass against a `Printer.value` that ignored the option entirely. A
+// repeating decimal (10 / 3) is what makes the option's effect show up in
+// the last printed digit.
+const repeating: Value = Object.freeze({
+  kind: "mass",
+  canonical: new Decimal(10).dividedBy(3),
+  unit: "g",
 });
 
 test("value(): matches formatValue with an explicit precision", () => {
-  const opts = { precision: 4 };
-  expect(printer.value(massValue, opts)).toBe(formatValue(massValue, registry, en, opts));
+  // Default precision (26 significant digits) would print
+  // "3.3333333333333333333333333 grams" — visibly different from this, so a
+  // regression that stopped forwarding `precision` fails this assertion.
+  expect(printer.value(repeating, { precision: 4 })).toBe("3.333 grams");
+});
+
+// `formatValue`'s default rendering path (`format/format.ts`) deliberately
+// strips `rounding` before it ever reaches `formatNumber` — it is a money-hook
+// concern, not a generic-quantity one (see that file's own comment) — so no
+// built-in kind's default path can make a `rounding` option observable at
+// all. A kind with its own `format` hook that forwards `ctx.rounding`
+// explicitly is what closes that gap for this test.
+const roundable = defineKind({
+  id: "roundable",
+  value: { mode: "ratio", canonical: "u", units: { u: 1 } },
+  lexicon: { u: ["u"] },
+  format: (_v, ctx) =>
+    `${ctx.formatNumber(ctx.authored, {
+      ...(ctx.rounding === undefined ? {} : { rounding: ctx.rounding }),
+      precision: ctx.precision ?? 5,
+    })}u`,
+});
+const roundableRegistry = buildRegistry([...BUILTIN_KINDS, roundable], [], en.id);
+const roundableValue: Value = Object.freeze({
+  kind: "roundable",
+  canonical: new Decimal(10).dividedBy(3),
+  unit: "u",
 });
 
 test("value(): folds the printer's own rounding into the call", () => {
-  const withRounding = new Printer({ registry, locale: en, rounding: Decimal.ROUND_UP });
-  expect(withRounding.value(massValue)).toBe(
-    formatValue(massValue, registry, en, { rounding: Decimal.ROUND_UP }),
-  );
+  const withRounding = new Printer({
+    registry: roundableRegistry,
+    locale: en,
+    rounding: Decimal.ROUND_UP,
+  });
+  expect(withRounding.value(roundableValue)).toBe("3.3334u");
 });
 
 test("value(): a caller's own rounding overrides the printer's configured one", () => {
-  const withRounding = new Printer({ registry, locale: en, rounding: Decimal.ROUND_UP });
-  const opts = { rounding: Decimal.ROUND_DOWN };
-  expect(withRounding.value(massValue, opts)).toBe(
-    formatValue(massValue, registry, en, opts),
+  const withRounding = new Printer({
+    registry: roundableRegistry,
+    locale: en,
+    rounding: Decimal.ROUND_UP,
+  });
+  // ROUND_DOWN here, not ROUND_UP: if the caller's own option failed to
+  // override the printer's configured one, this would still read "3.3334u".
+  expect(withRounding.value(roundableValue, { rounding: Decimal.ROUND_DOWN })).toBe(
+    "3.3333u",
   );
 });
 
+// Mirrors evaluator.test.ts's `coin` fixture: a unit ratio that reads
+// `ctx.rates`, unlike `massValue`'s "mass", whose units never do — the reason
+// the original version of this test passed with `rates.get` always
+// returning `null`.
+const coin = defineKind({
+  id: "coin",
+  value: {
+    mode: "ratio",
+    canonical: "tok",
+    units: {
+      tok: 1,
+      usd: { ratio: (ctx) => ctx.rates?.get("usd", "tok") ?? new Decimal(1) },
+    },
+  },
+  lexicon: { usd: ["usd"] },
+});
+const coinRegistry = buildRegistry([...BUILTIN_KINDS, coin], [], en.id);
+const coinValue: Value = Object.freeze({
+  kind: "coin",
+  canonical: new Decimal("10"),
+  unit: "usd",
+});
+
 test("value(): folds the printer's own rates into the call", () => {
-  const rates: RateLookup = { base: "usd", asOf: "2026-01-01", get: () => null };
-  const withRates = new Printer({ registry, locale: en, rates });
-  expect(withRates.value(massValue)).toBe(
-    formatValue(massValue, registry, en, { rates }),
-  );
+  const rates: RateLookup = {
+    base: "usd",
+    asOf: "2026-01-01",
+    get: () => new Decimal("2"),
+  };
+  const withRates = new Printer({ registry: coinRegistry, locale: en, rates });
+  // 10 tok / 2 = "5usd". Without `rates` reaching the call, the ratio falls
+  // back to 1 and this would read "10usd" instead — the next assertion pins
+  // down that that fallback is real, not a second way to reach "5usd".
+  expect(withRates.value(coinValue)).toBe("5usd");
+  const noRates = new Printer({ registry: coinRegistry, locale: en });
+  expect(noRates.value(coinValue)).toBe("10usd");
 });
 
 // --- instance behaviour ---------------------------------------------------

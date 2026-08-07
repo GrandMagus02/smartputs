@@ -60,6 +60,7 @@ test("every corpus input's root span survives leading/trailing padding", () => {
   // trims forces a real length-changing edit, so the padded span only
   // slices out the same text as the unpadded span if the leading trim is
   // actually mapped back through.
+  let checked = 0;
   for (const input of corpusRows) {
     let span: { start: number; end: number } | undefined;
     try {
@@ -87,5 +88,10 @@ test("every corpus input's root span survives leading/trailing padding", () => {
     expect(paddedSpan, padded).toBeDefined();
     if (paddedSpan === undefined) continue;
     expect(padded.slice(paddedSpan.start, paddedSpan.end), padded).toBe(unpaddedSlice);
+    checked += 1;
   }
+  // Guards against a regression that made half the corpus throw silently
+  // halving this test's reach — every `continue` above skips a row without
+  // recording that it did, so a bare loop-with-no-counter would still pass.
+  expect(checked).toBeGreaterThan(30);
 });

@@ -528,7 +528,25 @@ test("completion offers nothing for an opaque kind", () => {
     locales: [en],
     kinds: [number, length, probe([])],
   });
-  expect(engine.complete("1 ut").every((c) => c.kind !== "probe")).toBe(true);
+  // `.every()` over a possibly-empty array is vacuously true — it would pass
+  // just as well if `complete()` always returned `[]`, opaque kind or not.
+  // `toEqual([])` is the actual claim.
+  expect(engine.complete("1 ut")).toEqual([]);
+
+  // The companion: the identical alias, on a non-opaque kind, proves the
+  // emptiness above comes from `probe` being opaque — not from "1 ut" simply
+  // having no match for any kind, which the assertion above could not by
+  // itself distinguish.
+  const clock = defineKind({
+    id: "clock",
+    value: { mode: "ratio", canonical: "utc", units: { utc: 1 } },
+    lexicon: { utc: ["utc"] },
+  });
+  const nonOpaqueEngine = createEngine({
+    locales: [en],
+    kinds: [number, length, clock],
+  });
+  expect(nonOpaqueEngine.complete("1 ut").some((c) => c.kind === "clock")).toBe(true);
 });
 
 /**

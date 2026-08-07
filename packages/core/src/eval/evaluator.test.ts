@@ -159,6 +159,11 @@ test("an input that produces an assumption", () => {
   expect(out.assumptions).toEqual([
     { code: "scale-factor", message: "read as a scale factor" },
   ]);
+  // The container being frozen (asserted elsewhere) does not imply each
+  // entry is — `deepFreeze` recurses, but a test that only checks
+  // `out.assumptions` itself would pass even if a shallow `Object.freeze`
+  // regressed this.
+  expect(Object.isFrozen(out.assumptions[0])).toBe(true);
 });
 
 test("the locale in the constructor reaches evaluateNode, not a hardcoded default", () => {
