@@ -2,6 +2,7 @@ import { expect, test } from "bun:test";
 import { buildRegistry, composeLocale, createEngine, Decimal } from "@smartput/core";
 import { english as en } from "@smartput/locale-en";
 import { tempdelta, temperature } from "./index";
+import temperatureEn from "./locale/en";
 import { TEMPDELTA_UNITS, TEMPERATURE_UNITS, type TemperatureUnit } from "./units";
 import {
   addTempDelta,
@@ -105,7 +106,10 @@ test("cross-path agreement with the engine", () => {
 });
 
 test("every alias resolves to the same unit on both paths", () => {
-  const registry = buildRegistry([temperature, tempdelta]);
+  const registry = buildRegistry(
+    [temperature, tempdelta],
+    [composeLocale(en, temperatureEn)],
+  );
   for (const [alias, unit] of Object.entries(TEMPERATURE_UNITS.alias)) {
     expect(parseTemperature(`7 ${alias}`), alias).toMatchObject({ ok: true, unit });
     expect(parseTempDelta(`7 ${alias}`), alias).toMatchObject({ ok: true, unit });
@@ -121,27 +125,25 @@ test("every alias resolves to the same unit on both paths", () => {
   }
 });
 
-test("contract: the table and the descriptor agree", () => {
-  for (const [kind, table] of [
-    [temperature, TEMPERATURE_UNITS],
-    [tempdelta, TEMPDELTA_UNITS],
+test("contract: the table, the descriptor and the vocabulary agree", () => {
+  for (const [kind, table, vocabulary] of [
+    [temperature, TEMPERATURE_UNITS, temperatureEn[0]],
+    [tempdelta, TEMPDELTA_UNITS, temperatureEn[1]],
   ] as const) {
     expect(Object.keys((kind.value as { units: object }).units).sort()).toEqual(
       Object.keys(table.ratio).sort(),
     );
-    for (const [unit, lexeme] of Object.entries(kind.lexicon ?? {})) {
-      const aliases = Array.isArray(lexeme) ? lexeme : lexeme.aliases;
-      for (const a of aliases ?? []) {
+    expect(vocabulary?.kind).toBe(kind.id);
+    for (const [unit, words] of Object.entries(vocabulary?.units ?? {})) {
+      for (const a of words.aliases) {
         expect(table.alias[a], a).toBe(unit as TemperatureUnit);
       }
     }
-  }
-  // The reverse direction: no alias may exist in the table that the descriptor
-  // never derived.
-  for (const [alias, unit] of Object.entries(TEMPERATURE_UNITS.alias)) {
-    const lexeme = temperature.lexicon?.[unit];
-    const aliases = Array.isArray(lexeme) ? lexeme : (lexeme?.aliases ?? []);
-    expect(aliases, alias).toContain(alias);
+    // The reverse direction: no alias may exist in the table that the
+    // vocabulary never derived.
+    for (const [alias, unit] of Object.entries(table.alias)) {
+      expect(vocabulary?.units[unit]?.aliases ?? [], alias).toContain(alias);
+    }
   }
 });
 

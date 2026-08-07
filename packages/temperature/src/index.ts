@@ -1,25 +1,14 @@
-import {
-  aliasesFor,
-  Decimal,
-  decimalRatios,
-  defineKind,
-  deriveValue,
-} from "@smartput/core";
-import {
-  TEMPDELTA_UNITS,
-  TEMPERATURE_UNITS,
-  type TempDeltaUnit,
-  type TemperatureUnit,
-} from "./units";
+import { Decimal, decimalRatios, defineKind, deriveValue } from "@smartput/core";
+import { TEMPDELTA_UNITS, TEMPERATURE_UNITS, type TemperatureUnit } from "./units";
 
 export type { TempDeltaUnit, TemperatureUnit } from "./units";
 export { TEMPDELTA_UNITS, TEMPERATURE_UNITS } from "./units";
 
-// Aliases and ratios are derived, never restated: `units.ts` is the one place
-// a unit or an alias is added, and it reaches both the engine and the micro
-// path. `symbol`, `display`, `typical` and `ops` stay here -- the micro path
-// has no use for any of them and should not carry their bytes.
-const alias = (unit: TemperatureUnit) => aliasesFor(TEMPERATURE_UNITS, unit);
+// Ratios are derived, never restated: `units.ts` is the one place a unit or an
+// alias is added, and it reaches both the engine and the micro path. `typical`
+// and `ops` stay here -- the micro path has no use for either and should not
+// carry their bytes. The English words moved to `locale/en.ts`; nothing in this
+// file names a language.
 
 // The table's ratios as Decimals. `new Decimal(5).div(9)`, never `5 / 9`: the
 // latter is a JS float before Decimal sees it, and 212F then lands on
@@ -44,22 +33,15 @@ export const temperature = defineKind({
       k: { ratio: ratio.k, offset: offset("k") },
     },
   },
-  // No `display` on any temperature unit, deliberately. The written form a
-  // person actually uses is the symbol — "20°C", not "20 celsius" — and the one
-  // genuine word form, "20 degrees celsius", does not parse: the analyzers have
-  // no route from a two-word unit back to an alias. A bare "20 celsius" parses
-  // but reads worse than the symbol it would replace, so `formatValue` keeps
-  // the symbol and completion falls back to the alias, which is already the
-  // string a user would type. `typical` is unaffected; scaleFit does not care
-  // how a unit renders.
-  //
-  // Bands are magnitudes: scaleFit takes `count.abs()`, so a negative low would
-  // be dead weight. c covers weather through an oven, f the same range in
-  // Fahrenheit, k lab temperatures through lamp colour temperature.
-  lexicon: {
-    c: { aliases: alias("c"), symbol: "°C", typical: [1, 250] },
-    f: { aliases: alias("f"), symbol: "°F", typical: [1, 500] },
-    k: { aliases: alias("k"), symbol: "K", typical: [1, 6500] },
+  // Physics, not language: the magnitude band people type each unit in, read
+  // only by completion's `scaleFit`. Bands are magnitudes -- scaleFit takes
+  // `count.abs()`, so a negative low would be dead weight. c covers weather
+  // through an oven, f the same range in Fahrenheit, k lab temperatures through
+  // lamp colour temperature.
+  typical: {
+    c: [1, 250],
+    f: [1, 500],
+    k: [1, 6500],
   },
   // Only the two genuine signatures live here. The refusals that keep
   // `tempdelta` from silently capturing "20 C * 2", "20 C + 20%" and friends
@@ -92,8 +74,6 @@ export const temperature = defineKind({
   ],
 });
 
-const deltaAlias = (unit: TempDeltaUnit) => aliasesFor(TEMPDELTA_UNITS, unit);
-
 /**
  * A difference between readings. Same ratios as `temperature`, no offsets —
  * that difference is the whole point: 5F as a reading is -15C, as a difference
@@ -112,11 +92,11 @@ export const tempdelta = defineKind({
     canonical: TEMPDELTA_UNITS.canonical,
     units: decimalRatios(TEMPDELTA_UNITS),
   },
-  // `display` omitted for the same reason as `temperature` above. The bands are
-  // narrower: a difference between readings is a smaller number than a reading.
-  lexicon: {
-    c: { aliases: deltaAlias("c"), symbol: "°C", typical: [1, 100] },
-    f: { aliases: deltaAlias("f"), symbol: "°F", typical: [1, 180] },
-    k: { aliases: deltaAlias("k"), symbol: "K", typical: [1, 100] },
+  // Narrower bands than `temperature`'s: a difference between readings is a
+  // smaller number than a reading.
+  typical: {
+    c: [1, 100],
+    f: [1, 180],
+    k: [1, 100],
   },
 });

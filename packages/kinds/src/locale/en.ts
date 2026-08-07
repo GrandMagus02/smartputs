@@ -11,6 +11,7 @@ import numberEn from "@smartput/number/locale/en";
 import percentEn from "@smartput/percent/locale/en";
 import powerEn from "@smartput/power/locale/en";
 import speedEn from "@smartput/speed/locale/en";
+import temperatureEn from "@smartput/temperature/locale/en";
 import tempoEn from "@smartput/tempo/locale/en";
 import volumeEn from "@smartput/volume/locale/en";
 
@@ -45,6 +46,9 @@ const BUILTIN_EN: readonly Vocabulary[] = [
   percentEn,
   powerEn,
   speedEn,
+  // The one package that defines two kinds, so the one entry that spreads:
+  // `temperature` and `tempdelta` ship as an array from a single subpath.
+  ...temperatureEn,
   tempoEn,
   volumeEn,
 ];
