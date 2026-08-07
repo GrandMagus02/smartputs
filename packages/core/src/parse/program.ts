@@ -14,6 +14,15 @@ import type { TokenStream } from "./tokenizer";
  * have to move onto the instruction. The tree already carries both.
  */
 export interface Program {
+  /**
+   * Every `span` (and `ConvertNode.targetSpan`) reachable from here indexes
+   * `input.text` — the normalized string — not `input.source`, the caller's
+   * original. The two only ever differ after normalization edits (NFKC
+   * folding, dash/degree stripping, whitespace collapsing), but when they do,
+   * slicing `source` with a node's raw span is the exact bug this format's
+   * spec opens with. Call `input.mapSpan(span)` first to get a `source`-relative
+   * span.
+   */
   readonly root: Node;
   /** Depth-first, id-indexed. `nodes[n.id] === n` for every node. */
   readonly nodes: readonly Node[];

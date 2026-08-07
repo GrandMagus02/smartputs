@@ -1,3 +1,4 @@
+import { deepFreeze } from "../freeze";
 import type { Registry } from "../kind/registry";
 import type { Locale, MatchCtx } from "../types";
 import { lex, type Token } from "./lex";
@@ -70,7 +71,11 @@ export class Tokenizer {
 
     return Object.freeze({
       input: normalized,
-      tokens: Object.freeze(tokens) as readonly Token[],
+      // `Object.freeze` alone freezes the array but not each `Token` inside
+      // it — every other stage deep-freezes, and `Parser.run`'s `[...stream
+      // .tokens]` copies the array, not its elements, so a mutable token
+      // would still be read downstream. `deepFreeze` closes that gap.
+      tokens: deepFreeze(tokens) as readonly Token[],
     });
   }
 }

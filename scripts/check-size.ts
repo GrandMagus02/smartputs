@@ -737,10 +737,15 @@ export const BUDGETS: EntrySpec[] = [
     gzip: 15_150,
   },
   {
+    // Amendment, 2026-08-07: min rises 37_550 -> 37_600 (measured 37_564 B).
+    // The whole-branch review's fix wave froze `Solver.all`'s returned array
+    // itself, not just each `Resolution` inside it — see the spec's dated
+    // amendment for the measured/committed detail. Gzip is untouched: 14_843
+    // B measured still clears 14_850.
     label: "core/solve",
     from: "@smartput/core/solve",
     names: ["Solver"],
-    min: 37_550,
+    min: 37_600,
     gzip: 14_850,
   },
   {

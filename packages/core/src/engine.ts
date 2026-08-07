@@ -186,13 +186,21 @@ function buildStages(opts: EngineOptions, registry: Registry, locale: Locale) {
  *
  * `opts` must be `createEngine`'s frozen copy, never the caller's own
  * `EngineOptions` object, because `toResult` reads `opts.formatPrecision`/
- * `opts.rounding`/`opts.rates` live, on every call — unlike every other stage
- * here, which snapshots its config once at construction. If `opts` aliased
- * the caller's live object, a caller mutating `opts.rates` after
- * `createEngine` returns would change what `evaluate()` formats and reports
- * as `meta.ratesAsOf`, while `Evaluator` (already constructed, holding the
- * table it was given) keeps computing `value` against the rates that existed
- * at construction time — two rate tables in one `Result`.
+ * `opts.rates` live, on every call — unlike every other stage here, which
+ * snapshots its config once at construction. (`opts.rounding` is not among
+ * them: it never reaches `toResult` at all — it lives on the `Printer`,
+ * already folded into `stages.printer` by `buildStages` before `ctx` is
+ * even built.) If `opts` aliased the caller's live object, a caller mutating
+ * `opts.rates` after `createEngine` returns would change what `evaluate()`
+ * formats and reports as `meta.ratesAsOf`, while `Evaluator` (already
+ * constructed, holding the table it was given) keeps computing `value`
+ * against the rates that existed at construction time — two rate tables in
+ * one `Result`.
+ *
+ * The freeze is shallow, which matters for exactly one of these two fields:
+ * `Object.freeze({ ...callerOpts })` stops `opts.rates = otherTable` but not
+ * `opts.rates.asOf = "…"` — a `RateLookup` a caller keeps a reference to and
+ * mutates in place is not defended against here.
  */
 interface EngineCtx {
   registry: Registry;
@@ -347,22 +355,22 @@ function orNoCandidate<T>(input: string, fn: () => T): T {
   }
 }
 
-export function createEngine(callerOpts: EngineOptions): Engine {
-  const opts = Object.freeze({ ...callerOpts }); // a copy — see EngineCtx's doc for why
-  const locale = opts.locales[0];
-  if (locale === undefined) throw new Error("createEngine requires at least one locale");
-  const registry = buildRegistry(opts.kinds ?? [], opts.packs ?? [], locale.id);
-  const layers = (call?: Weights) => weightLayers(locale, opts, call);
-  const stages = buildStages(opts, registry, locale);
-  const ctx: EngineCtx = {
-    registry,
-    locale,
-    evaluator: stages.evaluator,
-    printer: stages.printer,
-    opts,
-  };
-  // The Parser (and Autocompleter) is rebuilt per call: it closes over the
-  // weight layers, and `EvalOptions.weights` is a per-call override.
+/**
+ * The per-call helpers every `Engine` method needs: `parserFor` and
+ * `completerFor` are rebuilt on every call because both close over the
+ * weight layers `EvalOptions.weights`/`CompleteOptions.weights` can override
+ * per call — `buildStages`'s own doc comment covers why the rest of the
+ * stages are not rebuilt this way. `tokenize` and `compile` live here, not
+ * inline in `createEngine`, purely to keep that function's body a call site
+ * rather than a second place implementing them.
+ */
+function buildHelpers(
+  opts: EngineOptions,
+  registry: Registry,
+  locale: Locale,
+  stages: ReturnType<typeof buildStages>,
+  layers: (call?: Weights) => (Weights | undefined)[],
+) {
   const parserFor = (call?: EvalOptions) =>
     new Parser({
       resolver: createResolver({
@@ -382,6 +390,30 @@ export function createEngine(callerOpts: EngineOptions): Engine {
   };
   const compile = (input: string, call?: EvalOptions): Program =>
     parserFor(call).run(tokenize(input, call));
+  return { parserFor, completerFor, tokenize, compile };
+}
+
+export function createEngine(callerOpts: EngineOptions): Engine {
+  const opts = Object.freeze({ ...callerOpts }); // a copy — see EngineCtx's doc for why
+  const locale = opts.locales[0];
+  if (locale === undefined) throw new Error("createEngine requires at least one locale");
+  const registry = buildRegistry(opts.kinds ?? [], opts.packs ?? [], locale.id);
+  const layers = (call?: Weights) => weightLayers(locale, opts, call);
+  const stages = buildStages(opts, registry, locale);
+  const ctx: EngineCtx = {
+    registry,
+    locale,
+    evaluator: stages.evaluator,
+    printer: stages.printer,
+    opts,
+  };
+  const { parserFor, completerFor, tokenize, compile } = buildHelpers(
+    opts,
+    registry,
+    locale,
+    stages,
+    layers,
+  );
 
   return {
     evaluate(input, call) {

@@ -26,7 +26,15 @@ export interface NormalizedInput {
   readonly text: string;
   readonly edits: readonly Edit[];
   readonly empty: boolean;
-  /** Translate a span in `text` back to a span in `source`. */
+  /**
+   * Translate a span in `text` back to a span in `source`.
+   *
+   * Prototype-bound: this reads `this.offsets` and `this.nfkcShifted`, so
+   * `const { mapSpan } = normalized; mapSpan(s)` throws once detached from
+   * its receiver. Call it as `normalized.mapSpan(s)`, or if you must pass it
+   * on, wrap it — `(span) => normalized.mapSpan(span)` — the way
+   * `program.ts`'s `Parser.run` does.
+   */
   mapSpan(span: Span): Span;
 }
 

@@ -252,11 +252,18 @@ export function solve(
   );
 
   const confidences = softmax(viable.map((v) => v.score));
-  return viable.map((v, i) =>
-    Object.freeze({
-      ...v,
-      choices: Object.freeze(v.choices),
-      confidence: confidences[i] ?? 0,
-    }),
-  );
+  // Every `Resolution` and its `choices` are frozen individually below; the
+  // outer `Object.freeze` is the container, the sibling fix to the
+  // tokenizer's `stream.tokens[0].text = "HACK"` bug. `as Resolution[]` keeps
+  // the declared (mutable) return type — a runtime guarantee, not a new
+  // compile-time one, the same as `ast.ts`'s `Candidate[]`-typed fields.
+  return Object.freeze(
+    viable.map((v, i) =>
+      Object.freeze({
+        ...v,
+        choices: Object.freeze(v.choices),
+        confidence: confidences[i] ?? 0,
+      }),
+    ),
+  ) as Resolution[];
 }

@@ -486,8 +486,11 @@ export class Printer {
         // under `spacing: "tight"` would glue two words into a third one
         // ("20%of100") rather than just remove a space — see
         // `PrintOptions.spacing`'s doc comment. `+ - * /` are symbols, so no
-        // such risk, and are the only ones `spacing: "tight"` ever squeezes.
-        const isWordOp = node.op === "of" || node.op === "off";
+        // such risk *unless* `spelled` has turned them into locale words too
+        // (`opWord` spells them once `ctx.spell` is set) — then they carry
+        // the exact same gluing risk "of"/"off" do ("thirty" + "plus" +
+        // "fifteen" under `tight` would read "thirtyplusfifteen").
+        const isWordOp = node.op === "of" || node.op === "off" || ctx.spell !== undefined;
         const sep = ctx.spacing === "tight" && !isWordOp ? "" : " ";
         return `${left}${sep}${this.opWord(node.op, ctx)}${sep}${right}`;
       }
@@ -570,7 +573,12 @@ export class Printer {
       ctx.spell !== undefined
         ? (ctx.spell(magnitude.magnitude) ?? magnitude.text)
         : magnitude.text;
-    return `${numberText}${sep}${unit}`;
+    // Same gluing risk the binary case's `isWordOp` guards against: once
+    // `spelled` has turned both the magnitude and the unit into locale words,
+    // `tight` must not squeeze them together into a third word
+    // ("thirtydegrees") — see `PrintOptions.spelled`'s doc comment.
+    const unitSep = ctx.spacing === "tight" && ctx.spell === undefined ? "" : " ";
+    return `${numberText}${unitSep}${unit}`;
   }
 
   /**

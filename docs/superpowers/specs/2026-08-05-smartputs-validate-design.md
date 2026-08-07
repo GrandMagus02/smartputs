@@ -1037,6 +1037,29 @@ clears the floor by 6_342 B. The floor is what would have caught the opposite
 mistake: a bundle that lost the composition rewrite entirely and shrank back
 toward the old free-function baseline.
 
+#### Amendment, 2026-08-07 — `core/solve`, the frozen-resolution-array fix
+
+The whole-branch review of the stage restructuring found `Solver.all`'s
+returned array itself unfrozen, though every `Resolution` inside it (and each
+one's `choices`) already was — `solve(...)[0] = fake` silently succeeded where
+`solve(...)[0].kind = "fake"` already threw. The fix wraps the array itself in
+`Object.freeze`, the container-level half of the freeze contract this
+section's rows exist to price.
+
+Measured 37_564 B min (37_549 B before the fix, so the freeze itself costs 15
+B) against `core/solve`'s 37_550 B ceiling — 14 B over, with no slack to
+absorb it: this row had 1 B of headroom left before the fix. Rounded up to the
+next 50 B, touching only the side actually over, same rule as the amendment
+above:
+
+| Entry | Was | Measured | Committed |
+| --- | --- | --- | --- |
+| `core/solve` — min | 37_550 B | 37_564 B | 37_600 B |
+| `core/solve` — gzip | 14_850 B | 14_843 B | 14_850 B (unchanged) |
+
+No other row moved: the fix touches only `solve/solver.ts`'s return
+statement, which nothing outside `@smartput/core/solve` pulls in on its own.
+
 ### The honest comparison
 
 A hand-written single-unit check is about 40 bytes:
