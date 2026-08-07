@@ -263,7 +263,11 @@ test("a custom five-line kind works end to end", () => {
   });
   const r = e.evaluate("2 mib + 500 kb in kb", { kinds: ["datasize2"] });
   expect(r.kind).toBe("datasize2");
-  expect(r.formatted).toBe("2,597.152kb");
+  // The space is `defaultRenderQuantity`'s last branch: no vocabulary names
+  // `datasize2`, so the unit has neither a word nor a symbol and the render
+  // degrades to the registry key (I10). A kind that ships an `en` vocabulary
+  // carries a symbol for every unit (ruling R8) and reads "2,597.152kb".
+  expect(r.formatted).toBe("2,597.152 kb");
 });
 
 test("kindMeta configured on the engine reaches Value.meta via evaluate and coerce", () => {

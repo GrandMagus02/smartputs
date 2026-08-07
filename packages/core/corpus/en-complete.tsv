@@ -52,5 +52,6 @@
 10 kg + 5 gram	mass	g	10 kg + 5 grams
 10 mm + 5 centi	length	cm	10 mm + 5 centimetres
 # No leading count at all: the fragment follows a keyword, so the count scan
-# finds nothing and select(1) renders the singular. "2 km in mile" evaluates.
+# finds nothing and the row is offered as one of the unit, which selects the
+# singular. "2 km in mile" evaluates.
 2 km in mil	length	mi	2 km in mile

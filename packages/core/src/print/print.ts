@@ -577,7 +577,9 @@ export class Printer {
         avoid: avoidSpellings(candidates, chosen, this.registry, this.locale),
         ambiguousSurface: candidates.length > 1 ? candidates[0]?.surface : undefined,
         symbols: ctx.symbols,
-        ...(ctx.spell !== undefined ? { spell: { magnitude: magnitude.magnitude } } : {}),
+        ...(ctx.spell !== undefined
+          ? { spell: { magnitude: magnitude.magnitude, slot: "after-number" as const } }
+          : {}),
       },
       this.registry,
       this.locale,
@@ -614,8 +616,8 @@ export class Printer {
         ? ctx.rebase.unit
         : chosen.unit;
     // No magnitude of its own — `unitWord`'s `spell` option with no
-    // `magnitude` reads that as "select the generic plural category", see
-    // its own doc comment.
+    // `magnitude` hands the language a count-free `FormCtx`, which English
+    // answers with its generic category; see its own doc comment.
     return unitWord(
       {
         kindId: chosen.kind,
@@ -623,7 +625,7 @@ export class Printer {
         avoid: avoidSpellings(target, chosen, this.registry, this.locale),
         ambiguousSurface: target.length > 1 ? target[0]?.surface : undefined,
         symbols: ctx.symbols,
-        ...(ctx.spell !== undefined ? { spell: {} } : {}),
+        ...(ctx.spell !== undefined ? { spell: { slot: "conversion-target" } } : {}),
       },
       this.registry,
       this.locale,

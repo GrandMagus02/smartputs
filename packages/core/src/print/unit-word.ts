@@ -2,7 +2,7 @@ import type { Decimal } from "../decimal";
 import { type Registry, wordsFor } from "../kind/registry";
 import type { NodeId } from "../parse/ast";
 import type { Resolution } from "../solve/solver";
-import type { Candidate, KindId, Locale } from "../types";
+import type { Candidate, KindId, Locale, Slot } from "../types";
 
 /**
  * The spelling-selection cluster `print.ts`'s recursive descent leans on for
@@ -128,20 +128,22 @@ export interface UnitWordOptions {
    * is the word-choice layer `spelled` adds on top of the alias/symbol
    * chain below, not a second function next to it.
    *
-   * `magnitude` is the number this unit word is being printed next to, used
-   * to select `UnitLexeme.display`'s plural category via
-   * `Intl.PluralRules(locale.id).select` — the same call
-   * `format/format.ts`'s `formatValue` already makes for the same reason (a
-   * unit's `display` is keyed by `Intl.LDMLPluralRule` for exactly this).
-   * Omitted when there is no such number — a convert's target
-   * (`renderTarget`) names a unit with no magnitude attached to it at all
-   * ("1 kg in g" has nothing to count "grams" by) — and CLDR requires every
-   * locale to define the `"other"` category, its generic/default one,
-   * precisely for a count-free case like this: that is used directly rather
-   * than synthesizing a fake magnitude just to steer `Intl.PluralRules.select`
-   * there.
+   * `magnitude` is the number this unit word is being printed next to, handed
+   * to `Language.selectForm` as its `count` to pick a key in the unit's
+   * `forms` table — the same call `format/format.ts`'s `formatValue` makes,
+   * for the same reason. Omitted when there is no such number — a convert's
+   * target (`renderTarget`) names a unit with no magnitude attached to it at
+   * all ("1 kg in g" has nothing to count "grams" by) — which is precisely
+   * the case `FormCtx.count`'s optionality exists for (ruling R5): the
+   * language answers for it (English returns `"other"`, CLDR's generic
+   * category) rather than the engine synthesizing a fake magnitude to steer a
+   * plural rule with.
+   *
+   * `slot` is where this word sits in the printed expression, so a language
+   * whose grammar depends on position can answer differently: `"after-number"`
+   * for an operand, `"conversion-target"` for a convert's target.
    */
-  readonly spell?: { readonly magnitude?: Decimal };
+  readonly spell?: { readonly magnitude?: Decimal; readonly slot: Slot };
 }
 
 /**
@@ -210,18 +212,17 @@ export function unitWord(
   const fold = (s: string) => s.toLocaleLowerCase(locale.id);
 
   if (spell !== undefined) {
-    const display = words?.forms;
-    if (display !== undefined) {
-      const category =
-        spell.magnitude !== undefined
-          ? new Intl.PluralRules(locale.id).select(spell.magnitude.toNumber())
-          : "other";
-      const word = display[category];
-      if (word !== undefined && !avoid.has(fold(word))) return word;
-    }
-    // No display, or its selected category collided with `avoid` — fall
-    // through to the alias chain below, never to `symbols` (see this
-    // function's own doc comment).
+    const key = locale.language.selectForm({
+      ...(spell.magnitude !== undefined ? { count: spell.magnitude } : {}),
+      kind: kindId,
+      unit: unitId,
+      slot: spell.slot,
+    });
+    const word = words?.forms?.[key];
+    if (word !== undefined && !avoid.has(fold(word))) return word;
+    // No forms table, no entry under the language's key, or that entry
+    // collided with `avoid` — fall through to the alias chain below, never to
+    // `symbols` (see this function's own doc comment).
   } else if (symbols) {
     const symbol = words?.symbol;
     if (symbol !== undefined && !avoid.has(fold(symbol))) return symbol;

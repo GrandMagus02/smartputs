@@ -1,3 +1,4 @@
+import { Decimal } from "../decimal";
 import { type Registry, wordsFor } from "../kind/registry";
 import { editDistance, nearestWord } from "../parse/distance";
 import { resolveWeight } from "../solve/weights";
@@ -28,6 +29,9 @@ export interface CompleteOptions {
 }
 
 const DEFAULT_LIMIT = 10;
+
+/** The count a fragment with no number in front of it is offered as. */
+const IMPLIED_COUNT = new Decimal(1);
 
 /**
  * The one alias `fragment` is a near-miss of, or null when there is none or
@@ -73,9 +77,6 @@ export function complete(args: {
 
   const folded = fragment.text.normalize("NFKC").toLocaleLowerCase(locale.id);
   const count = leadingCount(input, fragment.span.start, locale) ?? undefined;
-  const category = new Intl.PluralRules(locale.id).select(
-    count === undefined ? 1 : count.toNumber(),
-  );
 
   // Best row per (kind, unit): "mi" and "mile" are the same unit, and offering
   // both would fill the list with near-duplicates. Mirrors resolve(). A
@@ -118,8 +119,26 @@ export function complete(args: {
         scaleFit(count, unit.typical) -
         TYPO_PENALTY * typo;
 
+      // Per row, not once per call: the form key is the language's answer for
+      // *this* unit in *this* kind, and only the language knows whether that
+      // varies — Ukrainian's does, and a single category chosen once for the
+      // whole call would have been English's shape leaking into the loop.
+      //
+      // A fragment with no number in front of it is still offered as one of
+      // the unit, which is what this path has always done (`select(count ??
+      // 1)`) and what the recorded corpus holds: "2 km in mil" -> "2 km in
+      // mile". That is deliberately *not* ruling R5's count-free `FormCtx`.
+      // R5 is about a conversion target, where there is no magnitude anywhere
+      // to count by; here the magnitude is merely not typed yet, and the offer
+      // reads as the name of one of the thing.
+      const formKey = locale.language.selectForm({
+        count: count ?? IMPLIED_COUNT,
+        kind: entry.kind,
+        unit: entry.unit,
+        slot: "after-number",
+      });
       const word =
-        wordsFor(registry, locale.id, entry.kind, entry.unit)?.forms?.[category] ?? alias;
+        wordsFor(registry, locale.id, entry.kind, entry.unit)?.forms?.[formKey] ?? alias;
       const key = `${entry.kind}:${entry.unit}`;
       const existing = best.get(key);
 

@@ -792,12 +792,18 @@ test("value(): folds the printer's own rates into the call", () => {
     get: () => new Decimal("2"),
   };
   const withRates = new Printer({ registry: coinRegistry, locale: en, rates });
-  // 10 tok / 2 = "5usd". Without `rates` reaching the call, the ratio falls
-  // back to 1 and this would read "10usd" instead — the next assertion pins
-  // down that that fallback is real, not a second way to reach "5usd".
-  expect(withRates.value(coinValue)).toBe("5usd");
+  // 10 tok / 2 = "5 usd". Without `rates` reaching the call, the ratio falls
+  // back to 1 and this would read "10 usd" instead — the next assertion pins
+  // down that that fallback is real, not a second way to reach "5 usd".
+  //
+  // The space is `defaultRenderQuantity`'s third branch: `coin` is a fixture
+  // kind with no vocabulary installed at all, so it has neither a word nor a
+  // symbol and degrades to its registry key (I10). Every shipped `en`
+  // vocabulary carries a symbol (ruling R8), which is why nothing in the
+  // parity corpus reaches this branch.
+  expect(withRates.value(coinValue)).toBe("5 usd");
   const noRates = new Printer({ registry: coinRegistry, locale: en });
-  expect(noRates.value(coinValue)).toBe("10usd");
+  expect(noRates.value(coinValue)).toBe("10 usd");
 });
 
 // --- instance behaviour ---------------------------------------------------

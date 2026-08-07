@@ -1,5 +1,7 @@
 import { expect, test } from "bun:test";
+import { english } from "@smartput/locale-en";
 import { Decimal } from "../decimal";
+import { createEngine } from "../engine";
 import { defineKind } from "../kind/define";
 import { buildRegistry } from "../kind/registry";
 import { composeLocale } from "../locale/compose";
@@ -48,22 +50,21 @@ test("uses the plural display form when the number selects it", () => {
     id: "mass",
     value: { mode: "ratio", canonical: "g", units: { kg: 1000 } },
   });
-  const r = buildRegistry(
-    [number, mass2],
-    [
-      composeLocale(en.language, [
-        defineVocabulary({
-          locale: "en",
-          kind: "mass",
-          units: {
-            kg: { aliases: ["kg"], forms: { one: "kilogram", other: "kilograms" } },
-          },
-        }),
-      ]),
-    ],
-  );
-  expect(formatValue(value("1000", "kg"), r, en)).toBe("1 kilogram");
-  expect(formatValue(value("3000", "kg"), r, en)).toBe("3 kilograms");
+  // The real English language, not this file's stub: which key is looked up is
+  // now `Language.selectForm`'s answer, and a stub that always says "other"
+  // would be asserting its own return value rather than plural selection.
+  const loc = composeLocale(english, [
+    defineVocabulary({
+      locale: "en",
+      kind: "mass",
+      units: {
+        kg: { aliases: ["kg"], forms: { one: "kilogram", other: "kilograms" } },
+      },
+    }),
+  ]);
+  const r = buildRegistry([number, mass2], [loc]);
+  expect(formatValue(value("1000", "kg"), r, loc)).toBe("1 kilogram");
+  expect(formatValue(value("3000", "kg"), r, loc)).toBe("3 kilograms");
 });
 
 test("falls back to the symbol when no display form covers the category", () => {
@@ -222,4 +223,62 @@ test("minFractionDigits of 0 adds no separator", () => {
   expect(formatNumber(new Decimal("5000"), en.language, { minFractionDigits: 0 })).toBe(
     "5,000",
   );
+});
+
+test("the language chooses the form key, not Intl", () => {
+  const shouty = defineLanguage({
+    id: "en",
+    numberFormat: "intl",
+    keywords: {},
+    // Deliberately not a CLDR category: proves the engine indexes whatever key
+    // it is handed rather than enumerating categories of its own.
+    selectForm: ({ count }) => (count?.eq(1) ? "singular" : "plural"),
+  });
+  const vocab = defineVocabulary({
+    locale: "en",
+    kind: "mass",
+    units: {
+      kg: {
+        aliases: ["kg"],
+        symbol: "kg",
+        forms: { singular: "kilogram", plural: "kilogrammes" },
+      },
+    },
+  });
+  const engine = createEngine({
+    locales: [composeLocale(shouty, [vocab])],
+    kinds: [mass, number],
+  });
+  expect(engine.evaluate("2 kg").formatted).toBe("2 kilogrammes");
+  expect(engine.evaluate("1 kg").formatted).toBe("1 kilogram");
+});
+
+test("a unit with no words at all degrades to its key (I10)", () => {
+  const bare = composeLocale(english);
+  const engine = createEngine({ locales: [bare], kinds: [mass, number] });
+  expect(engine.evaluate("2 kg").formatted).toBe("2 kg");
+});
+
+test("the slot reaches selectForm", () => {
+  const slots: string[] = [];
+  const spy = defineLanguage({
+    id: "en",
+    numberFormat: "intl",
+    keywords: {},
+    selectForm: ({ slot }) => {
+      slots.push(slot);
+      return "other";
+    },
+  });
+  const massEn = defineVocabulary({
+    locale: "en",
+    kind: "mass",
+    units: { kg: { aliases: ["kg"], symbol: "kg", forms: { other: "kilograms" } } },
+  });
+  const engine = createEngine({
+    locales: [composeLocale(spy, [massEn])],
+    kinds: [mass, number],
+  });
+  engine.evaluate("2 kg");
+  expect(slots).toContain("bare");
 });

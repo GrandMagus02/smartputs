@@ -241,6 +241,15 @@ export interface FormatCtx extends FormatOptions {
    * decimal separator.
    */
   formatNumber(value: Decimal, opts?: FormatOptions): string;
+  /**
+   * The form key for this value, pre-bound to its kind and unit — spec §6. A
+   * hook that renders a word must select it the way the engine does, for the
+   * same reason it must render numbers through `formatNumber`: money's hook
+   * formatted by hand once and silently dropped locale grouping.
+   */
+  selectForm(ctx: { count?: Decimal; slot?: Slot }): string;
+  /** The language's assembler, so a hook composes rather than templates. */
+  renderQuantity(parts: Omit<QuantityParts, "kind" | "unit">): string;
 }
 
 export interface UnitDef {

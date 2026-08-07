@@ -2,7 +2,15 @@ import { Decimal } from "../decimal";
 import { fromCanonical } from "../eval/convert";
 import { NUMBER_KIND, type Registry, wordsFor } from "../kind/registry";
 import { numberSymbols } from "../locale/number";
-import type { FormatOptions, Language, Locale, Value } from "../types";
+import { defaultRenderQuantity } from "../locale/render";
+import type {
+  FormatOptions,
+  Language,
+  Locale,
+  QuantityParts,
+  Slot,
+  Value,
+} from "../types";
 
 export type { FormatOptions } from "../types";
 
@@ -81,12 +89,35 @@ export function formatValue(
         })
       : value.canonical;
 
+  const language = locale.language;
+
+  // Pre-bound to this value's kind and unit, and defaulting `slot` to the same
+  // `"bare"` the default path below passes — a hook renders a finished Value
+  // with no expression around it, exactly as `formatValue` does. Built here
+  // rather than inside the hook branch so the two paths cannot drift on what
+  // "the form key for this value" means.
+  const selectForm = (c: { count?: Decimal; slot?: Slot }): string =>
+    language.selectForm({
+      ...(c.count !== undefined ? { count: c.count } : {}),
+      kind: value.kind,
+      unit: value.unit,
+      slot: c.slot ?? "bare",
+    });
+  const renderQuantity = (parts: Omit<QuantityParts, "kind" | "unit">): string =>
+    (language.renderQuantity ?? defaultRenderQuantity)({
+      ...parts,
+      kind: value.kind,
+      unit: value.unit,
+    });
+
   if (kind.format !== undefined) {
     return kind.format(value, {
       locale: locale.id,
       authored,
       ...opts,
-      formatNumber: (v, o) => formatNumber(v, locale.language, o ?? opts),
+      formatNumber: (v, o) => formatNumber(v, language, o ?? opts),
+      selectForm,
+      renderQuantity,
     });
   }
 
@@ -98,13 +129,22 @@ export function formatValue(
   // 0.33333333333333333333333333 by default and ...334 under ROUND_UP, which
   // is guard-digit noise being promoted to a policy.
   const { rounding: _hookOnly, ...trim } = opts;
-  const numberText = formatNumber(authored, locale.language, trim);
+  const numberText = formatNumber(authored, language, trim);
   if (value.kind === NUMBER_KIND) return numberText;
 
   const words = wordsFor(registry, locale.id, value.kind, value.unit);
-  const category = new Intl.PluralRules(locale.id).select(authored.toNumber());
-  const display = words?.forms?.[category];
+  // `formatValue` renders a finished Value with no expression around it, so
+  // the slot is always "bare". `Printer` is what knows a real position — which
+  // is why Ukrainian's case government after `in` is only correct through the
+  // Printer, and saying so is cheaper than inventing a slot to guess with.
+  const slot = "bare" as const;
+  const key = selectForm({ count: authored, slot });
+  const form = words?.forms?.[key];
 
-  if (display !== undefined) return `${numberText} ${display}`;
-  return `${numberText}${words?.symbol ?? value.unit}`;
+  return renderQuantity({
+    number: numberText,
+    ...(form !== undefined ? { form } : {}),
+    ...(words?.symbol !== undefined ? { symbol: words.symbol } : {}),
+    slot,
+  });
 }
