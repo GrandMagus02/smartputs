@@ -5,6 +5,7 @@ import { length } from "@smartput/length";
 import lengthEn from "@smartput/length/locale/en";
 import { english as en } from "@smartput/locale-en";
 import { number } from "@smartput/number";
+import placeEn from "./locale/en";
 import { definePlace } from "./place";
 
 // `length` is registered because the distance op resolves to it, and `number`
@@ -19,8 +20,11 @@ import { definePlace } from "./place";
 const engine = createEngine({
   // `lengthEn` because a distance's answer is spelled: the corpus records
   // "878.399 kilometres", and words now arrive as a vocabulary rather than off
-  // the kind.
-  locales: [composeLocale(en, [lengthEn])],
+  // the kind. `placeEn` for the same reason and one more — a `place` no
+  // language has spoken for is indexed under its own unit keys, so leaving it
+  // out would put the alpha-2 codes in the global index and make "10 km"
+  // ambiguous between a kilometre and Comoros.
+  locales: [composeLocale(en, [lengthEn, placeEn])],
   kinds: [number, length, definePlace({ cities: CITIES, admin1: ADMIN1 })],
 });
 const raw = await Bun.file(new URL("../corpus/en.tsv", import.meta.url)).text();

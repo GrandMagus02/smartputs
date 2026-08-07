@@ -6,8 +6,10 @@ import {
   Decimal,
   type Kind,
   NoCandidateError,
+  type Vocabulary,
 } from "@smartput/core";
 import { place } from "@smartput/country";
+import placeEn from "@smartput/country/locale/en";
 import { BUILTIN_KINDS } from "@smartput/kinds";
 import BUILTIN_EN from "@smartput/kinds/locale/en";
 import { english as coreEn } from "@smartput/locale-en";
@@ -15,24 +17,28 @@ import { datetime } from "./datetime";
 import datetimeEn from "./locale/en";
 import { TEST_NOW, TEST_ZONE } from "./temporal";
 
-const make = (kinds: Kind[]) =>
+/**
+ * `vocabularies` rather than a constant list because half the engines below
+ * register `place` and half deliberately do not, and a vocabulary for a kind
+ * the registry never registered is a wiring error. It has to be `placeEn`
+ * exactly when `place` is in `kinds`: a kind no language has spoken for is
+ * indexed under its own unit keys, and `place`'s are the ISO alpha-2 codes —
+ * which is how "pm" became Saint Pierre and "3pm" a country, the very
+ * regression the first test below is the net for.
+ */
+const make = (kinds: Kind[], vocabularies: readonly Vocabulary[] = []) =>
   createEngine({
-    locales: [composeLocale(coreEn, [...BUILTIN_EN, datetimeEn])],
+    locales: [composeLocale(coreEn, [...BUILTIN_EN, datetimeEn, ...vocabularies])],
     kinds,
     now: () => TEST_NOW,
     timeZone: TEST_ZONE,
   });
 
-const withGeo = make([...BUILTIN_KINDS, datetime, place]);
+const withGeo = make([...BUILTIN_KINDS, datetime, place], [placeEn]);
 const withoutGeo = make([...BUILTIN_KINDS, datetime]);
 
 /** The same engine `corpus.test.ts` builds, with geo added to it. */
-const corpusEngine = createEngine({
-  locales: [composeLocale(coreEn, [...BUILTIN_EN, datetimeEn])],
-  kinds: [...BUILTIN_KINDS, datetime, place],
-  now: () => TEST_NOW,
-  timeZone: TEST_ZONE,
-});
+const corpusEngine = make([...BUILTIN_KINDS, datetime, place], [placeEn]);
 
 const CORPUS = (await Bun.file(new URL("../corpus/en.tsv", import.meta.url)).text())
   .split("\n")

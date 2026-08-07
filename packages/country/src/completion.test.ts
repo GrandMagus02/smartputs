@@ -17,6 +17,7 @@ import {
   PlaceCompleter,
 } from "./completion";
 import { COUNTRIES } from "./data/countries";
+import placeEn from "./locale/en";
 import { MIN_NAME_LENGTH } from "./matcher";
 import { definePlace } from "./place";
 
@@ -214,7 +215,7 @@ test("a multi-word name completes, through core as well as here", () => {
   // that does not exist. `CompleteCtx` now carries the whole input and the
   // fragment's span, and a row may name the offset it replaces from.
   const engine = createEngine({
-    locales: [composeLocale(coreEn, BUILTIN_EN)],
+    locales: [composeLocale(coreEn, [...BUILTIN_EN, placeEn])],
     kinds: [...BUILTIN_KINDS, { ...definePlace({ cities: CITIES }) }],
   });
   const first = engine.complete("san fran")[0];
@@ -240,7 +241,7 @@ test("a look-back row is scored against the whole of what was typed", () => {
   // fragment, "yor", which neither alias begins with. Both scored zero, the tie
   // fell through to the country code, and "id" sorts above "us".
   const engine = createEngine({
-    locales: [composeLocale(coreEn, BUILTIN_EN)],
+    locales: [composeLocale(coreEn, [...BUILTIN_EN, placeEn])],
     kinds: [...BUILTIN_KINDS, definePlace({ cities: CITIES })],
   });
   expect(engine.complete("new yor").map((r) => r.text)).toEqual([
@@ -348,7 +349,7 @@ test("the call site: the kind registers the completer and core ranks the rows", 
     completions: withCities.completions,
   };
   const engine = createEngine({
-    locales: [composeLocale(coreEn, BUILTIN_EN)],
+    locales: [composeLocale(coreEn, [...BUILTIN_EN, placeEn])],
     kinds: [...BUILTIN_KINDS, kind],
   });
 

@@ -10,7 +10,6 @@ import {
   type MatchCtx,
   NUMBER_FALLBACK_WEIGHT,
   type PlaceMeta,
-  type UnitLexeme,
 } from "@smartput/core";
 import { datetime } from "@smartput/datetime";
 import datetimeEn from "@smartput/datetime/locale/en";
@@ -23,7 +22,8 @@ import { Glob } from "bun";
 import { COUNTRIES } from "./data/countries";
 import { RESERVED_WORDS } from "./data/reserved";
 import { formatPlace } from "./format";
-import { createPlaceLiteral, MIN_NAME_LENGTH } from "./matcher";
+import placeEn from "./locale/en";
+import { createPlaceLiteral } from "./matcher";
 import { place } from "./place";
 
 /**
@@ -39,13 +39,8 @@ import { place } from "./place";
  */
 const postalPlace = place;
 
-const COUNTRY_UNITS: Record<string, UnitLexeme> = {};
-for (const row of COUNTRIES) {
-  COUNTRY_UNITS[row.a2] = {
-    aliases: row.aliases.filter((a) => a.length >= MIN_NAME_LENGTH),
-    symbol: row.name,
-  };
-}
+/** The kind's units, which are ids now that the names live in a vocabulary. */
+const COUNTRY_UNITS: readonly string[] = COUNTRIES.map((row) => row.a2);
 
 /** datetime's test clock, copied for the reason `ambiguity.test.ts` copies it:
  * `temporal.ts` is not a published entry point of that package. */
@@ -54,9 +49,11 @@ const TEST_ZONE = "UTC";
 
 const engineOf = (kind: Kind) =>
   createEngine({
-    locales: [composeLocale(coreEn, BUILTIN_EN)],
+    // `placeEn` beside the built-ins: both kinds below are `place`, and a kind
+    // no language has spoken for is indexed under its own unit keys — which
+    // here are the alpha-2 codes the whole file asserts stay out of the index.
+    locales: [composeLocale(coreEn, [...BUILTIN_EN, placeEn, datetimeEn])],
     kinds: [...BUILTIN_KINDS, datetime, kind],
-    packs: [datetimeEn],
     now: () => TEST_NOW,
     timeZone: TEST_ZONE,
   });
@@ -87,8 +84,7 @@ const names = engineOf(namesPlace);
 
 const registry = buildRegistry(
   [...BUILTIN_KINDS, datetime, postalPlace],
-  [],
-  [datetimeEn],
+  [composeLocale(coreEn, [...BUILTIN_EN, placeEn, datetimeEn])],
 );
 const ctx: MatchCtx = {
   locale: "en",

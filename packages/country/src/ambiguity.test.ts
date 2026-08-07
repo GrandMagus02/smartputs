@@ -29,6 +29,7 @@ import { money, snapshot } from "@smartput/rate";
 import { time } from "@smartput/time";
 import { timeRange } from "@smartput/time-range";
 import { Glob } from "bun";
+import placeEn from "./locale/en";
 import { definePlace } from "./place";
 
 /**
@@ -60,7 +61,10 @@ const places = createEngine({
   // `lengthEn` because this engine replays `packages/country/corpus/en.tsv`,
   // whose distance rows record spelled answers ("878.399 kilometres"), and
   // length's words are a vocabulary now rather than a field on the kind.
-  locales: [composeLocale(coreEn, [lengthEn])],
+  // `placeEn` because a country's names are one too — and because a `place` no
+  // language has spoken for is indexed under its own unit keys, which are the
+  // alpha-2 codes, and "10 km" would be ambiguous with Comoros.
+  locales: [composeLocale(coreEn, [lengthEn, placeEn])],
   kinds: [number, length, geo],
 });
 
@@ -74,24 +78,27 @@ const TEST_ZONE = "UTC";
 /** Everything a real consumer registers at once, which is where a name that
  * belongs to two kinds actually has to be decided. */
 const full = createEngine({
-  locales: [composeLocale(coreEn, BUILTIN_EN)],
+  locales: [composeLocale(coreEn, [...BUILTIN_EN, placeEn, datetimeEn])],
   kinds: [...BUILTIN_KINDS, datetime, geo],
-  packs: [datetimeEn],
   now: () => TEST_NOW,
   timeZone: TEST_ZONE,
 });
 
 /** The same, with geo left out — the control for every "registering geo costs
- * nothing" claim below. */
+ * nothing" claim below. No `placeEn` either: a vocabulary for a kind the
+ * registry never registered is a wiring error, and the control has no place
+ * kind to speak for. */
 const without = createEngine({
-  locales: [composeLocale(coreEn, BUILTIN_EN)],
+  locales: [composeLocale(coreEn, [...BUILTIN_EN, datetimeEn])],
   kinds: [...BUILTIN_KINDS, datetime],
-  packs: [datetimeEn],
   now: () => TEST_NOW,
   timeZone: TEST_ZONE,
 });
 
-const registry = buildRegistry([number, length, geo]);
+const registry = buildRegistry(
+  [number, length, geo],
+  [composeLocale(coreEn, [lengthEn, placeEn])],
+);
 const matchCtx: MatchCtx = {
   locale: "en",
   now: 0,
@@ -384,7 +391,7 @@ const rates = snapshot("EUR", "2026-08-04", { USD: 1.1, UAH: 45.5 });
  * exposed input the milestone shipped.
  */
 const ranges = createEngine({
-  locales: [composeLocale(coreEn, BUILTIN_EN)],
+  locales: [composeLocale(coreEn, [...BUILTIN_EN, placeEn, datetimeEn])],
   kinds: [
     ...BUILTIN_KINDS,
     datetime,
@@ -395,7 +402,6 @@ const ranges = createEngine({
     datetimeRange,
     geo,
   ],
-  packs: [datetimeEn],
   now: () => TEST_NOW,
   timeZone: TEST_ZONE,
 });
@@ -412,7 +418,7 @@ const ranges = createEngine({
  * about either.
  */
 const selections = createEngine({
-  locales: [composeLocale(coreEn, BUILTIN_EN)],
+  locales: [composeLocale(coreEn, [...BUILTIN_EN, placeEn])],
   kinds: [...BUILTIN_KINDS, ...RANGE_KINDS, geo],
 });
 
@@ -420,14 +426,14 @@ const SUITES: readonly Suite[] = [
   {
     file: "packages/core/corpus/en.tsv",
     engine: createEngine({
-      locales: [composeLocale(coreEn, BUILTIN_EN)],
+      locales: [composeLocale(coreEn, [...BUILTIN_EN, placeEn])],
       kinds: [...BUILTIN_KINDS, geo],
     }),
   },
   {
     file: "packages/core/corpus/en-complete.tsv",
     engine: createEngine({
-      locales: [composeLocale(coreEn, BUILTIN_EN)],
+      locales: [composeLocale(coreEn, [...BUILTIN_EN, placeEn])],
       kinds: [...BUILTIN_KINDS, geo],
     }),
     completion: true,
@@ -436,7 +442,7 @@ const SUITES: readonly Suite[] = [
   {
     file: "packages/rate/corpus/en.tsv",
     engine: createEngine({
-      locales: [composeLocale(coreEn)],
+      locales: [composeLocale(coreEn, [placeEn])],
       kinds: [number, money, geo],
       rates,
     }),

@@ -1,11 +1,11 @@
 import type { Admin1Row, CityRow } from "@smartput/city/types";
-import { defineKind, type Kind, type UnitLexeme } from "@smartput/core";
+import { defineKind, type Kind } from "@smartput/core";
 import { PlaceDistance } from "@smartput/distance";
 import { createPostalLiteral } from "@smartput/zip";
 import { PlaceCompleter } from "./completion";
 import { COUNTRIES } from "./data/countries";
 import { formatPlace } from "./format";
-import { createPlaceLiteral, MIN_NAME_LENGTH } from "./matcher";
+import { createPlaceLiteral } from "./matcher";
 
 /**
  * Units are the ISO 3166-1 alpha-2 set (spec §4.1), built from COUNTRIES the
@@ -14,29 +14,22 @@ import { createPlaceLiteral, MIN_NAME_LENGTH } from "./matcher";
  * as an `in` target. Every place Value's unit is therefore its country, which
  * is what lets `LiteralMatch.unit` always name something registered.
  *
- * Names only. The alias index is global — one key, every kind — so shipping the
- * codes as aliases makes "km" Comoros as well as a kilometre, "3pm" a country
- * instead of a time and "3 days ago" unparseable, none of which any weight can
- * undo. §4.1 lists alpha-3 among the aliases; it is dropped here because the
- * matcher's trie carries every code already and offers it a guard the index has
- * no way to express.
+ * Ids, and no words: the names a user types for a country are English, so they
+ * live in `src/locale/en.ts` and reach the registry as a `Vocabulary`. The
+ * argument that used to sit here — that the codes must never be indexed as
+ * aliases, because "km" would be Comoros as well as a kilometre — moved with
+ * them, since the vocabulary is what the alias index is now built from.
  *
- * Cities do not appear here, and that is the non-obvious half of M6.2. The
- * paragraph above is an argument about *volume* as much as about codes: T1 is
- * six thousand more names, and a global index full of "nice", "gaza", "split"
- * and "of" is the same destructive failure at twenty-five times the size. So a
- * city is never a unit — it is reachable only through the matcher's trie, where
- * a claim can be refused by surface, by neighbour and by reserved word before
- * the fold eats the token. A city Value borrows its country's alpha-2 instead,
- * which is why `PlaceMeta.country` still equals `Value.unit` for a city.
+ * Cities do not appear here either, and that is the non-obvious half of M6.2.
+ * That argument is about *volume* as much as about codes: T1 is six thousand
+ * more names, and a global index full of "nice", "gaza", "split" and "of" is
+ * the same destructive failure at twenty-five times the size. So a city is
+ * never a unit — it is reachable only through the matcher's trie, where a claim
+ * can be refused by surface, by neighbour and by reserved word before the fold
+ * eats the token. A city Value borrows its country's alpha-2 instead, which is
+ * why `PlaceMeta.country` still equals `Value.unit` for a city.
  */
-const COUNTRY_UNITS: Record<string, UnitLexeme> = {};
-for (const row of COUNTRIES) {
-  COUNTRY_UNITS[row.a2] = {
-    aliases: row.aliases.filter((a) => a.length >= MIN_NAME_LENGTH),
-    symbol: row.name,
-  };
-}
+const COUNTRY_UNITS: readonly string[] = COUNTRIES.map((row) => row.a2);
 
 export interface PlaceOptions {
   /** T1, from `@smartput/city`. Absent means countries only. */

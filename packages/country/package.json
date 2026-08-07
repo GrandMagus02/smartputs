@@ -13,6 +13,11 @@
       "bun": "./src/providers/index.ts",
       "types": "./dist/providers/index.d.ts",
       "default": "./dist/providers/index.js"
+    },
+    "./locale/en": {
+      "bun": "./src/locale/en.ts",
+      "types": "./dist/locale/en.d.ts",
+      "default": "./dist/locale/en.js"
     }
   },
   "dependencies": {
@@ -31,6 +36,7 @@
     "@smartput/length": "workspace:*",
     "@smartput/locale-en": "workspace:*",
     "@smartput/number": "workspace:*",
+    "@smartput/range": "workspace:*",
     "@smartput/rate": "workspace:*",
     "@smartput/time": "workspace:*",
     "@smartput/time-range": "workspace:*"

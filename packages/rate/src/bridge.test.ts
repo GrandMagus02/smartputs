@@ -9,6 +9,7 @@ import {
   type Value,
 } from "@smartput/core";
 import { place } from "@smartput/country";
+import placeEn from "@smartput/country/locale/en";
 import { english as en } from "@smartput/locale-en";
 import { number } from "@smartput/number";
 import { money } from "./money";
@@ -22,8 +23,12 @@ const CORPUS = (await Bun.file(new URL("../corpus/en.tsv", import.meta.url)).tex
 // One euro buys 1.1 dollars, 170 yen and 45.5 hryvnia.
 const rates = snapshot("EUR", "2026-08-04", { USD: 1.1, JPY: 170, UAH: 45.5 });
 
+// `placeEn` wherever `place` is registered: a kind no language has spoken for
+// is indexed under its own unit keys, and `place`'s are the ISO alpha-2 codes —
+// "in" is India, "is" Iceland, "no" Norway. None of them may become a word the
+// global alias index answers for.
 const withGeo = createEngine({
-  locales: [composeLocale(en)],
+  locales: [composeLocale(en, [placeEn])],
   kinds: [number, money, place],
   rates,
 });
@@ -85,7 +90,7 @@ test("a country whose currency the snapshot cannot quote raises MissingRateError
 
 test("a quotable currency missing from this snapshot raises MissingRateError", () => {
   const noYen = createEngine({
-    locales: [composeLocale(en)],
+    locales: [composeLocale(en, [placeEn])],
     kinds: [number, money, place],
     rates: snapshot("EUR", "2026-08-04", { USD: 1.1 }),
   });
@@ -131,7 +136,7 @@ test("the whole corpus reads the same with geo registered", () => {
   // rates corpus is where a collision between the two would show.
   const corpusRates = snapshot("EUR", "2026-08-04", { USD: 1.1, UAH: 45.5 });
   const engine = createEngine({
-    locales: [composeLocale(en)],
+    locales: [composeLocale(en, [placeEn])],
     kinds: [number, money, place],
     rates: corpusRates,
   });

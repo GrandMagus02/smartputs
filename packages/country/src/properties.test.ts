@@ -3,6 +3,7 @@ import { ADMIN1, CITIES } from "@smartput/city";
 import type { CityRow } from "@smartput/city/types";
 import {
   buildRegistry,
+  composeLocale,
   Decimal,
   type EvalCtx,
   type LiteralMatch,
@@ -12,9 +13,11 @@ import {
 } from "@smartput/core";
 import { PlaceDistance } from "@smartput/distance";
 import { length } from "@smartput/length";
+import { english as en } from "@smartput/locale-en";
 import { number } from "@smartput/number";
 import { COUNTRIES } from "./data/countries";
 import { RESERVED_WORDS } from "./data/reserved";
+import placeEn from "./locale/en";
 import { createPlaceLiteral } from "./matcher";
 import { place } from "./place";
 import type { CountryRow } from "./types";
@@ -201,7 +204,7 @@ test("no reserved word is claimable, as a city or as anything else", () => {
   // harshest reading of the property: `isUnitAlias` would refuse most of these
   // words for the matcher in any engine that registered the kinds they came from,
   // and a net that only holds while its neighbours are loaded is not a net.
-  const bare = buildRegistry([place]);
+  const bare = buildRegistry([place], [composeLocale(en, [placeEn])]);
   const ctx: MatchCtx = {
     locale: "en",
     now: 0,

@@ -16,16 +16,24 @@ import lengthEn from "@smartput/length/locale/en";
 import { english as en } from "@smartput/locale-en";
 import { number } from "@smartput/number";
 import { COUNTRIES } from "./data/countries";
+import placeEn from "./locale/en";
 import { MIN_NAME_LENGTH } from "./matcher";
 import { definePlace, place } from "./place";
 
+/**
+ * `lengthEn` because a distance is formatted as a length, and length's words
+ * are a vocabulary now rather than a field on the kind. `placeEn` because a
+ * country's names are too — and because a `place` no language has spoken for is
+ * indexed under its own unit keys, which for this kind are the alpha-2 codes
+ * every test below asserts stay out of the global index.
+ */
+const enPlace = composeLocale(en, [lengthEn, placeEn]);
+
 const engine = createEngine({
-  // `lengthEn` because a distance is formatted as a length, and length's words
-  // are a vocabulary now rather than a field on the kind.
-  locales: [composeLocale(en, [lengthEn])],
+  locales: [enPlace],
   kinds: [number, length, place],
 });
-const registry = buildRegistry([number, length, place]);
+const registry = buildRegistry([number, length, place], [enPlace]);
 const units = registry.kinds.get("place")?.units;
 
 /**
@@ -37,10 +45,10 @@ const units = registry.kinds.get("place")?.units;
  */
 const cityPlace = definePlace({ cities: CITIES, admin1: ADMIN1 });
 const cityEngine = createEngine({
-  locales: [composeLocale(en, [lengthEn])],
+  locales: [enPlace],
   kinds: [number, length, cityPlace],
 });
-const cityRegistry = buildRegistry([number, length, cityPlace]);
+const cityRegistry = buildRegistry([number, length, cityPlace], [enPlace]);
 const cityUnits = cityRegistry.kinds.get("place")?.units;
 
 /**
