@@ -355,7 +355,6 @@ test("a unit ratio reads the injected rates, and the result is dated", () => {
         },
       },
     },
-    lexicon: { gld: { aliases: ["gld"] }, fln: { aliases: ["fln"] } },
   });
 
   const e = createEngine({
@@ -411,7 +410,6 @@ test("mutating the options object after createEngine does not affect later calls
         },
       },
     },
-    lexicon: { gld: { aliases: ["gld"] }, fln: { aliases: ["fln"] } },
   });
 
   const opts: EngineOptions = {
@@ -461,7 +459,6 @@ test("without rates, a rate-dependent unit raises MissingRateError", () => {
         },
       },
     },
-    lexicon: { gld: { aliases: ["gld"] }, fln: { aliases: ["fln"] } },
   });
   const e = createEngine({
     locales: [composeLocale(en)],
@@ -523,7 +520,7 @@ const gated: LiteralMatcher = (input, offset, ctx) => {
 const probe = (literals: LiteralMatcher[]) =>
   defineKind({
     id: "probe",
-    value: { mode: "opaque", units: { UTC: ["utc"], other: ["other"] } },
+    value: { mode: "opaque", units: ["UTC", "other"] },
     literals,
     format: (v) => v.canonical.toFixed(),
   });
@@ -588,7 +585,6 @@ test("completion offers nothing for an opaque kind", () => {
   const clock = defineKind({
     id: "clock",
     value: { mode: "ratio", canonical: "utc", units: { utc: 1 } },
-    lexicon: { utc: ["utc"] },
   });
   const nonOpaqueEngine = createEngine({
     locales: [composeLocale(en)],
@@ -623,7 +619,7 @@ test("a targetable literal reaches apply with its own meta, not the stand-in's",
   let sawRight: Value | undefined;
   const kind = defineKind({
     id: "probe",
-    value: { mode: "opaque", units: { UTC: ["utc"], other: ["other"] } },
+    value: { mode: "opaque", units: ["UTC", "other"] },
     literals: [
       (input, offset) =>
         input.slice(offset).startsWith("mark")
@@ -765,7 +761,7 @@ test("a claimed word keeps the unit reading of the word underneath it", () => {
   // the alias — the 17 city names datetime's zones took.
   const kind = defineKind({
     id: "probe",
-    value: { mode: "opaque", units: { UTC: ["utc"], other: ["other"] } },
+    value: { mode: "opaque", units: ["UTC", "other"] },
     literals: [
       (input, offset) =>
         input.slice(offset).startsWith("utc")

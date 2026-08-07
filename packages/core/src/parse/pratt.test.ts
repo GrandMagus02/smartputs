@@ -5,6 +5,7 @@ import { defineKind } from "../kind/define";
 import { buildRegistry } from "../kind/registry";
 import { composeLocale } from "../locale/compose";
 import { defineLanguage } from "../locale/define";
+import { defineVocabulary } from "../locale/vocabulary";
 import type { Candidate } from "../types";
 import { createResolver } from "./candidates";
 import { lex } from "./lex";
@@ -28,7 +29,7 @@ const en = composeLocale(
   }),
 );
 const registry = buildRegistry([number, length]);
-const resolver = createResolver({ registry, locale: en, packs: [], layers: [] });
+const resolver = createResolver({ registry, locale: en, layers: [] });
 
 const ast = (input: string) => parse(lex(input, en), resolver, input);
 
@@ -129,10 +130,20 @@ test("a quantity node preserves every candidate for an ambiguous unit", () => {
   const duration = defineKind({
     id: "duration",
     value: { mode: "ratio", canonical: "s", units: { min: 60 } },
-    lexicon: { min: ["min", "m"] },
   });
-  const ambiguous = buildRegistry([number, length, duration]);
-  const r = createResolver({ registry: ambiguous, locale: en, packs: [], layers: [] });
+  const ambiguous = buildRegistry(
+    [number, length, duration],
+    [
+      composeLocale(en.language, [
+        defineVocabulary({
+          locale: "en",
+          kind: "duration",
+          units: { min: { aliases: ["min", "m"] } },
+        }),
+      ]),
+    ],
+  );
+  const r = createResolver({ registry: ambiguous, locale: en, layers: [] });
 
   const node = parse(lex("10 m", en), r, "10 m");
   if (node.type !== "quantity") throw new Error("unreachable");
@@ -188,7 +199,7 @@ test("an off with nothing on its left is not an atom", () => {
  */
 const marks = defineKind({
   id: "mark",
-  value: { mode: "opaque", units: { a: ["mark"], b: ["bee"] } },
+  value: { mode: "opaque", units: ["a", "b"] },
   literals: [
     (input, offset) => {
       if (input.startsWith("mark", offset)) {
@@ -211,11 +222,18 @@ const marks = defineKind({
   ],
 });
 
-const claimed = buildRegistry([number, length, marks]);
+const marksEn = composeLocale(en.language, [
+  defineVocabulary({
+    locale: "en",
+    kind: "mark",
+    units: { a: { aliases: ["mark"] }, b: { aliases: ["bee"] } },
+  }),
+]);
+const claimed = buildRegistry([number, length, marks], [marksEn]);
 const claimedResolver = createResolver({
   registry: claimed,
   locale: en,
-  packs: [],
+
   layers: [],
 });
 
@@ -288,7 +306,7 @@ test("a claimed word is still a unit after a number, when the word is one", () =
  */
 const zones = defineKind({
   id: "zone",
-  value: { mode: "opaque", units: { z: ["zed"] } },
+  value: { mode: "opaque", units: ["z"] },
   literals: [
     (input, offset) =>
       input.startsWith("zed", offset)
@@ -302,7 +320,14 @@ const zones = defineKind({
         : null,
   ],
 });
-const zoned = buildRegistry([number, length, zones]);
+const zonesEn = composeLocale(en.language, [
+  defineVocabulary({
+    locale: "en",
+    kind: "zone",
+    units: { z: { aliases: ["zed"] } },
+  }),
+]);
+const zoned = buildRegistry([number, length, zones], [zonesEn]);
 const zonedAst = (input: string) =>
   parse(
     foldLiterals(lex(input, en), input, zoned, {
@@ -311,7 +336,7 @@ const zonedAst = (input: string) =>
       timeZone: "UTC",
       isUnitAlias: () => false,
     }),
-    createResolver({ registry: zoned, locale: en, packs: [], layers: [] }),
+    createResolver({ registry: zoned, locale: en, layers: [] }),
     input,
   );
 

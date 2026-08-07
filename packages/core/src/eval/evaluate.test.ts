@@ -7,6 +7,7 @@ import { defineKind } from "../kind/define";
 import { buildRegistry } from "../kind/registry";
 import { composeLocale } from "../locale/compose";
 import { defineLanguage } from "../locale/define";
+import { defineVocabulary } from "../locale/vocabulary";
 import { createResolver } from "../parse/candidates";
 import { lex } from "../parse/lex";
 import { normalize } from "../parse/normalize";
@@ -22,14 +23,15 @@ const number = defineKind({
 const length = defineKind({
   id: "length",
   value: { mode: "ratio", canonical: "m", units: { m: 1, km: 1000 } },
-  lexicon: { m: ["m"], km: ["km"] },
 });
 const duration = defineKind({
   id: "duration",
   value: { mode: "ratio", canonical: "s", units: { s: 1, min: 60, h: 3600 } },
-  lexicon: { min: ["min", "m"], h: ["h"], s: ["s"] },
 });
 
+// `m` deliberately names both length's metre and duration's minute: half these
+// tests are about the solver choosing between them, so the ambiguity has to be
+// declared rather than inherited from the unit keys.
 const en = composeLocale(
   defineLanguage({
     id: "en",
@@ -37,11 +39,27 @@ const en = composeLocale(
     keywords: { in: ["in"], of: ["of"] },
     selectForm: () => "other",
   }),
+  [
+    defineVocabulary({
+      locale: "en",
+      kind: "length",
+      units: { m: { aliases: ["m"] }, km: { aliases: ["km"] } },
+    }),
+    defineVocabulary({
+      locale: "en",
+      kind: "duration",
+      units: {
+        min: { aliases: ["min", "m"] },
+        h: { aliases: ["h"] },
+        s: { aliases: ["s"] },
+      },
+    }),
+  ],
 );
-const registry = buildRegistry([number, length, duration]);
+const registry = buildRegistry([number, length, duration], [en]);
 
 function evaluate(input: string) {
-  const resolver = createResolver({ registry, locale: en, packs: [], layers: [] });
+  const resolver = createResolver({ registry, locale: en, layers: [] });
   const normalized = normalize(input);
   const node = parse(lex(normalized.text, en), resolver, input);
   const program = buildProgram(node, normalized);
@@ -119,7 +137,7 @@ test("evaluateNode collects the assumption of every signature it applies", () =>
     ],
   });
   const r = buildRegistry([number, length, duration, noted]);
-  const resolver = createResolver({ registry: r, locale: en, packs: [], layers: [] });
+  const resolver = createResolver({ registry: r, locale: en, layers: [] });
   const input = "2 of 10 km";
   const normalized = normalize(input);
   const node = parse(lex(normalized.text, en), resolver, input);
@@ -146,10 +164,16 @@ test("a plain expression records no assumptions", () => {
 
 // A kind whose `+` records an assumption naming its own operands — the shape
 // money's cross-rate needs, where the detail is known only per expression.
+//
+// Its own locale, with no vocabulary: `en` above speaks for length and
+// duration, and installing a vocabulary for a kind an engine does not register
+// is a wiring error. `gld`/`slv` are typeable regardless — R2 indexes every
+// unit under its own key.
+const bare = composeLocale(en.language);
+
 const dynamicallyNoted = defineKind({
   id: "treasure",
   value: { mode: "ratio", canonical: "gld", units: { gld: 1, slv: 0.5 } },
-  lexicon: { gld: { aliases: ["gld"] }, slv: { aliases: ["slv"] } },
   ops: [
     {
       op: "+",
@@ -174,7 +198,7 @@ const dynamicallyNoted = defineKind({
 
 test("an op can record an assumption dynamically through the context sink", () => {
   const e = createEngine({
-    locales: [en],
+    locales: [bare],
     kinds: [number, dynamicallyNoted],
   });
   const r = e.evaluate("10 gld + 4 slv");
@@ -186,7 +210,7 @@ test("an op can record an assumption dynamically through the context sink", () =
 
 test("the same assumption recorded twice is kept once", () => {
   const e = createEngine({
-    locales: [en],
+    locales: [bare],
     kinds: [number, dynamicallyNoted],
   });
   // Two additions, identical operand units, so both notes serialize the same.

@@ -22,7 +22,7 @@ const registry = buildRegistry(BUILTIN_KINDS, [en]);
 const resolver = createResolver({
   registry,
   locale: en,
-  packs: [],
+
   layers: [english.weights],
 });
 const normalizer = new Normalizer();
@@ -728,7 +728,6 @@ test("value(): matches formatValue with an explicit precision", () => {
 const roundable = defineKind({
   id: "roundable",
   value: { mode: "ratio", canonical: "u", units: { u: 1 } },
-  lexicon: { u: ["u"] },
   format: (_v, ctx) =>
     `${ctx.formatNumber(ctx.authored, {
       ...(ctx.rounding === undefined ? {} : { rounding: ctx.rounding }),
@@ -778,7 +777,6 @@ const coin = defineKind({
       usd: { ratio: (ctx) => ctx.rates?.get("usd", "tok") ?? new Decimal(1) },
     },
   },
-  lexicon: { usd: ["usd"] },
 });
 const coinRegistry = buildRegistry([...BUILTIN_KINDS, coin], [en]);
 const coinValue: Value = Object.freeze({

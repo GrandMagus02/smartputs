@@ -81,7 +81,7 @@ test("a literal matcher claims its span as one token", () => {
       : null;
   const day = defineKind({
     id: "day",
-    value: { mode: "opaque", units: { UTC: ["utc"] } },
+    value: { mode: "opaque", units: ["UTC"] },
     literals: [todayMatcher],
   });
   const registry = buildRegistry([day]);
@@ -148,7 +148,7 @@ test("now() is called once per run(), not fixed at construction", () => {
   };
   const day = defineKind({
     id: "day",
-    value: { mode: "opaque", units: { UTC: ["utc"] } },
+    value: { mode: "opaque", units: ["UTC"] },
     literals: [clockMatcher],
   });
   const registry = buildRegistry([day]);

@@ -336,6 +336,30 @@ today.
 `numerals`, so it is the inverse of the numeral fold that already runs on every
 evaluate.
 
+> **Amendment — i18n §12.** Superseded in part by
+> `2026-08-05-smartputs-i18n-design.md`. `Locale` is no longer the mechanics
+> bag this section assumes: it is a `Language` composed with its vocabularies by
+> `composeLocale`, and every mechanic `Printer` reads — `numberFormat`,
+> `keywords`, `numerals`, `spell` — moves behind `.language`. `Printer`'s
+> constructor therefore takes the format locale rather than a `Locale` in the
+> old sense.
+>
+> `Printer` renders through `Language.renderQuantity` and
+> `Language.renderExpression` instead of assembling the output string itself, so
+> the shape of a rendered quantity is the language's decision rather than a
+> template in `formatValue`. The `spelled` option resolves to `Language.spell`
+> and throws when the language declares none, rather than silently printing
+> digits.
+>
+> `Candidate` gains `locale` (i18n §5.2), which is visible on `Resolution`, so
+> `mode: "resolved"` can show *which language* won a surface and not only which
+> unit — a strictly better answer for the ambiguity this mode exists to make
+> visible.
+>
+> The round-trip contract above is unaffected, and the reason the units it names
+> carry no written-out form is unchanged; only the field's name is, from
+> `display` to `forms`.
+
 ### 4.7 Completer
 
 `complete()` becomes `Completer` with the same config-holding shape. No

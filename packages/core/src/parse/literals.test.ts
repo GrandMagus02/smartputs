@@ -33,7 +33,7 @@ const straddling: LiteralMatcher = (input, offset) =>
 const day = (literals: LiteralMatcher[]) =>
   defineKind({
     id: "day",
-    value: { mode: "opaque", units: { UTC: ["utc"] } },
+    value: { mode: "opaque", units: ["UTC"] },
     literals,
   });
 
@@ -154,7 +154,7 @@ test("two kinds claiming the same span both survive, not just the first to regis
   // order, so a kind sorted later lost its reading outright however heavy it was.
   const other = defineKind({
     id: "aday",
-    value: { mode: "opaque", units: { UTC: ["utc"] } },
+    value: { mode: "opaque", units: ["UTC"] },
     literals: [
       (input, offset) =>
         input.startsWith("today", offset)

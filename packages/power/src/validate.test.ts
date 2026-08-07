@@ -2,6 +2,7 @@ import { expect, test } from "bun:test";
 import { composeLocale, createEngine } from "@smartput/core";
 import { english as en } from "@smartput/locale-en";
 import { power } from "./index";
+import powerEn from "./locale/en";
 import { POWER_UNITS, type PowerUnit } from "./units";
 import { addPower, formatPower, parsePower, toPower } from "./validate";
 
@@ -71,12 +72,17 @@ test("cross-path agreement with the engine", () => {
   }
 });
 
-test("contract: the table and the descriptor agree", () => {
+test("contract: the table, the descriptor and the vocabulary agree", () => {
   expect(Object.keys((power.value as { units: object }).units).sort()).toEqual(
     Object.keys(POWER_UNITS.ratio).sort(),
   );
-  for (const [unit, lexeme] of Object.entries(power.lexicon ?? {})) {
-    const aliases = Array.isArray(lexeme) ? lexeme : lexeme.aliases;
-    for (const a of aliases) expect(POWER_UNITS.alias[a], a).toBe(unit as PowerUnit);
+  // The aliases the engine indexes are the aliases the micro path inverts.
+  // They used to be checked against the kind's `lexicon`; that table now lives
+  // in `./locale/en`, and it is the same claim asked of its new home — an
+  // English word only reaches the engine if `POWER_UNITS.alias` maps it to the
+  // very unit the vocabulary filed it under.
+  for (const [unit, words] of Object.entries(powerEn.units)) {
+    for (const a of words.aliases)
+      expect(POWER_UNITS.alias[a], a).toBe(unit as PowerUnit);
   }
 });

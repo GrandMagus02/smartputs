@@ -5,6 +5,7 @@ import { buildRegistry } from "../kind/registry";
 import { composeLocale } from "../locale/compose";
 import { defineLanguage } from "../locale/define";
 import { parseNumber } from "../locale/number";
+import { defineVocabulary } from "../locale/vocabulary";
 import type { Value } from "../types";
 import { formatNumber, formatValue } from "./format";
 
@@ -16,23 +17,25 @@ const number = defineKind({
 const mass = defineKind({
   id: "mass",
   value: { mode: "ratio", canonical: "g", units: { g: 1, kg: 1000 } },
-  lexicon: {
-    // No `display` here on purpose: this fixture exercises the symbol path.
-    // Intl.PluralRules("en").select(1.5) is "other", so a display.other entry
-    // would make every test below render "1.5 kilograms" instead of "1.5kg".
-    // The display path gets its own fixture (mass2) in the test that needs it.
-    kg: { aliases: ["kg"], symbol: "kg" },
-    g: { aliases: ["g"], symbol: "g" },
-  },
 });
 
-const registry = buildRegistry([number, mass]);
+const massWords = {
+  // No `forms` here on purpose: this fixture exercises the symbol path.
+  // Intl.PluralRules("en").select(1.5) is "other", so a `forms.other` entry
+  // would make every test below render "1.5 kilograms" instead of "1.5kg".
+  // The forms path gets its own fixture (mass2) in the test that needs it.
+  kg: { aliases: ["kg"], symbol: "kg" },
+  g: { aliases: ["g"], symbol: "g" },
+};
+
 const loc = (id: string) =>
   composeLocale(
     defineLanguage({ id, numberFormat: "intl", keywords: {}, selectForm: () => "other" }),
+    [defineVocabulary({ locale: id, kind: "mass", units: massWords })],
   );
 const en = loc("en");
 const de = loc("de");
+const registry = buildRegistry([number, mass], [en, de]);
 const value = (canonical: string, unit: string): Value =>
   Object.freeze({ kind: "mass", canonical: new Decimal(canonical), unit });
 
@@ -44,11 +47,21 @@ test("uses the plural display form when the number selects it", () => {
   const mass2 = defineKind({
     id: "mass",
     value: { mode: "ratio", canonical: "g", units: { kg: 1000 } },
-    lexicon: {
-      kg: { aliases: ["kg"], display: { one: "kilogram", other: "kilograms" } },
-    },
   });
-  const r = buildRegistry([number, mass2]);
+  const r = buildRegistry(
+    [number, mass2],
+    [
+      composeLocale(en.language, [
+        defineVocabulary({
+          locale: "en",
+          kind: "mass",
+          units: {
+            kg: { aliases: ["kg"], forms: { one: "kilogram", other: "kilograms" } },
+          },
+        }),
+      ]),
+    ],
+  );
   expect(formatValue(value("1000", "kg"), r, en)).toBe("1 kilogram");
   expect(formatValue(value("3000", "kg"), r, en)).toBe("3 kilograms");
 });
@@ -130,7 +143,7 @@ test("a kind's own format hook wins over the default rendering", () => {
     value: { mode: "ratio", canonical: "g", units: { g: 1, kg: 1000 } },
     format: (v) => `<<${v.canonical.toFixed()}>>`,
   });
-  const r = buildRegistry([number, shouty]);
+  const r = buildRegistry([number, shouty], [en]);
   expect(formatValue(value("1500", "kg"), r, en)).toBe("<<1500>>");
 });
 

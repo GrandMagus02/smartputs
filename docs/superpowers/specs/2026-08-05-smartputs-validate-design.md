@@ -221,6 +221,23 @@ on the locale analyzer's suffix stripper to reach `degrees`. The micro path has
 no analyzer, so plurals are enumerated in `units.ts`. The engine path gains them
 too, which is harmless — the analyzer already produced the same lemma.
 
+> **Amendment — i18n §12.** Superseded in part by
+> `2026-08-05-smartputs-i18n-design.md`. Under I1 a kind descriptor carries no
+> words at all, so `Kind.lexicon` no longer exists and the `defineKind` example
+> above keeps only `id` and `value` (plus `typical`, which moves up to the kind
+> as a language-free magnitude band). The derivation does not disappear, it
+> moves one file over: `@smartput/<kind>/src/locale/en.ts` calls
+> `defineVocabulary` and derives its `aliases` from `units.ts`'s `alias` map via
+> the same `aliasesFor`, adding `symbol` and renaming `display` to `forms`.
+>
+> The direction this section exists to protect is unchanged. `units.ts` remains
+> the single source of English aliases, which is what keeps the micro path and
+> the engine path in agreement, and the cross-path test of §12 now asks that
+> agreement of the vocabulary rather than of the lexicon — the same claim about
+> a new home. The micro path stays `en`-only, as V9 already states: `units.ts`
+> is data a vocabulary reads, not words a kind speaks, which is why it is the
+> one file exempt from the English-freedom test that enforces I1.
+
 ## 5. The parser
 
 ```ts

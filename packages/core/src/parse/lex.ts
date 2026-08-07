@@ -77,7 +77,7 @@ const COMPARISONS: ReadonlyArray<readonly [string, OpSymbol]> = [
 ];
 
 // Unit symbols that are not letters and not arithmetic ops still need to
-// reach the resolver as a word so a kind's lexicon can claim them — "%" is
+// reach the resolver as a word so a vocabulary can claim them — "%" is
 // the M2 case, and M3's currency symbols ($, €, £, ...) are expected to add
 // entries here. This is an explicit allowlist, not a general "any symbol
 // character becomes a word" rule, because a general rule would break "20 °C":

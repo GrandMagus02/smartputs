@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { length } from "@smartput/length";
+import lengthEn from "@smartput/length/locale/en";
 import { NUMBER_WORDS } from "@smartput/number";
 import { COUNTRIES } from "./countries";
 import { RESERVED_WORDS } from "./reserved";
@@ -80,14 +80,18 @@ test("the number package's whole vocabulary is in it", () => {
   for (const word of NUMBER_WORDS) expect(RESERVED_WORDS.has(word)).toBe(true);
 });
 
-test("every alias and display form of a built-in kind is in it", () => {
+test("every alias and written form of a built-in kind is in it", () => {
   // `length` stands for all twelve: geo dev-depends on it, and every unit alias
   // reaches the reserved set by the same route. "10 km" and "10 miles" are the
-  // readings a city called Km or Miles would have taken.
-  for (const [unit, lexeme] of Object.entries(length.lexicon ?? {})) {
-    const words = Array.isArray(lexeme)
-      ? lexeme
-      : [...lexeme.aliases, lexeme.symbol ?? "", ...Object.values(lexeme.display ?? {})];
+  // readings a city called Km or Miles would have taken. The words are read
+  // from the kind's English vocabulary, which is where they moved when the
+  // descriptor stopped carrying a `lexicon`.
+  for (const [unit, entry] of Object.entries(lengthEn.units)) {
+    const words = [
+      ...entry.aliases,
+      entry.symbol ?? "",
+      ...Object.values(entry.forms ?? {}),
+    ];
     for (const word of [unit, ...words]) {
       if (!/^[a-z][a-z']*$/.test(word)) continue;
       expect(RESERVED_WORDS.has(word)).toBe(true);

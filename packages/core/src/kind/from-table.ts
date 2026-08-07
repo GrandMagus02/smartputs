@@ -25,7 +25,7 @@ export interface RatioTable<U extends string> {
  * The engine-side view of a `UnitTable`. `units.ts` is the single source of a
  * kind's ratios and English aliases; this widens the decimal strings to
  * `Decimal` so the descriptor keeps every digit, and inverts the flat alias map
- * into the per-unit arrays a lexicon wants.
+ * into the per-unit arrays a vocabulary wants.
  *
  * A dynamic ratio has no constant form, so `decimalRatios` refuses it by name
  * rather than coercing a function to NaN. `measure` keeps declaring its own

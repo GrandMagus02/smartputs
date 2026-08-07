@@ -608,10 +608,22 @@ function unitPrefixes(): string[] {
  * it is in the list rather than fixed because a per-kind thumb on that tie is
  * the very thing the rebase below removed.
  *
- * `hor` is the newest and reads the same way: `@smartput/power` put
- * "horsepower" in the alias index, which made "hor" a unit prefix for the first
- * time, and Horlivka is eight letters against horsepower's ten. Nothing about
- * the ranking changed — a fragment that no unit used to claim simply appeared.
+ * `hor` reads the same way: `@smartput/power` put "horsepower" in the alias
+ * index, which made "hor" a unit prefix for the first time, and Horlivka is
+ * eight letters against horsepower's ten. Nothing about the ranking changed —
+ * a fragment that no unit used to claim simply appeared.
+ *
+ * `bo` is the newest, and it arrived by a different route worth naming.
+ * `@smartput/boolean` ships no vocabulary in any language, so R2's floor
+ * indexes its sentinel unit under its own id, `bool`, tagged `"*"` — making
+ * "bo" a unit prefix for the first time, which Bolivia then leads. It is here
+ * rather than fixed because fixing it belongs to whoever owns that kind: five
+ * of the six wordless sentinels (`calendar-day`, `wall-clock`, `date-span`,
+ * `datetime-span`, `range-slice`, `index-position`) stay un-typeable by having
+ * a hyphen in the id, which the lexer cannot produce inside a word, and `bool`
+ * is the one that does not. Renaming it would retire this entry; so would
+ * giving core a real "sentinel unit, never index" notion. Neither is a change
+ * to how places rank, which is what this test is about.
  *
  * A weight advantage is the ranking nobody can explain, and this list is how the
  * difference stays visible: at spec §6.1's own figures, which is what the
@@ -622,6 +634,7 @@ function unitPrefixes(): string[] {
  * such term at all, so `completion.ts` rebases them onto core's own origin.
  */
 const PLACE_LED: readonly string[] = [
+  "bo",
   "ce",
   "fa",
   "he",

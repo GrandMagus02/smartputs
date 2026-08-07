@@ -3,7 +3,6 @@ import { BUILTIN_KINDS } from "@smartput/kinds";
 import { Decimal } from "../decimal";
 import { DimensionMismatchError, KindConflictError, UnknownKindError } from "../errors";
 import { composeLocale, defineLanguage, defineVocabulary } from "../index";
-import { defineLocalePack } from "../locale/define";
 import type { EvalCtx, LiteralMatcher, Value } from "../types";
 import { defineKind } from "./define";
 import { buildRegistry, opKey, wordsFor } from "./registry";
@@ -11,7 +10,23 @@ import { buildRegistry, opKey, wordsFor } from "./registry";
 const mass = defineKind({
   id: "mass",
   value: { mode: "ratio", canonical: "g", units: { g: 1, kg: 1000 } },
-  lexicon: { kg: ["kg", "kilo"] },
+});
+
+const massEn = defineVocabulary({
+  locale: "en",
+  kind: "mass",
+  units: { kg: { aliases: ["kg", "kilo"], symbol: "kg" } },
+});
+
+const massUk = defineVocabulary({
+  locale: "uk",
+  kind: "mass",
+  units: {
+    kg: {
+      aliases: ["\u043a\u0433", "\u043a\u0456\u043b\u043e\u0433\u0440\u0430\u043c"],
+      symbol: "\u043a\u0433",
+    },
+  },
 });
 
 const number = defineKind({
@@ -20,9 +35,10 @@ const number = defineKind({
 });
 
 /**
- * Two installed languages, so the pack tests can say which one they expect to
- * be read: the alias index is built for the languages that are installed, and
- * a `uk` pack is invisible until a `uk` locale is one of them.
+ * Two languages with a vocabulary each, so the tests below can say which one
+ * they expect to be read: the alias index is built for the languages that are
+ * installed, and Ukrainian words are invisible until a `uk` locale is one of
+ * them.
  */
 const english = composeLocale(
   defineLanguage({
@@ -31,6 +47,7 @@ const english = composeLocale(
     keywords: {},
     selectForm: () => "other",
   }),
+  [massEn],
 );
 
 const ukrainian = composeLocale(
@@ -40,6 +57,7 @@ const ukrainian = composeLocale(
     keywords: {},
     selectForm: () => "other",
   }),
+  [massUk],
 );
 
 test("ratio kinds get same-kind + and - for free", () => {
@@ -62,44 +80,37 @@ test("ratio kinds get in-kind conversion", () => {
 });
 
 test("the alias index maps every alias to its kind and unit", () => {
-  const r = buildRegistry([number, mass]);
+  const r = buildRegistry([number, mass], [english]);
   expect(r.aliasIndex.get("kilo")).toEqual([{ kind: "mass", unit: "kg", locale: "en" }]);
   expect(r.aliasIndex.get("kg")).toEqual([{ kind: "mass", unit: "kg", locale: "en" }]);
 });
 
 test("the alias index is case-folded", () => {
-  const r = buildRegistry([number, mass]);
+  const r = buildRegistry([number, mass], [english]);
   expect(r.aliasIndex.get("kg")).toBeDefined();
   expect(r.aliasIndex.has("KG")).toBe(false);
 });
 
-test("a locale pack unions aliases into the index", () => {
-  const pack = defineLocalePack({
-    locale: "uk",
-    contributes: { mass: { kg: { aliases: ["кг", "кілограм"] } } },
-  });
-  // Both languages installed, which is what "unions" now means: each table is
-  // read under its own language and both reach the one index.
-  const r = buildRegistry([number, mass], [english, ukrainian], [pack]);
+test("two installed languages both reach the one index, each tagged", () => {
+  const r = buildRegistry([number, mass], [english, ukrainian]);
   expect(r.aliasIndex.get("кг")).toEqual([{ kind: "mass", unit: "kg", locale: "uk" }]);
   expect(r.aliasIndex.get("kg")).toEqual([{ kind: "mass", unit: "kg", locale: "en" }]);
 });
 
-test("a pack for another locale is ignored", () => {
-  const pack = defineLocalePack({
-    locale: "uk",
-    contributes: { mass: { kg: { aliases: ["кг"] } } },
-  });
-  const r = buildRegistry([number, mass], [], [pack]);
+test("a language that is not installed contributes nothing", () => {
+  const r = buildRegistry([number, mass], [english]);
   expect(r.aliasIndex.has("кг")).toBe(false);
 });
 
-test("a pack naming an unregistered kind throws at build time", () => {
-  const pack = defineLocalePack({
+test("a vocabulary naming an unregistered kind throws at build time", () => {
+  const stray = defineVocabulary({
     locale: "en",
-    contributes: { nosuchkind: { x: ["x"] } },
+    kind: "nosuchkind",
+    units: { x: { aliases: ["x"] } },
   });
-  expect(() => buildRegistry([number, mass], [], [pack])).toThrow(UnknownKindError);
+  expect(() =>
+    buildRegistry([number, mass], [composeLocale(english.language, [stray])]),
+  ).toThrow(UnknownKindError);
 });
 
 test("extendsKind merges units and aliases into the base kind", () => {
@@ -107,9 +118,21 @@ test("extendsKind merges units and aliases into the base kind", () => {
     id: "mass-extra",
     extendsKind: "mass",
     value: { mode: "ratio", canonical: "g", units: { t: 1e6 } },
-    lexicon: { t: ["t", "tonne"] },
   });
-  const r = buildRegistry([number, mass, patch]);
+  // A patch kind's words name the *base* kind, because that is the id the
+  // registry ends up holding — and they therefore share one vocabulary with
+  // the base's, since `composeLocale` allows only one per kind per language.
+  const merged = composeLocale(english.language, [
+    defineVocabulary({
+      locale: "en",
+      kind: "mass",
+      units: {
+        kg: { aliases: ["kg", "kilo"] },
+        t: { aliases: ["t", "tonne"] },
+      },
+    }),
+  ]);
+  const r = buildRegistry([number, mass, patch], [merged]);
   expect(r.kinds.get("mass")?.units.has("t")).toBe(true);
   expect(r.aliasIndex.get("tonne")).toEqual([{ kind: "mass", unit: "t", locale: "en" }]);
   expect(r.aliasIndex.get("t")).toEqual([{ kind: "mass", unit: "t", locale: "en" }]);
@@ -138,21 +161,22 @@ test("a patch whose value.mode differs from its base throws", () => {
   expect(() => buildRegistry([number, mass, opaquePatch])).toThrow(KindConflictError);
 });
 
-test("a pack naming an unregistered unit throws", () => {
-  const pack = defineLocalePack({
-    locale: "en",
-    contributes: { mass: { nosuchunit: ["x"] } },
-  });
-  expect(() => buildRegistry([number, mass], [], [pack])).toThrow(UnknownKindError);
+const strayUnit = () =>
+  composeLocale(english.language, [
+    defineVocabulary({
+      locale: "en",
+      kind: "mass",
+      units: { nosuchunit: { aliases: ["x"] } },
+    }),
+  ]);
+
+test("a vocabulary naming an unregistered unit throws", () => {
+  expect(() => buildRegistry([number, mass], [strayUnit()])).toThrow(UnknownKindError);
 });
 
 test("an unregistered unit reports a bare kind id and the unit separately", () => {
-  const pack = defineLocalePack({
-    locale: "en",
-    contributes: { mass: { nosuchunit: ["x"] } },
-  });
   try {
-    buildRegistry([number, mass], [], [pack]);
+    buildRegistry([number, mass], [strayUnit()]);
     throw new Error("should have thrown");
   } catch (e) {
     expect(e).toBeInstanceOf(UnknownKindError);
@@ -280,14 +304,20 @@ test("an ambiguous alias yields several entries sorted by kind id", () => {
   const duration = defineKind({
     id: "duration",
     value: { mode: "ratio", canonical: "s", units: { min: 60 } },
-    lexicon: { min: ["min", "m"] },
   });
   const length = defineKind({
     id: "length",
     value: { mode: "ratio", canonical: "m", units: { m: 1 } },
-    lexicon: { m: ["m"] },
   });
-  const r = buildRegistry([number, duration, length]);
+  const ambiguous = composeLocale(english.language, [
+    defineVocabulary({
+      locale: "en",
+      kind: "duration",
+      units: { min: { aliases: ["min", "m"] } },
+    }),
+    defineVocabulary({ locale: "en", kind: "length", units: { m: { aliases: ["m"] } } }),
+  ]);
+  const r = buildRegistry([number, duration, length], [ambiguous]);
   expect(r.aliasIndex.get("m")).toEqual([
     { kind: "duration", unit: "min", locale: "en" },
     { kind: "length", unit: "m", locale: "en" },
@@ -639,18 +669,25 @@ const noopMatcher: LiteralMatcher = () => null;
 
 const zone = defineKind({
   id: "zone",
-  value: {
-    mode: "opaque",
-    units: {
-      UTC: ["utc", "z"],
-      "Asia/Tokyo": { aliases: ["tokyo", "jst"], symbol: "JST" },
-    },
-  },
+  // Bare ids, ruling R1: an opaque unit is a label, and a label's words live
+  // in a vocabulary exactly as a ratio unit's do.
+  value: { mode: "opaque", units: ["UTC", "Asia/Tokyo"] },
   literals: [noopMatcher],
 });
 
+const zoneEn = composeLocale(english.language, [
+  defineVocabulary({
+    locale: "en",
+    kind: "zone",
+    units: {
+      UTC: { aliases: ["utc", "z"], symbol: "UTC" },
+      "Asia/Tokyo": { aliases: ["tokyo", "jst"], symbol: "JST" },
+    },
+  }),
+]);
+
 test("an opaque kind's units reach the alias index", () => {
-  const registry = buildRegistry([zone]);
+  const registry = buildRegistry([zone], [zoneEn]);
   expect(registry.aliasIndex.get("tokyo")).toEqual([
     { kind: "zone", unit: "Asia/Tokyo", locale: "en" },
   ]);
@@ -660,7 +697,7 @@ test("an opaque kind's units reach the alias index", () => {
 });
 
 test("an opaque kind's unit carries its words", () => {
-  const registry = buildRegistry([zone]);
+  const registry = buildRegistry([zone], [zoneEn]);
   expect(wordsFor(registry, "en", "zone", "Asia/Tokyo")?.symbol).toBe("JST");
 });
 
@@ -673,7 +710,7 @@ test("an opaque kind generates no ops", () => {
 test("literal matchers are collected in kind-id order", () => {
   const other = defineKind({
     id: "aaa",
-    value: { mode: "opaque", units: { x: ["x"] } },
+    value: { mode: "opaque", units: ["x"] },
     literals: [noopMatcher],
   });
   const registry = buildRegistry([zone, other]);
@@ -774,7 +811,7 @@ test("a kind its language does speak for is not also indexed by bare key", () =>
   ]);
 });
 
-test("typical is read off the kind, not off a lexeme", () => {
+test("typical is read off the kind", () => {
   const registry = buildRegistry([widget]);
   expect(registry.kinds.get("widget")?.units.get("kw")?.typical).toEqual([1, 10]);
 });

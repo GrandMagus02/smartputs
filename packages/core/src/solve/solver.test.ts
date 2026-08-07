@@ -8,6 +8,7 @@ import { defineKind } from "../kind/define";
 import { buildRegistry } from "../kind/registry";
 import { composeLocale } from "../locale/compose";
 import { defineLanguage } from "../locale/define";
+import { defineVocabulary } from "../locale/vocabulary";
 import { createResolver } from "../parse/candidates";
 import { lex } from "../parse/lex";
 import { normalize } from "../parse/normalize";
@@ -23,14 +24,15 @@ const number = defineKind({
 const length = defineKind({
   id: "length",
   value: { mode: "ratio", canonical: "m", units: { m: 1, km: 1000 } },
-  lexicon: { m: ["m"], km: ["km"] },
 });
 const duration = defineKind({
   id: "duration",
   value: { mode: "ratio", canonical: "s", units: { min: 60, h: 3600 } },
-  lexicon: { min: ["min", "m"], h: ["h"] },
 });
 
+// `m` names both length's metre and duration's minute. That collision is the
+// subject of most of this file, so it is declared rather than left to R2's
+// unit-key floor, which would only ever spell `min`.
 const en = composeLocale(
   defineLanguage({
     id: "en",
@@ -38,11 +40,23 @@ const en = composeLocale(
     keywords: { in: ["in"] },
     selectForm: () => "other",
   }),
+  [
+    defineVocabulary({
+      locale: "en",
+      kind: "length",
+      units: { m: { aliases: ["m"] }, km: { aliases: ["km"] } },
+    }),
+    defineVocabulary({
+      locale: "en",
+      kind: "duration",
+      units: { min: { aliases: ["min", "m"] }, h: { aliases: ["h"] } },
+    }),
+  ],
 );
-const registry = buildRegistry([number, length, duration]);
+const registry = buildRegistry([number, length, duration], [en]);
 
 function run(input: string, layers: Parameters<typeof createResolver>[0]["layers"] = []) {
-  const resolver = createResolver({ registry, locale: en, packs: [], layers });
+  const resolver = createResolver({ registry, locale: en, layers });
   const normalized = normalize(input);
   const node = parse(lex(normalized.text, en), resolver, input);
   const program = buildProgram(node, normalized);
@@ -163,7 +177,6 @@ test("a convert takes its result kind from the signature, not from the target", 
   const paces = defineKind({
     id: "pace",
     value: { mode: "ratio", canonical: "spm", units: { spm: 1 } },
-    lexicon: { spm: ["spm"] },
     ops: [
       {
         op: "in",
@@ -174,8 +187,8 @@ test("a convert takes its result kind from the signature, not from the target", 
       },
     ],
   });
-  const reg = buildRegistry([number, length, duration, paces]);
-  const resolver = createResolver({ registry: reg, locale: en, packs: [], layers: [] });
+  const reg = buildRegistry([number, length, duration, paces], [en]);
+  const resolver = createResolver({ registry: reg, locale: en, layers: [] });
   const input = "10 km in h";
   const normalized = normalize(input);
   const node = parse(lex(normalized.text, en), resolver, input);
@@ -207,11 +220,11 @@ test("the context bonus decides when both assignments type-check", () => {
       { op: "+", left: "length", right: "duration", result: "length", apply: (l) => l },
     ],
   });
-  const bridged = buildRegistry([number, length, duration, bridge]);
+  const bridged = buildRegistry([number, length, duration, bridge], [en]);
   const resolver = createResolver({
     registry: bridged,
     locale: en,
-    packs: [],
+
     layers: [{ "length:m": 10 }],
   });
   const input = "10 m + 5 h";
@@ -227,7 +240,7 @@ test("the context bonus decides when both assignments type-check", () => {
 });
 
 test("exceeding maxCandidates throws TooAmbiguousError", () => {
-  const resolver = createResolver({ registry, locale: en, packs: [], layers: [] });
+  const resolver = createResolver({ registry, locale: en, layers: [] });
   const input = "1 m + 1 m + 1 m + 1 m";
   const normalized = normalize(input);
   const node = parse(lex(normalized.text, en), resolver, input);
@@ -238,7 +251,7 @@ test("exceeding maxCandidates throws TooAmbiguousError", () => {
 });
 
 test("the kinds filter drops candidates outside the allowed set", () => {
-  const resolver = createResolver({ registry, locale: en, packs: [], layers: [] });
+  const resolver = createResolver({ registry, locale: en, layers: [] });
   const input = "10 m";
   const normalized = normalize(input);
   const node = parse(lex(normalized.text, en), resolver, input);
@@ -276,7 +289,7 @@ const day7: LiteralMatcher = (input, offset) =>
 
 const day = defineKind({
   id: "day",
-  value: { mode: "opaque", units: { UTC: ["utc"] } },
+  value: { mode: "opaque", units: ["UTC"] },
   literals: [day7],
   ops: [
     {
@@ -399,11 +412,11 @@ test("a signature weight lifts its candidate above an equal-scoring rival", () =
   expect(plain.map((a) => a.kind)).toEqual(["duration", "length"]);
   expect(plain[0]?.score).toBe(plain[1]?.score);
 
-  const weighted = buildRegistry([number, length, duration, weightedMinus]);
+  const weighted = buildRegistry([number, length, duration, weightedMinus], [en]);
   const resolver = createResolver({
     registry: weighted,
     locale: en,
-    packs: [],
+
     layers: [],
   });
   const input = "10 m - 5 m";

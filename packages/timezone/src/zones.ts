@@ -12,8 +12,8 @@ export interface ZoneDef {
  *
  * Aliases are single words: `@smartput/core`'s alias index is keyed by one
  * segmented word, so "new york" cannot be one — "nyc" can. A caller who needs
- * more registers a `LocalePack` (spec §4.6) or an `extendsKind` patch; nothing
- * here is a closed list.
+ * more composes another `Vocabulary` for the `datetime` kind, or registers an
+ * `extendsKind` patch; nothing here is a closed list.
  */
 export const ZONES: Record<string, ZoneDef> = {
   UTC: { aliases: ["utc", "gmt", "z", "zulu"], symbol: "UTC" },

@@ -2,6 +2,7 @@ import { expect, test } from "bun:test";
 import { composeLocale, createEngine } from "@smartput/core";
 import { english as en } from "@smartput/locale-en";
 import { duration } from "./index";
+import durationEn from "./locale/en";
 import { DURATION_UNITS, type DurationUnit } from "./units";
 import { addDuration, formatDuration, parseDuration, toDuration } from "./validate";
 
@@ -61,13 +62,17 @@ test("cross-path agreement with the engine", () => {
   }
 });
 
-test("contract: the table and the descriptor agree", () => {
+test("contract: the table, the descriptor and the vocabulary agree", () => {
   expect(Object.keys((duration.value as { units: object }).units).sort()).toEqual(
     Object.keys(DURATION_UNITS.ratio).sort(),
   );
-  for (const [unit, lexeme] of Object.entries(duration.lexicon ?? {})) {
-    const aliases = Array.isArray(lexeme) ? lexeme : lexeme.aliases;
-    for (const a of aliases)
+  // The aliases the engine indexes are the aliases the micro path inverts.
+  // They used to be checked against the kind's `lexicon`; that table now lives
+  // in `./locale/en`, and it is the same claim asked of its new home — an
+  // English word only reaches the engine if `DURATION_UNITS.alias` maps it to the
+  // very unit the vocabulary filed it under.
+  for (const [unit, words] of Object.entries(durationEn.units)) {
+    for (const a of words.aliases)
       expect(DURATION_UNITS.alias[a], a).toBe(unit as DurationUnit);
   }
 });

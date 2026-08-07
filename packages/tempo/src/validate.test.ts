@@ -3,6 +3,7 @@ import { composeLocale, createEngine } from "@smartput/core";
 import { english as en } from "@smartput/locale-en";
 import { Tempo } from "./class";
 import { tempo } from "./index";
+import tempoEn from "./locale/en";
 import { TEMPO_UNITS, type TempoUnit } from "./units";
 import { addTempo, formatTempo, parseTempo, patternForTempo, toTempo } from "./validate";
 
@@ -91,12 +92,17 @@ test("the pattern alternates over both units in both modes", () => {
   expect(loose.test("120 rpm")).toBe(false);
 });
 
-test("contract: the table and the descriptor agree", () => {
+test("contract: the table, the descriptor and the vocabulary agree", () => {
   expect(Object.keys((tempo.value as { units: object }).units).sort()).toEqual(
     Object.keys(TEMPO_UNITS.ratio).sort(),
   );
-  for (const [unit, lexeme] of Object.entries(tempo.lexicon ?? {})) {
-    const aliases = Array.isArray(lexeme) ? lexeme : lexeme.aliases;
-    for (const a of aliases) expect(TEMPO_UNITS.alias[a], a).toBe(unit as TempoUnit);
+  // The aliases the engine indexes are the aliases the micro path inverts.
+  // They used to be checked against the kind's `lexicon`; that table now lives
+  // in `./locale/en`, and it is the same claim asked of its new home — an
+  // English word only reaches the engine if `TEMPO_UNITS.alias` maps it to the
+  // very unit the vocabulary filed it under.
+  for (const [unit, words] of Object.entries(tempoEn.units)) {
+    for (const a of words.aliases)
+      expect(TEMPO_UNITS.alias[a], a).toBe(unit as TempoUnit);
   }
 });

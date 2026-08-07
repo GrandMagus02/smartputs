@@ -174,19 +174,37 @@ An operation with no matching signature is a `DimensionMismatchError`:
 ## Patching a kind
 
 `extendsKind` merges into an existing kind rather than replacing it — the way
-you add vocabulary or units to a built-in without forking it.
+you add units or operations to a built-in without forking it.
 
 ```ts
-const ukColorNames = defineKind({
-  id: "color-uk",
+const extraColors = defineKind({
+  id: "color-extra",
   extendsKind: "color",
-  lexicon: { "#ff0000": ["червоний", "червона"] },
+  value: { mode: "ratio", canonical: "#ff0000", units: { "#7f0000": 0.5 } },
+});
+```
+
+Words are not part of the patch. A kind carries none in any language, so the
+names for the new units arrive the same way every other kind's do — as a
+`Vocabulary` naming the **base** kind, since that is the id the registry ends
+up holding:
+
+```ts
+const ukColorNames = defineVocabulary({
+  locale: "uk",
+  kind: "color",
+  units: { "#ff0000": { aliases: ["червоний", "червона"] } },
+});
+
+const engine = createEngine({
+  kinds: [color, extraColors],
+  locales: [composeLocale(ukrainian, [ukColorNames])],
 });
 ```
 
 | Field | Merge rule |
 | --- | --- |
-| `lexicon`, `units`, `literals`, `ops` | merged; the patch wins on key collision |
+| `units`, `literals`, `ops` | merged; the patch wins on key collision |
 | `prior`, `format`, `canonical` | replaced when present |
 | `value.mode` mismatch | throws at registration, never at parse time |
 

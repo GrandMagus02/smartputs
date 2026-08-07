@@ -4,6 +4,7 @@ import { buildRegistry } from "../kind/registry";
 import { composeLocale } from "../locale/compose";
 import { defineLanguage } from "../locale/define";
 import { identity, suffixStripper } from "../locale/helpers";
+import { defineVocabulary } from "../locale/vocabulary";
 import { createResolver } from "./candidates";
 
 const number = defineKind({
@@ -13,12 +14,10 @@ const number = defineKind({
 const length = defineKind({
   id: "length",
   value: { mode: "ratio", canonical: "m", units: { m: 1, km: 1000 } },
-  lexicon: { m: ["m", "metre", "metres"], km: ["km"] },
 });
 const duration = defineKind({
   id: "duration",
   value: { mode: "ratio", canonical: "s", units: { min: 60 } },
-  lexicon: { min: ["min", "m", "minute"] },
 });
 
 const en = composeLocale(
@@ -28,10 +27,22 @@ const en = composeLocale(
     keywords: {},
     selectForm: () => "other",
   }),
+  [
+    defineVocabulary({
+      locale: "en",
+      kind: "length",
+      units: { m: { aliases: ["m", "metre", "metres"] }, km: { aliases: ["km"] } },
+    }),
+    defineVocabulary({
+      locale: "en",
+      kind: "duration",
+      units: { min: { aliases: ["min", "m", "minute"] } },
+    }),
+  ],
 );
-const registry = buildRegistry([number, length, duration]);
+const registry = buildRegistry([number, length, duration], [en]);
 const resolver = (layers: Parameters<typeof createResolver>[0]["layers"] = []) =>
-  createResolver({ registry, locale: en, packs: [], layers });
+  createResolver({ registry, locale: en, layers });
 
 test("an unambiguous alias yields one candidate", () => {
   expect(resolver().resolve("km")).toEqual([
@@ -80,7 +91,7 @@ test("nearest excludes exact matches, caps at three, and orders by distance", ()
   expect(near[0]).toBe("km");
 });
 
-test("analyzed forms reach the lexicon and are penalised", () => {
+test("analyzed forms reach the vocabulary and are penalised", () => {
   const uk = composeLocale(
     defineLanguage({
       id: "uk",
@@ -90,7 +101,7 @@ test("analyzed forms reach the lexicon and are penalised", () => {
       selectForm: () => "other",
     }),
   );
-  const r = createResolver({ registry, locale: uk, packs: [], layers: [] });
+  const r = createResolver({ registry, locale: uk, layers: [] });
   const found = r.resolve("metres");
   expect(found.map((c) => `${c.kind}:${c.unit}`)).toEqual(["length:m"]);
   expect(found[0]?.weight).toBe(0);
@@ -106,7 +117,7 @@ test("a stem match scores below an exact match", () => {
       selectForm: () => "other",
     }),
   );
-  const r = createResolver({ registry, locale: uk, packs: [], layers: [] });
+  const r = createResolver({ registry, locale: uk, layers: [] });
   // "metre" matches exactly (weight 0); its stem "metr" matches nothing.
   expect(r.resolve("metre")[0]?.weight).toBe(0);
 });
@@ -134,9 +145,19 @@ test("an analyzer weight adds to a prior and to layer weights, it does not repla
     id: "length",
     value: { mode: "ratio", canonical: "m", units: { m: 1, km: 1000 } },
     prior: 7,
-    lexicon: { m: ["m", "metre"], km: ["km"] },
   });
-  const reg = buildRegistry([number, priored]);
+  const reg = buildRegistry(
+    [number, priored],
+    [
+      composeLocale(en.language, [
+        defineVocabulary({
+          locale: "en",
+          kind: "length",
+          units: { m: { aliases: ["m", "metre"] }, km: { aliases: ["km"] } },
+        }),
+      ]),
+    ],
+  );
   const uk = composeLocale(
     defineLanguage({
       id: "uk",
@@ -149,7 +170,7 @@ test("an analyzer weight adds to a prior and to layer weights, it does not repla
   const r = createResolver({
     registry: reg,
     locale: uk,
-    packs: [],
+
     layers: [{ length: 1 }, { "length:m": 2 }],
   });
 

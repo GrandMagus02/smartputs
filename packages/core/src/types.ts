@@ -115,20 +115,6 @@ export type Analyzer = (surface: string, ctx: AnalyzeCtx) => AnalyzedForm[];
 export type Selector = string;
 export type Weights = Record<Selector, number>;
 
-export interface UnitLexeme {
-  aliases: string[];
-  symbol?: string;
-  display?: Partial<Record<Intl.LDMLPluralRule, string>>;
-  /**
-   * The magnitude band people actually type this unit in, inclusive at both
-   * ends. Read only by completion's `scaleFit`. Omitting it scores 0, which is
-   * the same as being out of band — declaring a band is never a penalty.
-   */
-  typical?: [number, number];
-}
-
-export type Lexicon = Record<string, UnitLexeme | string[]>;
-
 /**
  * The shape the engine needs from a rate table, declared here rather than
  * imported: `@smartput/rate`'s `RateSnapshot` satisfies it structurally, and
@@ -380,13 +366,8 @@ export interface OpaqueSpec {
    * ratio (`datetime`'s are IANA zones), but it is indexed, weighted,
    * formatted and used as an `in` target exactly like a ratio kind's unit. The
    * words for it live in a `Vocabulary`, because words belong to a language.
-   *
-   * The lexicon shape is the P1 bridge — ruling R7. Eighteen kind packages
-   * still declare their opaque units as a table of aliases; `legacyVocabulary`
-   * turns that table into an `en` vocabulary until each package ships one of
-   * its own. Task 7 deletes the union and leaves `readonly string[]`.
    */
-  units?: readonly string[] | Record<string, UnitLexeme | string[]>;
+  units?: readonly string[];
   /**
    * Opt in to the six comparison signatures — ruling C5.
    *
@@ -407,7 +388,7 @@ export interface OpaqueSpec {
 /**
  * Everything a completer may read about the keystroke. Deliberately not the
  * whole input: a completer answers "what could this word become", and the words
- * before it are the parser's business, not a lexicon's.
+ * before it are the parser's business, not a vocabulary's.
  *
  * The fragment arrives folded because completion has already folded it to search
  * the alias index, and a completer that folded the raw text again would be a
@@ -522,8 +503,6 @@ export interface Kind {
   value: RatioSpec | OpaqueSpec;
   extendsKind?: KindId;
   prior?: number;
-  /** @deprecated The P1 bridge — ruling R7. Removed in Task 7. */
-  lexicon?: Lexicon;
   /**
    * The magnitude band people actually type each unit in, inclusive at both
    * ends — read only by completion's `scaleFit`. A kind-level map because a
@@ -534,9 +513,9 @@ export interface Kind {
   typical?: Readonly<Record<string, [number, number]>>;
   literals?: LiteralMatcher[];
   /**
-   * Beside `lexicon`, never instead of it. A unit's aliases keep completing
-   * through the global index; this is for the names that were never allowed in
-   * it, and a kind may declare both.
+   * Beside the vocabulary, never instead of it. A unit's aliases keep
+   * completing through the global index; this is for the names that were never
+   * allowed in it, and a kind may have both.
    */
   completions?: Completer;
   ops?: OpSignature[];
@@ -698,12 +677,6 @@ export interface Locale {
   readonly id: string;
   readonly language: Language;
   readonly vocabularies: readonly Vocabulary[];
-}
-
-export interface LocalePack {
-  locale: string;
-  contributes: Record<KindId, Lexicon>;
-  analyze?: Analyzer[];
 }
 
 export interface ResultCandidate {

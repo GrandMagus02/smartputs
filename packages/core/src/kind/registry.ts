@@ -2,17 +2,14 @@ import { KindConflictError, UnknownKindError } from "../errors";
 import type {
   Kind,
   KindId,
-  Lexicon,
   LiteralMatcher,
   Locale,
-  LocalePack,
   OpSignature,
   OpSymbol,
-  UnitLexeme,
   UnitWords,
   Vocabulary,
 } from "../types";
-import { legacyVocabulary, type NormalizedKind, normalizeKind } from "./define";
+import { type NormalizedKind, normalizeKind } from "./define";
 import { generateComparisonOps, generateRatioOps } from "./ratio-ops";
 
 export { BOOLEAN_KIND, BOOLEAN_UNIT, NUMBER_KIND, PERCENT_KIND } from "./ratio-ops";
@@ -82,33 +79,7 @@ function mergeWords(base: UnitWords, patch: UnitWords): UnitWords {
   };
 }
 
-/**
- * The other half of the P1 bridge — ruling R7. A `LocalePack` contributes a
- * lexicon per kind; that is a vocabulary in all but name, so it becomes one
- * and takes the same install path. Deleted in Task 7 with `LocalePack` itself.
- */
-function legacyPackVocabulary(
-  locale: string,
-  kind: KindId,
-  lexicon: Lexicon,
-): Vocabulary {
-  const units: Record<string, UnitWords> = {};
-  for (const [unit, entry] of Object.entries(lexicon)) {
-    const lexeme: UnitLexeme = Array.isArray(entry) ? { aliases: entry } : entry;
-    units[unit] = {
-      aliases: [...lexeme.aliases],
-      ...(lexeme.symbol !== undefined ? { symbol: lexeme.symbol } : {}),
-      ...(lexeme.display ? { forms: { ...lexeme.display } } : {}),
-    };
-  }
-  return { locale, kind, units };
-}
-
-export function buildRegistry(
-  kinds: Kind[],
-  locales: readonly Locale[] = [],
-  packs: LocalePack[] = [],
-): Registry {
+export function buildRegistry(kinds: Kind[], locales: readonly Locale[] = []): Registry {
   const normalized = new Map<KindId, NormalizedKind>();
 
   // Pass 1: base kinds.
@@ -142,10 +113,9 @@ export function buildRegistry(
     base.literals.push(...patch.literals);
   }
 
-  // Pass 3: vocabularies. Every installed locale's own, plus the bridge's for
-  // any kind that still declares `lexicon` and has no real vocabulary yet
-  // (ruling R7 — the bridge half is deleted in Task 7 with the `packs`
-  // parameter).
+  // Pass 3: vocabularies — every installed locale's, and nothing else. A kind
+  // declares no words of its own; `Kind.lexicon` and the `packs` parameter that
+  // used to bridge one into a vocabulary are gone (ruling R7).
   const words = new Map<string, UnitWords>();
   /** `${locale}|${kind}` for every kind some language has spoken for at all. */
   const spokenKinds = new Set<string>();
@@ -159,33 +129,16 @@ export function buildRegistry(
       }
       const key = wordsKey(vocab.locale, vocab.kind, unit);
       const existing = words.get(key);
-      // A real vocabulary always wins over the bridge; two real ones for the
-      // same kind were already refused by composeLocale.
+      // `composeLocale` already refused two vocabularies for one kind inside
+      // one `Locale`, so a collision here means two `Locale` objects share an
+      // id — a language assembled in two pieces. Union them, exactly as
+      // `mergeLexeme` used to, rather than letting the later one win.
       words.set(key, existing === undefined ? entry : mergeWords(existing, entry));
     }
   };
 
-  const installedKinds = new Set<string>();
   for (const l of locales) {
-    for (const vocab of l.vocabularies) {
-      install(vocab);
-      installedKinds.add(`${l.id}|${vocab.kind}`);
-    }
-  }
-  // Bases before patches, mirroring passes 1 and 2, so a patch's aliases union
-  // onto the base's rather than the other way round.
-  for (const k of [
-    ...kinds.filter((k) => k.extendsKind === undefined),
-    ...kinds.filter((k) => k.extendsKind !== undefined),
-  ]) {
-    if (installedKinds.has(`en|${k.extendsKind ?? k.id}`)) continue;
-    const bridged = legacyVocabulary(k);
-    if (bridged !== null) install(bridged);
-  }
-  for (const pack of packs) {
-    for (const [kindId, lexicon] of Object.entries(pack.contributes)) {
-      install(legacyPackVocabulary(pack.locale, kindId, lexicon));
-    }
+    for (const vocab of l.vocabularies) install(vocab);
   }
 
   // Pass 4: op table. Spec §7 makes a duplicate *signature* as much of a
@@ -228,8 +181,9 @@ export function buildRegistry(
   };
   const localeIds = [...new Set(locales.map((l) => l.id))].sort();
   // "en" when nothing was installed, so a registry built with no locale at all
-  // — every `buildRegistry(kinds)` in the test suite, and `assertKindContract`
-  // — still reads the bridge's tables.
+  // — `buildRegistry(kinds)`, and `assertKindContract` — still has a language
+  // to read words under. It will find none, and R2's unit-key floor below is
+  // then the whole index: that engine reads `5 kg` and prints `5 kg`.
   const readIds = localeIds.length > 0 ? localeIds : ["en"];
   const kindIds = [...normalized.keys()].sort();
   for (const kindId of kindIds) {
@@ -242,16 +196,24 @@ export function buildRegistry(
     // Narrowed from R2's literal "always, regardless of which vocabularies are
     // installed" to "when nothing has been said about this kind". Indexing a
     // key unconditionally would overrule a vocabulary that leaves keys out on
-    // purpose, and three do: `@smartput/length` spells `in` only as
-    // `inch`/`inches` because `in` is the conversion keyword;
-    // `@smartput/country` keys `place` by ISO alpha-2, so `10 km` would be
-    // ambiguous between a distance and Comoros; and `boolean`, `time`, `date`
-    // and the range kinds each carry one deliberately wordless sentinel unit
-    // that is reached through a literal matcher and must never be a typeable
-    // word. All are deliberate, all are documented where they are declared,
-    // and none is what R2's reasoning ("cannot read `5 kg` at all", "nothing
-    // to degrade to") is about — a kind with a vocabulary has an author who
-    // said what its words are, including by omission.
+    // purpose, and two do: `@smartput/length` spells `in` only as
+    // `inch`/`inches` because `in` is the conversion keyword, and
+    // `@smartput/country` keys `place` by ISO alpha-2, so `10 km` would
+    // otherwise be ambiguous between a distance and Comoros. Both are
+    // deliberate, both are documented where they are declared, and neither is
+    // what R2's reasoning ("cannot read `5 kg` at all", "nothing to degrade
+    // to") is about — a kind with a vocabulary has an author who said what its
+    // words are, including by omission.
+    //
+    // The kinds that ship no vocabulary in any language get the floor instead,
+    // and the ones with a single wordless sentinel unit (`boolean`, `date`,
+    // `time`, the range kinds) therefore have that unit's *id* indexed. They
+    // keep it un-typeable by naming it something the lexer cannot produce —
+    // `calendar-day`, `wall-clock`, `date-span` — since a word token is a run
+    // of letters, so one hyphen is enough. `boolean`'s `bool` is the exception
+    // that proves it is a choice: it is all letters, so `5 bool` reads, and
+    // that kind's author decided the sentinel was harmless because every value
+    // of it prints through a `format` hook.
     const spoken = readIds.some((id) => spokenKinds.has(`${id}|${kindId}`));
     const unitNames = [...kind.units.keys()].sort();
     for (const unitName of unitNames) {

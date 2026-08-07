@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
 import { createAnalyzerChain } from "./analyze";
-import { defineLanguage, defineLocalePack } from "./define";
+import { defineLanguage } from "./define";
 import { identity, suffixStripper, tableAnalyzer } from "./helpers";
 
 const uk = defineLanguage({
@@ -12,7 +12,7 @@ const uk = defineLanguage({
 });
 
 test("the chain returns every analyzer's forms, exact match first", () => {
-  const analyze = createAnalyzerChain(uk, []);
+  const analyze = createAnalyzerChain(uk);
   expect(analyze("кілограмів")).toEqual([
     { form: "кілограмів", weight: 0 },
     { form: "кілограм", weight: -2 },
@@ -27,28 +27,7 @@ test("duplicate forms keep the highest weight only", () => {
     keywords: {},
     selectForm: () => "other",
   });
-  expect(createAnalyzerChain(locale, [])("кг")).toEqual([{ form: "кг", weight: 0 }]);
-});
-
-test("pack analyzers are appended to the locale chain", () => {
-  const pack = defineLocalePack({
-    locale: "uk",
-    contributes: {},
-    analyze: [tableAnalyzer({ бит: "біткоїн" }, -1)],
-  });
-  expect(createAnalyzerChain(uk, [pack])("бит")).toEqual([
-    { form: "бит", weight: 0 },
-    { form: "біткоїн", weight: -1 },
-  ]);
-});
-
-test("packs for another locale do not contribute analyzers", () => {
-  const pack = defineLocalePack({
-    locale: "de",
-    contributes: {},
-    analyze: [tableAnalyzer({ бит: "біткоїн" }, -1)],
-  });
-  expect(createAnalyzerChain(uk, [pack])("бит")).toEqual([{ form: "бит", weight: 0 }]);
+  expect(createAnalyzerChain(locale)("кг")).toEqual([{ form: "кг", weight: 0 }]);
 });
 
 test("results are memoized: the same surface is analyzed once", () => {
@@ -65,7 +44,7 @@ test("results are memoized: the same surface is analyzed once", () => {
     keywords: {},
     selectForm: () => "other",
   });
-  const analyze = createAnalyzerChain(counting, []);
+  const analyze = createAnalyzerChain(counting);
   analyze("кг");
   analyze("кг");
   expect(calls).toBe(1);
@@ -78,5 +57,5 @@ test("a locale with no analyzers still returns the surface form", () => {
     keywords: {},
     selectForm: () => "other",
   });
-  expect(createAnalyzerChain(bare, [])("kg")).toEqual([{ form: "kg", weight: 0 }]);
+  expect(createAnalyzerChain(bare)("kg")).toEqual([{ form: "kg", weight: 0 }]);
 });

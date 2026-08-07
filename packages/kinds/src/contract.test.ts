@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { ANGLE_UNITS } from "@smartput/angle/units";
 import { AREA_UNITS } from "@smartput/area/units";
-import type { Kind, UnitLexeme } from "@smartput/core";
+import type { Kind, Vocabulary } from "@smartput/core";
 import { DATARATE_UNITS } from "@smartput/datarate/units";
 import { DATASIZE_UNITS } from "@smartput/datasize/units";
 import { DURATION_UNITS } from "@smartput/duration/units";
@@ -9,6 +9,7 @@ import { ENERGY_UNITS } from "@smartput/energy/units";
 import { LENGTH_UNITS } from "@smartput/length/units";
 import { english as en } from "@smartput/locale-en";
 import { MASS_UNITS } from "@smartput/mass/units";
+import measureEn from "@smartput/measure/locale/en";
 import { MEASURE_UNITS } from "@smartput/measure/units";
 import { NUMBER_UNITS } from "@smartput/number/units";
 import { PERCENT_UNITS } from "@smartput/percent/units";
@@ -17,7 +18,6 @@ import { SPEED_UNITS } from "@smartput/speed/units";
 import { TEMPDELTA_UNITS, TEMPERATURE_UNITS } from "@smartput/temperature/units";
 import { TEMPO_UNITS } from "@smartput/tempo/units";
 import { VOLUME_UNITS } from "@smartput/volume/units";
-
 import {
   Angle,
   Area,
@@ -58,6 +58,7 @@ import {
   tempo,
   volume,
 } from "./index";
+import BUILTIN_EN from "./locale/en";
 import {
   parseAngle,
   parseArea,
@@ -287,8 +288,22 @@ const PACKAGES = [...new Set(ROWS.map((r) => r.pkg))].sort();
 
 const SUBPATHS = ["./units", "./validate", "./class"] as const;
 
-const aliasesOf = (lexeme: UnitLexeme | string[]): string[] =>
-  Array.isArray(lexeme) ? lexeme : lexeme.aliases;
+/**
+ * Every row's English vocabulary, keyed by kind id — the words that used to
+ * sit on the descriptor as `lexicon`. `measure` is added by hand because it is
+ * outside `BUILTIN_EN` for exactly the reason it is outside `BUILTIN_KINDS`.
+ */
+const WORDS = new Map<string, Vocabulary>(
+  [...BUILTIN_EN, measureEn].map((v) => [v.kind, v]),
+);
+
+const wordsOf = (row: Row): Vocabulary => {
+  const words = WORDS.get(row.id);
+  // Not a soft skip: a row with no vocabulary would make the three contracts
+  // below vacuously true, which is how a kind loses its words unnoticed.
+  if (words === undefined) throw new Error(`no en vocabulary for kind ${row.id}`);
+  return words;
+};
 
 const ratioUnits = (kind: Kind): string[] => {
   if (kind.value.mode !== "ratio") throw new Error(`${kind.id} is not a ratio kind`);
@@ -356,10 +371,9 @@ describe("units.ts and the descriptor agree", () => {
       expect(Object.keys(row.table.ratio)).toContain(row.table.canonical);
     });
 
-    test(`${row.id}: every lexicon unit is a table unit`, () => {
-      const lexicon = row.kind.lexicon ?? {};
+    test(`${row.id}: every vocabulary unit is a table unit`, () => {
       const units = new Set(Object.keys(row.table.ratio));
-      for (const unit of Object.keys(lexicon)) {
+      for (const unit of Object.keys(wordsOf(row).units)) {
         expect({ unit, known: units.has(unit) }).toEqual({ unit, known: true });
       }
     });
@@ -387,14 +401,13 @@ describe("the alias map is well formed", () => {
       }
     });
 
-    test(`${row.id}: every lexicon alias appears in the table`, () => {
-      // The derivation direction that matters: the descriptor is built from the
-      // table, so a lexicon alias with no table entry means someone hand-edited
-      // the descriptor and the micro path can no longer parse what the engine
+    test(`${row.id}: every vocabulary alias appears in the table`, () => {
+      // The derivation direction that matters: the vocabulary is built from the
+      // table, so an alias with no table entry means someone hand-edited
+      // `locale/en` and the micro path can no longer parse what the engine
       // accepts.
-      const lexicon = row.kind.lexicon ?? {};
-      for (const [unit, lexeme] of Object.entries(lexicon)) {
-        for (const alias of aliasesOf(lexeme)) {
+      for (const [unit, words] of Object.entries(wordsOf(row).units)) {
+        for (const alias of words.aliases) {
           expect({ alias, unit: row.table.alias[alias] }).toEqual({ alias, unit });
         }
       }
@@ -403,7 +416,7 @@ describe("the alias map is well formed", () => {
 });
 
 /**
- * The regression that shipped once: deriving the lexicon from the table made
+ * The regression that shipped once: deriving the vocabulary from the table made
  * every unit key its own alias, which put `in` — core's conversion keyword —
  * into `registry.aliasIndex`. `lex` never emits it as a word, so the entry was
  * unreachable, but `MatchCtx.isUnitAlias` reads the index directly and
@@ -413,7 +426,7 @@ describe("the alias map is well formed", () => {
  * The reserved set is read off the locale rather than hardcoded, so adding a
  * keyword to `locale/en` re-checks all seventeen tables for free.
  */
-describe("no lexicon alias collides with a locale keyword", () => {
+describe("no vocabulary alias collides with a locale keyword", () => {
   const reserved = new Set(Object.values(en.keywords ?? {}).flat());
 
   test("the locale still defines keywords to check against", () => {
@@ -423,9 +436,8 @@ describe("no lexicon alias collides with a locale keyword", () => {
 
   for (const row of ROWS) {
     test(row.id, () => {
-      const lexicon = row.kind.lexicon ?? {};
-      for (const lexeme of Object.values(lexicon)) {
-        for (const alias of aliasesOf(lexeme)) {
+      for (const words of Object.values(wordsOf(row).units)) {
+        for (const alias of words.aliases) {
           expect({ alias, reserved: reserved.has(alias) }).toEqual({
             alias,
             reserved: false,
@@ -436,7 +448,7 @@ describe("no lexicon alias collides with a locale keyword", () => {
   }
 
   test("length still keeps `in` on the micro path", () => {
-    // The exclusion is lexicon-only. Dropping it from the table too would break
+    // The exclusion is vocabulary-only. Dropping it from the table too would break
     // the strict round-trip of `formatLength(v, "in")`.
     expect(LENGTH_UNITS.alias.in).toBe("in");
   });

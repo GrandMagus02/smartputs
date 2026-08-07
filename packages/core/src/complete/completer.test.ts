@@ -79,7 +79,7 @@ test("locale in the constructor reaches complete(), not a hardcoded default", ()
   };
   const place = defineKind({
     id: "place",
-    value: { mode: "opaque", units: { xx: ["xx"] } },
+    value: { mode: "opaque", units: ["xx"] },
     completions: probe,
     format: (v) => v.unit,
   });

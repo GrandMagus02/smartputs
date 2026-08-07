@@ -1,14 +1,10 @@
-import type { AnalyzedForm, Language, LocalePack } from "../types";
+import type { AnalyzedForm, Language } from "../types";
 import { identity } from "./helpers";
 
 export function createAnalyzerChain(
   language: Language,
-  packs: LocalePack[],
 ): (surface: string) => AnalyzedForm[] {
-  const chain = [
-    ...(language.analyze ?? [identity()]),
-    ...packs.filter((p) => p.locale === language.id).flatMap((p) => p.analyze ?? []),
-  ];
+  const chain = [...(language.analyze ?? [identity()])];
   const ctx = { locale: language.id };
   const cache = new Map<string, AnalyzedForm[]>();
 

@@ -21,7 +21,7 @@ const registry = buildRegistry(BUILTIN_KINDS, [en]);
 const resolver = createResolver({
   registry,
   locale: en,
-  packs: [],
+
   layers: [english.weights],
 });
 

@@ -5,7 +5,15 @@ import { english } from "@smartput/locale-en";
 import { defineKind } from "../kind/define";
 import { buildRegistry } from "../kind/registry";
 import { composeLocale } from "../locale/compose";
-import type { CompleteCtx, Completer, Kind, KindCompletion, Weights } from "../types";
+import { defineVocabulary } from "../locale/vocabulary";
+import type {
+  CompleteCtx,
+  Completer,
+  Kind,
+  KindCompletion,
+  Vocabulary,
+  Weights,
+} from "../types";
 import { complete } from "./complete";
 import { EXACT_BONUS, LENGTH_PENALTY, SCALE_BONUS, TYPO_PENALTY } from "./score";
 
@@ -187,27 +195,53 @@ const gazetteer: Completer = (ctx) => {
 const places = (completions: Completer) =>
   defineKind({
     id: "place",
-    value: {
-      mode: "opaque",
-      units: { ua: ["ukraine"], jp: ["japan"], jm: ["jamaica"], us: ["usa"] },
-    },
+    value: { mode: "opaque", units: ["ua", "jp", "jm", "us"] },
     completions,
     format: (v) => v.unit,
   });
+
+/**
+ * The words for the fixture kinds, which no longer live on the kinds. Keyed by
+ * kind id so `probeRun` can install exactly the ones the caller registered —
+ * a vocabulary for a kind that is not registered is a wiring error.
+ */
+const FIXTURE_WORDS: Readonly<Record<string, Vocabulary>> = {
+  place: defineVocabulary({
+    locale: "en",
+    kind: "place",
+    units: {
+      ua: { aliases: ["ukraine"] },
+      jp: { aliases: ["japan"] },
+      jm: { aliases: ["jamaica"] },
+      us: { aliases: ["usa"] },
+    },
+  }),
+  banded: defineVocabulary({
+    locale: "en",
+    kind: "banded",
+    units: { b: { aliases: ["bandit"] } },
+  }),
+};
 
 const probeRun = (
   kinds: Kind[],
   input: string,
   opts?: Parameters<typeof complete>[0]["opts"],
   layers: (Weights | undefined)[] = [english.weights],
-) =>
-  complete({
-    registry: buildRegistry([...BUILTIN_KINDS, ...kinds], [en]),
-    locale: en,
+) => {
+  const extra = kinds
+    .map((k) => FIXTURE_WORDS[k.id])
+    .filter((v): v is Vocabulary => v !== undefined);
+  const locale =
+    extra.length === 0 ? en : composeLocale(english, [...BUILTIN_EN, ...extra]);
+  return complete({
+    registry: buildRegistry([...BUILTIN_KINDS, ...kinds], [locale]),
+    locale,
     layers,
     input,
     ...(opts ? { opts } : {}),
   });
+};
 
 const gaz = (input: string, opts?: Parameters<typeof complete>[0]["opts"]) =>
   probeRun([places(gazetteer)], input, opts);
@@ -322,7 +356,7 @@ test("scaleFit is not applied to a completer row", () => {
   const banded = defineKind({
     id: "banded",
     value: { mode: "ratio", canonical: "b", units: { b: 1 } },
-    lexicon: { b: { aliases: ["bandit"], typical: [1, 100] } },
+    typical: { b: [1, 100] },
     completions: () => [{ text: "bandit", alias: "bandit", unit: "b", key: "own" }],
   });
 

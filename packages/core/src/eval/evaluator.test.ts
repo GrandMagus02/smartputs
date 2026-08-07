@@ -22,7 +22,6 @@ const number = defineKind({
 const length = defineKind({
   id: "length",
   value: { mode: "ratio", canonical: "m", units: { m: 1, km: 1000 } },
-  lexicon: { m: ["m"], km: ["km"] },
 });
 
 /** A kind whose `of` records a static assumption, so `Evaluation.assumptions`
@@ -30,7 +29,6 @@ const length = defineKind({
 const noted = defineKind({
   id: "scaled",
   value: { mode: "ratio", canonical: "u", units: { u: 1 } },
-  lexicon: { u: ["u"] },
   ops: [
     {
       op: "of",
@@ -45,8 +43,11 @@ const noted = defineKind({
 
 /** A kind whose unit ratio reads `ctx.self.meta.dpi` — the only way to prove
  * `Evaluator`'s `kindMeta` config actually reaches `evaluateNode` rather than
- * being accepted and silently dropped. No alias on the base unit: only `px`
- * is ever typed, so it cannot collide with another fixture kind's alias. */
+ * being accepted and silently dropped.
+ *
+ * No vocabulary anywhere in this file: every fixture unit is typed by its own
+ * id, which is what R2 indexes when no language has spoken for the kind, so
+ * the words the aliases used to spell are exactly the keys. */
 const pixel = defineKind({
   id: "pixel",
   value: {
@@ -59,7 +60,6 @@ const pixel = defineKind({
       },
     },
   },
-  lexicon: { px: ["px"] },
 });
 
 /** A kind whose unit ratio reads `ctx.rates` — proves `Evaluator`'s `rates`
@@ -74,7 +74,6 @@ const coin = defineKind({
       usd: { ratio: (ctx) => ctx.rates?.get("usd", "tok") ?? new Decimal(1) },
     },
   },
-  lexicon: { usd: ["usd"] },
 });
 
 /** A kind whose `+` reads `ctx.locale` — proves `Evaluator`'s `locale` config
@@ -82,7 +81,6 @@ const coin = defineKind({
 const echo = defineKind({
   id: "echo",
   value: { mode: "ratio", canonical: "ec", units: { ec: 1 } },
-  lexicon: { ec: ["ec"] },
   ops: [
     {
       op: "+",
@@ -124,7 +122,7 @@ const xx: Locale = composeLocale(
  * solver behaviour itself. */
 function resolve(input: string, kinds = ALL, loc = en) {
   const registry = buildRegistry(kinds);
-  const resolver = createResolver({ registry, locale: loc, packs: [], layers: [] });
+  const resolver = createResolver({ registry, locale: loc, layers: [] });
   const tokenizer = new Tokenizer({ locale: loc, registry });
   const parser = new Parser({ resolver });
   const solver = new Solver({ registry });

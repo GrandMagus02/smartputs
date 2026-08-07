@@ -94,7 +94,7 @@ export function createFacade(args: {
 
   /**
    * One vocabulary, not two. `parse` used to match a regex against raw unit
-   * *keys*, ignoring the lexicon sitting right here in the closure — so
+   * *keys*, ignoring the vocabulary sitting right here in the closure — so
    * `X.parse(x.toString())` threw for mass, length, area, speed and volume:
    * the facade's own output was not valid input to its own parser.
    *
@@ -122,9 +122,8 @@ export function createFacade(args: {
   }
 
   // The locale's own analyzers, the same chain the engine's resolver runs, so
-  // "5 kilometres" resolves here exactly as it does in `evaluate`. Locale
-  // packs are not in scope for a facade, hence the empty list.
-  const analyze = createAnalyzerChain(locale.language, []);
+  // "5 kilometres" resolves here exactly as it does in `evaluate`.
+  const analyze = createAnalyzerChain(locale.language);
 
   const resolveUnit = (token: string): string | undefined => {
     const direct = unitFor.get(fold(token));

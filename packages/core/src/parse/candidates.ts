@@ -1,7 +1,7 @@
 import type { Registry } from "../kind/registry";
 import { createAnalyzerChain } from "../locale/analyze";
 import { resolveWeight } from "../solve/weights";
-import type { Candidate, KindId, Locale, LocalePack, Weights } from "../types";
+import type { Candidate, KindId, Locale, Weights } from "../types";
 import { EDIT_HEADROOM, editDistance, nearestWord } from "./distance";
 
 export interface Resolver {
@@ -58,10 +58,9 @@ const CORRECTABLE_SLIPS = 1 + EDIT_HEADROOM;
 export function createResolver(args: {
   registry: Registry;
   locale: Locale;
-  packs: LocalePack[];
   layers: (Weights | undefined)[];
 }): Resolver {
-  const analyze = createAnalyzerChain(args.locale.language, args.packs);
+  const analyze = createAnalyzerChain(args.locale.language);
   const fold = (s: string) => s.toLocaleLowerCase(args.locale.id);
 
   /**

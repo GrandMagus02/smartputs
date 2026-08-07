@@ -26,7 +26,6 @@ import type {
   Kind,
   KindId,
   Locale,
-  LocalePack,
   RateLookup,
   Span,
   Value,
@@ -42,15 +41,14 @@ import type {
  * used to return `[]` while `evaluate` on the same input threw, and
  * `LiveEngine.suggest` is the keystroke-rate API, so the user saw "no results"
  * where the truth was "no rate for JPY". The other two are registration errors
- * — a kind registered twice, a locale pack contributing to a kind that does not
- * exist — which describe the caller's wiring, never the caller's input.
+ * — a kind registered twice, a vocabulary naming a kind that does not exist —
+ * which describe the caller's wiring, never the caller's input.
  */
 const NEVER_SWALLOWED = [MissingRateError, KindConflictError, UnknownKindError];
 
 export interface EngineOptions {
   locales: Locale[];
   kinds?: Kind[];
-  packs?: LocalePack[];
   weights?: Weights;
   tiebreak?: "error" | "first";
   ambiguityEpsilon?: number;
@@ -365,7 +363,7 @@ export function createEngine(callerOpts: EngineOptions): Engine {
   const opts = Object.freeze({ ...callerOpts }); // a copy — see EngineCtx's doc for why
   const locale = opts.locales[0];
   if (locale === undefined) throw new Error("createEngine requires at least one locale");
-  const registry = buildRegistry(opts.kinds ?? [], opts.locales, opts.packs ?? []);
+  const registry = buildRegistry(opts.kinds ?? [], opts.locales);
   const layers = (call?: Weights) => weightLayers(locale, opts, call);
   const stages = buildStages(opts, registry, locale);
   const ctx: EngineCtx = {
@@ -406,7 +404,6 @@ export function createEngine(callerOpts: EngineOptions): Engine {
       resolver: createResolver({
         registry,
         locale,
-        packs: opts.packs ?? [],
         layers: layers(call?.weights),
       }),
     });

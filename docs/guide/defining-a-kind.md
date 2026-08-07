@@ -30,11 +30,12 @@ engine.evaluate("2 mib + 500 kb in kb"); // 2597.152 kb
 
 Everything else has a working default:
 
-- **Aliases** fall back to the unit keys, so `mib` is recognised without a lexicon.
+- **Aliases** fall back to the unit keys, so `mib` is recognised with no
+  vocabulary installed at all.
 - **`+ - * /` and `in`** are generated for any ratio kind.
 - **Formatting** defaults to `${value}${unit}`.
 
-You reach for `lexicon`, `ops` or `format` only when a default is actually
+You reach for a vocabulary, `ops` or `format` only when a default is actually
 wrong. This is the acceptance test for the whole design: if adding a kind ever
 needs more than `id`, `canonical` and `units`, a default is missing.
 
@@ -54,9 +55,9 @@ interface Kind {
   value: RatioSpec | OpaqueSpec;   // required
 
   // everything below is optional and has a working default
-  extendsKind?: KindId;        // patch a built-in; merges lexicon/units/ops
+  extendsKind?: KindId;        // patch a built-in; merges units/literals/ops
   prior?: number;              // base solver weight, default 0
-  lexicon?: Lexicon;           // default (en) aliases; defaults to the unit keys
+  typical?: Record<string, [number, number]>;  // magnitude bands, for completion
   ops?: OpSignature[];         // ratio kinds get + - * / and `in` for free
   format?: (v: Value, ctx: FormatCtx) => string;
 }
@@ -91,17 +92,38 @@ There is no per-kind "context" mechanism. `Value.meta` already exists on every
 value; dpi rides along in it. One generic escape hatch, used by the one kind
 that needs it.
 
-### Vocabulary
+### Words are not on the kind
 
-`lexicon` is the kind's own default (`en`) layer. Other languages arrive as
-[locale packs](/guide/locales#translation-packs), so the vocabulary can never
-drift from the kind it describes.
+A descriptor carries **no natural-language string** — not an alias, not a
+symbol, not a plural form. Words live in a [`Vocabulary`](/guide/locales), one
+per (kind, language), shipped from the kind's own package as a `./locale/<id>`
+subpath and composed into a locale by the caller:
 
 ```ts
-lexicon: {
-  kib: { aliases: ["kib", "kibibyte"], symbol: "KiB",
-         display: { one: "kibibyte", other: "kibibytes" } },
-}
+// packages/data-size/src/locale/en.ts
+export default defineVocabulary({
+  locale: "en",
+  kind: "data-size",   // by id string; a vocabulary never imports its kind
+  units: {
+    kib: { aliases: ["kib", "kibibyte"], symbol: "KiB",
+           forms: { one: "kibibyte", other: "kibibytes" } },
+  },
+});
+```
+
+That is what lets someone who is not the kind's author publish
+`@acme/data-size-uk`, and it is why the kind and its translations cannot drift:
+there is no second copy to keep in step.
+
+### `typical` — the one thing that stayed
+
+A magnitude band is physics, not language, so it is kind-level and language-free.
+Completion's `scaleFit` reads it to prefer the unit people actually type a number
+that size in; a unit with no entry scores 0, so declaring a band is never a
+penalty.
+
+```ts
+typical: { b: [1, 1024], kb: [1, 1000], mib: [1, 1024] },
 ```
 
 ### Cross-kind operations
@@ -128,7 +150,17 @@ const imperialMass = defineKind({
   id: "mass-imperial-extra",
   extendsKind: "mass",
   value: { mode: "ratio", canonical: "g", units: { st: 6350.29318 } },
-  lexicon: { st: { aliases: ["st", "stone"], symbol: "st" } },
+});
+```
+
+Its words go where every kind's words go — into a vocabulary naming the **base**
+kind, because `mass` is the id the registry ends up holding:
+
+```ts
+const stoneEn = defineVocabulary({
+  locale: "en",
+  kind: "mass",
+  units: { st: { aliases: ["st", "stone", "stones"], symbol: "st" } },
 });
 ```
 

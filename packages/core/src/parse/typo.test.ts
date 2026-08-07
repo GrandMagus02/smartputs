@@ -8,6 +8,7 @@ import { defineKind } from "../kind/define";
 import { buildRegistry } from "../kind/registry";
 import { composeLocale } from "../locale/compose";
 import { defineLanguage } from "../locale/define";
+import { defineVocabulary } from "../locale/vocabulary";
 import { TYPO_PENALTY } from "../solve/weights";
 import { createResolver } from "./candidates";
 
@@ -17,12 +18,10 @@ import { createResolver } from "./candidates";
 const volume = defineKind({
   id: "volume",
   value: { mode: "ratio", canonical: "l", units: { l: 1, pt: 0.473 } },
-  lexicon: { pt: ["pint"] },
 });
 const length = defineKind({
   id: "length",
   value: { mode: "ratio", canonical: "m", units: { m: 1, pt: 0.000353 } },
-  lexicon: { pt: ["point"] },
 });
 
 const locale = composeLocale(
@@ -32,9 +31,21 @@ const locale = composeLocale(
     keywords: {},
     selectForm: () => "other",
   }),
+  [
+    defineVocabulary({
+      locale: "en",
+      kind: "volume",
+      units: { pt: { aliases: ["pint"] } },
+    }),
+    defineVocabulary({
+      locale: "en",
+      kind: "length",
+      units: { pt: { aliases: ["point"] } },
+    }),
+  ],
 );
-const registry = buildRegistry([volume, length]);
-const resolver = () => createResolver({ registry, locale, packs: [], layers: [] });
+const registry = buildRegistry([volume, length], [locale]);
+const resolver = () => createResolver({ registry, locale, layers: [] });
 
 const engine = createEngine({
   locales: [composeLocale(en, BUILTIN_EN)],

@@ -23,10 +23,10 @@ import type { EvalCtx, Kind, Language, Vocabulary } from "../types";
  * assertKindContract(mass, [massEn]);
  * ```
  *
- * Omitting them still checks a kind that declares the deprecated `lexicon`,
- * which the registry bridges into an `en` vocabulary; a migrated kind called
- * with no vocabulary fails the alias assertion, and that failure is correct —
- * nothing can type its units.
+ * Omitting them checks a kind that has no words at all: R2 indexes every unit
+ * under its own registry key, so the alias assertion passes for a kind whose
+ * unit ids are typeable and fails for one whose are not. That failure is
+ * correct — with no vocabulary installed, nothing else can type its units.
  */
 export function assertKindContract(
   kind: Kind,
@@ -34,7 +34,8 @@ export function assertKindContract(
 ): void {
   // The language the words are asserted in. Taken from the vocabularies rather
   // than hardcoded so a translation can be contract-tested on the same terms as
-  // the original; "en" is only the default because the bridge speaks it.
+  // the original; "en" is only the default because it is what the built-ins
+  // ship.
   //
   // Mechanics-free on purpose: this helper asserts that units are *typeable*,
   // which is the alias index's business, and an analyzer chain or a plural

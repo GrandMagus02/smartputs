@@ -29,9 +29,21 @@ export default defineVocabulary({
   kind: "power",
   units: {
     w: { aliases: alias("w"), symbol: "w", forms: { one: "watt", other: "watts" } },
-    kw: { aliases: alias("kw"), symbol: "kw", forms: { one: "kilowatt", other: "kilowatts" } },
-    mw: { aliases: alias("mw"), symbol: "mw", forms: { one: "megawatt", other: "megawatts" } },
-    gw: { aliases: alias("gw"), symbol: "gw", forms: { one: "gigawatt", other: "gigawatts" } },
+    kw: {
+      aliases: alias("kw"),
+      symbol: "kw",
+      forms: { one: "kilowatt", other: "kilowatts" },
+    },
+    mw: {
+      aliases: alias("mw"),
+      symbol: "mw",
+      forms: { one: "megawatt", other: "megawatts" },
+    },
+    gw: {
+      aliases: alias("gw"),
+      symbol: "gw",
+      forms: { one: "gigawatt", other: "gigawatts" },
+    },
     hp: {
       aliases: alias("hp"),
       symbol: "hp",
