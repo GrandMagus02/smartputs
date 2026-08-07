@@ -69,8 +69,6 @@ export function buildProgram(root: Node, input: NormalizedInput): Program {
   });
 }
 
-export type { NodeId };
-
 export interface ParserOptions {
   resolver: Resolver;
 }

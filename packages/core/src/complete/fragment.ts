@@ -5,7 +5,7 @@ import { parseNumber } from "../locale/number";
 import { MAX_RUN } from "../parse/numerals";
 import type { Locale, Span } from "../types";
 
-export interface Fragment {
+interface Fragment {
   text: string;
   span: Span;
 }

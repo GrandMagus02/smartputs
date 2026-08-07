@@ -44,6 +44,11 @@ export class Solver {
   best(program: Program, opts?: { kinds?: KindId[] }): Resolution {
     const all = this.all(program, opts);
     const [best, second] = all;
+    // Unreachable in practice: `solve` throws before returning an empty array,
+    // so `all` is never `[]` here. The guard stays because destructuring under
+    // `noUncheckedIndexedAccess` types `best` as `Resolution | undefined`
+    // regardless — this is what the type system requires to typecheck, not a
+    // path that runs.
     if (best === undefined) {
       throw new AmbiguityError(
         program.input.source,

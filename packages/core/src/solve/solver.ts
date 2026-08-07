@@ -5,7 +5,7 @@ import { walk } from "../parse/ast";
 import type { Program } from "../parse/program";
 import type { Candidate, KindId } from "../types";
 
-export const CONTEXT_BONUS = 30;
+const CONTEXT_BONUS = 30;
 
 export interface Resolution {
   /**
@@ -21,9 +21,6 @@ export interface Resolution {
   readonly signatureWeight: number;
   readonly confidence: number;
 }
-
-/** @deprecated Renamed to `Resolution`. Kept for one minor version. */
-export type Assignment = Resolution;
 
 interface Slot {
   node: Node;
