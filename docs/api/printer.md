@@ -192,8 +192,9 @@ as typed, digits included.
 it returns `program.input.source` directly, whatever normalization did or did
 not do to it. `node(program, id, { mode: "verbatim" })` is different: it maps
 the node's span back through `NormalizedInput.mapSpan` and slices the source,
-which cannot be exact once NFKC has changed the source's *length* — every span
-maps to the whole source at that point (see [The pipeline](/guide/pipeline#stage-1-normalizer)),
+which cannot be exact once NFKC has changed the source *at all* — not only
+when it changes length; a same-length fold like `"①"` → `"1"` triggers it too
+— every span maps to the whole source at that point (see [The pipeline](/guide/pipeline#stage-1-normalizer)),
 so there is no single node's text left to return. `node()` throws there rather
 than silently handing back the wrong slice:
 

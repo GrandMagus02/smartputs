@@ -9,15 +9,20 @@ description: The seven classes createEngine assembles, each usable alone and imp
 the pipeline described in [The pipeline](/guide/pipeline). Each one is usable
 on its own — reused across a thousand keystrokes, tested independently of
 every other stage, or wired into a pipeline you build by hand. Every stage
-constructor freezes its instance; every `.run()` (or `.all()`/`.best()`/
-`.forKind()`, `.print()`/`.node()`/`.value()`) call is a pure function of its
-input, so two calls with the same arguments return equal output.
+constructor freezes its instance, so none holds mutable state between calls.
+`.run()` (or `.all()`/`.best()`/`.forKind()`, `.print()`/`.node()`/`.value()`)
+is otherwise a pure function of its input — with one exception: `Tokenizer`
+additionally reads an injectable clock once per `run()`, by design (a
+long-lived instance must not freeze its own clock), so two calls with the
+same string can fold a literal like `"3pm"` to a different `Value` across
+calls.
 
 ## Composing a pipeline by hand
 
 The same five stages `createEngine` assembles, wired together directly —
 adapted from `packages/core/src/stages.test.ts`, which checks this pipeline
-against `createEngine` for every corpus case:
+against `createEngine` on a plain quantity, a binary expression and a
+convert:
 
 ```ts
 import { Evaluator } from "@smartput/core/eval";

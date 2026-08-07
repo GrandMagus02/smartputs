@@ -277,7 +277,8 @@ export class Printer {
    * Unlike `print`, `"verbatim"` here does go through `NormalizedInput.mapSpan`:
    * a subexpression's own text, excluding whatever surrounds it, is precisely
    * what mapping *that node's* span answers. See `verbatimSlice` for the one
-   * case (an NFKC length change) where that mapping cannot be trusted.
+   * case (any NFKC change, not only one that alters length) where that
+   * mapping cannot be trusted.
    */
   node(program: Program, id: NodeId, opts: PrintOptions = {}): string {
     const target = program.nodes[id];
@@ -299,7 +300,8 @@ export class Printer {
    * §4.6 describes for `verbatim`.
    *
    * The one case that mechanism cannot serve: once NFKC has changed the
-   * string's length, `mapSpan` has no character-level correspondence to fall
+   * string at all — not only its length, a same-length fold like "①" → "1"
+   * counts too — `mapSpan` has no character-level correspondence to fall
    * back on and answers with the whole source for *every* span (see
    * `normalize.ts`'s own doc comment on `nfkcShifted`) — which would silently
    * hand back text that does not belong to `node` at all. `program.input`

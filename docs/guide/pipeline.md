@@ -111,7 +111,8 @@ interface NormalizedInput {
 and produces spans against it, and a caller reasonably reads a `Result`'s spans
 against the string they typed. `mapSpan` closes that gap with a binary search
 over `edits` rather than a second pass over the string. One case it cannot
-close honestly: once NFKC has changed the string's *length*, there is no
+close honestly: once NFKC has changed the string *at all* — not only when it
+changes length; a same-length fold like `"①"` → `"1"` counts too — there is no
 character-level correspondence left, and `mapSpan` answers with the whole
 source rather than a plausible-looking wrong offset.
 

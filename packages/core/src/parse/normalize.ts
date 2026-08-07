@@ -75,8 +75,8 @@ interface NormalizedInputInit {
   readonly offsets: readonly number[];
   /** Length of the NFKC-folded string, used as `mapSpan`'s end-of-range fallback. */
   readonly preLength: number;
-  /** True once NFKC changed the string's length, at which point offsets no
-   * longer correspond to source positions. */
+  /** True once NFKC changed the string at all — not only its length — at
+   * which point offsets no longer correspond to source positions. */
   readonly nfkcShifted: boolean;
 }
 
@@ -108,9 +108,10 @@ class NormalizedInputImpl implements NormalizedInput {
   }
 
   mapSpan(span: Span): Span {
-    // After an NFKC length change there is no character-level correspondence to
-    // the source, so the honest answer is the whole source rather than an
-    // offset that happens to be plausible.
+    // After any NFKC change — not only one that alters length, a same-length
+    // fold like "①" → "1" sets this too — there is no character-level
+    // correspondence to the source, so the honest answer is the whole source
+    // rather than an offset that happens to be plausible.
     if (this.nfkcShifted) return { start: 0, end: this.source.length };
     const start = this.offsets[span.start] ?? 0;
     const endExclusive = this.offsets[span.end] ?? this.preLength;
