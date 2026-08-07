@@ -63,18 +63,24 @@ back unmapped. `NormalizedInput.mapSpan` (stage 1) fixes that, and
 when normalization changes length — `"30 °C + 5 C"` strips the `°`, so a span
 that ignored the mapping would slice one character short.
 
-**Every public output is deep-frozen.** `Result.value`, each entry of
-`Result.meta.assumptions`, and every `Completion` come back frozen — mutating
-one now throws instead of silently succeeding:
+**Each entry of `Result.meta.assumptions`, and every `Completion`, are now
+frozen.** `Result.value` was already frozen before this restructuring —
+`evalNode`'s returns were `deepFreeze`d on `main` too, so mutating it has
+always thrown. What is new is narrower: each `Assumption` object an evaluation
+produces, and each `Completion` row `complete()` returns, now come back
+frozen as well — mutating one now throws instead of silently succeeding:
 
 ```ts
-const result = engine.evaluate("20 C + 5 C");
-result.value.unit = "hacked";
+const result = engine.evaluate("20 C + 5 C"); // reads the right operand as a delta
+result.meta.assumptions[0].message = "hacked";
 // TypeError: Attempted to assign to readonly property.
 ```
 
-`Result` itself and its `meta.assumptions` array are not frozen — only the
-values a caller is likely to hold onto and pass around are.
+`Result` itself, `Result.meta`, and the `meta.assumptions` array as a
+container are not frozen — `toResult` builds `meta.assumptions` as a fresh
+`[...assumptions]` array precisely so the container stays a plain array;
+only the `Assumption` objects inside it carry the freeze. Only the values a
+caller is likely to hold onto and pass around individually are frozen.
 
 ## Stage 1 - Normalizer
 
@@ -91,8 +97,9 @@ function normalize(input: string, opts?: NormalizerOptions): NormalizedInput;
 
 NFKC normalization, zero-width characters stripped, the degree sign removed
 (so `deg` never has to see it — `@smartput/temperature`'s `°C` alias is a
-concern of its own lexicon, not the normalizer), and the four dash characters
-people actually type (`−` `–` `—` `-`) unified to ASCII hyphen. Every pass is
+concern of its own lexicon, not the normalizer), and the five dash characters
+people actually type (`−` `‒` `–` `—` `―`) unified to ASCII `-`, the target,
+not one of the five. Every pass is
 individually gated in `NormalizerOptions` and on by default. **Never throws:**
 empty input comes back as `{ empty: true }`, and it is the caller's job (or
 `createEngine`'s — it throws `UnitParseError`) to decide that is an error.
@@ -109,8 +116,10 @@ interface NormalizedInput {
 
 `mapSpan` is what stage 1 owes every stage after it: `lex()` runs on `text`
 and produces spans against it, and a caller reasonably reads a `Result`'s spans
-against the string they typed. `mapSpan` closes that gap with a binary search
-over `edits` rather than a second pass over the string. One case it cannot
+against the string they typed. `mapSpan` closes that gap with an O(1) lookup
+into a precomputed `offsets` array built alongside `text` — not, as first
+proposed, a binary search over `edits`; a direct index turned out simpler and
+faster than the search it replaced. One case it cannot
 close honestly: once NFKC has changed the string *at all* — not only when it
 changes length; a same-length fold like `"①"` → `"1"` counts too — there is no
 character-level correspondence left, and `mapSpan` answers with the whole

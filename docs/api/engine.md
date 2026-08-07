@@ -212,6 +212,13 @@ index the string the caller passed in; spans on the remaining
 `meta.assumptions` records anything the engine inferred rather than read. Two
 kinds populate it today:
 
+Each entry is frozen — mutating a returned `Assumption` throws — though the
+`assumptions` array itself, and `meta`, and `Result`, are plain, unfrozen
+objects; only the values a caller is likely to hold onto and pass around
+individually carry the freeze. (`Result.value` is frozen too, but that
+predates this restructuring — every `Completion` `complete()` returns is the
+other value newly frozen alongside `Assumption`.)
+
 | `code` | Raised by | Means |
 | --- | --- | --- |
 | `cross-rate` | `money` | the FX rate was derived through the snapshot's base currency, not quoted directly |

@@ -194,6 +194,16 @@ evaluator.run(program, resolution); // program/resolution from the Solver exampl
 // { value: { kind: "mass", canonical: Decimal(1500), unit: "kg" }, assumptions: [] }
 ```
 
+`Evaluator` copies `kindMeta` at construction but holds `rates` (and
+`registry`) by reference — one instance of the rule every stage's
+config-holding follows: an already-built service object (`registry`, `rates`,
+a `Resolver`) is held by reference, since nothing incrementally mutates it
+after handing it over, while a caller-assembled bag (`kindMeta`,
+`NormalizerOptions`, `Autocompleter`'s `layers`) is copied, since a caller
+could keep adding to or reassigning entries on the object they passed in
+after construction. `Tokenizer`, `Parser` and `Solver` copy nothing at all —
+every one of their config fields is a service object under this rule.
+
 ## Printer
 
 ```ts
@@ -207,7 +217,15 @@ class Printer {
 
 `@smartput/core/print`. The stage that did not exist before this
 restructuring — full reference, including the three modes and the round-trip
-contract, at [Printer](/api/printer).
+contract, at [Printer](/api/printer). Unlike every stage above, `print` and
+`node` have no free-function twin at all — `formatValue`, exported alongside
+`Printer`, backs `value()` only. The class-and-pure-function pairing is
+uneven this way across all four export lists: `/eval` exports `evaluateNode`
+outright, `/parse` and `/solve` withhold `buildProgram`/`solve` from their
+own subpaths (both noted above), and `/print` has no twin at all for
+`print`/`node`. Each of the four matches spec §6's own export list exactly —
+the unevenness is a stated decision, not residue left over from an
+incomplete pass.
 
 ## Autocompleter
 

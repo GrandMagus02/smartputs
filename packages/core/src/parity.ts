@@ -22,6 +22,21 @@ import type { Engine } from "./engine";
  * the fixture contains no `literal` token, no `LiteralNode`, and no claimed
  * convert target — the paths where node-object identity mattered before the
  * re-key are untouched by this net.
+ *
+ * A third, measured rather than reasoned about: every input in both corpora
+ * is pure ASCII, so this net never diffs a `mapSpan`-mapped span against an
+ * unmapped one — again `span.test.ts`'s corpus is what actually covers that
+ * (its own inputs include the degree sign and non-ASCII dashes). Of the 85
+ * inputs, 51 evaluate without error, and for every one of those 51,
+ * `confidence` is exactly `1` and `assumptions` is `[]` — this net has never
+ * been able to catch a regression in either. What it does cover, and covers
+ * well: 178 `complete()` rows across the corpus, a per-candidate
+ * `explain().assignments` breakdown for each of the 51 successful
+ * evaluations, and — since a few inputs share a `formatted` string with
+ * another input (`"1 kg + 500 g"` and `"1.5 kilograms"` both print
+ * `"1.5 kilograms"`, for one) — 48 distinct formatted strings, not 51. In
+ * short: this net is a formatting-and-scoring regression guard, not a
+ * confidence/assumption/span one.
  */
 
 const corpus = await Bun.file(new URL("../corpus/en.tsv", import.meta.url)).text();
