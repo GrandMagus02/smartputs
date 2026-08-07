@@ -82,6 +82,14 @@ export interface EngineOptions {
   now?: () => number;
   /** IANA time zone every literal matcher resolves against. Defaults to the host zone. */
   timeZone?: string;
+  /**
+   * Significant digits a comparison rounds both operands to before deciding —
+   * ruling C4. Defaults to 26, the same figure `formatPrecision` defaults to,
+   * so two values that print identically compare identically. `"exact"`
+   * compares the canonicals as computed, which is what a caller checking the
+   * arithmetic rather than the intent wants.
+   */
+  comparePrecision?: number | "exact";
 }
 
 export interface EvalOptions {
@@ -89,6 +97,8 @@ export interface EvalOptions {
   weights?: Weights;
   /** Per-call time zone, overriding `EngineOptions.timeZone`. */
   timeZone?: string;
+  /** Per-call comparison precision, overriding `EngineOptions.comparePrecision`. */
+  comparePrecision?: number | "exact";
 }
 
 export interface Result {
@@ -134,13 +144,13 @@ function weightLayers(
   opts: EngineOptions,
   call: Weights | undefined,
 ): (Weights | undefined)[] {
-  return [locale.weights, opts.weights, call];
+  return [locale.language.weights, opts.weights, call];
 }
 
 /**
  * One instance each of the stages that hold no per-call state, built once and
  * reused across every call `createEngine`'s returned `Engine` receives. The
- * `Parser` and `Autocompleter` are conspicuously missing: both close over a weight
+ * `Parser` and `Completer` are conspicuously missing: both close over a weight
  * layer that `EvalOptions.weights`/`CompleteOptions.weights` can override per
  * call, so `createEngine` builds a fresh one per call instead (`parserFor`,
  * `completerFor`).
@@ -167,6 +177,9 @@ function buildStages(opts: EngineOptions, registry: Registry, locale: Locale) {
       locale: locale.id,
       ...(opts.kindMeta === undefined ? {} : { kindMeta: opts.kindMeta }),
       ...(opts.rates ? { rates: opts.rates } : {}),
+      ...(opts.comparePrecision === undefined
+        ? {}
+        : { comparePrecision: opts.comparePrecision }),
     }),
     printer: new Printer({
       registry,
@@ -180,27 +193,19 @@ function buildStages(opts: EngineOptions, registry: Registry, locale: Locale) {
 /**
  * The stage instances and options every entry point method needs but no
  * single call supplies — as opposed to `layers(call?.weights)` and a fresh
- * `Parser`/`Autocompleter`, which are per-call. Built once, passed down instead of
+ * `Parser`/`Completer`, which are per-call. Built once, passed down instead of
  * closed over, the way spec §5's `toResult(program, resolution, printer,
  * evaluator)` already takes `printer` and `evaluator` as explicit arguments.
  *
  * `opts` must be `createEngine`'s frozen copy, never the caller's own
  * `EngineOptions` object, because `toResult` reads `opts.formatPrecision`/
- * `opts.rates` live, on every call — unlike every other stage here, which
- * snapshots its config once at construction. (`opts.rounding` is not among
- * them: it never reaches `toResult` at all — it lives on the `Printer`,
- * already folded into `stages.printer` by `buildStages` before `ctx` is
- * even built.) If `opts` aliased the caller's live object, a caller mutating
- * `opts.rates` after `createEngine` returns would change what `evaluate()`
- * formats and reports as `meta.ratesAsOf`, while `Evaluator` (already
- * constructed, holding the table it was given) keeps computing `value`
- * against the rates that existed at construction time — two rate tables in
- * one `Result`.
- *
- * The freeze is shallow, which matters for exactly one of these two fields:
- * `Object.freeze({ ...callerOpts })` stops `opts.rates = otherTable` but not
- * `opts.rates.asOf = "…"` — a `RateLookup` a caller keeps a reference to and
- * mutates in place is not defended against here.
+ * `opts.rounding`/`opts.rates` live, on every call — unlike every other stage
+ * here, which snapshots its config once at construction. If `opts` aliased
+ * the caller's live object, a caller mutating `opts.rates` after
+ * `createEngine` returns would change what `evaluate()` formats and reports
+ * as `meta.ratesAsOf`, while `Evaluator` (already constructed, holding the
+ * table it was given) keeps computing `value` against the rates that existed
+ * at construction time — two rate tables in one `Result`.
  */
 interface EngineCtx {
   registry: Registry;
@@ -216,8 +221,9 @@ interface EngineCtx {
  * explicitly rather than closing over it, the way spec §5's
  * `toResult(program, resolution, printer, evaluator)` does — `printer` and
  * `evaluator` both arrive folded into one `ctx` here instead of as two
- * separate parameters, which is what lets a future per-call override swap
- * one field via a spread rather than every caller here restating both.
+ * separate parameters, which is what lets `ctxFor`'s per-call `Evaluator`
+ * override (comparison precision) swap one field via a spread rather than
+ * every caller here restating both.
  *
  * `printer.value` replaces the direct `formatValue` call: the `Printer`
  * this `EngineCtx` carries was built with the same `rates`/`rounding`
@@ -355,22 +361,46 @@ function orNoCandidate<T>(input: string, fn: () => T): T {
   }
 }
 
-/**
- * The per-call helpers every `Engine` method needs: `parserFor` and
- * `completerFor` are rebuilt on every call because both close over the
- * weight layers `EvalOptions.weights`/`CompleteOptions.weights` can override
- * per call — `buildStages`'s own doc comment covers why the rest of the
- * stages are not rebuilt this way. `tokenize` and `compile` live here, not
- * inline in `createEngine`, purely to keep that function's body a call site
- * rather than a second place implementing them.
- */
-function buildHelpers(
-  opts: EngineOptions,
-  registry: Registry,
-  locale: Locale,
-  stages: ReturnType<typeof buildStages>,
-  layers: (call?: Weights) => (Weights | undefined)[],
-) {
+export function createEngine(callerOpts: EngineOptions): Engine {
+  const opts = Object.freeze({ ...callerOpts }); // a copy — see EngineCtx's doc for why
+  const locale = opts.locales[0];
+  if (locale === undefined) throw new Error("createEngine requires at least one locale");
+  const registry = buildRegistry(opts.kinds ?? [], opts.packs ?? [], locale.id);
+  const layers = (call?: Weights) => weightLayers(locale, opts, call);
+  const stages = buildStages(opts, registry, locale);
+  const ctx: EngineCtx = {
+    registry,
+    locale,
+    evaluator: stages.evaluator,
+    printer: stages.printer,
+    opts,
+  };
+
+  /**
+   * The shared evaluator, unless this call asked for a different comparison
+   * precision — in which case a fresh one, on exactly the reasoning
+   * `parserFor` and `completerFor` are built per call: an `Evaluator` is a
+   * config holder, and a per-call override is per-call state that the shared
+   * instance by definition cannot carry.
+   *
+   * Identity is preserved when nothing overrides, so the common path still
+   * hands `toResult` the same instance `buildStages` built.
+   */
+  const ctxFor = (call?: EvalOptions): EngineCtx =>
+    call?.comparePrecision === undefined
+      ? ctx
+      : {
+          ...ctx,
+          evaluator: new Evaluator({
+            registry,
+            locale: locale.id,
+            ...(opts.kindMeta === undefined ? {} : { kindMeta: opts.kindMeta }),
+            ...(opts.rates ? { rates: opts.rates } : {}),
+            comparePrecision: call.comparePrecision,
+          }),
+        };
+  // The Parser (and Completer) is rebuilt per call: it closes over the weight
+  // layers, and `EvalOptions.weights` is a per-call override.
   const parserFor = (call?: EvalOptions) =>
     new Parser({
       resolver: createResolver({
@@ -390,40 +420,19 @@ function buildHelpers(
   };
   const compile = (input: string, call?: EvalOptions): Program =>
     parserFor(call).run(tokenize(input, call));
-  return { parserFor, completerFor, tokenize, compile };
-}
-
-export function createEngine(callerOpts: EngineOptions): Engine {
-  const opts = Object.freeze({ ...callerOpts }); // a copy — see EngineCtx's doc for why
-  const locale = opts.locales[0];
-  if (locale === undefined) throw new Error("createEngine requires at least one locale");
-  const registry = buildRegistry(opts.kinds ?? [], opts.packs ?? [], locale.id);
-  const layers = (call?: Weights) => weightLayers(locale, opts, call);
-  const stages = buildStages(opts, registry, locale);
-  const ctx: EngineCtx = {
-    registry,
-    locale,
-    evaluator: stages.evaluator,
-    printer: stages.printer,
-    opts,
-  };
-  const { parserFor, completerFor, tokenize, compile } = buildHelpers(
-    opts,
-    registry,
-    locale,
-    stages,
-    layers,
-  );
 
   return {
     evaluate(input, call) {
       const program = compile(input, call);
-      return toResult(program, stages.solver.best(program, call), ctx);
+      return toResult(program, stages.solver.best(program, call), ctxFor(call));
     },
     suggest(input, call) {
       return swallowedAsEmpty(() => {
         const program = compile(input, call);
-        return stages.solver.all(program, call).map((r) => toResult(program, r, ctx));
+        const resultCtx = ctxFor(call);
+        return stages.solver
+          .all(program, call)
+          .map((r) => toResult(program, r, resultCtx));
       });
     },
     coerce(kind, input, call) {
@@ -433,7 +442,7 @@ export function createEngine(callerOpts: EngineOptions): Engine {
         return { program, resolution: stages.solver.forKind(program, kind, { kinds }) };
       });
       if (resolved.resolution === undefined) throw new NoCandidateError(input, input, []);
-      return stages.evaluator.run(resolved.program, resolved.resolution).value;
+      return ctxFor(call).evaluator.run(resolved.program, resolved.resolution).value;
     },
     explain(input, call) {
       const stream = tokenize(input, call);

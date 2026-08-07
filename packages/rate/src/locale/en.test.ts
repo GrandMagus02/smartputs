@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { createEngine } from "@smartput/core";
+import { composeLocale, createEngine } from "@smartput/core";
 import en from "@smartput/core/locale/en";
 import { number } from "@smartput/number";
 // Through the package path, not "./en": the exports map is the only route a
@@ -11,7 +11,7 @@ import { snapshot } from "../snapshot";
 
 const rates = snapshot("EUR", "2026-08-04", { USD: 1.1, GBP: 0.8412 });
 const engine = createEngine({
-  locales: [en],
+  locales: [composeLocale(en)],
   kinds: [number, money],
   packs: [enMoney],
   rates,

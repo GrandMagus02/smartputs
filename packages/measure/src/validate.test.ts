@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { createEngine } from "@smartput/core";
+import { composeLocale, createEngine } from "@smartput/core";
 import en from "@smartput/core/locale/en";
 import { measure } from "./index";
 import { DEFAULT_DPI, MEASURE_UNITS, type MeasureUnit } from "./units";
@@ -24,7 +24,7 @@ const units = Object.keys(MEASURE_UNITS.ratio) as MeasureUnit[];
 // `length` — so every engine here is built from `measure` alone.
 const engineAt = (dpi?: number) =>
   createEngine({
-    locales: [en],
+    locales: [composeLocale(en)],
     kinds: [measure],
     ...(dpi === undefined ? {} : { kindMeta: { measure: { dpi } } }),
   });

@@ -4,8 +4,11 @@ import { Decimal } from "./decimal";
 import { fromCanonical, toCanonical } from "./eval/convert";
 import { formatValue } from "./format/format";
 import { buildRegistry, NUMBER_KIND } from "./kind/registry";
-import en from "./locale/en";
+import { composeLocale } from "./locale/compose";
+import english from "./locale/en";
 import { parseNumber } from "./locale/number";
+
+const en = composeLocale(english);
 
 const registry = buildRegistry(BUILTIN_KINDS, [], "en");
 const SAMPLES = [
@@ -100,7 +103,7 @@ test("parse(format(v)) === v for every unit of every kind (spec §10 property 2)
         // parseNumber tolerates (U+0020, U+00A0, U+202F).
         const digits = formatted.replace(/[^\d.,\-\u0020\u00A0\u202F]/gu, "").trim();
         const label = `${kind.id}:${unit}:${sample}`;
-        const parsed = parseNumber(digits, en);
+        const parsed = parseNumber(digits, english);
 
         if (parsed === null) {
           expect(`${label} UNPARSEABLE`).toBe(`${label} ${authored.toFixed()}`);

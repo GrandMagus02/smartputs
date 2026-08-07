@@ -1,5 +1,10 @@
 import { expect, test } from "bun:test";
-import { AmbiguityError, createEngine, UnitParseError } from "@smartput/core";
+import {
+  AmbiguityError,
+  composeLocale,
+  createEngine,
+  UnitParseError,
+} from "@smartput/core";
 import coreEn from "@smartput/core/locale/en";
 import { date } from "@smartput/date";
 import { datetime, TEST_NOW, TEST_ZONE } from "@smartput/datetime";
@@ -9,7 +14,7 @@ import { time } from "@smartput/time";
 import { createDatetimeRange, datetimeRange } from "./datetime-range";
 
 const engine = createEngine({
-  locales: [coreEn],
+  locales: [composeLocale(coreEn)],
   kinds: [...BUILTIN_KINDS, datetime, date, time, datetimeRange],
   now: () => TEST_NOW,
   timeZone: TEST_ZONE,
@@ -112,7 +117,7 @@ test("`from X to <nothing readable>` is not claimed either", () => {
 
 test("the window table is overridable per engine", () => {
   const nightOwl = createEngine({
-    locales: [coreEn],
+    locales: [composeLocale(coreEn)],
     kinds: [
       ...BUILTIN_KINDS,
       datetime,
@@ -140,7 +145,7 @@ test("the window table is overridable per engine", () => {
  */
 test("without the reading weight, a window phrase ties with chrono's instant", () => {
   const flat = createEngine({
-    locales: [coreEn],
+    locales: [composeLocale(coreEn)],
     kinds: [...BUILTIN_KINDS, datetime, date, time, createDatetimeRange({ weight: 0 })],
     now: () => TEST_NOW,
     timeZone: TEST_ZONE,

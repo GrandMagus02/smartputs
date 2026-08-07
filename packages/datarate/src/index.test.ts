@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { createEngine } from "@smartput/core";
+import { composeLocale, createEngine } from "@smartput/core";
 import en from "@smartput/core/locale/en";
 import { BUILTIN_KINDS } from "@smartput/kinds";
 import { datarate } from "./index";
@@ -12,7 +12,7 @@ import { datarate } from "./index";
 // pass 1 of `buildRegistry` rejects an id registered twice, and a test that
 // breaks the moment the barrel gains the kind is a test nobody trusts.
 const engine = createEngine({
-  locales: [en],
+  locales: [composeLocale(en)],
   kinds: [...BUILTIN_KINDS.filter((k) => k.id !== "datarate"), datarate],
 });
 

@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { createEngine } from "@smartput/core";
+import { composeLocale, createEngine } from "@smartput/core";
 import en from "@smartput/core/locale/en";
 import { toCanonical } from "@smartput/shared";
 import { percent } from "./index";
@@ -64,7 +64,7 @@ test("conversion identity: the one unit converts to itself, exactly", () => {
 // honest comparison against the engine's `Value.canonical` goes through
 // `toCanonical`, which actually applies the ratio.
 test("cross-path agreement: the micro path's canonical magnitude matches the engine's", () => {
-  const engine = createEngine({ locales: [en], kinds: [percent] });
+  const engine = createEngine({ locales: [composeLocale(en)], kinds: [percent] });
   for (const unit of units) {
     for (const n of ["1", "30.5", "0.25"]) {
       const parsed = parsePercent(`${n}${unit}`);
@@ -78,7 +78,7 @@ test("cross-path agreement: the micro path's canonical magnitude matches the eng
 });
 
 test("cross-path agreement: every alias resolves to the same unit on both paths", () => {
-  const engine = createEngine({ locales: [en], kinds: [percent] });
+  const engine = createEngine({ locales: [composeLocale(en)], kinds: [percent] });
   for (const [word, unit] of Object.entries(PERCENT_UNITS.alias)) {
     const parsed = parsePercent(`1${word}`);
     expect(parsed.ok, word).toBe(true);

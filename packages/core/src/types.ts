@@ -9,7 +9,37 @@ export type KindId = string;
  * swapping fold is indistinguishable from a bug the first time an operand has
  * a side effect on the solver.
  */
-export type OpSymbol = "+" | "-" | "*" | "/" | "in" | "of" | "off";
+export type OpSymbol =
+  | "+"
+  | "-"
+  | "*"
+  | "/"
+  | "in"
+  | "of"
+  | "off"
+  /**
+   * The comparison six. They are ops rather than a construct of their own for
+   * the reason every other binary reading in this engine is one: an operation
+   * is legal exactly when an `OpSignature` exists for `(op, leftKind,
+   * rightKind)`, and comparison wants precisely that table. `1 kg > 500 g`
+   * unifies its operands through the solver the same way `1 kg + 500 g` does,
+   * and gets `10 m > 5 h` refused by the same absence.
+   *
+   * `>=`, `<=` and `!=` are single symbols despite being two characters; the
+   * lexer consumes the pair. `==` and `<>` are spellings the lexer folds into
+   * `=` and `!=`, so nothing downstream sees a second name for one operation.
+   */
+  | ComparisonOp;
+
+/**
+ * The comparison six as a type of their own, so a caller can branch on "is
+ * this a comparison" without restating the list.
+ *
+ * The runtime array lives in `ratio-ops.ts` beside the generator that consumes
+ * it, because this module is re-exported as `export type *` — a value declared
+ * here would compile fine and be unreachable from the package door.
+ */
+export type ComparisonOp = "<" | "<=" | ">" | ">=" | "=" | "!=";
 /**
  * The keys of `Locale.keywords`, not the surface words. A locale lists every
  * word that means conversion under `in` (English: "in", "to", "as"), and
@@ -167,6 +197,18 @@ export interface EvalCtx {
    * absent during a standalone conversion, which has no Result to attach to.
    */
   readonly note?: (a: Assumption) => void;
+  /**
+   * Significant digits both operands are rounded to before a comparison —
+   * ruling C4. `"exact"` compares the canonicals as computed.
+   *
+   * Absent means the engine default, which is the same 26 digits
+   * `formatPrecision` uses, so two values that print identically compare
+   * identically. It reaches `apply` rather than being applied by the evaluator
+   * because only the signature knows it is comparing: an arithmetic `apply`
+   * that rounded its operands would be throwing away the guard digits the
+   * whole 28-digit setting exists to provide.
+   */
+  readonly comparePrecision?: number | "exact";
 }
 
 /**
@@ -339,6 +381,18 @@ export interface OpaqueSpec {
    * formatted and used as an `in` target exactly like a ratio kind's unit.
    */
   units?: Record<string, UnitLexeme | string[]>;
+  /**
+   * Opt in to the six comparison signatures — ruling C5.
+   *
+   * A ratio kind's canonical is a magnitude on a line, so comparison is always
+   * meaningful and is generated unconditionally. An opaque kind's canonical is
+   * whatever that kind chose: epoch nanoseconds for `datetime`, where ordering
+   * is the whole point, and a GeoNames feature id for `place`, where it is
+   * meaningless. Only the kind knows which, so only the kind may say — and a
+   * default of `true` would have given `kyiv > warsaw` a confident answer about
+   * nothing.
+   */
+  ordered?: boolean;
   /** Single-token recognition. Superseded by `Kind.literals` for anything multi-token. */
   parse?: (token: string, ctx: EvalCtx) => unknown | null;
   equals?: (a: unknown, b: unknown) => boolean;
@@ -506,22 +560,129 @@ export type NumeralParser = (words: string[]) => NumeralMatch | null;
  */
 export type NumeralSpeller = (value: Decimal) => string | null;
 
-export interface Locale {
-  id: string;
-  numberFormat: "intl" | NumberFormatSpec;
-  segment?: (run: string) => string[];
-  analyze?: Analyzer[];
-  numerals?: NumeralParser;
+/**
+ * Where in an expression a quantity sits, handed to `Language.selectForm` so a
+ * language whose grammar depends on position can answer differently. The three
+ * core values are documented; a language may recognise its own, which is what
+ * `(string & {})` is for — it keeps the union open without widening the three
+ * away from autocomplete.
+ *
+ * `formatValue` renders a finished `Value` with no expression around it, so it
+ * always passes `"bare"`. `Printer` walks a `Program` and knows the real
+ * position.
+ */
+export type Slot = "bare" | "after-number" | "conversion-target" | (string & {});
+
+/**
+ * What a language is told in order to pick a key in a unit's `forms` table.
+ *
+ * `count` is optional — ruling R5, amending the spec. A conversion target has
+ * no magnitude attached to it ("1 kg in g" has nothing to count "grams" by),
+ * and every implementation must answer for that case; English returns
+ * `"other"`, the category CLDR requires every locale to define precisely as
+ * its generic one.
+ */
+export interface FormCtx {
+  readonly count?: Decimal;
+  readonly kind: KindId;
+  readonly unit: string;
+  readonly slot: Slot;
+}
+
+/** The pieces of a rendered quantity, assembled by `Language.renderQuantity`. */
+export interface QuantityParts {
+  /** Already formatted by `formatNumber` — never a raw Decimal. */
+  readonly number: string;
+  /** `forms[selectForm(ctx)]`, when the vocabulary had one. */
+  readonly form?: string;
+  readonly symbol?: string;
+  readonly kind: KindId;
+  readonly unit: string;
+  readonly slot: Slot;
+}
+
+/**
+ * The pieces of a rendered binary expression, for `Printer`'s spelled mode.
+ * `left` and `right` are already rendered, so a language assembles words and
+ * order and never walks the tree itself.
+ */
+export interface ExpressionParts {
+  readonly op: OpSymbol;
+  readonly left: string;
+  readonly right: string;
+  /** The language's own word for `op`, from `keywords`, when it has one. */
+  readonly word?: string;
+}
+
+/** The words for one unit, in one language. */
+export interface UnitWords {
+  readonly aliases: readonly string[];
+  readonly symbol?: string;
+  /** Keys are whatever this language's `selectForm` returns. */
+  readonly forms?: Readonly<Record<string, string>>;
+}
+
+/**
+ * The words for one kind, in one language. Ships beside the kind that defines
+ * it and names that kind by **id string** — never by import, so a translation
+ * is shippable by someone who is not the kind's author and `locale/uk` is
+ * importable without the ratio tables (spec §10).
+ */
+export interface Vocabulary {
+  readonly locale: string;
+  readonly kind: KindId;
+  readonly units: Readonly<Record<string, UnitWords>>;
+}
+
+/**
+ * A language's mechanics, independent of any kind. One package per language.
+ *
+ * This is the old `Locale` minus everything that was about words for units,
+ * plus the writing half. `selectForm` is the only required addition: the
+ * engine must not enumerate the world's grammatical categories, so it asks the
+ * language for a key and indexes a table with it. `Intl.PluralRules` is the
+ * default *implementation*, not the model.
+ */
+export interface Language {
+  /** BCP-47. */
+  readonly id: string;
+
+  // --- reading ---
+  readonly numberFormat: "intl" | NumberFormatSpec;
+  readonly segment?: (run: string) => string[];
+  readonly analyze?: readonly Analyzer[];
+  readonly numerals?: NumeralParser;
+  readonly keywords: Partial<Record<Keyword, readonly string[]>>;
+
+  // --- writing ---
+  /** Which key in a unit's `forms` table applies here. */
+  selectForm(ctx: FormCtx): string;
+  /** Assemble a rendered quantity. Defaults to `defaultRenderQuantity`. */
+  renderQuantity?(parts: QuantityParts): string;
+  /** Assemble a rendered expression, for `Printer`'s spelled mode. */
+  renderExpression?(parts: ExpressionParts): string;
   /**
-   * Spells numerals in this locale's cardinal words — `Printer`'s `spelled`
+   * The inverse of `numerals`: 22 -> "twenty two". `Printer`'s `spelled`
    * option reads this, and throws if it is absent rather than silently
-   * printing digits (see `PrintOptions.spelled`). Optional because a locale
+   * printing digits (see `PrintOptions.spelled`). Optional because a language
    * with no spelling convention worth writing (or none written yet) should
    * not be forced to declare one just to satisfy the type.
    */
   spell?: NumeralSpeller;
-  keywords: Partial<Record<Keyword, string[]>>;
-  weights?: Weights;
+
+  readonly weights?: Weights;
+}
+
+/**
+ * A language plus the vocabularies installed with it. Built by
+ * `composeLocale`, which is the only thing that may construct one — the
+ * validation it does (spec §3) is what makes a bad wiring fail on boot rather
+ * than at a keystroke.
+ */
+export interface Locale {
+  readonly id: string;
+  readonly language: Language;
+  readonly vocabularies: readonly Vocabulary[];
 }
 
 export interface LocalePack {

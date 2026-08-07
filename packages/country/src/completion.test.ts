@@ -1,6 +1,12 @@
 import { expect, test } from "bun:test";
 import { CITIES } from "@smartput/city";
-import { type CompleteCtx, createEngine, Decimal, type Kind } from "@smartput/core";
+import {
+  type CompleteCtx,
+  composeLocale,
+  createEngine,
+  Decimal,
+  type Kind,
+} from "@smartput/core";
 import coreEn from "@smartput/core/locale/en";
 import { BUILTIN_KINDS } from "@smartput/kinds";
 import {
@@ -207,7 +213,7 @@ test("a multi-word name completes, through core as well as here", () => {
   // that does not exist. `CompleteCtx` now carries the whole input and the
   // fragment's span, and a row may name the offset it replaces from.
   const engine = createEngine({
-    locales: [coreEn],
+    locales: [composeLocale(coreEn)],
     kinds: [...BUILTIN_KINDS, { ...definePlace({ cities: CITIES }) }],
   });
   const first = engine.complete("san fran")[0];
@@ -233,7 +239,7 @@ test("a look-back row is scored against the whole of what was typed", () => {
   // fragment, "yor", which neither alias begins with. Both scored zero, the tie
   // fell through to the country code, and "id" sorts above "us".
   const engine = createEngine({
-    locales: [coreEn],
+    locales: [composeLocale(coreEn)],
     kinds: [...BUILTIN_KINDS, definePlace({ cities: CITIES })],
   });
   expect(engine.complete("new yor").map((r) => r.text)).toEqual([
@@ -341,7 +347,7 @@ test("the call site: the kind registers the completer and core ranks the rows", 
     completions: withCities.completions,
   };
   const engine = createEngine({
-    locales: [coreEn],
+    locales: [composeLocale(coreEn)],
     kinds: [...BUILTIN_KINDS, kind],
   });
 

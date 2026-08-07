@@ -5,7 +5,8 @@ import { createEngine } from "../engine";
 import { DimensionMismatchError, TooAmbiguousError } from "../errors";
 import { defineKind } from "../kind/define";
 import { buildRegistry } from "../kind/registry";
-import { defineLocale } from "../locale/define";
+import { composeLocale } from "../locale/compose";
+import { defineLanguage } from "../locale/define";
 import enLocale from "../locale/en";
 import { createResolver } from "../parse/candidates";
 import { lex } from "../parse/lex";
@@ -30,7 +31,14 @@ const duration = defineKind({
   lexicon: { min: ["min", "m"], h: ["h"] },
 });
 
-const en = defineLocale({ id: "en", numberFormat: "intl", keywords: { in: ["in"] } });
+const en = composeLocale(
+  defineLanguage({
+    id: "en",
+    numberFormat: "intl",
+    keywords: { in: ["in"] },
+    selectForm: () => "other",
+  }),
+);
 const registry = buildRegistry([number, length, duration]);
 
 function run(input: string, layers: Parameters<typeof createResolver>[0]["layers"] = []) {
@@ -300,7 +308,7 @@ const day = defineKind({
 });
 
 const engine = createEngine({
-  locales: [enLocale],
+  locales: [composeLocale(enLocale)],
   kinds: [numberKind, durationKind, day],
 });
 
@@ -335,7 +343,7 @@ test("the kinds filter drops a literal candidate", () => {
 
 test("a literal's weight goes through the weight layers", () => {
   const boosted = createEngine({
-    locales: [enLocale],
+    locales: [composeLocale(enLocale)],
     kinds: [numberKind, durationKind, day],
     weights: { day: 11 },
   });
@@ -423,7 +431,7 @@ test("signatureWeight defaults to zero and moves no existing score", () => {
 
 test("explain lists a non-zero signature weight as its own row", () => {
   const weightedEngine = createEngine({
-    locales: [enLocale],
+    locales: [composeLocale(enLocale)],
     kinds: [number, length, duration, weightedMinus],
   });
   const assignment = weightedEngine.explain("10 m - 5 m").assignments[0];

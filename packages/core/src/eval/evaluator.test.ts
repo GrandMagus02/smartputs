@@ -2,7 +2,8 @@ import { expect, test } from "bun:test";
 import { Decimal } from "../decimal";
 import { defineKind } from "../kind/define";
 import { buildRegistry } from "../kind/registry";
-import { defineLocale } from "../locale/define";
+import { composeLocale } from "../locale/compose";
+import { defineLanguage } from "../locale/define";
 import { createResolver } from "../parse/candidates";
 import { Parser } from "../parse/program";
 import { Tokenizer } from "../parse/tokenizer";
@@ -101,16 +102,22 @@ const echo = defineKind({
 
 const ALL = [number, length, noted, pixel, coin, echo];
 
-const en: Locale = defineLocale({
-  id: "en",
-  numberFormat: "intl",
-  keywords: { in: ["in"], of: ["of"] },
-});
-const xx: Locale = defineLocale({
-  id: "xx",
-  numberFormat: "intl",
-  keywords: { in: ["in"], of: ["of"] },
-});
+const en: Locale = composeLocale(
+  defineLanguage({
+    id: "en",
+    numberFormat: "intl",
+    keywords: { in: ["in"], of: ["of"] },
+    selectForm: () => "other",
+  }),
+);
+const xx: Locale = composeLocale(
+  defineLanguage({
+    id: "xx",
+    numberFormat: "intl",
+    keywords: { in: ["in"], of: ["of"] },
+    selectForm: () => "other",
+  }),
+);
 
 /** Builds a Program + Resolution for `input`, over `kinds`, in locale `loc` —
  * the fixture-building the brief allows, asserting nothing about parser or

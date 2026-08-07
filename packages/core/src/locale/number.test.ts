@@ -1,9 +1,19 @@
 import { expect, test } from "bun:test";
-import { defineLocale } from "./define";
+import { defineLanguage } from "./define";
 import { numberSymbols, parseNumber } from "./number";
 
-const en = defineLocale({ id: "en", numberFormat: "intl", keywords: {} });
-const de = defineLocale({ id: "de", numberFormat: "intl", keywords: {} });
+const en = defineLanguage({
+  id: "en",
+  numberFormat: "intl",
+  keywords: {},
+  selectForm: () => "other",
+});
+const de = defineLanguage({
+  id: "de",
+  numberFormat: "intl",
+  keywords: {},
+  selectForm: () => "other",
+});
 
 test("discovers group and decimal symbols from Intl", () => {
   expect(numberSymbols(en)).toEqual({ group: ",", decimal: "." });
@@ -21,10 +31,11 @@ test("parses a bare integer and decimal", () => {
 });
 
 test("an explicit NumberFormatSpec overrides Intl", () => {
-  const custom = defineLocale({
+  const custom = defineLanguage({
     id: "xx",
     numberFormat: { group: " ", decimal: "," },
     keywords: {},
+    selectForm: () => "other",
   });
   expect(parseNumber("1 500,25", custom)?.toString()).toBe("1500.25");
 });

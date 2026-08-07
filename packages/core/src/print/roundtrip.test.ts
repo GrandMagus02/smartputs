@@ -3,7 +3,8 @@ import { BUILTIN_KINDS } from "@smartput/kinds";
 import { Decimal } from "../decimal";
 import { Evaluator } from "../eval/evaluator";
 import { buildRegistry } from "../kind/registry";
-import en from "../locale/en";
+import { composeLocale } from "../locale/compose";
+import english from "../locale/en";
 import { createResolver } from "../parse/candidates";
 import { Normalizer } from "../parse/normalize";
 import { Parser, type Program } from "../parse/program";
@@ -11,6 +12,8 @@ import { Tokenizer } from "../parse/tokenizer";
 import { Solver } from "../solve/solver-class";
 import type { Value } from "../types";
 import { Printer } from "./print";
+
+const en = composeLocale(english);
 
 /**
  * Spec §4.6's round-trip contract: for every input in the corpus,
@@ -25,7 +28,7 @@ const resolver = createResolver({
   registry,
   locale: en,
   packs: [],
-  layers: [en.weights],
+  layers: [english.weights],
 });
 const normalizer = new Normalizer();
 const tokenizer = new Tokenizer({ locale: en, registry });

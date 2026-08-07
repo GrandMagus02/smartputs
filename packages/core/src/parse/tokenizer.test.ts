@@ -2,10 +2,13 @@ import { expect, test } from "bun:test";
 import { Decimal } from "../decimal";
 import { defineKind } from "../kind/define";
 import { buildRegistry } from "../kind/registry";
-import en from "../locale/en";
+import { composeLocale } from "../locale/compose";
+import english from "../locale/en";
 import type { LiteralMatcher } from "../types";
 import { normalize } from "./normalize";
 import { Tokenizer } from "./tokenizer";
+
+const en = composeLocale(english);
 
 // Fixed so the golden table below is deterministic; no case here reads a
 // literal matcher that consults `ctx.now`, but a fixed clock is what makes

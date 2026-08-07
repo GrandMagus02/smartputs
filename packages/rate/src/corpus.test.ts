@@ -1,12 +1,16 @@
 import { expect, test } from "bun:test";
-import { createEngine } from "@smartput/core";
+import { composeLocale, createEngine } from "@smartput/core";
 import en from "@smartput/core/locale/en";
 import { number } from "@smartput/number";
 import { money } from "./money";
 import { snapshot } from "./snapshot";
 
 const rates = snapshot("EUR", "2026-08-04", { USD: 1.1, UAH: 45.5 });
-const engine = createEngine({ locales: [en], kinds: [number, money], rates });
+const engine = createEngine({
+  locales: [composeLocale(en)],
+  kinds: [number, money],
+  rates,
+});
 const raw = await Bun.file(new URL("../corpus/en.tsv", import.meta.url)).text();
 
 const rows = raw

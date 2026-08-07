@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { createEngine } from "@smartput/core";
+import { composeLocale, createEngine } from "@smartput/core";
 import en from "@smartput/core/locale/en";
 import { datasize } from "./index";
 import { DATASIZE_UNITS, type DatasizeUnit } from "./units";
@@ -54,7 +54,7 @@ test("conversion identity over every unit pair", () => {
 });
 
 test("cross-path agreement with the engine", () => {
-  const engine = createEngine({ locales: [en], kinds: [datasize] });
+  const engine = createEngine({ locales: [composeLocale(en)], kinds: [datasize] });
   for (const unit of units) {
     const parsed = parseDatasize(`7${unit}`);
     expect(parsed.ok).toBe(true);

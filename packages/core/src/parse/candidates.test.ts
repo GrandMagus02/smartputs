@@ -1,7 +1,8 @@
 import { expect, test } from "bun:test";
 import { defineKind } from "../kind/define";
 import { buildRegistry } from "../kind/registry";
-import { defineLocale } from "../locale/define";
+import { composeLocale } from "../locale/compose";
+import { defineLanguage } from "../locale/define";
 import { identity, suffixStripper } from "../locale/helpers";
 import { createResolver } from "./candidates";
 
@@ -20,7 +21,14 @@ const duration = defineKind({
   lexicon: { min: ["min", "m", "minute"] },
 });
 
-const en = defineLocale({ id: "en", numberFormat: "intl", keywords: {} });
+const en = composeLocale(
+  defineLanguage({
+    id: "en",
+    numberFormat: "intl",
+    keywords: {},
+    selectForm: () => "other",
+  }),
+);
 const registry = buildRegistry([number, length, duration]);
 const resolver = (layers: Parameters<typeof createResolver>[0]["layers"] = []) =>
   createResolver({ registry, locale: en, packs: [], layers });
@@ -73,12 +81,15 @@ test("nearest excludes exact matches, caps at three, and orders by distance", ()
 });
 
 test("analyzed forms reach the lexicon and are penalised", () => {
-  const uk = defineLocale({
-    id: "uk",
-    numberFormat: "intl",
-    analyze: [identity(), suffixStripper({ suffixes: ["s"], minStem: 3, weight: -2 })],
-    keywords: {},
-  });
+  const uk = composeLocale(
+    defineLanguage({
+      id: "uk",
+      numberFormat: "intl",
+      analyze: [identity(), suffixStripper({ suffixes: ["s"], minStem: 3, weight: -2 })],
+      keywords: {},
+      selectForm: () => "other",
+    }),
+  );
   const r = createResolver({ registry, locale: uk, packs: [], layers: [] });
   const found = r.resolve("metres");
   expect(found.map((c) => `${c.kind}:${c.unit}`)).toEqual(["length:m"]);
@@ -86,12 +97,15 @@ test("analyzed forms reach the lexicon and are penalised", () => {
 });
 
 test("a stem match scores below an exact match", () => {
-  const uk = defineLocale({
-    id: "uk",
-    numberFormat: "intl",
-    analyze: [identity(), suffixStripper({ suffixes: ["e"], minStem: 3, weight: -2 })],
-    keywords: {},
-  });
+  const uk = composeLocale(
+    defineLanguage({
+      id: "uk",
+      numberFormat: "intl",
+      analyze: [identity(), suffixStripper({ suffixes: ["e"], minStem: 3, weight: -2 })],
+      keywords: {},
+      selectForm: () => "other",
+    }),
+  );
   const r = createResolver({ registry, locale: uk, packs: [], layers: [] });
   // "metre" matches exactly (weight 0); its stem "metr" matches nothing.
   expect(r.resolve("metre")[0]?.weight).toBe(0);
@@ -123,12 +137,15 @@ test("an analyzer weight adds to a prior and to layer weights, it does not repla
     lexicon: { m: ["m", "metre"], km: ["km"] },
   });
   const reg = buildRegistry([number, priored]);
-  const uk = defineLocale({
-    id: "uk",
-    numberFormat: "intl",
-    analyze: [identity(), suffixStripper({ suffixes: ["s"], minStem: 3, weight: -2 })],
-    keywords: {},
-  });
+  const uk = composeLocale(
+    defineLanguage({
+      id: "uk",
+      numberFormat: "intl",
+      analyze: [identity(), suffixStripper({ suffixes: ["s"], minStem: 3, weight: -2 })],
+      keywords: {},
+      selectForm: () => "other",
+    }),
+  );
   const r = createResolver({
     registry: reg,
     locale: uk,

@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { buildRegistry, createEngine, Decimal } from "@smartput/core";
+import { buildRegistry, composeLocale, createEngine, Decimal } from "@smartput/core";
 import en from "@smartput/core/locale/en";
 import { tempdelta, temperature } from "./index";
 import { TEMPDELTA_UNITS, TEMPERATURE_UNITS, type TemperatureUnit } from "./units";
@@ -81,7 +81,10 @@ test("conversion identity over every unit pair", () => {
 });
 
 test("cross-path agreement with the engine", () => {
-  const engine = createEngine({ locales: [en], kinds: [temperature, tempdelta] });
+  const engine = createEngine({
+    locales: [composeLocale(en)],
+    kinds: [temperature, tempdelta],
+  });
   for (const unit of units) {
     const reading = parseTemperature(`7${unit}`);
     expect(reading.ok).toBe(true);

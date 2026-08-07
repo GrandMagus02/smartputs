@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { createEngine, type Kind, UnitParseError } from "@smartput/core";
+import { composeLocale, createEngine, type Kind, UnitParseError } from "@smartput/core";
 import coreEn from "@smartput/core/locale/en";
 import { date } from "@smartput/date";
 import { datetime, TEST_NOW, TEST_ZONE } from "@smartput/datetime";
@@ -16,7 +16,7 @@ import { createDatetimeRangeHoliday, datetimeRangeHoliday } from "./holiday";
  */
 function engineWith(range: Kind) {
   return createEngine({
-    locales: [coreEn],
+    locales: [composeLocale(coreEn)],
     kinds: [...BUILTIN_KINDS, datetime, date, time, range],
     now: () => TEST_NOW,
     timeZone: TEST_ZONE,

@@ -63,7 +63,7 @@ function collectRun(tokens: Token[], start: number): Run {
 }
 
 export function foldNumerals(tokens: Token[], locale: Locale): Token[] {
-  const numerals = locale.numerals;
+  const numerals = locale.language.numerals;
   if (numerals === undefined) return tokens;
 
   const out: Token[] = [];

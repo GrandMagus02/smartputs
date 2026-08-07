@@ -3,6 +3,7 @@ import { ADMIN1, CITIES } from "@smartput/city";
 import type { CityRow } from "@smartput/city/types";
 import {
   buildRegistry,
+  composeLocale,
   createEngine,
   type Engine,
   type Kind,
@@ -21,6 +22,7 @@ import { datetimeRange } from "@smartput/datetime-range";
 import { BUILTIN_KINDS } from "@smartput/kinds";
 import { length } from "@smartput/length";
 import { number } from "@smartput/number";
+import { RANGE_KINDS } from "@smartput/range";
 import { money, snapshot } from "@smartput/rate";
 import { time } from "@smartput/time";
 import { timeRange } from "@smartput/time-range";
@@ -52,7 +54,10 @@ const geo = definePlace({ cities: CITIES, admin1: ADMIN1 });
  * builds: the two disagree about "tokyo", and which of them is right depends
  * entirely on what else is loaded — see "tokyo" below.
  */
-const places = createEngine({ locales: [coreEn], kinds: [number, length, geo] });
+const places = createEngine({
+  locales: [composeLocale(coreEn)],
+  kinds: [number, length, geo],
+});
 
 /** datetime's test clock, copied rather than imported — `temporal.ts` is not a
  * published entry point of that package and adding one for a neighbour's test
@@ -64,7 +69,7 @@ const TEST_ZONE = "UTC";
 /** Everything a real consumer registers at once, which is where a name that
  * belongs to two kinds actually has to be decided. */
 const full = createEngine({
-  locales: [coreEn],
+  locales: [composeLocale(coreEn)],
   kinds: [...BUILTIN_KINDS, datetime, geo],
   packs: [datetimeEn],
   now: () => TEST_NOW,
@@ -74,7 +79,7 @@ const full = createEngine({
 /** The same, with geo left out — the control for every "registering geo costs
  * nothing" claim below. */
 const without = createEngine({
-  locales: [coreEn],
+  locales: [composeLocale(coreEn)],
   kinds: [...BUILTIN_KINDS, datetime],
   packs: [datetimeEn],
   now: () => TEST_NOW,
@@ -374,7 +379,7 @@ const rates = snapshot("EUR", "2026-08-04", { USD: 1.1, UAH: 45.5 });
  * exposed input the milestone shipped.
  */
 const ranges = createEngine({
-  locales: [coreEn],
+  locales: [composeLocale(coreEn)],
   kinds: [
     ...BUILTIN_KINDS,
     datetime,
@@ -390,20 +395,46 @@ const ranges = createEngine({
   timeZone: TEST_ZONE,
 });
 
+/**
+ * The selection kinds in front of the gazetteer, which is the pairing they are
+ * most exposed by: "to" is Tonga and "first" begins no city name, so every row
+ * in `@smartput/range`'s corpus runs past six thousand names on its way to a
+ * two-position answer.
+ *
+ * A separate engine from `ranges` above rather than another kind in it, because
+ * `index` claims every bare integer and `date-range`'s corpus is full of them —
+ * loading both would test a combination no consumer builds and tell us nothing
+ * about either.
+ */
+const selections = createEngine({
+  locales: [composeLocale(coreEn)],
+  kinds: [...BUILTIN_KINDS, ...RANGE_KINDS, geo],
+});
+
 const SUITES: readonly Suite[] = [
   {
     file: "packages/core/corpus/en.tsv",
-    engine: createEngine({ locales: [coreEn], kinds: [...BUILTIN_KINDS, geo] }),
+    engine: createEngine({
+      locales: [composeLocale(coreEn)],
+      kinds: [...BUILTIN_KINDS, geo],
+    }),
   },
   {
     file: "packages/core/corpus/en-complete.tsv",
-    engine: createEngine({ locales: [coreEn], kinds: [...BUILTIN_KINDS, geo] }),
+    engine: createEngine({
+      locales: [composeLocale(coreEn)],
+      kinds: [...BUILTIN_KINDS, geo],
+    }),
     completion: true,
   },
   { file: "packages/datetime/corpus/en.tsv", engine: full },
   {
     file: "packages/rate/corpus/en.tsv",
-    engine: createEngine({ locales: [coreEn], kinds: [number, money, geo], rates }),
+    engine: createEngine({
+      locales: [composeLocale(coreEn)],
+      kinds: [number, money, geo],
+      rates,
+    }),
   },
   { file: "packages/country/corpus/en.tsv", engine: places },
   // The range milestone's five. `date` and `time` carry their owning corpus
@@ -413,6 +444,7 @@ const SUITES: readonly Suite[] = [
   { file: "packages/date-range/corpus/en.tsv", engine: ranges },
   { file: "packages/time-range/corpus/en.tsv", engine: ranges },
   { file: "packages/datetime-range/corpus/en.tsv", engine: ranges },
+  { file: "packages/range/corpus/en.tsv", engine: selections },
 ];
 
 const ROOT = new URL("../../../", import.meta.url);

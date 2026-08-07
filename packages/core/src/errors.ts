@@ -144,3 +144,39 @@ export class MissingRateError extends SmartputError {
     this.asOf = asOf;
   }
 }
+
+/**
+ * A vocabulary handed to `composeLocale` for a language that is not its own.
+ * Same philosophy as `KindConflictError`: a bad configuration fails on boot,
+ * where the stack names the line that wired it, and never at a keystroke.
+ */
+export class LocaleMismatchError extends SmartputError {
+  readonly locale: string;
+  readonly vocabularyLocale: string;
+  readonly kind: KindId;
+  constructor(locale: string, vocabularyLocale: string, kind: KindId) {
+    super(
+      `Locale ${JSON.stringify(locale)} was given a ${JSON.stringify(vocabularyLocale)} vocabulary for kind ${JSON.stringify(kind)}`,
+      locale,
+    );
+    this.name = "LocaleMismatchError";
+    this.locale = locale;
+    this.vocabularyLocale = vocabularyLocale;
+    this.kind = kind;
+  }
+}
+
+/** Two vocabularies for one kind in one language. Names both by kind and locale. */
+export class VocabularyConflictError extends SmartputError {
+  readonly locale: string;
+  readonly kind: KindId;
+  constructor(locale: string, kind: KindId) {
+    super(
+      `Locale ${JSON.stringify(locale)} has two vocabularies for kind ${JSON.stringify(kind)}`,
+      locale,
+    );
+    this.name = "VocabularyConflictError";
+    this.locale = locale;
+    this.kind = kind;
+  }
+}

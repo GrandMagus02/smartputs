@@ -2,6 +2,7 @@ import { expect, test } from "bun:test";
 import {
   AmbiguityError,
   buildRegistry,
+  composeLocale,
   createEngine,
   defineKind,
   type Kind,
@@ -52,7 +53,7 @@ const TEST_ZONE = "UTC";
 
 const engineOf = (kind: Kind) =>
   createEngine({
-    locales: [coreEn],
+    locales: [composeLocale(coreEn)],
     kinds: [...BUILTIN_KINDS, datetime, kind],
     packs: [datetimeEn],
     now: () => TEST_NOW,

@@ -1,10 +1,18 @@
 import { expect, test } from "bun:test";
-import { createEngine, createFacades, Decimal, UnitParseError } from "@smartput/core";
-import en from "@smartput/core/locale/en";
+import {
+  composeLocale,
+  createEngine,
+  createFacades,
+  Decimal,
+  UnitParseError,
+} from "@smartput/core";
+import english from "@smartput/core/locale/en";
 import { CURRENCIES } from "@smartput/currency";
 import { number } from "@smartput/number";
 import { money } from "./money";
 import { snapshot } from "./snapshot";
+
+const en = composeLocale(english);
 
 /**
  * Core's properties.test.ts asserts every spec §10 property over
@@ -33,7 +41,11 @@ const rates = snapshot("EUR", "2026-08-04", {
 const facades = createFacades({ kinds: [number, money], locale: en, rates });
 const Money = facades.money;
 if (Money === undefined) throw new Error("missing money facade");
-const engine = createEngine({ locales: [en], kinds: [number, money], rates });
+const engine = createEngine({
+  locales: [en],
+  kinds: [number, money],
+  rates,
+});
 
 const UNITS = Object.keys(CURRENCIES);
 const SAMPLES = [

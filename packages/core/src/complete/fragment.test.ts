@@ -1,9 +1,19 @@
 import { expect, test } from "bun:test";
-import { defineLocale } from "../locale/define";
-import enLocale from "../locale/en";
+import { composeLocale } from "../locale/compose";
+import { defineLanguage } from "../locale/define";
+import english from "../locale/en";
 import { leadingCount, trailingFragment } from "./fragment";
 
-const en = defineLocale({ id: "en", numberFormat: "intl", keywords: {} });
+const enLocale = composeLocale(english);
+
+const en = composeLocale(
+  defineLanguage({
+    id: "en",
+    numberFormat: "intl",
+    keywords: {},
+    selectForm: () => "other",
+  }),
+);
 
 test("extracts the trailing word fragment with its span", () => {
   expect(trailingFragment("30 ho")).toEqual({ text: "ho", span: { start: 3, end: 5 } });
@@ -63,11 +73,14 @@ test("returns null when there is no count", () => {
 });
 
 test("honours a locale whose group separator is a space", () => {
-  const fr = defineLocale({
-    id: "fr",
-    numberFormat: { group: " ", decimal: "," },
-    keywords: {},
-  });
+  const fr = composeLocale(
+    defineLanguage({
+      id: "fr",
+      numberFormat: { group: " ", decimal: "," },
+      keywords: {},
+      selectForm: () => "other",
+    }),
+  );
   expect(leadingCount("1 500,5 ho", 8, fr)?.toString()).toBe("1500.5");
 });
 

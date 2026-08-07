@@ -47,11 +47,11 @@ export function leadingCount(
     // Try the whole run first: a locale whose group separator is a space needs
     // "1 500,5" kept intact. Fall back to the last whitespace-delimited token,
     // which is what strips a binary operator's minus in "10 kg - 5 mil".
-    const whole = parseNumber(run, locale);
+    const whole = parseNumber(run, locale.language);
     if (whole !== null) return whole;
 
     const last = run.split(/\s+/).pop();
-    const parsed = last === undefined ? null : parseNumber(last, locale);
+    const parsed = last === undefined ? null : parseNumber(last, locale.language);
     if (parsed !== null) return parsed;
   }
 
@@ -71,7 +71,7 @@ export function leadingCount(
  * whole suffix. Hyphens split like whitespace so "twenty-two k" reads as 22.
  */
 function spelledCount(head: string, locale: Locale): Decimal | null {
-  const numerals = locale.numerals;
+  const numerals = locale.language.numerals;
   if (numerals === undefined) return null;
 
   const words = head.split(/[\s-]+/).filter((w) => w.length > 0);

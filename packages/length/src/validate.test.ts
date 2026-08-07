@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { createEngine } from "@smartput/core";
+import { composeLocale, createEngine } from "@smartput/core";
 import en from "@smartput/core/locale/en";
 import { length } from "./index";
 import { LENGTH_UNITS, type LengthUnit } from "./units";
@@ -49,7 +49,7 @@ test("conversion identity over every unit pair", () => {
 });
 
 test("cross-path agreement with the engine", () => {
-  const engine = createEngine({ locales: [en], kinds: [length] });
+  const engine = createEngine({ locales: [composeLocale(en)], kinds: [length] });
   for (const unit of units) {
     const parsed = parseLength(`7${unit}`);
     expect(parsed.ok).toBe(true);

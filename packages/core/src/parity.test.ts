@@ -1,10 +1,11 @@
 import { expect, test } from "bun:test";
 import { BUILTIN_KINDS } from "@smartput/kinds";
 import { createEngine } from "./engine";
+import { composeLocale } from "./locale/compose";
 import en from "./locale/en";
 import { INPUTS, snapshot } from "./parity";
 
-const engine = createEngine({ locales: [en], kinds: BUILTIN_KINDS });
+const engine = createEngine({ locales: [composeLocale(en)], kinds: BUILTIN_KINDS });
 
 const expected = (
   (await Bun.file(new URL("../parity/en.json", import.meta.url)).exists())

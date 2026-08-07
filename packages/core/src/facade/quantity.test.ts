@@ -2,8 +2,11 @@ import { expect, test } from "bun:test";
 import { BUILTIN_KINDS, measure } from "@smartput/kinds";
 import { UnitParseError } from "../errors";
 import { buildRegistry } from "../kind/registry";
-import en from "../locale/en";
+import { composeLocale } from "../locale/compose";
+import english from "../locale/en";
 import { createFacade, type Quantity, type QuantityClass } from "./quantity";
+
+const en = composeLocale(english);
 
 const registry = buildRegistry(BUILTIN_KINDS, [], "en");
 const massKind = registry.kinds.get("mass");
@@ -31,6 +34,12 @@ const fullRegistry = buildRegistry(allKinds, [], "en");
 const facades: Record<string, QuantityClass> = {};
 const deltaFacades = new Map<string, QuantityClass>();
 for (const [id, k] of fullRegistry.kinds) {
+  // `createFacades` has always skipped opaque kinds — a facade is generated
+  // from a ratio table, and `.to()`/`.scale()` have nothing to read without
+  // one. This loop calls `createFacade` directly, so it has to apply the same
+  // rule itself; it never had to before `boolean` made BUILTIN_KINDS contain
+  // an opaque kind for the first time.
+  if (k.spec.mode !== "ratio") continue;
   const f = createFacade({ kind: k, registry: fullRegistry, locale: en, deltaFacades });
   facades[id] = f;
   deltaFacades.set(id, f);

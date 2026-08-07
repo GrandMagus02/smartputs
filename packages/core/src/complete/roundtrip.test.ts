@@ -1,9 +1,12 @@
 import { expect, test } from "bun:test";
 import { BUILTIN_KINDS, measure } from "@smartput/kinds";
 import { createEngine } from "../engine";
-import en from "../locale/en";
+import { composeLocale } from "../locale/compose";
+import english from "../locale/en";
 import { lex } from "../parse/lex";
 import { normalize } from "../parse/normalize";
+
+const en = composeLocale(english);
 
 const engine = createEngine({ locales: [en], kinds: BUILTIN_KINDS });
 

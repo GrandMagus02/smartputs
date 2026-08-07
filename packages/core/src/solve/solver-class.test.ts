@@ -2,7 +2,8 @@ import { expect, test } from "bun:test";
 import { BUILTIN_KINDS } from "@smartput/kinds";
 import { AmbiguityError, TooAmbiguousError } from "../errors";
 import { buildRegistry } from "../kind/registry";
-import en from "../locale/en";
+import { composeLocale } from "../locale/compose";
+import english from "../locale/en";
 import { createResolver } from "../parse/candidates";
 import { lex } from "../parse/lex";
 import { normalize } from "../parse/normalize";
@@ -10,12 +11,14 @@ import { parse } from "../parse/pratt";
 import { buildProgram } from "../parse/program";
 import { Solver } from "./solver-class";
 
+const en = composeLocale(english);
+
 const registry = buildRegistry(BUILTIN_KINDS, [], "en");
 const resolver = createResolver({
   registry,
   locale: en,
   packs: [],
-  layers: [en.weights],
+  layers: [english.weights],
 });
 
 const programFor = (source: string) => {

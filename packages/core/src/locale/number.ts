@@ -1,25 +1,25 @@
 import { Decimal } from "../decimal";
-import type { Locale, NumberFormatSpec } from "../types";
+import type { Language, NumberFormatSpec } from "../types";
 
 const cache = new Map<string, NumberFormatSpec>();
 
-export function numberSymbols(locale: Locale): NumberFormatSpec {
-  if (locale.numberFormat !== "intl") return locale.numberFormat;
+export function numberSymbols(language: Language): NumberFormatSpec {
+  if (language.numberFormat !== "intl") return language.numberFormat;
 
-  const hit = cache.get(locale.id);
+  const hit = cache.get(language.id);
   if (hit !== undefined) return hit;
 
-  const parts = new Intl.NumberFormat(locale.id).formatToParts(1234567.5);
+  const parts = new Intl.NumberFormat(language.id).formatToParts(1234567.5);
   const spec: NumberFormatSpec = {
     group: parts.find((p) => p.type === "group")?.value ?? ",",
     decimal: parts.find((p) => p.type === "decimal")?.value ?? ".",
   };
-  cache.set(locale.id, spec);
+  cache.set(language.id, spec);
   return spec;
 }
 
-export function parseNumber(text: string, locale: Locale): Decimal | null {
-  const { group, decimal } = numberSymbols(locale);
+export function parseNumber(text: string, language: Language): Decimal | null {
+  const { group, decimal } = numberSymbols(language);
   let cleaned = "";
   for (const ch of text) {
     // Escapes, not literals: NBSP and narrow NBSP are invisible in source and

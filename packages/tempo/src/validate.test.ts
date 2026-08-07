@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { createEngine } from "@smartput/core";
+import { composeLocale, createEngine } from "@smartput/core";
 import en from "@smartput/core/locale/en";
 import { Tempo } from "./class";
 import { tempo } from "./index";
@@ -55,7 +55,7 @@ test("conversion identity over every unit pair", () => {
 });
 
 test("cross-path agreement with the engine", () => {
-  const engine = createEngine({ locales: [en], kinds: [tempo] });
+  const engine = createEngine({ locales: [composeLocale(en)], kinds: [tempo] });
   for (const unit of units) {
     const parsed = parseTempo(`7${unit}`);
     expect(parsed.ok).toBe(true);

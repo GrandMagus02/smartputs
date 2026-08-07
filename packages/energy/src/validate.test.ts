@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { createEngine } from "@smartput/core";
+import { composeLocale, createEngine } from "@smartput/core";
 import en from "@smartput/core/locale/en";
 import { energy } from "./index";
 import { ENERGY_UNITS, type EnergyUnit } from "./units";
@@ -62,7 +62,7 @@ test("conversion identity over every unit pair", () => {
 });
 
 test("cross-path agreement with the engine", () => {
-  const engine = createEngine({ locales: [en], kinds: [energy] });
+  const engine = createEngine({ locales: [composeLocale(en)], kinds: [energy] });
   for (const unit of units) {
     const parsed = parseEnergy(`7${unit}`);
     expect(parsed.ok).toBe(true);

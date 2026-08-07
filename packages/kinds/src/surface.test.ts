@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
 import type { Kind } from "@smartput/core";
-import { createEngine } from "@smartput/core";
+import { composeLocale, createEngine } from "@smartput/core";
 import en from "@smartput/core/locale/en";
 // The package root is the only surface a consumer of @smartput/kinds has, and
 // these named imports are the assertion: until they existed, the aggregator
@@ -12,6 +12,7 @@ import {
   angle,
   area,
   BUILTIN_KINDS,
+  boolean,
   datarate,
   datasize,
   duration,
@@ -32,6 +33,7 @@ import {
 const NAMED: Kind[] = [
   angle,
   area,
+  boolean,
   datarate,
   datasize,
   duration,
@@ -53,6 +55,7 @@ test("every built-in kind is exported from the package root by name", () => {
   expect(NAMED.map((k) => k.id).sort()).toEqual([
     "angle",
     "area",
+    "boolean",
     "datarate",
     "datasize",
     "duration",
@@ -85,6 +88,9 @@ test("measure is usable via createEngine using only package-root imports", () =>
   // This is the case that was silently broken: Task 7's entire deliverable is
   // unreachable without a named export, because measure cannot be opted into
   // through BUILTIN_KINDS.
-  const engine = createEngine({ locales: [en], kinds: [...BUILTIN_KINDS, measure] });
+  const engine = createEngine({
+    locales: [composeLocale(en)],
+    kinds: [...BUILTIN_KINDS, measure],
+  });
   expect(engine.evaluate("96 px in inch").formatted).toBe("1 inch");
 });

@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
 import { ADMIN1, CITIES } from "@smartput/city";
-import { createEngine } from "@smartput/core";
+import { composeLocale, createEngine } from "@smartput/core";
 import en from "@smartput/core/locale/en";
 import { length } from "@smartput/length";
 import { number } from "@smartput/number";
@@ -16,7 +16,7 @@ import { definePlace } from "./place";
 // against both builds side by side rather than implied by which import this
 // file happens to use.
 const engine = createEngine({
-  locales: [en],
+  locales: [composeLocale(en)],
   kinds: [number, length, definePlace({ cities: CITIES, admin1: ADMIN1 })],
 });
 const raw = await Bun.file(new URL("../corpus/en.tsv", import.meta.url)).text();

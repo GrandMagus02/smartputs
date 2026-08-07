@@ -1,12 +1,16 @@
 import { expect, test } from "bun:test";
-import { defineLocale } from "../locale/define";
+import { composeLocale } from "../locale/compose";
+import { defineLanguage } from "../locale/define";
 import { lex } from "./lex";
 
-const en = defineLocale({
-  id: "en",
-  numberFormat: "intl",
-  keywords: { in: ["in", "to", "as"] },
-});
+const en = composeLocale(
+  defineLanguage({
+    id: "en",
+    numberFormat: "intl",
+    keywords: { in: ["in", "to", "as"] },
+    selectForm: () => "other",
+  }),
+);
 
 test("lexes a number and a word with correct spans", () => {
   const tokens = lex("10 kg", en);
@@ -48,11 +52,14 @@ test("keyword matching is case-insensitive, like unit matching", () => {
 });
 
 test("a keyword alias written in caps still matches a lowercase surface", () => {
-  const shouty = defineLocale({
-    id: "en",
-    numberFormat: "intl",
-    keywords: { in: ["IN"] },
-  });
+  const shouty = composeLocale(
+    defineLanguage({
+      id: "en",
+      numberFormat: "intl",
+      keywords: { in: ["IN"] },
+      selectForm: () => "other",
+    }),
+  );
   expect(lex("10 kg in g", shouty)[2]).toMatchObject({ type: "keyword", keyword: "in" });
 });
 
@@ -91,12 +98,15 @@ test("a degree sign is still skipped, so 20 °C resolves via the C word alone", 
 });
 
 test("word runs are split by the locale segmenter when provided", () => {
-  const zh = defineLocale({
-    id: "zh",
-    numberFormat: "intl",
-    segment: (run) => (run === "公斤克" ? ["公斤", "克"] : [run]),
-    keywords: {},
-  });
+  const zh = composeLocale(
+    defineLanguage({
+      id: "zh",
+      numberFormat: "intl",
+      segment: (run) => (run === "公斤克" ? ["公斤", "克"] : [run]),
+      keywords: {},
+      selectForm: () => "other",
+    }),
+  );
   expect(lex("10公斤克", zh).map((t) => (t.type === "word" ? t.text : t.type))).toEqual([
     "number",
     "公斤",

@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { createEngine } from "@smartput/core";
+import { composeLocale, createEngine } from "@smartput/core";
 import en from "@smartput/core/locale/en";
 import { toCanonical } from "@smartput/shared";
 import { number } from "./index";
@@ -125,7 +125,7 @@ test("conversion identity: the one unit converts to itself, exactly", () => {
 });
 
 test("cross-path agreement: the micro path matches the engine's canonical value", () => {
-  const engine = createEngine({ locales: [en], kinds: [number] });
+  const engine = createEngine({ locales: [composeLocale(en)], kinds: [number] });
   for (const n of ["1", "30.5", "0.25", "7"]) {
     const parsed = parseNumber(n);
     expect(parsed.ok, n).toBe(true);
@@ -147,7 +147,7 @@ test("cross-path agreement: the micro path matches the engine's canonical value"
 // going to see it, with or without it in the table.
 test("the self-alias is inert on the engine path, by design", () => {
   expect(parseNumber("1one")).toMatchObject({ ok: true, unit: "one" });
-  const engine = createEngine({ locales: [en], kinds: [number] });
+  const engine = createEngine({ locales: [composeLocale(en)], kinds: [number] });
   expect(() => engine.evaluate("1one")).toThrow();
 });
 

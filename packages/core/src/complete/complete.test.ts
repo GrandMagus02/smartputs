@@ -2,16 +2,19 @@ import { expect, test } from "bun:test";
 import { BUILTIN_KINDS } from "@smartput/kinds";
 import { defineKind } from "../kind/define";
 import { buildRegistry } from "../kind/registry";
-import en from "../locale/en";
+import { composeLocale } from "../locale/compose";
+import english from "../locale/en";
 import type { CompleteCtx, Completer, Kind, KindCompletion, Weights } from "../types";
 import { complete } from "./complete";
 import { EXACT_BONUS, LENGTH_PENALTY, SCALE_BONUS, TYPO_PENALTY } from "./score";
+
+const en = composeLocale(english);
 
 const registry = buildRegistry(BUILTIN_KINDS, [], "en");
 const run = (
   input: string,
   opts?: Parameters<typeof complete>[0]["opts"],
-  layers: (Weights | undefined)[] = [en.weights],
+  layers: (Weights | undefined)[] = [english.weights],
 ) =>
   complete({
     registry,
@@ -105,7 +108,7 @@ test("opts.kinds filters candidates by kind", () => {
 });
 
 test("weight layers reorder the results", () => {
-  const boosted = run("1 mi", undefined, [en.weights, { duration: 20 }]);
+  const boosted = run("1 mi", undefined, [english.weights, { duration: 20 }]);
   expect(boosted[0]?.kind).toBe("duration");
 });
 
@@ -113,7 +116,11 @@ test("a per-call weight layer applies", () => {
   // complete() does not read opts.weights itself. The engine composes layer 4
   // out of CompleteOptions.weights and hands it in through `layers`, exactly
   // as the evaluate path does; reading it here as well would double-count it.
-  const boosted = run("1 mi", undefined, [en.weights, undefined, { "duration:min": 20 }]);
+  const boosted = run("1 mi", undefined, [
+    english.weights,
+    undefined,
+    { "duration:min": 20 },
+  ]);
   expect(boosted[0]?.unit).toBe("min");
 });
 
@@ -191,7 +198,7 @@ const probeRun = (
   kinds: Kind[],
   input: string,
   opts?: Parameters<typeof complete>[0]["opts"],
-  layers: (Weights | undefined)[] = [en.weights],
+  layers: (Weights | undefined)[] = [english.weights],
 ) =>
   complete({
     registry: buildRegistry([...BUILTIN_KINDS, ...kinds], [], "en"),
@@ -297,7 +304,7 @@ test("a row's weight is summed in like a weight layer", () => {
 
 test("weight layers reach completer rows through the same selectors", () => {
   const boosted = probeRun([places(gazetteer)], "k", undefined, [
-    en.weights,
+    english.weights,
     { "place:ua": 5 },
   ]);
   expect(boosted.find((r) => r.unit === "ua")?.score).toBe(2 - 3 + 5);

@@ -1,5 +1,6 @@
 import { expect, test } from "bun:test";
 import {
+  composeLocale,
   createEngine,
   Decimal,
   DimensionMismatchError,
@@ -10,7 +11,7 @@ import en from "@smartput/core/locale/en";
 import { BUILTIN_KINDS } from "@smartput/kinds";
 import { percent } from "./index";
 
-const engine = createEngine({ locales: [en], kinds: BUILTIN_KINDS });
+const engine = createEngine({ locales: [composeLocale(en)], kinds: BUILTIN_KINDS });
 
 test("a bare percentage is a ratio", () => {
   const r = engine.evaluate("20%");

@@ -1,8 +1,11 @@
 import { expect, test } from "bun:test";
-import en from "../locale/en";
+import { composeLocale } from "../locale/compose";
+import english from "../locale/en";
 import { lex } from "./lex";
 import { normalize } from "./normalize";
 import { foldWordOps } from "./wordops";
+
+const en = composeLocale(english);
 
 const shape = (input: string) =>
   foldWordOps(lex(normalize(input).text, en)).map((t) => [

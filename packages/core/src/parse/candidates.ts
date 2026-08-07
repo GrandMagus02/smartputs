@@ -61,7 +61,7 @@ export function createResolver(args: {
   packs: LocalePack[];
   layers: (Weights | undefined)[];
 }): Resolver {
-  const analyze = createAnalyzerChain(args.locale, args.packs);
+  const analyze = createAnalyzerChain(args.locale.language, args.packs);
   const fold = (s: string) => s.toLocaleLowerCase(args.locale.id);
 
   /**

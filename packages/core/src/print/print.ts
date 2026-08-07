@@ -207,7 +207,7 @@ interface RenderCtx {
   readonly rebase?: { readonly kind: KindId; readonly unit: string };
   readonly precision?: number;
   /**
-   * `this.locale.spell`, carried into the ctx only when `PrintOptions.spelled`
+   * `this.locale.language.spell`, carried into the ctx only when `PrintOptions.spelled`
    * was `true` — set here (once per call) rather than read from `this.locale`
    * again at every node is what lets `buildCtx` be the single place that
    * throws for a missing `spell`; every node downstream only ever asks
@@ -343,7 +343,7 @@ export class Printer {
     }
     const rebase =
       opts.unit !== undefined ? this.resolveRebaseTarget(opts.unit) : undefined;
-    const spell = opts.spelled === true ? this.locale.spell : undefined;
+    const spell = opts.spelled === true ? this.locale.language.spell : undefined;
     if (opts.spelled === true && spell === undefined) {
       throw new Error(
         'Printer: { spelled: true } requires the locale to declare "spell" — ' +
@@ -469,7 +469,7 @@ export class Printer {
         // The operand-and-keyword join always keeps its spaces, even under
         // `spacing: "tight"` — see `PrintOptions.spacing`'s doc comment.
         const operand = this.printChild(node.operand, CONVERT_BINDING, ctx);
-        const inWord = this.locale.keywords.in?.[0] ?? "in";
+        const inWord = this.locale.language.keywords.in?.[0] ?? "in";
         return `${operand} ${inWord} ${this.renderTarget(node.id, node.target, ctx)}`;
       }
 
@@ -518,12 +518,12 @@ export class Printer {
   private opWord(op: BinaryOp, ctx: RenderCtx): string {
     switch (op) {
       case "of":
-        return this.locale.keywords.of?.[0] ?? "of";
+        return this.locale.language.keywords.of?.[0] ?? "of";
       case "off":
-        return this.locale.keywords.off?.[0] ?? "off";
+        return this.locale.language.keywords.off?.[0] ?? "off";
       default:
         if (ctx.spell === undefined) return op;
-        return this.locale.keywords[OP_KEYWORDS[op]]?.[0] ?? op;
+        return this.locale.language.keywords[OP_KEYWORDS[op]]?.[0] ?? op;
     }
   }
 
@@ -656,7 +656,7 @@ export class Printer {
     };
     const canonical = toCanonical(value, kind, chosen.unit, conversionCtx);
     const authored = fromCanonical(canonical, kind, ctx.rebase.unit, conversionCtx);
-    const text = formatNumber(authored, this.locale, {
+    const text = formatNumber(authored, this.locale.language, {
       ...(ctx.precision !== undefined ? { precision: ctx.precision } : {}),
       ...(this.rounding !== undefined ? { rounding: this.rounding } : {}),
     });

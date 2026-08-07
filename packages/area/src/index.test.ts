@@ -1,11 +1,11 @@
 import { expect, test } from "bun:test";
-import { createEngine, KindConflictError } from "@smartput/core";
+import { composeLocale, createEngine, KindConflictError } from "@smartput/core";
 import en from "@smartput/core/locale/en";
 import { BUILTIN_KINDS } from "@smartput/kinds";
 import { area } from "./index";
 
 const engine = createEngine({
-  locales: [en],
+  locales: [composeLocale(en)],
   kinds: BUILTIN_KINDS,
 });
 
@@ -36,6 +36,6 @@ test("registering two kinds that claim the same signature throws", () => {
   // this test asserts comes from pass 4: two distinct kind ids both claiming
   // area's `*` signature.
   expect(() =>
-    createEngine({ locales: [en], kinds: [...BUILTIN_KINDS, impostor] }),
+    createEngine({ locales: [composeLocale(en)], kinds: [...BUILTIN_KINDS, impostor] }),
   ).toThrow(KindConflictError);
 });

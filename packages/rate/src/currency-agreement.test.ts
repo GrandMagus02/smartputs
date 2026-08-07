@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { createEngine, Decimal } from "@smartput/core";
+import { composeLocale, createEngine, Decimal } from "@smartput/core";
 import en from "@smartput/core/locale/en";
 import { CURRENCIES, formatAmount, parseAmount, parseCurrency } from "@smartput/currency";
 import { number } from "@smartput/number";
@@ -32,7 +32,11 @@ const rates = snapshot("EUR", "2026-08-04", {
   NOK: 11.7,
   CZK: 24.8,
 });
-const engine = createEngine({ locales: [en], kinds: [number, money], rates });
+const engine = createEngine({
+  locales: [composeLocale(en)],
+  kinds: [number, money],
+  rates,
+});
 
 test("every alias the engine reads, the parser reads to the same currency", () => {
   for (const [code, def] of Object.entries(CURRENCIES)) {

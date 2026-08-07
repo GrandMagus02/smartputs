@@ -3,7 +3,8 @@ import { Decimal } from "../decimal";
 import { NoCandidateError, UnitParseError } from "../errors";
 import { defineKind } from "../kind/define";
 import { buildRegistry } from "../kind/registry";
-import { defineLocale } from "../locale/define";
+import { composeLocale } from "../locale/compose";
+import { defineLanguage } from "../locale/define";
 import type { Candidate } from "../types";
 import { createResolver } from "./candidates";
 import { lex } from "./lex";
@@ -18,11 +19,14 @@ const length = defineKind({
   id: "length",
   value: { mode: "ratio", canonical: "m", units: { m: 1, km: 1000 } },
 });
-const en = defineLocale({
-  id: "en",
-  numberFormat: "intl",
-  keywords: { in: ["in", "to", "as"], of: ["of"], off: ["off"] },
-});
+const en = composeLocale(
+  defineLanguage({
+    id: "en",
+    numberFormat: "intl",
+    keywords: { in: ["in", "to", "as"], of: ["of"], off: ["off"] },
+    selectForm: () => "other",
+  }),
+);
 const registry = buildRegistry([number, length]);
 const resolver = createResolver({ registry, locale: en, packs: [], layers: [] });
 

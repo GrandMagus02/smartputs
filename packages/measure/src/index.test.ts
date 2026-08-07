@@ -1,12 +1,12 @@
 import { expect, test } from "bun:test";
-import { createEngine } from "@smartput/core";
+import { composeLocale, createEngine } from "@smartput/core";
 import en from "@smartput/core/locale/en";
 import { BUILTIN_KINDS } from "@smartput/kinds";
 import { measure } from "./index";
 
 const at = (dpi?: number) =>
   createEngine({
-    locales: [en],
+    locales: [composeLocale(en)],
     kinds: [...BUILTIN_KINDS, measure],
     ...(dpi === undefined ? {} : { kindMeta: { measure: { dpi } } }),
   });

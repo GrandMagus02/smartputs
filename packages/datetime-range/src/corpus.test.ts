@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { createEngine } from "@smartput/core";
+import { composeLocale, createEngine } from "@smartput/core";
 import coreEn from "@smartput/core/locale/en";
 import { date } from "@smartput/date";
 import { datetime, TEST_NOW, TEST_ZONE, Temporal } from "@smartput/datetime";
@@ -17,7 +17,7 @@ import { datetimeRange } from "./datetime-range";
  * that left them out would not be testing the contest the weight exists for.
  */
 const engine = createEngine({
-  locales: [coreEn],
+  locales: [composeLocale(coreEn)],
   kinds: [...BUILTIN_KINDS, datetime, date, time, datetimeRange],
   now: () => TEST_NOW,
   timeZone: TEST_ZONE,

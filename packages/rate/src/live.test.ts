@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { RatesNotReadyError } from "@smartput/core";
+import { composeLocale, RatesNotReadyError } from "@smartput/core";
 import en from "@smartput/core/locale/en";
 import { number } from "@smartput/number";
 import { createLiveEngine } from "./live";
@@ -23,7 +23,7 @@ function countingProvider(): RateProvider & { calls: number } {
 test("the first evaluate fetches, and the result is dated", async () => {
   const provider = countingProvider();
   const live = createLiveEngine({
-    locales: [en],
+    locales: [composeLocale(en)],
     kinds: [number, money],
     provider,
   });
@@ -36,7 +36,7 @@ test("a second call inside the TTL reuses the snapshot", async () => {
   const provider = countingProvider();
   let clock = 0;
   const live = createLiveEngine({
-    locales: [en],
+    locales: [composeLocale(en)],
     kinds: [number, money],
     provider,
     ttlMs: 1000,
@@ -56,7 +56,7 @@ test("a call at exactly the TTL boundary refetches", async () => {
   const provider = countingProvider();
   let clock = 0;
   const live = createLiveEngine({
-    locales: [en],
+    locales: [composeLocale(en)],
     kinds: [number, money],
     provider,
     ttlMs: 1000,
@@ -73,7 +73,7 @@ test("a call past the TTL refetches", async () => {
   const provider = countingProvider();
   let clock = 0;
   const live = createLiveEngine({
-    locales: [en],
+    locales: [composeLocale(en)],
     kinds: [number, money],
     provider,
     ttlMs: 1000,
@@ -89,7 +89,7 @@ test("a call past the TTL refetches", async () => {
 test("concurrent first calls share one fetch", async () => {
   const provider = countingProvider();
   const live = createLiveEngine({
-    locales: [en],
+    locales: [composeLocale(en)],
     kinds: [number, money],
     provider,
   });
@@ -100,7 +100,7 @@ test("concurrent first calls share one fetch", async () => {
 test("sync throws before the first refresh and works after", async () => {
   const provider = countingProvider();
   const live = createLiveEngine({
-    locales: [en],
+    locales: [composeLocale(en)],
     kinds: [number, money],
     provider,
   });
@@ -115,7 +115,7 @@ test("sync throws before the first refresh and works after", async () => {
 test("suggest is available asynchronously too", async () => {
   const provider = countingProvider();
   const live = createLiveEngine({
-    locales: [en],
+    locales: [composeLocale(en)],
     kinds: [number, money],
     provider,
   });
@@ -132,7 +132,11 @@ test("a rejected fetch propagates to the caller, and a later call can succeed", 
       return snapshot("EUR", "2026-08-01", { USD: 1.1 });
     },
   };
-  const live = createLiveEngine({ locales: [en], kinds: [number, money], provider });
+  const live = createLiveEngine({
+    locales: [composeLocale(en)],
+    kinds: [number, money],
+    provider,
+  });
   await expect(live.evaluate("11 usd")).rejects.toThrow("network down");
   const r = await live.evaluate("11 usd");
   expect(r.meta.ratesAsOf).toBe("2026-08-01");
@@ -148,7 +152,11 @@ test("a rejected fetch does not leave a poisoned in-flight promise for concurren
       throw new Error("boom");
     },
   };
-  const live = createLiveEngine({ locales: [en], kinds: [number, money], provider });
+  const live = createLiveEngine({
+    locales: [composeLocale(en)],
+    kinds: [number, money],
+    provider,
+  });
   const results = await Promise.allSettled([
     live.evaluate("11 usd"),
     live.evaluate("11 usd"),

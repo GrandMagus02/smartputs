@@ -2,6 +2,7 @@ import { expect, test } from "bun:test";
 import { number } from "@smartput/kinds";
 import { createEngine } from "./engine";
 import { createCachedEngine, createSnapshotCache } from "./live";
+import { composeLocale } from "./locale/compose";
 import en from "./locale/en";
 
 /** A loader that stamps each snapshot with its call number, so a stale read shows. */
@@ -133,7 +134,7 @@ test("a loader that resolves undefined still counts as loaded", async () => {
 
 /** The snapshot the engine below is built from: a precision the output shows. */
 function engineOpts(digits: number) {
-  return { locales: [en], kinds: [number], formatPrecision: digits };
+  return { locales: [composeLocale(en)], kinds: [number], formatPrecision: digits };
 }
 
 test("evaluate and suggest run against the built engine", async () => {

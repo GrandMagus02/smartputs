@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { createEngine } from "@smartput/core";
+import { composeLocale, createEngine } from "@smartput/core";
 import coreEn from "@smartput/core/locale/en";
 import { date } from "@smartput/date";
 import { datetime, TEST_NOW, TEST_ZONE, Temporal } from "@smartput/datetime";
@@ -16,7 +16,7 @@ import { dateRange } from "./date-range";
  * to win outright, so every row here asserts the unprompted answer.
  */
 const engine = createEngine({
-  locales: [coreEn],
+  locales: [composeLocale(coreEn)],
   kinds: [...BUILTIN_KINDS, datetime, date, dateRange],
   now: () => TEST_NOW,
   timeZone: TEST_ZONE,

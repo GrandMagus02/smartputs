@@ -1,13 +1,25 @@
 import { expect, test } from "bun:test";
-import { createEngine, createFacades, Decimal, MissingRateError } from "@smartput/core";
-import en from "@smartput/core/locale/en";
+import {
+  composeLocale,
+  createEngine,
+  createFacades,
+  Decimal,
+  MissingRateError,
+} from "@smartput/core";
+import english from "@smartput/core/locale/en";
 import { number } from "@smartput/number";
 import { money } from "./money";
 import { snapshot } from "./snapshot";
 
+const en = composeLocale(english);
+
 // One euro buys 1.1 dollars, 45.5 hryvnia and 0.8412 pounds.
 const rates = snapshot("EUR", "2026-08-04", { USD: 1.1, UAH: 45.5, GBP: 0.8412 });
-const engine = createEngine({ locales: [en], kinds: [number, money], rates });
+const engine = createEngine({
+  locales: [en],
+  kinds: [number, money],
+  rates,
+});
 
 test("a bare amount is money in its authored currency", () => {
   const r = engine.evaluate("30 usd");

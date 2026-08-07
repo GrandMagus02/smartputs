@@ -123,7 +123,7 @@ export function createFacade(args: {
   // The locale's own analyzers, the same chain the engine's resolver runs, so
   // "5 kilometres" resolves here exactly as it does in `evaluate`. Locale
   // packs are not in scope for a facade, hence the empty list.
-  const analyze = createAnalyzerChain(locale, []);
+  const analyze = createAnalyzerChain(locale.language, []);
 
   const resolveUnit = (token: string): string | undefined => {
     const direct = unitFor.get(fold(token));
@@ -138,7 +138,7 @@ export function createFacade(args: {
   // Splitting the magnitude off the unit has to know the locale's group and
   // decimal symbols, or "1,234.5 kilograms" — which `toString` produces —
   // cannot be read back.
-  const { group, decimal } = numberSymbols(locale);
+  const { group, decimal } = numberSymbols(locale.language);
   // NBSP and narrow NBSP as escapes, not literals: French ICU groups with
   // U+202F and both are invisible in source -- the same reasoning parseNumber
   // records. A plain space is included too, so "1.5 kilograms" splits.
@@ -221,7 +221,7 @@ export function createFacade(args: {
       // A bare number is not a quantity — the caller has to say which unit.
       if (token === "") throw new UnitParseError(text, kind.id);
 
-      const value = parseNumber(digits, locale);
+      const value = parseNumber(digits, locale.language);
       if (value === null) throw new UnitParseError(text, kind.id);
 
       const unit = resolveUnit(token);

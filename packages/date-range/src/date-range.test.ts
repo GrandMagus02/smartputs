@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { createEngine } from "@smartput/core";
+import { composeLocale, createEngine } from "@smartput/core";
 import coreEn from "@smartput/core/locale/en";
 import { date } from "@smartput/date";
 import { datetime, TEST_NOW, TEST_ZONE } from "@smartput/datetime";
@@ -8,7 +8,7 @@ import { InvertedRangeError } from "@smartput/range-core";
 import { createDateRange, dateRange } from "./date-range";
 
 const engine = createEngine({
-  locales: [coreEn],
+  locales: [composeLocale(coreEn)],
   kinds: [...BUILTIN_KINDS, datetime, date, dateRange],
   now: () => TEST_NOW,
   timeZone: TEST_ZONE,
@@ -60,7 +60,7 @@ test("shifting moves both ends", () => {
 
 test("the week start is an option, and Sunday moves both boundaries", () => {
   const sunday = createEngine({
-    locales: [coreEn],
+    locales: [composeLocale(coreEn)],
     kinds: [...BUILTIN_KINDS, datetime, date, createDateRange({ weekStart: 7 })],
     now: () => TEST_NOW,
     timeZone: TEST_ZONE,

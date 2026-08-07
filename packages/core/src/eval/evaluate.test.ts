@@ -4,7 +4,8 @@ import { createEngine } from "../engine";
 import { DivideByZeroError } from "../errors";
 import { defineKind } from "../kind/define";
 import { buildRegistry } from "../kind/registry";
-import { defineLocale } from "../locale/define";
+import { composeLocale } from "../locale/compose";
+import { defineLanguage } from "../locale/define";
 import enLocale from "../locale/en";
 import { createResolver } from "../parse/candidates";
 import { lex } from "../parse/lex";
@@ -29,11 +30,14 @@ const duration = defineKind({
   lexicon: { min: ["min", "m"], h: ["h"], s: ["s"] },
 });
 
-const en = defineLocale({
-  id: "en",
-  numberFormat: "intl",
-  keywords: { in: ["in"], of: ["of"] },
-});
+const en = composeLocale(
+  defineLanguage({
+    id: "en",
+    numberFormat: "intl",
+    keywords: { in: ["in"], of: ["of"] },
+    selectForm: () => "other",
+  }),
+);
 const registry = buildRegistry([number, length, duration]);
 
 function evaluate(input: string) {
@@ -169,7 +173,10 @@ const dynamicallyNoted = defineKind({
 });
 
 test("an op can record an assumption dynamically through the context sink", () => {
-  const e = createEngine({ locales: [en], kinds: [number, dynamicallyNoted] });
+  const e = createEngine({
+    locales: [en],
+    kinds: [number, dynamicallyNoted],
+  });
   const r = e.evaluate("10 gld + 4 slv");
   expect(r.meta.assumptions).toHaveLength(1);
   expect(r.meta.assumptions[0]?.code).toBe("melted-down");
@@ -178,14 +185,17 @@ test("an op can record an assumption dynamically through the context sink", () =
 });
 
 test("the same assumption recorded twice is kept once", () => {
-  const e = createEngine({ locales: [en], kinds: [number, dynamicallyNoted] });
+  const e = createEngine({
+    locales: [en],
+    kinds: [number, dynamicallyNoted],
+  });
   // Two additions, identical operand units, so both notes serialize the same.
   expect(e.evaluate("1 gld + 2 gld + 3 gld").meta.assumptions).toHaveLength(1);
 });
 
 test("a value's meta is frozen, not just the value", () => {
   const engine = createEngine({
-    locales: [enLocale],
+    locales: [composeLocale(enLocale)],
     kinds: BUILTIN_KINDS,
     kindMeta: { mass: { note: "x" } },
   });

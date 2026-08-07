@@ -4,7 +4,8 @@ import { createEngine } from "../engine";
 import { NoCandidateError } from "../errors";
 import { defineKind } from "../kind/define";
 import { buildRegistry } from "../kind/registry";
-import { defineLocale } from "../locale/define";
+import { composeLocale } from "../locale/compose";
+import { defineLanguage } from "../locale/define";
 import en from "../locale/en";
 import { TYPO_PENALTY } from "../solve/weights";
 import { createResolver } from "./candidates";
@@ -23,11 +24,18 @@ const length = defineKind({
   lexicon: { pt: ["point"] },
 });
 
-const locale = defineLocale({ id: "en", numberFormat: "intl", keywords: {} });
+const locale = composeLocale(
+  defineLanguage({
+    id: "en",
+    numberFormat: "intl",
+    keywords: {},
+    selectForm: () => "other",
+  }),
+);
 const registry = buildRegistry([volume, length]);
 const resolver = () => createResolver({ registry, locale, packs: [], layers: [] });
 
-const engine = createEngine({ locales: [en], kinds: BUILTIN_KINDS });
+const engine = createEngine({ locales: [composeLocale(en)], kinds: BUILTIN_KINDS });
 
 test("a near miss becomes a candidate when nothing matched exactly", () => {
   const [candidate, ...rest] = resolver().resolve("piont");

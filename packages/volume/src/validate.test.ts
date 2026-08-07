@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { createEngine } from "@smartput/core";
+import { composeLocale, createEngine } from "@smartput/core";
 import en from "@smartput/core/locale/en";
 import { volume } from "./index";
 import { VOLUME_UNITS, type VolumeUnit } from "./units";
@@ -53,7 +53,7 @@ test("conversion identity over every unit pair", () => {
 });
 
 test("cross-path agreement with the engine", () => {
-  const engine = createEngine({ locales: [en], kinds: [volume] });
+  const engine = createEngine({ locales: [composeLocale(en)], kinds: [volume] });
   for (const unit of units) {
     const parsed = parseVolume(`7${unit}`);
     expect(parsed.ok).toBe(true);

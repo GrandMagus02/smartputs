@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
 import { Evaluator } from "@smartput/core/eval";
-import en from "@smartput/core/locale/en";
+import english from "@smartput/core/locale/en";
 import { Normalizer } from "@smartput/core/normalize";
 import { Parser } from "@smartput/core/parse";
 import { buildRegistry, createResolver } from "@smartput/core/registry";
@@ -8,7 +8,10 @@ import { Solver } from "@smartput/core/solve";
 import { Tokenizer } from "@smartput/core/tokenize";
 import { BUILTIN_KINDS } from "@smartput/kinds";
 import { createEngine } from "./engine";
+import { composeLocale } from "./locale/compose";
 import type { Value } from "./types";
+
+const en = composeLocale(english);
 
 /**
  * The composition test spec §7 asks for and the plan calls "the real
@@ -40,7 +43,7 @@ const resolver = createResolver({
   registry,
   locale: en,
   packs: [],
-  layers: [en.weights],
+  layers: [english.weights],
 });
 
 const normalizer = new Normalizer();

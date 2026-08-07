@@ -2,6 +2,7 @@ import { expect, test } from "bun:test";
 import { ADMIN1, CITIES } from "@smartput/city";
 import {
   buildRegistry,
+  composeLocale,
   createEngine,
   type Kind,
   type LiteralMatch,
@@ -16,7 +17,10 @@ import { COUNTRIES } from "./data/countries";
 import { MIN_NAME_LENGTH } from "./matcher";
 import { definePlace, place } from "./place";
 
-const engine = createEngine({ locales: [en], kinds: [number, length, place] });
+const engine = createEngine({
+  locales: [composeLocale(en)],
+  kinds: [number, length, place],
+});
 const registry = buildRegistry([number, length, place], [], "en");
 const units = registry.kinds.get("place")?.units;
 
@@ -28,7 +32,10 @@ const units = registry.kinds.get("place")?.units;
  * mutated singleton.
  */
 const cityPlace = definePlace({ cities: CITIES, admin1: ADMIN1 });
-const cityEngine = createEngine({ locales: [en], kinds: [number, length, cityPlace] });
+const cityEngine = createEngine({
+  locales: [composeLocale(en)],
+  kinds: [number, length, cityPlace],
+});
 const cityRegistry = buildRegistry([number, length, cityPlace], [], "en");
 const cityUnits = cityRegistry.kinds.get("place")?.units;
 

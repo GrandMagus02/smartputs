@@ -3,7 +3,8 @@ import { BUILTIN_KINDS } from "@smartput/kinds";
 import { Decimal } from "../decimal";
 import { defineKind } from "../kind/define";
 import { buildRegistry, NUMBER_KIND } from "../kind/registry";
-import en from "../locale/en";
+import { composeLocale } from "../locale/compose";
+import english from "../locale/en";
 import type { Node } from "../parse/ast";
 import { createResolver } from "../parse/candidates";
 import { Normalizer } from "../parse/normalize";
@@ -13,12 +14,14 @@ import { Solver } from "../solve/solver-class";
 import type { Locale, RateLookup, Value } from "../types";
 import { Printer } from "./print";
 
+const en = composeLocale(english);
+
 const registry = buildRegistry(BUILTIN_KINDS, [], en.id);
 const resolver = createResolver({
   registry,
   locale: en,
   packs: [],
-  layers: [en.weights],
+  layers: [english.weights],
 });
 const normalizer = new Normalizer();
 const tokenizer = new Tokenizer({ locale: en, registry });
@@ -215,8 +218,8 @@ test("print: { spelled: true } throws when the locale declares no spell", () => 
   // Destructuring off `spell` (not `{ ...en, spell: undefined }`) so the key
   // is genuinely absent — `exactOptionalPropertyTypes` treats "present with
   // `undefined`" and "absent" as different things for an optional field.
-  const { spell: _spell, ...rest } = en;
-  const noSpellLocale: Locale = rest;
+  const { spell: _spell, ...rest } = english;
+  const noSpellLocale: Locale = composeLocale(rest);
   const noSpellPrinter = new Printer({ registry, locale: noSpellLocale });
   const program = programFor("10 km");
   // Pinned to the message, not a bare `.toThrow()` — an unrelated cause
@@ -226,8 +229,8 @@ test("print: { spelled: true } throws when the locale declares no spell", () => 
 });
 
 test("node(): { spelled: true } throws when the locale declares no spell", () => {
-  const { spell: _spell, ...rest } = en;
-  const noSpellLocale: Locale = rest;
+  const { spell: _spell, ...rest } = english;
+  const noSpellLocale: Locale = composeLocale(rest);
   const noSpellPrinter = new Printer({ registry, locale: noSpellLocale });
   const program = programFor("10 km");
   expect(() => noSpellPrinter.node(program, program.root.id, { spelled: true })).toThrow(
@@ -284,8 +287,8 @@ test("spelled: binary division spells to its locale word", () => {
 });
 
 test("spelled: an operator with no word form in the locale keeps its symbol, not an invented word", () => {
-  const { over: _over, ...restKeywords } = en.keywords;
-  const noOverLocale: Locale = { ...en, keywords: restKeywords };
+  const { over: _over, ...restKeywords } = english.keywords;
+  const noOverLocale: Locale = composeLocale({ ...english, keywords: restKeywords });
   const noOverPrinter = new Printer({ registry, locale: noOverLocale });
   expect(noOverPrinter.print(programFor("10 km / 2 km"), { spelled: true })).toBe(
     "ten kilometres / two kilometres",

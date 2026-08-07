@@ -1,4 +1,4 @@
-import { defineLocale } from "./define";
+import { defineLanguage } from "./define";
 import {
   type CardinalTables,
   cardinalNumerals,
@@ -56,7 +56,9 @@ const CARDINALS: CardinalTables = {
   connectors: ["and"],
 };
 
-export default defineLocale({
+const plural = new Intl.PluralRules("en");
+
+export default defineLanguage({
   id: "en",
   numberFormat: "intl",
   analyze: [
@@ -81,4 +83,8 @@ export default defineLocale({
     over: ["over", "divided"],
     by: ["by"],
   },
+  // "one" | "other" — so every `display` table in the repo becomes a `forms`
+  // table with no edit beyond the field name.
+  selectForm: ({ count }) =>
+    count === undefined ? "other" : plural.select(count.toNumber()),
 });

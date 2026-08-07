@@ -1,6 +1,7 @@
 import { expect, test } from "bun:test";
 import {
   buildRegistry,
+  composeLocale,
   createEngine,
   Decimal,
   type Kind,
@@ -15,7 +16,7 @@ import { TEST_NOW, TEST_ZONE } from "./temporal";
 
 const make = (kinds: Kind[]) =>
   createEngine({
-    locales: [coreEn],
+    locales: [composeLocale(coreEn)],
     kinds,
     now: () => TEST_NOW,
     timeZone: TEST_ZONE,
@@ -26,7 +27,7 @@ const withoutGeo = make([...BUILTIN_KINDS, datetime]);
 
 /** The same engine `corpus.test.ts` builds, with geo added to it. */
 const corpusEngine = createEngine({
-  locales: [coreEn],
+  locales: [composeLocale(coreEn)],
   kinds: [...BUILTIN_KINDS, datetime, place],
   packs: [en],
   now: () => TEST_NOW,

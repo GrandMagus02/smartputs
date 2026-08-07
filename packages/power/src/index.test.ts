@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { createEngine } from "@smartput/core";
+import { composeLocale, createEngine } from "@smartput/core";
 import en from "@smartput/core/locale/en";
 import { number, percent } from "@smartput/kinds";
 import { power } from "./index";
@@ -9,7 +9,10 @@ import { power } from "./index";
 // other kinds a plain ratio kind reaches for are the two that its generated
 // ops name — `number` for scaling and `percent` for relative adjustment
 // (`core/kind/ratio-ops.ts`).
-const engine = createEngine({ locales: [en], kinds: [number, percent, power] });
+const engine = createEngine({
+  locales: [composeLocale(en)],
+  kinds: [number, percent, power],
+});
 
 test("the SI prefixes convert through the canonical watt", () => {
   expect(engine.evaluate("1 kw in w").value.canonical.toString()).toBe("1000");

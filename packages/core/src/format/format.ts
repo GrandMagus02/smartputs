@@ -2,7 +2,7 @@ import { Decimal } from "../decimal";
 import { fromCanonical } from "../eval/convert";
 import { NUMBER_KIND, type Registry } from "../kind/registry";
 import { numberSymbols } from "../locale/number";
-import type { FormatOptions, Locale, Value } from "../types";
+import type { FormatOptions, Language, Locale, Value } from "../types";
 
 export type { FormatOptions } from "../types";
 
@@ -22,7 +22,7 @@ export const DISPLAY_PRECISION = 26;
 
 export function formatNumber(
   value: Decimal,
-  locale: Locale,
+  language: Language,
   opts: FormatOptions = {},
 ): string {
   // Intl cannot take a Decimal, and Number() would lose precision on long
@@ -30,7 +30,7 @@ export function formatNumber(
   // symbols. numberSymbols() is the single source of those symbols — deriving
   // them from Intl here would ignore a locale's own NumberFormatSpec and break
   // parse(format(v)) === v.
-  const { group, decimal } = numberSymbols(locale);
+  const { group, decimal } = numberSymbols(language);
   const precision = opts.precision ?? DISPLAY_PRECISION;
   const shown =
     opts.rounding === undefined
@@ -86,7 +86,7 @@ export function formatValue(
       locale: locale.id,
       authored,
       ...opts,
-      formatNumber: (v, o) => formatNumber(v, locale, o ?? opts),
+      formatNumber: (v, o) => formatNumber(v, locale.language, o ?? opts),
     });
   }
 
@@ -98,7 +98,7 @@ export function formatValue(
   // 0.33333333333333333333333333 by default and ...334 under ROUND_UP, which
   // is guard-digit noise being promoted to a policy.
   const { rounding: _hookOnly, ...trim } = opts;
-  const numberText = formatNumber(authored, locale, trim);
+  const numberText = formatNumber(authored, locale.language, trim);
   if (value.kind === NUMBER_KIND) return numberText;
 
   const unit = kind.units.get(value.unit);

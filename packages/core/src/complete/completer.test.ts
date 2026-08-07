@@ -2,10 +2,13 @@ import { expect, test } from "bun:test";
 import { BUILTIN_KINDS } from "@smartput/kinds";
 import { defineKind } from "../kind/define";
 import { buildRegistry } from "../kind/registry";
-import { defineLocale } from "../locale/define";
-import en from "../locale/en";
+import { composeLocale } from "../locale/compose";
+import { defineLanguage } from "../locale/define";
+import english from "../locale/en";
 import type { CompleteCtx, Completer as CompleterFn, Locale, Weights } from "../types";
 import { Autocompleter } from "./completer";
+
+const en = composeLocale(english);
 
 // Neither the parser nor the solver: an Autocompleter runs on raw, possibly
 // unparseable input, and its own fixtures never need a Program.
@@ -13,7 +16,11 @@ import { Autocompleter } from "./completer";
 const registry = buildRegistry(BUILTIN_KINDS, [], "en");
 
 test("a prefix that offers rows", () => {
-  const completer = new Autocompleter({ registry, locale: en, layers: [en.weights] });
+  const completer = new Autocompleter({
+    registry,
+    locale: en,
+    layers: [english.weights],
+  });
   const rows = completer.run("30 ho");
   expect(rows[0]?.text).toBe("30 hours");
   expect(rows[0]?.kind).toBe("duration");
@@ -21,7 +28,11 @@ test("a prefix that offers rows", () => {
 });
 
 test("an input with no trailing fragment offers nothing", () => {
-  const completer = new Autocompleter({ registry, locale: en, layers: [en.weights] });
+  const completer = new Autocompleter({
+    registry,
+    locale: en,
+    layers: [english.weights],
+  });
   expect(completer.run("30")).toEqual([]);
   expect(completer.run("10 kg + ")).toEqual([]);
 });
@@ -36,8 +47,12 @@ test("registry in the constructor reaches complete(), not a hardcoded default", 
       value: { mode: "ratio", canonical: "one", units: { one: 1 } },
     }),
   ]);
-  const full = new Autocompleter({ registry, locale: en, layers: [en.weights] });
-  const empty = new Autocompleter({ registry: bare, locale: en, layers: [en.weights] });
+  const full = new Autocompleter({ registry, locale: en, layers: [english.weights] });
+  const empty = new Autocompleter({
+    registry: bare,
+    locale: en,
+    layers: [english.weights],
+  });
   expect(full.run("30 ho").length).toBeGreaterThan(0);
   expect(empty.run("30 ho")).toEqual([]);
 });
@@ -45,11 +60,11 @@ test("registry in the constructor reaches complete(), not a hardcoded default", 
 test("layers in the constructor reach complete(), reordering the same input", () => {
   // Mirrors complete.test.ts's "weight layers reorder the results": boosting
   // duration's layer flips which kind ranks first for an ambiguous prefix.
-  const plain = new Autocompleter({ registry, locale: en, layers: [en.weights] });
+  const plain = new Autocompleter({ registry, locale: en, layers: [english.weights] });
   const boosted = new Autocompleter({
     registry,
     locale: en,
-    layers: [en.weights, { duration: 20 }],
+    layers: [english.weights, { duration: 20 }],
   });
   expect(plain.run("1 mi")[0]?.kind).not.toBe("duration");
   expect(boosted.run("1 mi")[0]?.kind).toBe("duration");
@@ -68,29 +83,44 @@ test("locale in the constructor reaches complete(), not a hardcoded default", ()
     format: (v) => v.unit,
   });
   const withPlace = buildRegistry([...BUILTIN_KINDS, place], [], "en");
-  const other: Locale = defineLocale({
-    id: "xx-locale",
-    numberFormat: "intl",
-    keywords: en.keywords,
-  });
+  const other: Locale = composeLocale(
+    defineLanguage({
+      id: "xx-locale",
+      numberFormat: "intl",
+      keywords: english.keywords,
+      selectForm: () => "other",
+    }),
+  );
 
-  new Autocompleter({ registry: withPlace, locale: en, layers: [en.weights] }).run("kyi");
-  new Autocompleter({ registry: withPlace, locale: other, layers: [en.weights] }).run(
+  new Autocompleter({ registry: withPlace, locale: en, layers: [english.weights] }).run(
     "kyi",
   );
+  new Autocompleter({
+    registry: withPlace,
+    locale: other,
+    layers: [english.weights],
+  }).run("kyi");
 
   expect(seen.map((c) => c.locale)).toEqual(["en", "xx-locale"]);
 });
 
 test("two run() calls with the same input return equal, deterministic output", () => {
-  const completer = new Autocompleter({ registry, locale: en, layers: [en.weights] });
+  const completer = new Autocompleter({
+    registry,
+    locale: en,
+    layers: [english.weights],
+  });
   const a = completer.run("1 mi");
   const b = completer.run("1 mi");
   expect(JSON.stringify(a)).toBe(JSON.stringify(b));
 });
 
 test("output is frozen", () => {
-  const completer = new Autocompleter({ registry, locale: en, layers: [en.weights] });
+  const completer = new Autocompleter({
+    registry,
+    locale: en,
+    layers: [english.weights],
+  });
   const rows = completer.run("30 ho");
   expect(Object.isFrozen(rows)).toBe(true);
   // The container being frozen does not imply each `Completion` is — a test
@@ -103,13 +133,21 @@ test("output is frozen", () => {
 });
 
 test("opts flow through to complete()", () => {
-  const completer = new Autocompleter({ registry, locale: en, layers: [en.weights] });
+  const completer = new Autocompleter({
+    registry,
+    locale: en,
+    layers: [english.weights],
+  });
   const rows = completer.run("1 mi", { kinds: ["duration"] });
   expect(rows.every((r) => r.kind === "duration")).toBe(true);
 });
 
 test("the constructor destructures cfg rather than retaining it", () => {
-  const cfg = { registry, locale: en, layers: [en.weights] as (Weights | undefined)[] };
+  const cfg = {
+    registry,
+    locale: en,
+    layers: [english.weights] as (Weights | undefined)[],
+  };
   const completer = new Autocompleter(cfg);
   const before = completer.run("30 ho");
   // Mutated after construction: an `Autocompleter` that stored `cfg` itself (or
@@ -127,7 +165,7 @@ test("the constructor destructures cfg rather than retaining it", () => {
 });
 
 test("the constructor copies the layers array rather than aliasing it", () => {
-  const layers: (Weights | undefined)[] = [en.weights];
+  const layers: (Weights | undefined)[] = [english.weights];
   const completer = new Autocompleter({ registry, locale: en, layers });
   const before = completer.run("1 mi");
   // Pushed in place *after* construction: an `Autocompleter` that stored `layers`

@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { createEngine } from "@smartput/core";
+import { composeLocale, createEngine } from "@smartput/core";
 import en from "@smartput/core/locale/en";
 import { datarate } from "./index";
 import { DATARATE_UNITS, type DatarateUnit } from "./units";
@@ -54,7 +54,7 @@ test("conversion identity over every unit pair", () => {
 });
 
 test("cross-path agreement with the engine", () => {
-  const engine = createEngine({ locales: [en], kinds: [datarate] });
+  const engine = createEngine({ locales: [composeLocale(en)], kinds: [datarate] });
   for (const unit of units) {
     const parsed = parseDatarate(`7${unit}`);
     expect(parsed.ok).toBe(true);

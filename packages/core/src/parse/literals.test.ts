@@ -3,10 +3,13 @@ import { length } from "@smartput/kinds";
 import { Decimal } from "../decimal";
 import { defineKind } from "../kind/define";
 import { buildRegistry } from "../kind/registry";
-import en from "../locale/en";
+import { composeLocale } from "../locale/compose";
+import english from "../locale/en";
 import type { LiteralMatcher, MatchCtx } from "../types";
 import { lex, type Token } from "./lex";
 import { foldLiterals } from "./literals";
+
+const en = composeLocale(english);
 
 /** Claims the literal word "today", and nothing else. */
 const todayMatcher: LiteralMatcher = (input, offset) => {

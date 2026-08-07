@@ -53,6 +53,29 @@ export type Token =
 
 const OPS: Record<string, OpSymbol> = { "+": "+", "-": "-", "*": "*", "/": "/" };
 
+/**
+ * Comparison operators, longest first, because `>=` must be tried before `>`.
+ *
+ * The right-hand side is the *canonical* spelling: `==` and `<>` fold into `=`
+ * and `!=` here, so nothing downstream ever sees a second name for one
+ * operation and no signature table has to carry duplicate keys. The three
+ * single-character mathematical forms are accepted for the same reason the
+ * normalizer unifies four dashes — people type what their keyboard offers.
+ */
+const COMPARISONS: ReadonlyArray<readonly [string, OpSymbol]> = [
+  [">=", ">="],
+  ["<=", "<="],
+  ["!=", "!="],
+  ["<>", "!="],
+  ["==", "="],
+  ["≥", ">="],
+  ["≤", "<="],
+  ["≠", "!="],
+  [">", ">"],
+  ["<", "<"],
+  ["=", "="],
+];
+
 // Unit symbols that are not letters and not arithmetic ops still need to
 // reach the resolver as a word so a kind's lexicon can claim them — "%" is
 // the M2 case, and M3's currency symbols ($, €, £, ...) are expected to add
@@ -77,7 +100,7 @@ function keywordFor(word: string, locale: Locale): Keyword | null {
   // not in normalize() on purpose: normalize() feeds every kind, and later
   // milestones (currency codes, hex colours) need the raw case preserved.
   const folded = word.toLocaleLowerCase(locale.id);
-  for (const [keyword, aliases] of Object.entries(locale.keywords)) {
+  for (const [keyword, aliases] of Object.entries(locale.language.keywords)) {
     if (aliases?.some((a) => a.toLocaleLowerCase(locale.id) === folded)) {
       return keyword as Keyword;
     }
@@ -86,7 +109,7 @@ function keywordFor(word: string, locale: Locale): Keyword | null {
 }
 
 export function lex(input: string, locale: Locale): Token[] {
-  const { group, decimal } = numberSymbols(locale);
+  const { group, decimal } = numberSymbols(locale.language);
   const tokens: Token[] = [];
   let i = 0;
 
@@ -109,6 +132,16 @@ export function lex(input: string, locale: Locale): Token[] {
     if (ch === ")") {
       tokens.push({ type: "rparen", start: i, end: i + 1 });
       i += 1;
+      continue;
+    }
+
+    // Before the single-character table, so `>=` is one token rather than `>`
+    // followed by an unrecognized `=`.
+    const comparison = COMPARISONS.find(([text]) => input.startsWith(text, i));
+    if (comparison !== undefined) {
+      const [text, op] = comparison;
+      tokens.push({ type: "op", op, start: i, end: i + text.length });
+      i += text.length;
       continue;
     }
 
@@ -136,7 +169,7 @@ export function lex(input: string, locale: Locale): Token[] {
       // A trailing group/decimal symbol is punctuation, not part of the number.
       while (i > start && !isDigit(input[i - 1] as string)) i -= 1;
       const text = input.slice(start, i);
-      const value = parseNumber(text, locale);
+      const value = parseNumber(text, locale.language);
       if (value === null) {
         i = start + 1;
         continue;
@@ -159,7 +192,9 @@ export function lex(input: string, locale: Locale): Token[] {
       while (i < input.length && isDigit(input[i] as string)) i += 1;
       const digits = input.slice(letterEnd, i);
       const run = input.slice(start, letterEnd);
-      const words = locale.segment ? locale.segment(run) : defaultSegment(run, locale.id);
+      const words = locale.language.segment
+        ? locale.language.segment(run)
+        : defaultSegment(run, locale.id);
       let offset = start;
       for (const [index, word] of words.entries()) {
         const at = input.indexOf(word, offset);

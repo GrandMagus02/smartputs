@@ -1,5 +1,6 @@
 import { expect, test } from "bun:test";
 import {
+  composeLocale,
   createEngine,
   Decimal,
   DimensionMismatchError,
@@ -21,9 +22,17 @@ const CORPUS = (await Bun.file(new URL("../corpus/en.tsv", import.meta.url)).tex
 // One euro buys 1.1 dollars, 170 yen and 45.5 hryvnia.
 const rates = snapshot("EUR", "2026-08-04", { USD: 1.1, JPY: 170, UAH: 45.5 });
 
-const withGeo = createEngine({ locales: [en], kinds: [number, money, place], rates });
+const withGeo = createEngine({
+  locales: [composeLocale(en)],
+  kinds: [number, money, place],
+  rates,
+});
 // The half this file exists to prove: an engine that never heard of geo.
-const withoutGeo = createEngine({ locales: [en], kinds: [number, money], rates });
+const withoutGeo = createEngine({
+  locales: [composeLocale(en)],
+  kinds: [number, money],
+  rates,
+});
 
 test("a country names its currency as an `in` target", () => {
   const r = withGeo.evaluate("100 usd in japan");
@@ -76,7 +85,7 @@ test("a country whose currency the snapshot cannot quote raises MissingRateError
 
 test("a quotable currency missing from this snapshot raises MissingRateError", () => {
   const noYen = createEngine({
-    locales: [en],
+    locales: [composeLocale(en)],
     kinds: [number, money, place],
     rates: snapshot("EUR", "2026-08-04", { USD: 1.1 }),
   });
@@ -122,7 +131,7 @@ test("the whole corpus reads the same with geo registered", () => {
   // rates corpus is where a collision between the two would show.
   const corpusRates = snapshot("EUR", "2026-08-04", { USD: 1.1, UAH: 45.5 });
   const engine = createEngine({
-    locales: [en],
+    locales: [composeLocale(en)],
     kinds: [number, money, place],
     rates: corpusRates,
   });

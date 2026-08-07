@@ -3,7 +3,8 @@ import { BUILTIN_KINDS } from "@smartput/kinds";
 import { Decimal } from "../decimal";
 import { NoCandidateError } from "../errors";
 import { buildRegistry } from "../kind/registry";
-import en from "../locale/en";
+import { composeLocale } from "../locale/compose";
+import english from "../locale/en";
 import type { BinaryNode, NumberNode } from "./ast";
 import { walk } from "./ast";
 import { createResolver } from "./candidates";
@@ -13,12 +14,14 @@ import { parse } from "./pratt";
 import { buildProgram, Parser } from "./program";
 import { Tokenizer } from "./tokenizer";
 
+const en = composeLocale(english);
+
 const registry = buildRegistry(BUILTIN_KINDS, [], "en");
 const resolver = createResolver({
   registry,
   locale: en,
   packs: [],
-  layers: [en.weights],
+  layers: [english.weights],
 });
 
 const programFor = (source: string) => {
