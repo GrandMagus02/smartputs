@@ -8,6 +8,7 @@ import {
   type Engine,
   type Locale,
   type Vocabulary,
+  wordsFor,
 } from "@smartput/core";
 import { english } from "@smartput/core/locale/en";
 import { ukrainian } from "@smartput/core/locale/uk";
@@ -147,6 +148,71 @@ describe("generation is single-locale", () => {
     expect(both.explain("5 кг").candidates.map((c) => c.locale)).toEqual(["uk"]);
     expect(both.explain("5 kg").candidates.map((c) => c.locale)).toEqual(["en"]);
   });
+
+  /**
+   * `complete()` writes as well as reads, so I6 binds it too — and it was the
+   * one generation path that broke, because it is the only one that builds its
+   * output from the alias it matched rather than from the format language's
+   * words. `complete/complete.ts` fell back to that alias whenever the format
+   * language ships no `forms` table for the unit, which English does not for
+   * 24 of them, so an English engine reading a Ukrainian fragment offered the
+   * Ukrainian word back: `complete("5 б")` answered "5 біт", "5 бпм".
+   *
+   * Reading the fragment is correct and is the row above; substituting the
+   * other language's spelling is not. The sweep is the general form — every
+   * key in the index, both formats, the substituted span compared against what
+   * the format language actually owns — because the leak was a whole class,
+   * not these four words.
+   */
+  test("complete() offers the format language's word, never the one it read", () => {
+    expect(both.complete("5 б").map((c) => c.text)).toEqual([
+      "5 bytes",
+      "5 bps",
+      "5 bpm",
+    ]);
+    expect(both.complete("5 цельсій").map((c) => c.text)).toEqual(["5 °C", "5 °C"]);
+    expect(bothUk.complete("5 by").map((c) => c.text)).toEqual(["5 байтів"]);
+
+    const registry = buildRegistry(BUILTIN_KINDS, [en, uk]);
+    /** Every string this language could legitimately print for this unit. */
+    const owned = (locale: Locale, kind: string, unit: string): Set<string> => {
+      const words = wordsFor(registry, locale.id, kind, unit);
+      const out = new Set([unit.toLowerCase()]);
+      for (const alias of words?.aliases ?? []) out.add(alias.toLowerCase());
+      for (const form of Object.values(words?.forms ?? {})) out.add(form.toLowerCase());
+      if (words?.symbol !== undefined) out.add(words.symbol.toLowerCase());
+      return out;
+    };
+
+    const foreign: string[] = [];
+    let offered = 0;
+    for (const alias of registry.aliasIndex.keys()) {
+      // The whole key and a prefix of it: a fragment is what a completer sees.
+      for (const cut of [alias.length, Math.max(1, alias.length - 2)]) {
+        const input = `5 ${alias.slice(0, cut)}`;
+        for (const [locale, engine] of [
+          [en, both],
+          [uk, bothUk],
+        ] as ReadonlyArray<readonly [Locale, Engine]>) {
+          for (const row of engine.complete(input)) {
+            offered++;
+            // A kind no installed language speaks for is indexed under its own
+            // unit key (R2) and has no word in any language to prefer.
+            if (wordsFor(registry, locale.id, row.kind, row.unit) === undefined) continue;
+            // The span only, so the untouched head of the input — which is the
+            // user's own text and stays whatever they typed — is not read as
+            // output.
+            const tail = input.length - row.span.end;
+            const word = row.text.slice(row.span.start, row.text.length - tail);
+            if (!owned(locale, row.kind, row.unit).has(word.toLowerCase()))
+              foreign.push(`${locale.id}: ${input} -> ${word} (${row.kind}:${row.unit})`);
+          }
+        }
+      }
+    }
+    expect(foreign).toEqual([]);
+    expect(offered).toBeGreaterThan(5000);
+  }, 30_000);
 });
 
 /**

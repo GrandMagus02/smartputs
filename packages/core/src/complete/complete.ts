@@ -140,8 +140,36 @@ export function complete(args: {
         unit: entry.unit,
         slot: "after-number",
       });
-      const word =
-        wordsFor(registry, locale.id, entry.kind, entry.unit)?.forms?.[formKey] ?? alias;
+      const words = wordsFor(registry, locale.id, entry.kind, entry.unit);
+      /**
+       * The matched alias is a safe thing to offer only when the format
+       * language is one of the languages that lists it. It always was on a
+       * single-locale engine — every key in the index came from the one
+       * installed vocabulary — and it stopped being so the moment recognition
+       * went many-locale: the index now also holds the *other* languages'
+       * spellings, and `alias` is then a word this engine does not speak.
+       * `complete("5 кіло")` on an engine whose format is English offered
+       * "5 кілобіт", which is exactly what decision I6 forbids — generation is
+       * exactly one language, however many are read — and it happened for
+       * every unit whose format language ships no `forms` table: 24 of them in
+       * English, `datarate`, `area`, `temperature` and `percent` among them.
+       *
+       * So the fallback walks the format language's own words instead: its
+       * symbol, then its first alias. `words === undefined` still ends at
+       * `alias`, and must: that is R2's unit-key floor, a kind no installed
+       * language has spoken for, where the key *is* the only name there is.
+       *
+       * Nothing here can move a single-locale engine. An entry whose language
+       * declares words at all declares the alias that produced this index key
+       * among them, so `owned` is `alias` and the expression is what it was.
+       */
+      const owned =
+        words === undefined
+          ? undefined
+          : words.aliases.some((a) => a.toLocaleLowerCase(locale.id) === alias)
+            ? alias
+            : (words.symbol ?? words.aliases[0]);
+      const word = words?.forms?.[formKey] ?? owned ?? alias;
       const key = `${entry.kind}:${entry.unit}`;
       const existing = best.get(key);
 
