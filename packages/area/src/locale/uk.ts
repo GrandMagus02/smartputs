@@ -13,7 +13,10 @@ const alias = (unit: AreaUnit) => aliasesFor(AREA_UNITS, unit);
  * spellings are appended, in every inflected form a reader is likely to type —
  * a vocabulary is what the language's suffix stripper falls back *from*, not a
  * stem list, and the stripper is penalised precisely so that an exact entry
- * here outranks anything it guesses.
+ * here outranks anything it guesses. Every string this file *prints* is
+ * therefore also a string it reads: the locative singulars ("гектарі", "акрі")
+ * are listed even though the `і` suffix rule would recover them, because a word
+ * the printer emits should never come back through the penalised path.
  *
  * **`м²`, `см²`, `км²` carry no `forms`, exactly as `en` carries none.** The
  * reason is not laziness in either language: nobody writes "два квадратних
@@ -52,6 +55,7 @@ export default defineVocabulary({
         "гектар",
         "гектара",
         "гектару",
+        "гектарі",
         "гектари",
         "гектарів",
         "гектарам",
@@ -80,6 +84,7 @@ export default defineVocabulary({
         "акр",
         "акра",
         "акру",
+        "акрі",
         "акри",
         "акрів",
         "акрам",
