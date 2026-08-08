@@ -1,7 +1,7 @@
 import type { Decimal } from "../decimal";
 import { buildKeywords } from "../locale/compose";
 import { numberSymbols, parseNumber } from "../locale/number";
-import type { Keyword, LiteralReading, Locale, OpSymbol } from "../types";
+import type { Keyword, LiteralReading, Locale, OpSymbol, WordPosition } from "../types";
 
 export interface NumberToken {
   type: "number";
@@ -160,6 +160,97 @@ function defaultSegment(run: string, localeId: string): string[] {
 }
 
 /**
+ * Every word token's run, keyed by the token itself: the maximal stretch of
+ * word tokens with nothing but spaces between them, and each word's index in
+ * it. `runOf` is the only reader.
+ *
+ * **Beside the token rather than on it**, and the parity net is what decided
+ * it. `explain().tokens` hands a caller the token objects verbatim and the
+ * corpus fixture records them field by field, so a `run` property on
+ * `WordToken` is a *recorded public output*: adding one moved six fixture rows
+ * with no behaviour behind the diff. The run is derived — every word in it is
+ * already in the token list the caller can see — so paying a recorded output
+ * for it would be paying for a restatement.
+ *
+ * Keyed on identity because identity is what survives the trip. `lex` knows
+ * the run; `pratt` asks the resolver about a word three fold passes later, and
+ * by then the array has been rebuilt twice, so a table keyed on index or span
+ * would be reading someone else's entry. Every fold pushes an untouched token
+ * through by reference (`literals.ts`, `numerals.ts`, `wordops.ts` each
+ * `out.push(token)`), and a claim keeps its `fallback` the same way — which is
+ * why "tokyo" under a city claim still finds the run it was written in.
+ *
+ * Weak because the entry is worth exactly as long as the token: a `Tokenizer`
+ * is long-lived and lexes every keystroke, and a strong map would hold every
+ * token of every input it ever saw.
+ */
+const RUNS = new WeakMap<WordToken, WordPosition>();
+
+/**
+ * The run of words `token` was written inside, if it had neighbours.
+ *
+ * `undefined` for a word standing alone, and that is a deliberate absence
+ * rather than a singleton run: the analyzer chain already defaults to
+ * `[surface]` at index 0, so recording it here would allocate a pair per token
+ * to say what the default says, and — because the chain keys its memo on the
+ * run whenever it is given one — would cost every single-word input the
+ * one-entry-per-word cache it has today.
+ */
+export function runOf(token: Token): WordPosition | undefined {
+  return token.type === "word" ? RUNS.get(token) : undefined;
+}
+
+/**
+ * Record the run of every word token that has one.
+ *
+ * Two things a narrower rule would have missed, and one definition covers
+ * both. A `segment` hook splits one letter chunk into several words — German
+ * `Zentimeter`, a CJK run — and those arrive adjacent with no gap at all. A
+ * phrase is written across spaces — "square metres" — and a rule that stopped
+ * at the chunk boundary would leave a phrase analyzer with nothing to read,
+ * since `lex` cuts a letter chunk at the first space long before segmentation
+ * sees it. So the run is "what the writer wrote next to each other", not "what
+ * one call to `segment` returned".
+ *
+ * The gap check is what keeps it honest. Anything else between two words — a
+ * number, an operator, a keyword, a paren — is a different token type and ends
+ * the run by falling out of the group. An *unrecognized* character is the case
+ * only the gap check catches: `lex` skips it silently, so "kg°C" would
+ * otherwise arrive as two adjacent words and read as a phrase nobody wrote.
+ *
+ * Runs are recorded here, before the fold passes, so a token that a later fold
+ * absorbs still counts as a neighbour of the ones that survive: the run is a
+ * fact about what was typed, not about what the folds made of it. The one
+ * visible consequence is that "twenty two kg" leaves `kg` with a three-word
+ * run whose first two words became a single number token.
+ */
+function recordRuns(tokens: Token[], input: string): Token[] {
+  let start = 0;
+  while (start < tokens.length) {
+    if (tokens[start]?.type !== "word") {
+      start += 1;
+      continue;
+    }
+    let end = start + 1;
+    while (tokens[end]?.type === "word") {
+      const gap = input.slice(
+        (tokens[end - 1] as WordToken).end,
+        (tokens[end] as WordToken).start,
+      );
+      if (gap.trim().length > 0) break;
+      end += 1;
+    }
+    if (end - start > 1) {
+      const group = tokens.slice(start, end) as WordToken[];
+      const words = group.map((t) => t.text);
+      for (const [index, token] of group.entries()) RUNS.set(token, { words, index });
+    }
+    start = end;
+  }
+  return tokens;
+}
+
+/**
  * @param locale The *format* locale: number grammar and segmentation belong to
  * the one language the engine speaks (I8), and so does the case fold below.
  * @param keywords Every installed language's connectives, folded by
@@ -314,5 +405,5 @@ export function lex(
     i += 1;
   }
 
-  return tokens;
+  return recordRuns(tokens, input);
 }

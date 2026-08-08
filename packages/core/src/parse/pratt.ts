@@ -4,7 +4,7 @@ import { NUMBER_KIND } from "../kind/ratio-ops";
 import type { Candidate, LiteralReading, OpSymbol, Span, Value } from "../types";
 import type { Node, NodeId } from "./ast";
 import type { Resolver } from "./candidates";
-import type { Token, WordToken } from "./lex";
+import { runOf, type Token, type WordToken } from "./lex";
 
 /**
  * What the ordinary number under a claimed span scores, and the only weight in
@@ -249,7 +249,7 @@ export function parse(
       const next = peek();
       const word = next === undefined ? undefined : unitWordOf(next);
       if (next !== undefined && word !== undefined) {
-        const candidates = resolver.resolve(word.text);
+        const candidates = resolver.resolve(word.text, runOf(word));
         // A claimed token whose word resolves to no unit is left as the claim it
         // is, and the expression fails on the leftover exactly as it did before
         // the fallback existed. Reporting a missing unit here would name a token
@@ -295,7 +295,7 @@ export function parse(
     // is already a value, and reading "tomorrow" as one of something would
     // take a decided input and make it ambiguous.
     if (token.type === "word") {
-      const candidates = resolver.countable(token.text);
+      const candidates = resolver.countable(token.text, runOf(token));
       if (candidates.length > 0) {
         pos += 1;
         return {
@@ -365,7 +365,7 @@ export function parse(
           const word = unitWordOf(unit);
           if (word !== undefined) {
             const claimed = new Set(target.map((c) => `${c.kind}\u0000${c.unit}`));
-            for (const c of resolver.resolve(word.text))
+            for (const c of resolver.resolve(word.text, runOf(word)))
               if (!claimed.has(`${c.kind}\u0000${c.unit}`)) target.push(c);
           }
 
@@ -387,7 +387,7 @@ export function parse(
         }
 
         if (unit.type !== "word") throw new UnitParseError(input);
-        const target = resolver.resolve(unit.text);
+        const target = resolver.resolve(unit.text, runOf(unit));
         if (target.length === 0) {
           throw new NoCandidateError(input, unit.text, resolver.nearest(unit.text), [
             mapSpan({ start: unit.start, end: unit.end }),

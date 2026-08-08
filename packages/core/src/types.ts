@@ -121,7 +121,28 @@ export interface AnalyzedForm {
   tags?: string[];
 }
 
-export interface AnalyzeCtx {
+/**
+ * Where a surface sits in the run of words it was written in — the words with
+ * nothing but spaces between them, so that an analyzer asked about "metres" in
+ * "5 square metres" can see that "square" came first. `lex` decides what a run
+ * is (see `runOf`); this is only the shape it travels in.
+ *
+ * `words[index]` is the surface, always: the run is built from the very texts
+ * the lexer emits as tokens, digits and all, so an analyzer that reads
+ * `words[index]` and one that reads `surface` read the same string. The
+ * analyzer chain's memo depends on that — see `createAnalyzerChain`.
+ */
+export interface WordPosition {
+  readonly words: readonly string[];
+  readonly index: number;
+}
+
+/**
+ * What an analyzer knows besides the word itself. Every field is required, and
+ * a caller that has no run supplies the degenerate one (`[surface]`, index 0),
+ * so an analyzer never has to test for absence.
+ */
+export interface AnalyzeCtx extends WordPosition {
   locale: string;
 }
 

@@ -1,11 +1,26 @@
 import type { Registry } from "../kind/registry";
 import { createAnalyzerChain } from "../locale/analyze";
 import { resolveWeight } from "../solve/weights";
-import type { AnalyzedForm, Candidate, KindId, Locale, Weights } from "../types";
+import type {
+  AnalyzedForm,
+  Candidate,
+  KindId,
+  Locale,
+  Weights,
+  WordPosition,
+} from "../types";
 import { EDIT_HEADROOM, editDistance, nearestWord } from "./distance";
 
 export interface Resolver {
-  resolve(surface: string): Candidate[];
+  /**
+   * @param position Where `surface` sat in the run of words it was written
+   * in, when the caller knows — `lex` records one for every word token that
+   * has a neighbour and `pratt` looks it up with `runOf`. Every installed
+   * language's analyzer chain sees it, which is how a phrase or a compound
+   * reaches a reading its single word could not. Omitting it is not an error:
+   * a word standing alone is its own run, and that is what the chain assumes.
+   */
+  resolve(surface: string, position?: WordPosition): Candidate[];
   /**
    * The readings of `surface` that a bare unit word may stand for, which is
    * `resolve` minus every kind that cannot carry a count.
@@ -15,7 +30,7 @@ export interface Resolver {
    * anything. A ratio kind's units are exactly the ones where an implied count
    * means something, which is why this filter is `spec.mode` and not a list.
    */
-  countable(surface: string): Candidate[];
+  countable(surface: string, position?: WordPosition): Candidate[];
   literal(m: { kind: KindId; unit: string; surface: string; weight: number }): Candidate;
   nearest(surface: string): string[];
 }
@@ -85,12 +100,16 @@ export function createResolver(args: {
    *
    * The format locale is seeded first so that when two chains produce forms of
    * equal weight for one reading, the language the engine speaks is the one
-   * whose form is kept. Chains memoize per surface and each cache is a closure
-   * variable of its own chain, so the language is part of the cache key by
-   * construction and the caches cannot collide. Cost is O(languages) chain
-   * invocations per distinct word, each memoized.
+   * whose form is kept. Chains memoize per surface — per surface *and run*,
+   * once a run is supplied — and each cache is a closure variable of its own
+   * chain, so the language is part of the cache key by construction and the
+   * caches cannot collide. Cost is O(languages) chain invocations per distinct
+   * word, each memoized.
    */
-  const analyzers = new Map<string, (surface: string) => AnalyzedForm[]>();
+  const analyzers = new Map<
+    string,
+    (surface: string, position?: WordPosition) => AnalyzedForm[]
+  >();
   for (const locale of [args.format, ...args.locales]) {
     if (!analyzers.has(locale.id))
       analyzers.set(locale.id, createAnalyzerChain(locale.language));
@@ -171,7 +190,7 @@ export function createResolver(args: {
   };
 
   const resolver: Resolver = {
-    resolve(surface) {
+    resolve(surface, position) {
       const found = new Map<string, Candidate>();
       const foldedSurface = fold(surface);
 
@@ -181,7 +200,7 @@ export function createResolver(args: {
       // the entry already knows. A Ukrainian stemmer that happens to reach an
       // English alias has found an English reading, not a Ukrainian one.
       for (const analyze of analyzers.values()) {
-        for (const analyzed of analyze(surface)) {
+        for (const analyzed of analyze(surface, position)) {
           const entries = args.registry.aliasIndex.get(fold(analyzed.form));
           if (entries === undefined) continue;
 
@@ -256,9 +275,9 @@ export function createResolver(args: {
     // word is scored by the same four layers, the same analyzer chain and the
     // same correction pass as a word with a number in front of it. The only
     // difference between "km" and "3 km" should be the count.
-    countable(surface) {
+    countable(surface, position) {
       return resolver
-        .resolve(surface)
+        .resolve(surface, position)
         .filter((c) => args.registry.kinds.get(c.kind)?.spec.mode === "ratio");
     },
 

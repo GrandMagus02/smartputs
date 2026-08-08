@@ -1,6 +1,7 @@
 import { expect, test } from "bun:test";
 import { english as en } from "@smartput/core/locale/en";
 import { Decimal } from "../decimal";
+import type { AnalyzeCtx } from "../types";
 import {
   cardinalNumerals,
   cardinalSpeller,
@@ -9,31 +10,45 @@ import {
   tableAnalyzer,
 } from "./helpers";
 
-const ctx = { locale: "uk" };
+/**
+ * The degenerate run every analyzer sees when nothing calls it from a
+ * sentence: the word alone, at index 0, which is what `createAnalyzerChain`
+ * builds for a caller that supplies no position. None of the three analyzers
+ * below reads it — that is the point of Task 19's widening — but `AnalyzeCtx`
+ * requires it, so an analyzer written against the run never has to ask
+ * whether there is one.
+ */
+const ctx = (surface: string): AnalyzeCtx => ({
+  locale: "uk",
+  words: [surface],
+  index: 0,
+});
 
 test("identity returns the surface form at weight 0", () => {
-  expect(identity()("кілограмів", ctx)).toEqual([{ form: "кілограмів", weight: 0 }]);
+  expect(identity()("кілограмів", ctx("кілограмів"))).toEqual([
+    { form: "кілограмів", weight: 0 },
+  ]);
 });
 
 test("suffixStripper offers each strippable suffix at a penalty", () => {
   const a = suffixStripper({ suffixes: ["ів", "и"], minStem: 3, weight: -2 });
-  expect(a("кілограмів", ctx)).toEqual([{ form: "кілограм", weight: -2 }]);
+  expect(a("кілограмів", ctx("кілограмів"))).toEqual([{ form: "кілограм", weight: -2 }]);
 });
 
 test("suffixStripper respects minStem", () => {
   const a = suffixStripper({ suffixes: ["ів"], minStem: 10, weight: -2 });
-  expect(a("кілограмів", ctx)).toEqual([]);
+  expect(a("кілограмів", ctx("кілограмів"))).toEqual([]);
 });
 
 test("suffixStripper never returns an empty stem", () => {
   const a = suffixStripper({ suffixes: ["ів"], minStem: 1, weight: -2 });
-  expect(a("ів", ctx)).toEqual([]);
+  expect(a("ів", ctx("ів"))).toEqual([]);
 });
 
 test("tableAnalyzer maps known irregulars", () => {
   const a = tableAnalyzer({ кіло: "кілограм" }, -1);
-  expect(a("кіло", ctx)).toEqual([{ form: "кілограм", weight: -1 }]);
-  expect(a("метр", ctx)).toEqual([]);
+  expect(a("кіло", ctx("кіло"))).toEqual([{ form: "кілограм", weight: -1 }]);
+  expect(a("метр", ctx("метр"))).toEqual([]);
 });
 
 const TABLES = {
