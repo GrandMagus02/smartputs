@@ -13,7 +13,10 @@ const alias = (unit: VolumeUnit) => aliasesFor(VOLUME_UNITS, unit);
  * are appended, in every inflected form a reader is likely to type — a
  * vocabulary is what the language's suffix stripper falls back *from*, not a
  * stem list, and the stripper is penalised (weight -2) precisely so an exact
- * entry here outranks anything it guesses.
+ * entry here outranks anything it guesses. Every string this file *prints* is
+ * therefore also a string it reads: the locative singulars ("літрі", "галоні")
+ * are listed even though the `і` suffix rule would recover them, because a word
+ * the printer emits should never come back through the penalised path.
  *
  * **`m3` carries no `forms`, exactly as `en` carries none.** The reason is the
  * same in both languages: "кубічних метрів" is two words, and the printer's
@@ -66,6 +69,7 @@ export default defineVocabulary({
         "літр",
         "літра",
         "літру",
+        "літрі",
         "літри",
         "літрів",
         "літрам",
@@ -92,6 +96,7 @@ export default defineVocabulary({
         "мілілітр",
         "мілілітра",
         "мілілітру",
+        "мілілітрі",
         "мілілітри",
         "мілілітрів",
         "мілілітрам",
@@ -124,6 +129,7 @@ export default defineVocabulary({
         "кубометр",
         "кубометра",
         "кубометру",
+        "кубометрі",
         "кубометри",
         "кубометрів",
         "кубометрам",
@@ -140,6 +146,7 @@ export default defineVocabulary({
         "галон",
         "галона",
         "галону",
+        "галоні",
         "галони",
         "галонів",
         "галонам",
