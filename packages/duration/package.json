@@ -28,6 +28,11 @@
       "bun": "./src/locale/en.ts",
       "types": "./dist/locale/en.d.ts",
       "default": "./dist/locale/en.js"
+    },
+    "./locale/uk": {
+      "bun": "./src/locale/uk.ts",
+      "types": "./dist/locale/uk.d.ts",
+      "default": "./dist/locale/uk.js"
     }
   },
   "dependencies": {
@@ -35,6 +40,7 @@
     "@smartput/shared": "workspace:*"
   },
   "devDependencies": {
-    "@smartput/core": "workspace:*"
+    "@smartput/core": "workspace:*",
+    "@smartput/number": "workspace:*"
   }
 }
