@@ -56,7 +56,7 @@ const en = composeLocale(
 const registry = buildRegistry([number, length, duration], [en]);
 
 function run(input: string, layers: Parameters<typeof createResolver>[0]["layers"] = []) {
-  const resolver = createResolver({ registry, locale: en, layers });
+  const resolver = createResolver({ registry, locales: [en], format: en, layers });
   const normalized = normalize(input);
   const node = parse(lex(normalized.text, en), resolver, input);
   const program = buildProgram(node, normalized);
@@ -188,7 +188,12 @@ test("a convert takes its result kind from the signature, not from the target", 
     ],
   });
   const reg = buildRegistry([number, length, duration, paces], [en]);
-  const resolver = createResolver({ registry: reg, locale: en, layers: [] });
+  const resolver = createResolver({
+    registry: reg,
+    locales: [en],
+    format: en,
+    layers: [],
+  });
   const input = "10 km in h";
   const normalized = normalize(input);
   const node = parse(lex(normalized.text, en), resolver, input);
@@ -223,8 +228,8 @@ test("the context bonus decides when both assignments type-check", () => {
   const bridged = buildRegistry([number, length, duration, bridge], [en]);
   const resolver = createResolver({
     registry: bridged,
-    locale: en,
-
+    locales: [en],
+    format: en,
     layers: [{ "length:m": 10 }],
   });
   const input = "10 m + 5 h";
@@ -240,7 +245,7 @@ test("the context bonus decides when both assignments type-check", () => {
 });
 
 test("exceeding maxCandidates throws TooAmbiguousError", () => {
-  const resolver = createResolver({ registry, locale: en, layers: [] });
+  const resolver = createResolver({ registry, locales: [en], format: en, layers: [] });
   const input = "1 m + 1 m + 1 m + 1 m";
   const normalized = normalize(input);
   const node = parse(lex(normalized.text, en), resolver, input);
@@ -251,7 +256,7 @@ test("exceeding maxCandidates throws TooAmbiguousError", () => {
 });
 
 test("the kinds filter drops candidates outside the allowed set", () => {
-  const resolver = createResolver({ registry, locale: en, layers: [] });
+  const resolver = createResolver({ registry, locales: [en], format: en, layers: [] });
   const input = "10 m";
   const normalized = normalize(input);
   const node = parse(lex(normalized.text, en), resolver, input);
@@ -415,8 +420,8 @@ test("a signature weight lifts its candidate above an equal-scoring rival", () =
   const weighted = buildRegistry([number, length, duration, weightedMinus], [en]);
   const resolver = createResolver({
     registry: weighted,
-    locale: en,
-
+    locales: [en],
+    format: en,
     layers: [],
   });
   const input = "10 m - 5 m";

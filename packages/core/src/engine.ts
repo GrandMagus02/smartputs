@@ -403,7 +403,12 @@ export function createEngine(callerOpts: EngineOptions): Engine {
     new Parser({
       resolver: createResolver({
         registry,
-        locale,
+        // Recognition is every installed language; generation is exactly one.
+        // The resolver needs both: `locales` decides which readings exist,
+        // `format` decides only the case fold and which language a literal is
+        // attributed to.
+        locales: opts.locales,
+        format: locale,
         layers: layers(call?.weights),
       }),
     });

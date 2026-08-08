@@ -29,7 +29,7 @@ const en = composeLocale(
   }),
 );
 const registry = buildRegistry([number, length]);
-const resolver = createResolver({ registry, locale: en, layers: [] });
+const resolver = createResolver({ registry, locales: [en], format: en, layers: [] });
 
 const ast = (input: string) => parse(lex(input, en), resolver, input);
 
@@ -143,7 +143,12 @@ test("a quantity node preserves every candidate for an ambiguous unit", () => {
       ]),
     ],
   );
-  const r = createResolver({ registry: ambiguous, locale: en, layers: [] });
+  const r = createResolver({
+    registry: ambiguous,
+    locales: [en],
+    format: en,
+    layers: [],
+  });
 
   const node = parse(lex("10 m", en), r, "10 m");
   if (node.type !== "quantity") throw new Error("unreachable");
@@ -232,8 +237,8 @@ const marksEn = composeLocale(en.language, [
 const claimed = buildRegistry([number, length, marks], [marksEn]);
 const claimedResolver = createResolver({
   registry: claimed,
-  locale: en,
-
+  locales: [en],
+  format: en,
   layers: [],
 });
 
@@ -336,7 +341,7 @@ const zonedAst = (input: string) =>
       timeZone: "UTC",
       isUnitAlias: () => false,
     }),
-    createResolver({ registry: zoned, locale: en, layers: [] }),
+    createResolver({ registry: zoned, locales: [en], format: en, layers: [] }),
     input,
   );
 

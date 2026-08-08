@@ -22,8 +22,8 @@ const en = composeLocale(english, BUILTIN_EN);
 const registry = buildRegistry(BUILTIN_KINDS, [en]);
 const resolver = createResolver({
   registry,
-  locale: en,
-
+  locales: [en],
+  format: en,
   layers: [english.weights],
 });
 const normalizer = new Normalizer();

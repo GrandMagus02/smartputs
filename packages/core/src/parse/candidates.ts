@@ -1,7 +1,7 @@
 import type { Registry } from "../kind/registry";
 import { createAnalyzerChain } from "../locale/analyze";
 import { resolveWeight } from "../solve/weights";
-import type { Candidate, KindId, Locale, Weights } from "../types";
+import type { AnalyzedForm, Candidate, KindId, Locale, Weights } from "../types";
 import { EDIT_HEADROOM, editDistance, nearestWord } from "./distance";
 
 export interface Resolver {
@@ -57,11 +57,66 @@ const CORRECTABLE_SLIPS = 1 + EDIT_HEADROOM;
 
 export function createResolver(args: {
   registry: Registry;
-  locale: Locale;
+  /**
+   * Every installed locale. Recognition is many-locale: a reading is offered
+   * if *any* installed language can reach it.
+   */
+  locales: readonly Locale[];
+  /**
+   * The one locale generation speaks. Nothing about which readings exist
+   * depends on it; it decides only the two things that are not recognition —
+   * the case fold below, and the language a `literal` is attributed to.
+   *
+   * Segmentation and number grammar are the format locale's too, for the same
+   * reason (design decisions I8 and §5.3), but they happen upstream in the
+   * tokenizer and never reach here: by the time a surface arrives, the run of
+   * text has already been cut and the digits already read.
+   */
+  format: Locale;
   layers: (Weights | undefined)[];
 }): Resolver {
-  const analyze = createAnalyzerChain(args.locale.language);
-  const fold = (s: string) => s.toLocaleLowerCase(args.locale.id);
+  /**
+   * One analyzer chain per installed language, keyed by locale id, and the
+   * whole of what "recognition is many-locale" means. `resolve` unions what
+   * every chain produces, so a Ukrainian inflection reaches the Ukrainian
+   * vocabulary that lists its stem even when the engine prints English —
+   * without this, a two-locale engine reads Ukrainian words as English typos
+   * at a -15 penalty, or not at all.
+   *
+   * The format locale is seeded first so that when two chains produce forms of
+   * equal weight for one reading, the language the engine speaks is the one
+   * whose form is kept. Chains memoize per surface and each cache is a closure
+   * variable of its own chain, so the language is part of the cache key by
+   * construction and the caches cannot collide. Cost is O(languages) chain
+   * invocations per distinct word, each memoized.
+   */
+  const analyzers = new Map<string, (surface: string) => AnalyzedForm[]>();
+  for (const locale of [args.format, ...args.locales]) {
+    if (!analyzers.has(locale.id))
+      analyzers.set(locale.id, createAnalyzerChain(locale.language));
+  }
+
+  /**
+   * One fold for every language, under the format locale's id, and it is a
+   * decision rather than an oversight. The registry folds each alias under its
+   * *own* contributing language (`registry.ts`'s `toLocaleLowerCase(localeId)`),
+   * so a query folded under a different language's rules could in principle
+   * miss a key that language wrote — a silent total non-recognition, no error
+   * and no candidate.
+   *
+   * It cannot happen for the languages that exist. Folding all 780 keys of the
+   * built-in en+uk index under both ids gives zero differences: Cyrillic case
+   * mapping is language-neutral and Ukrainian has no tailoring. Only Turkish,
+   * Azeri, Lithuanian and Greek tailor the fold at all — `"I"` lowercases to
+   * `"ı"` under `tr` and to `"i"` under everything else. That single input is
+   * the one that distinguishes the two designs, and installing any of those
+   * four languages is the trigger to revisit this: `fold` would have to become
+   * per-entry, matched against the id the registry used to write each key, and
+   * a lookup per installed language instead of one. Folding N times today
+   * would buy nothing and cost a real behaviour change — it would let a
+   * tr-folded query reach an en-folded key.
+   */
+  const fold = (s: string) => s.toLocaleLowerCase(args.format.id);
 
   /**
    * The readings a surface reaches by being corrected — at most one alias
@@ -90,6 +145,10 @@ export function createResolver(args: {
       out.push({
         kind: entry.kind,
         unit: entry.unit,
+        // The language of the entry corrected *to*, not of the misspelling:
+        // the reading is the one that language listed, and it is that reading
+        // a `locale:` weight has to be able to prefer or refuse.
+        locale: entry.locale,
         weight: resolveWeight({
           kind: entry.kind,
           unit: entry.unit,
@@ -115,38 +174,54 @@ export function createResolver(args: {
       const found = new Map<string, Candidate>();
       const foldedSurface = fold(surface);
 
-      for (const analyzed of analyze(surface)) {
-        const entries = args.registry.aliasIndex.get(fold(analyzed.form));
-        if (entries === undefined) continue;
+      // Every installed language's forms, in one flat pass over one shared
+      // index. Which chain produced a form is deliberately not recorded: the
+      // language of a reading is the language that *listed the alias*, which
+      // the entry already knows. A Ukrainian stemmer that happens to reach an
+      // English alias has found an English reading, not a Ukrainian one.
+      for (const analyze of analyzers.values()) {
+        for (const analyzed of analyze(surface)) {
+          const entries = args.registry.aliasIndex.get(fold(analyzed.form));
+          if (entries === undefined) continue;
 
-        for (const entry of entries) {
-          const kind = args.registry.kinds.get(entry.kind);
-          if (kind === undefined) continue;
+          for (const entry of entries) {
+            const kind = args.registry.kinds.get(entry.kind);
+            if (kind === undefined) continue;
 
-          // Additive, not substitutive: the analyzer's penalty/boost sums with
-          // the prior and every matching weight layer.
-          const analyzerWeight = analyzed.weight ?? 0;
-          const weight =
-            resolveWeight({
-              kind: entry.kind,
-              unit: entry.unit,
-              surface: foldedSurface,
-              prior: kind.prior,
-              layers: args.layers,
-            }) + analyzerWeight;
+            // Additive, not substitutive: the analyzer's penalty/boost sums with
+            // the prior and every matching weight layer.
+            const analyzerWeight = analyzed.weight ?? 0;
+            const weight =
+              resolveWeight({
+                kind: entry.kind,
+                unit: entry.unit,
+                surface: foldedSurface,
+                prior: kind.prior,
+                layers: args.layers,
+              }) + analyzerWeight;
 
-          const key = `${entry.kind}:${entry.unit}`;
-          const existing = found.get(key);
-          if (existing === undefined || weight > existing.weight) {
-            found.set(key, {
-              kind: entry.kind,
-              unit: entry.unit,
-              weight,
-              surface,
-              foldedSurface,
-              form: analyzed.form,
-              analyzerWeight,
-            });
+            // Locale is part of a reading's identity, not a label on it. Two
+            // languages spelling one unit differently — reached here as two
+            // index keys carrying two differently tagged entries — are two
+            // candidates, because a `locale:` weight has to be able to rank
+            // one above the other, and a key of kind:unit alone would have
+            // thrown one away before the solver ever saw it. Within one
+            // locale the max-weight rule still holds, which is how an exact
+            // form beats the same word's stem.
+            const key = `${entry.kind}:${entry.unit}:${entry.locale}`;
+            const existing = found.get(key);
+            if (existing === undefined || weight > existing.weight) {
+              found.set(key, {
+                kind: entry.kind,
+                unit: entry.unit,
+                locale: entry.locale,
+                weight,
+                surface,
+                foldedSurface,
+                form: analyzed.form,
+                analyzerWeight,
+              });
+            }
           }
         }
       }
@@ -159,15 +234,19 @@ export function createResolver(args: {
       // every well-spelled input takes.
       if (found.size === 0) {
         for (const c of corrections(surface, foldedSurface)) {
-          found.set(`${c.kind}:${c.unit}`, c);
+          found.set(`${c.kind}:${c.unit}:${c.locale}`, c);
         }
       }
 
+      // `locale` joins the tiebreak because it joined the key: without it two
+      // candidates can now agree on weight, kind and unit, and the order they
+      // come back in would be the order the chains happened to run.
       return [...found.values()].sort(
         (a, b) =>
           b.weight - a.weight ||
           a.kind.localeCompare(b.kind) ||
-          a.unit.localeCompare(b.unit),
+          a.unit.localeCompare(b.unit) ||
+          a.locale.localeCompare(b.locale),
       );
     },
 
@@ -189,6 +268,12 @@ export function createResolver(args: {
       return {
         kind: m.kind,
         unit: m.unit,
+        // There is no `AliasEntry` to copy from — the matcher decided the
+        // meaning before the alias index was consulted — so the reading is
+        // attributed to the language the engine speaks. That is the only
+        // language a literal can be said to belong to: `2026-08-07` and
+        // `#ff0000` are spelled the same in all of them.
+        locale: args.format.id,
         weight:
           resolveWeight({
             kind: m.kind,

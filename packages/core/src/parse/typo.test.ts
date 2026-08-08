@@ -45,7 +45,8 @@ const locale = composeLocale(
   ],
 );
 const registry = buildRegistry([volume, length], [locale]);
-const resolver = () => createResolver({ registry, locale, layers: [] });
+const resolver = () =>
+  createResolver({ registry, locales: [locale], format: locale, layers: [] });
 
 const engine = createEngine({
   locales: [composeLocale(en, BUILTIN_EN)],

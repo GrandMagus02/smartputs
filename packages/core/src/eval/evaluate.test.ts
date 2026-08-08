@@ -59,7 +59,7 @@ const en = composeLocale(
 const registry = buildRegistry([number, length, duration], [en]);
 
 function evaluate(input: string) {
-  const resolver = createResolver({ registry, locale: en, layers: [] });
+  const resolver = createResolver({ registry, locales: [en], format: en, layers: [] });
   const normalized = normalize(input);
   const node = parse(lex(normalized.text, en), resolver, input);
   const program = buildProgram(node, normalized);
@@ -137,7 +137,7 @@ test("evaluateNode collects the assumption of every signature it applies", () =>
     ],
   });
   const r = buildRegistry([number, length, duration, noted]);
-  const resolver = createResolver({ registry: r, locale: en, layers: [] });
+  const resolver = createResolver({ registry: r, locales: [en], format: en, layers: [] });
   const input = "2 of 10 km";
   const normalized = normalize(input);
   const node = parse(lex(normalized.text, en), resolver, input);

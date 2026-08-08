@@ -87,6 +87,21 @@ export interface FuzzyMatch {
 export interface Candidate {
   readonly kind: KindId;
   readonly unit: string;
+  /**
+   * The language that put this reading in reach: the `locale` of the
+   * `AliasEntry` the surface landed on, copied verbatim. It is a property of
+   * the *spelling*, not of the reader — `"kg"` is tagged `en` even in an
+   * engine whose format locale is Ukrainian, because the English vocabulary is
+   * the one the registry recorded as listing it. `"*"` is the language-neutral
+   * unit-key floor and is never a language. A `literal` — a date, a colour, a
+   * country code, anything a matcher decided before the alias index was
+   * consulted — has no entry to copy, and carries the format locale's id.
+   *
+   * This is the third component of a reading's identity, beside kind and unit:
+   * two languages that spell one unit differently are two candidates, so the
+   * solver can be told to prefer one.
+   */
+  readonly locale: string;
   readonly weight: number;
   /** The surface form exactly as typed. */
   readonly surface: string;

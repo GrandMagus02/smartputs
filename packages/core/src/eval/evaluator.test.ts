@@ -122,7 +122,7 @@ const xx: Locale = composeLocale(
  * solver behaviour itself. */
 function resolve(input: string, kinds = ALL, loc = en) {
   const registry = buildRegistry(kinds);
-  const resolver = createResolver({ registry, locale: loc, layers: [] });
+  const resolver = createResolver({ registry, locales: [loc], format: loc, layers: [] });
   const tokenizer = new Tokenizer({ locale: loc, registry });
   const parser = new Parser({ resolver });
   const solver = new Solver({ registry });
