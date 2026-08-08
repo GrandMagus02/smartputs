@@ -159,9 +159,12 @@ parseable: [`complete()`](/api/complete). Writing a completer:
 
 ```ts
 interface EvalOptions {
-  kinds?: KindId[];   // hard filter — candidates outside this set are dropped
-  weights?: Weights;  // per-call layer 4
-  timeZone?: string;  // per-call override of EngineOptions.timeZone
+  kinds?: KindId[];      // hard filter — candidates outside this set are dropped
+  locales?: string[];    // hard filter — by the language that listed the spelling
+  weights?: Weights;     // per-call layer 4
+  format?: string;       // per-call output language; must be installed
+  timeZone?: string;     // per-call override of EngineOptions.timeZone
+  comparePrecision?: number | "exact";  // per-call override
 }
 ```
 
@@ -171,6 +174,27 @@ scoring, which is a different operation from being ranked last:
 ```ts
 engine.evaluate("10 m", { kinds: ["length"] });        // duration cannot win
 engine.evaluate("10 m", { weights: { length: 99 } });  // duration could still win
+```
+
+`locales` is the same kind of filter, applied to the language that listed the
+spelling — see [`locale:` selectors](/guide/weights#selectors) for why that is
+narrower than "the languages I read". Filtering every reading of a slot away
+raises `DimensionMismatchError`, the same as `kinds` does; `NoCandidateError`
+means no reading existed in the first place.
+
+```ts
+engine.evaluate("5 кг", { locales: ["uk"] }); // 5 kilograms
+engine.evaluate("5 кг", { locales: ["en"] }); // throws DimensionMismatchError
+```
+
+`format` overrides the output language for one call. It is **output only**: it
+rebuilds the printer and evaluator, not the tokenizer, so number grammar and
+segmentation stay the engine's own. Move the whole engine with
+`EngineOptions.format` when the input grammar has to move too.
+
+```ts
+engine.evaluate("5 kg", { format: "uk" }).formatted; // "5 кілограмів"
+engine.evaluate("5 kg").formatted;                   // "5 kilograms"
 ```
 
 `timeZone` reaches every [literal matcher](/api/define-kind#literals) as

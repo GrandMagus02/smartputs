@@ -1,7 +1,9 @@
 import { expect, test } from "bun:test";
 import { english as en } from "@smartput/core/locale/en";
+import { ukrainian } from "@smartput/core/locale/uk";
 import { BUILTIN_KINDS, length, number } from "@smartput/kinds";
 import BUILTIN_EN from "@smartput/kinds/locale/en";
+import BUILTIN_UK from "@smartput/kinds/locale/uk";
 import { Decimal } from "./decimal";
 import { createEngine, type EngineOptions } from "./engine";
 import {
@@ -165,6 +167,13 @@ test("explain contributions sum to the score for every assignment", () => {
   // The one invariant that makes explain() trustworthy: every summand of the
   // solver's score has a row. Each case below broke it in a different place —
   // a token: selector on non-lowercase input, contextBonus, analyzer weight.
+  //
+  // The `locale:` rows are the P4 addition, and they are here rather than in
+  // their own test because the failure they guard against is invisible
+  // anywhere else: `toExplanation` rebuilds every row by re-calling
+  // `weightBreakdown` with fields pulled off the stored `Candidate`, so a
+  // `locale` that scoring passes and explaining forgets produces rows during
+  // scoring and none during explaining, and every case above still passes.
   const cases: Array<[string, Record<string, number> | undefined]> = [
     ["10 m", undefined],
     ["10 KG", { "token:kg": 7 }],
@@ -175,6 +184,9 @@ test("explain contributions sum to the score for every assignment", () => {
     ["1.5 kilograms", { "token:kilograms": 4, "mass:kg": 1 }],
     ["2 km in m", undefined],
     ["1 kg + 500 g in kg", { "mass:kg": 2, length: -1 }],
+    ["10 KG", { "locale:en": 7 }],
+    ["1 kg + 500 g in kg", { "locale:en": 2, "mass:kg": 2 }],
+    ["1.5 kilograms", { "locale:en": -3 }],
   ];
 
   for (const [input, weights] of cases) {
@@ -792,4 +804,139 @@ test("a claimed word keeps the unit reading of the word underneath it", () => {
     "other,other",
     "UTC,other",
   ]);
+});
+
+/*
+ * P4 Task 16 — `locale:` weights, `format`, `EvalOptions.locales`.
+ *
+ * Recognition is many-locale and generation is exactly one (design decision
+ * I6), so everything below is about the seam between the two: which readings
+ * exist (every installed language's), which language they are printed in
+ * (`format`, one), and how a caller biases or narrows the first without
+ * touching the second.
+ */
+
+const uk = composeLocale(ukrainian, BUILTIN_UK);
+const bilingual = createEngine({
+  locales: [composeLocale(en, BUILTIN_EN), uk],
+  kinds: BUILTIN_KINDS,
+});
+
+test("both languages are accepted, and a locale: weight biases one", () => {
+  const preferred = createEngine({
+    locales: [composeLocale(en, BUILTIN_EN), uk],
+    kinds: BUILTIN_KINDS,
+    weights: { "locale:en": 10, "locale:uk": 5 },
+  });
+  expect(preferred.evaluate("5 kg").kind).toBe("mass");
+  expect(preferred.evaluate("5 кг").kind).toBe("mass");
+  // The claim the assertions above cannot make on their own: the weight is
+  // reaching the readings at all. `locale:` is a whole-vocabulary bias knob,
+  // not a same-token tiebreaker — `buildRegistry` tags each alias with the
+  // alphabetically first language that listed it, so "kg" is an `en` reading
+  // even here and "кг" is the `uk` one.
+  const rows = (e: ReturnType<typeof createEngine>, input: string) =>
+    e.explain(input).assignments[0]?.contributions ?? [];
+  expect(rows(preferred, "5 kg")).toContainEqual({
+    selector: "locale:en",
+    value: 10,
+    layer: 2,
+  });
+  expect(rows(preferred, "5 кг")).toContainEqual({
+    selector: "locale:uk",
+    value: 5,
+    layer: 2,
+  });
+  // And the sum invariant with a `locale:` row present on a two-locale
+  // engine, which is the one configuration the table above cannot build.
+  for (const input of ["5 kg", "5 кг", "5 кг in pounds"]) {
+    for (const a of preferred.explain(input).assignments) {
+      const sum = a.contributions.reduce((s, c) => s + c.value, 0);
+      expect(`${input} [${a.kind}] ${sum}`).toBe(`${input} [${a.kind}] ${a.score}`);
+    }
+  }
+});
+
+test("format decides the output language, not the input", () => {
+  const ukFormat = createEngine({
+    locales: [composeLocale(en, BUILTIN_EN), uk],
+    kinds: BUILTIN_KINDS,
+    format: "uk",
+  });
+  expect(ukFormat.evaluate("5 kg").formatted).toBe("5 кілограмів");
+  expect(ukFormat.evaluate("5 кг").formatted).toBe("5 кілограмів");
+  expect(bilingual.evaluate("5 kg").formatted).toBe("5 kilograms");
+  expect(bilingual.evaluate("5 кг").formatted).toBe("5 kilograms");
+});
+
+test("format names a locale that must be installed", () => {
+  expect(() =>
+    createEngine({
+      locales: [composeLocale(en, BUILTIN_EN)],
+      kinds: BUILTIN_KINDS,
+      format: "uk",
+    }),
+  ).toThrow(/format "uk" is not among the installed locales \(en\)/);
+});
+
+test("a per-call format rebuilds the printer instead of moving the engine's", () => {
+  // The bug this catches is a per-call override that mutates the shared
+  // stage: the third call has no override and must still be the engine's own
+  // language, whatever the two before it asked for.
+  expect(bilingual.evaluate("5 kg", { format: "uk" }).formatted).toBe("5 кілограмів");
+  expect(bilingual.evaluate("5 kg", { format: "en" }).formatted).toBe("5 kilograms");
+  expect(bilingual.evaluate("5 kg").formatted).toBe("5 kilograms");
+  // And the reverse order, on a uk-format engine, so neither direction can
+  // pass by leaking the value it was already going to produce.
+  const ukFormat = createEngine({
+    locales: [composeLocale(en, BUILTIN_EN), uk],
+    kinds: BUILTIN_KINDS,
+    format: "uk",
+  });
+  expect(ukFormat.evaluate("5 kg", { format: "en" }).formatted).toBe("5 kilograms");
+  expect(ukFormat.evaluate("5 kg").formatted).toBe("5 кілограмів");
+});
+
+test("a per-call format names a locale that must be installed", () => {
+  expect(() => bilingual.evaluate("5 kg", { format: "zz" })).toThrow(
+    /format "zz" is not among the installed locales \(en, uk\)/,
+  );
+});
+
+test("EvalOptions.locales filters by language the way kinds filters by kind", () => {
+  expect(bilingual.evaluate("5 кг", { locales: ["uk"] }).value.unit).toBe("kg");
+  expect(bilingual.evaluate("5 kg", { locales: ["en"] }).value.unit).toBe("kg");
+  // Exactly the error `kinds` raises when its filter empties every slot: the
+  // reading was found and then refused, so the parse succeeded and the solver
+  // is where nothing is left. (The plan expected NoCandidateError; that is
+  // what an *unrecognised* surface raises, in the parser, before any filter.)
+  expect(() => bilingual.evaluate("5 кг", { locales: ["en"] })).toThrow(
+    DimensionMismatchError,
+  );
+});
+
+test("EvalOptions.locales keeps the language-neutral tag", () => {
+  // `"*"` is the unit-key floor `buildRegistry` writes for a kind no installed
+  // language speaks for (ruling R6) — `sprocket` below is one, so its `spk` is
+  // reachable by spelling alone. `"*"` is not a language, so no `locales` list
+  // could name it, and a filter that dropped it would make asking for a
+  // language silently unregister every kind without a vocabulary.
+  const sprocket = defineKind({
+    id: "sprocket",
+    value: { mode: "ratio", canonical: "spk", units: { spk: 1 } },
+  });
+  const e = createEngine({
+    locales: [composeLocale(en, BUILTIN_EN), uk],
+    kinds: [...BUILTIN_KINDS, sprocket],
+  });
+  expect(e.evaluate("5 spk").kind).toBe("sprocket");
+  expect(e.evaluate("5 spk", { locales: ["uk"] }).kind).toBe("sprocket");
+  expect(e.evaluate("5 spk", { locales: [] }).kind).toBe("sprocket");
+});
+
+test("EvalOptions.locales reaches coerce, which builds its own solver options", () => {
+  expect(() => bilingual.coerce("mass", "5 кг", { locales: ["en"] })).toThrow(
+    NoCandidateError,
+  );
+  expect(bilingual.coerce("mass", "5 кг", { locales: ["uk"] }).unit).toBe("kg");
 });

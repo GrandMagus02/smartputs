@@ -105,6 +105,9 @@ export function complete(args: {
         resolveWeight({
           kind: entry.kind,
           unit: entry.unit,
+          // Same rule as `resolve()`: the language of the entry, which is the
+          // language that listed the alias being offered.
+          locale: entry.locale,
           surface: alias,
           prior: kind.prior,
           layers,
@@ -265,6 +268,11 @@ export function complete(args: {
         resolveWeight({
           kind: kindId,
           unit: row.unit,
+          // A completer's row came from the kind, not from the alias index,
+          // so there is no entry whose language to copy — the same position
+          // `Resolver.literal` is in, and the same answer: the language the
+          // engine speaks, which is the language this row will be shown in.
+          locale: locale.id,
           surface: row.alias,
           prior: kind.prior,
           layers,

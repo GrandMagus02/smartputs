@@ -12,6 +12,18 @@ export interface SolverOptions {
 }
 
 /**
+ * The per-call narrowings all three methods accept and forward untouched. It
+ * is a structural subset of `EvalOptions`, which is what lets `createEngine`
+ * hand the caller's whole options object straight through — and the reason a
+ * new field on `EvalOptions` is silently ignored until it is named here too.
+ */
+export interface SolveScope {
+  kinds?: KindId[];
+  /** Locale ids a reading's `Candidate.locale` must be one of. */
+  locales?: string[];
+}
+
+/**
  * `best()` is where the epsilon-and-tiebreak block that lived inline in
  * `evaluate()` moves, and `forKind()` is what `coerce()` open-coded. Having all
  * three named in one place is what stops the fourth caller inventing a fourth
@@ -32,16 +44,17 @@ export class Solver {
   }
 
   /** Every consistent assignment, ranked. Never throws on ambiguity. */
-  all(program: Program, opts?: { kinds?: KindId[] }): Resolution[] {
+  all(program: Program, opts?: SolveScope): Resolution[] {
     return solve(program, this.registry, {
       maxCandidates: this.maxCandidates,
       input: program.input.source,
       ...(opts?.kinds ? { kinds: opts.kinds } : {}),
+      ...(opts?.locales ? { locales: opts.locales } : {}),
     });
   }
 
   /** The winner, applying epsilon and tiebreak. Throws `AmbiguityError`. */
-  best(program: Program, opts?: { kinds?: KindId[] }): Resolution {
+  best(program: Program, opts?: SolveScope): Resolution {
     const all = this.all(program, opts);
     const [best, second] = all;
     // Unreachable in practice: `solve` throws before returning an empty array,
@@ -74,11 +87,7 @@ export class Solver {
   }
 
   /** The best resolution whose result kind is `kind`, or undefined. */
-  forKind(
-    program: Program,
-    kind: KindId,
-    opts?: { kinds?: KindId[] },
-  ): Resolution | undefined {
+  forKind(program: Program, kind: KindId, opts?: SolveScope): Resolution | undefined {
     return this.all(program, opts).find((r) => r.kind === kind);
   }
 }

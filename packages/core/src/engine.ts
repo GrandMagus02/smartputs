@@ -47,7 +47,25 @@ import type {
 const NEVER_SWALLOWED = [MissingRateError, KindConflictError, UnknownKindError];
 
 export interface EngineOptions {
+  /**
+   * Every language the engine reads. Recognition is many-locale: a surface is
+   * offered a reading if *any* of these can reach it, which is why `"5 кг in
+   * pounds"` works on an engine that prints English.
+   */
   locales: Locale[];
+  /**
+   * The one language the engine writes, by id. Defaults to `locales[0].id`,
+   * and must name one of the installed locales — `createEngine` throws if it
+   * does not, because a format locale that is not installed has no vocabulary
+   * to print from and would fail later, at a keystroke, instead of on boot.
+   *
+   * Generation is deliberately single-locale (design decision I6): a `Result`
+   * is one string in one language, not a table. This also fixes the two
+   * input-side concerns that are not recognition — number grammar and
+   * segmentation (I8) — because both belong to the language the engine
+   * speaks rather than to any of the ones it merely reads.
+   */
+  format?: string;
   kinds?: Kind[];
   weights?: Weights;
   tiebreak?: "error" | "first";
@@ -92,7 +110,36 @@ export interface EngineOptions {
 
 export interface EvalOptions {
   kinds?: KindId[];
+  /**
+   * Locale ids a reading may come from, narrowing the candidate set the way
+   * `kinds` does and in the same place — `solve/solver.ts`'s `collectSlots`.
+   * A reading's locale is the language that *listed its spelling*
+   * (`Candidate.locale`), not the language the reader speaks, so this is a
+   * filter on vocabularies rather than on readers: `{ locales: ["en"] }`
+   * refuses `"5 кг"` because Ukrainian is the vocabulary that spells it that
+   * way, and accepts `"5 kg"` because English is the one that spells it this
+   * way — even though Ukrainian lists `"kg"` too.
+   *
+   * Filtering every reading of a slot away is the same situation
+   * `{ kinds: [...] }` creates and raises the same `DimensionMismatchError`:
+   * the surface *was* recognised and then refused, which is a different thing
+   * from `NoCandidateError`'s "no reading exists".
+   */
+  locales?: string[];
   weights?: Weights;
+  /**
+   * Per-call output language, overriding `EngineOptions.format`. Must name an
+   * installed locale.
+   *
+   * Output only, and the limit is deliberate: it rebuilds the `Printer` and
+   * `Evaluator`, not the `Tokenizer`. Number grammar and segmentation are the
+   * format locale's too (I8), but they run inside the shared `Tokenizer` that
+   * `buildStages` constructs once, so `evaluate("1 000,5 kg", { format: "uk" })`
+   * still reads the digits under the engine's own number grammar and prints
+   * the answer in Ukrainian. Move the whole engine, not one call, when the
+   * input grammar has to move: that is what `EngineOptions.format` is for.
+   */
+  format?: string;
   /** Per-call time zone, overriding `EngineOptions.timeZone`. */
   timeZone?: string;
   /** Per-call comparison precision, overriding `EngineOptions.comparePrecision`. */
@@ -131,18 +178,47 @@ export interface Engine {
 }
 
 /**
- * The three weight layers every reading is scored against — locale, engine,
+ * Layer 1: every installed language's own `weights`, merged, later
+ * installations winning a key earlier ones also set.
+ *
+ * Every installed language and not just the format one, which is a decision
+ * worth the paragraph. A language pack declares weights to say how its own
+ * readings should rank — that is a claim about its vocabulary, which the
+ * engine reads whichever language it prints in, so tying it to `format` would
+ * leave a pack unable to bias the readings it contributed unless it happened
+ * to win the output slot. It also keeps layer 1 independent of `format`
+ * altogether, which is what lets `explain()` reproduce a score that was
+ * computed under a per-call `format` override without being handed one:
+ * `Σcontributions === score` cannot break on a term neither side can see.
+ *
+ * `undefined` rather than `{}` when no language declares any, so
+ * `weightBreakdown` skips the layer outright. Neither built-in language
+ * declares weights today, so this whole function returns `undefined` on every
+ * engine in the repo — which is exactly why the decision was free to take now
+ * and would not have been later.
+ */
+function languageWeights(locales: readonly Locale[]): Weights | undefined {
+  let merged: Weights | undefined;
+  for (const locale of locales) {
+    const w = locale.language.weights;
+    if (w !== undefined) merged = { ...merged, ...w };
+  }
+  return merged;
+}
+
+/**
+ * The three weight layers every reading is scored against — language, engine,
  * call — in the order `resolveWeight` sums them. The one formula, shared by
  * `parserFor`/`completerFor` (which need the array to build a fresh stage)
  * and `toExplanation` (which needs it again to reproduce a candidate's score
  * as named rows), so a fourth caller cannot invent a different order.
  */
 function weightLayers(
-  locale: Locale,
+  locales: readonly Locale[],
   opts: EngineOptions,
   call: Weights | undefined,
 ): (Weights | undefined)[] {
-  return [locale.language.weights, opts.weights, call];
+  return [languageWeights(locales), opts.weights, call];
 }
 
 /**
@@ -153,11 +229,16 @@ function weightLayers(
  * call, so `createEngine` builds a fresh one per call instead (`parserFor`,
  * `completerFor`).
  */
-function buildStages(opts: EngineOptions, registry: Registry, locale: Locale) {
+function buildStages(opts: EngineOptions, registry: Registry, format: Locale) {
   return {
     normalizer: new Normalizer(),
+    // The format locale, not the whole list: what the tokenizer takes a
+    // locale *for* is number grammar and segmentation, both of which belong
+    // to the language the engine speaks (I8). Keywords are the one part of
+    // lexing that is many-locale, and they are Task 17's, not this stage
+    // signature's.
     tokenizer: new Tokenizer({
-      locale,
+      locale: format,
       registry,
       ...(opts.now === undefined ? {} : { now: opts.now }),
       ...(opts.timeZone === undefined ? {} : { timeZone: opts.timeZone }),
@@ -170,22 +251,44 @@ function buildStages(opts: EngineOptions, registry: Registry, locale: Locale) {
         : { ambiguityEpsilon: opts.ambiguityEpsilon }),
       ...(opts.tiebreak === undefined ? {} : { tiebreak: opts.tiebreak }),
     }),
-    evaluator: new Evaluator({
-      registry,
-      locale: locale.id,
-      ...(opts.kindMeta === undefined ? {} : { kindMeta: opts.kindMeta }),
-      ...(opts.rates ? { rates: opts.rates } : {}),
-      ...(opts.comparePrecision === undefined
-        ? {}
-        : { comparePrecision: opts.comparePrecision }),
-    }),
-    printer: new Printer({
-      registry,
-      locale,
-      ...(opts.rates ? { rates: opts.rates } : {}),
-      ...(opts.rounding === undefined ? {} : { rounding: opts.rounding }),
-    }),
+    evaluator: newEvaluator(opts, registry, format, opts.comparePrecision),
+    printer: newPrinter(opts, registry, format),
   };
+}
+
+/**
+ * The two generation stages, extracted from `buildStages` because `ctxFor`
+ * has to build them a second time — once per call that overrides `format` or
+ * `comparePrecision` — and two constructor calls spelled out twice is two
+ * places for an option to be dropped from one of them.
+ *
+ * Both are trivially cheap to rebuild: measured at 0.0002 ms and 0.0001 ms
+ * against a 780-alias registry, against 0.06 ms for a whole `evaluate`. The
+ * `Tokenizer`, at 0.028 ms, is the one that would not be — see
+ * `EvalOptions.format` for why it deliberately is not rebuilt.
+ */
+function newEvaluator(
+  opts: EngineOptions,
+  registry: Registry,
+  format: Locale,
+  comparePrecision: number | "exact" | undefined,
+): Evaluator {
+  return new Evaluator({
+    registry,
+    locale: format.id,
+    ...(opts.kindMeta === undefined ? {} : { kindMeta: opts.kindMeta }),
+    ...(opts.rates ? { rates: opts.rates } : {}),
+    ...(comparePrecision === undefined ? {} : { comparePrecision }),
+  });
+}
+
+function newPrinter(opts: EngineOptions, registry: Registry, format: Locale): Printer {
+  return new Printer({
+    registry,
+    locale: format,
+    ...(opts.rates ? { rates: opts.rates } : {}),
+    ...(opts.rounding === undefined ? {} : { rounding: opts.rounding }),
+  });
 }
 
 /**
@@ -207,7 +310,14 @@ function buildStages(opts: EngineOptions, registry: Registry, locale: Locale) {
  */
 interface EngineCtx {
   registry: Registry;
-  locale: Locale;
+  /**
+   * The one locale this call generates in — `EngineOptions.format` resolved,
+   * or a per-call `EvalOptions.format` override. It travels with the
+   * `evaluator` and `printer` built against it rather than beside them,
+   * because a ctx holding one language and stages built for another is
+   * exactly the inconsistency `ctxFor`'s spread exists to make impossible.
+   */
+  format: Locale;
   evaluator: Evaluator;
   printer: Printer;
   opts: EngineOptions;
@@ -265,8 +375,11 @@ function toExplanation(
   weights: Weights | undefined,
   ctx: EngineCtx,
 ): Explanation {
-  const { registry, locale, opts } = ctx;
-  const layers = weightLayers(locale, opts, weights);
+  const { registry, opts } = ctx;
+  // `opts.locales`, not `ctx.format`: layer 1 is every installed language's
+  // weights (see `languageWeights`), so these are the same layers scoring
+  // used no matter which language this call asked to print in.
+  const layers = weightLayers(opts.locales, opts, weights);
   const tokens: Token[] = streamTokens.map((t) => ({
     ...t,
     ...program.input.mapSpan({ start: t.start, end: t.end }),
@@ -299,6 +412,11 @@ function toExplanation(
             ...weightBreakdown({
               kind: c.kind,
               unit: c.unit,
+              // Off the candidate for exactly the reason the folded surface
+              // is: it is what scoring matched `locale:` against, and
+              // re-deriving it here from the format locale would report rows
+              // the score does not contain and omit rows it does.
+              locale: c.locale,
               // The folded surface is what `token:` selectors matched during
               // scoring; passing the raw one would drop rows silently.
               surface: c.foldedSurface,
@@ -361,42 +479,75 @@ function orNoCandidate<T>(input: string, fn: () => T): T {
 
 export function createEngine(callerOpts: EngineOptions): Engine {
   const opts = Object.freeze({ ...callerOpts }); // a copy — see EngineCtx's doc for why
-  const locale = opts.locales[0];
-  if (locale === undefined) throw new Error("createEngine requires at least one locale");
+  const first = opts.locales[0];
+  if (first === undefined) throw new Error("createEngine requires at least one locale");
+
+  /**
+   * The locale named by `format`, resolved once here so every later use is a
+   * lookup that cannot fail. A plain `Error`, not a `SmartputError`, and the
+   * reason is `suggest`: it wraps its body in `swallowedAsEmpty`, which turns
+   * every `SmartputError` outside `NEVER_SWALLOWED` into `[]`. A misspelled
+   * locale id reported as a `SmartputError` would come back from
+   * `suggest("5 kg", { format: "zz" })` as "no results", where the truth is
+   * "you named a language this engine does not have". This also matches how
+   * the arity check above already reports a bad configuration.
+   */
+  const formatFor = (id: string): Locale => {
+    const found = opts.locales.find((l) => l.id === id);
+    if (found === undefined) {
+      throw new Error(
+        `format ${JSON.stringify(id)} is not among the installed locales (${opts.locales
+          .map((l) => l.id)
+          .join(", ")})`,
+      );
+    }
+    return found;
+  };
+
+  const format = formatFor(opts.format ?? first.id);
   const registry = buildRegistry(opts.kinds ?? [], opts.locales);
-  const layers = (call?: Weights) => weightLayers(locale, opts, call);
-  const stages = buildStages(opts, registry, locale);
+  const layers = (call?: Weights) => weightLayers(opts.locales, opts, call);
+  const stages = buildStages(opts, registry, format);
   const ctx: EngineCtx = {
     registry,
-    locale,
+    format,
     evaluator: stages.evaluator,
     printer: stages.printer,
     opts,
   };
 
   /**
-   * The shared evaluator, unless this call asked for a different comparison
-   * precision — in which case a fresh one, on exactly the reasoning
-   * `parserFor` and `completerFor` are built per call: an `Evaluator` is a
-   * config holder, and a per-call override is per-call state that the shared
-   * instance by definition cannot carry.
+   * The shared generation stages, unless this call asked for a different
+   * comparison precision or a different output language — in which case fresh
+   * ones, on exactly the reasoning `parserFor` and `completerFor` are built
+   * per call: an `Evaluator` and a `Printer` are config holders, and a
+   * per-call override is per-call state that the shared instance by
+   * definition cannot carry. Both `Object.freeze(this)` in their
+   * constructors, so rebuilding is not merely the tidy option — there is no
+   * other one.
    *
    * Identity is preserved when nothing overrides, so the common path still
-   * hands `toResult` the same instance `buildStages` built.
+   * hands `toResult` the same instances `buildStages` built, and an override
+   * on one call cannot be visible on the next: nothing here is assigned to.
    */
-  const ctxFor = (call?: EvalOptions): EngineCtx =>
-    call?.comparePrecision === undefined
-      ? ctx
-      : {
-          ...ctx,
-          evaluator: new Evaluator({
-            registry,
-            locale: locale.id,
-            ...(opts.kindMeta === undefined ? {} : { kindMeta: opts.kindMeta }),
-            ...(opts.rates ? { rates: opts.rates } : {}),
-            comparePrecision: call.comparePrecision,
-          }),
-        };
+  const ctxFor = (call?: EvalOptions): EngineCtx => {
+    if (call?.comparePrecision === undefined && call?.format === undefined) return ctx;
+    const callFormat = call.format === undefined ? format : formatFor(call.format);
+    return {
+      ...ctx,
+      format: callFormat,
+      // `?? opts.comparePrecision` because this branch is now also reached by
+      // a call that overrode only `format`: without it, asking for a language
+      // would silently drop the engine's own comparison precision.
+      evaluator: newEvaluator(
+        opts,
+        registry,
+        callFormat,
+        call.comparePrecision ?? opts.comparePrecision,
+      ),
+      printer: newPrinter(opts, registry, callFormat),
+    };
+  };
   // The Parser (and Completer) is rebuilt per call: it closes over the weight
   // layers, and `EvalOptions.weights` is a per-call override.
   const parserFor = (call?: EvalOptions) =>
@@ -408,12 +559,20 @@ export function createEngine(callerOpts: EngineOptions): Engine {
         // `format` decides only the case fold and which language a literal is
         // attributed to.
         locales: opts.locales,
-        format: locale,
+        // The engine's format locale, never the call's: `EvalOptions.format`
+        // is output-only, and this decides the case fold every surface is
+        // looked up under. A per-call fold would change which readings exist,
+        // which is not what asking for a different output language means.
+        format,
         layers: layers(call?.weights),
       }),
     });
+  // `complete()` is handed `CompleteOptions`, which has no `format` — the
+  // completer both reads and writes in one language, and giving it a per-call
+  // output language without a per-call input language would be half an
+  // override. It stays on the engine's format locale.
   const completerFor = (call?: EvalOptions) =>
-    new Autocompleter({ registry, locale, layers: layers(call?.weights) });
+    new Autocompleter({ registry, locale: format, layers: layers(call?.weights) });
   const tokenize = (input: string, call?: EvalOptions): TokenStream => {
     const normalized = stages.normalizer.run(input);
     if (normalized.empty) throw new UnitParseError(input);
@@ -440,8 +599,18 @@ export function createEngine(callerOpts: EngineOptions): Engine {
     coerce(kind, input, call) {
       const resolved = orNoCandidate(input, () => {
         const program = compile(input, call);
+        // `kinds` is this method's own — it is what coercion *means*, and it
+        // replaces whatever the caller asked for. Every other narrowing on
+        // `call` is still the caller's and has to be forwarded, or
+        // `coerce(kind, input, { locales })` would silently ignore the filter.
         const kinds = [kind, NUMBER_KIND];
-        return { program, resolution: stages.solver.forKind(program, kind, { kinds }) };
+        return {
+          program,
+          resolution: stages.solver.forKind(program, kind, {
+            kinds,
+            ...(call?.locales ? { locales: call.locales } : {}),
+          }),
+        };
       });
       if (resolved.resolution === undefined) throw new NoCandidateError(input, input, []);
       return ctxFor(call).evaluator.run(resolved.program, resolved.resolution).value;
@@ -450,7 +619,19 @@ export function createEngine(callerOpts: EngineOptions): Engine {
       const stream = tokenize(input, call);
       const program = parserFor(call).run(stream);
       const assignments = stages.solver.all(program, call);
-      return toExplanation(program, stream.tokens, assignments, call?.weights, ctx);
+      // `ctxFor(call)`, not `ctx`: nothing `toExplanation` reads depends on
+      // the format locale today, but calling it through the same door every
+      // other entry point uses is what keeps that true — and it is also what
+      // makes `explain(input, { format: "zz" })` report the bad id rather
+      // than quietly explaining under a different language than `evaluate`
+      // would have used.
+      return toExplanation(
+        program,
+        stream.tokens,
+        assignments,
+        call?.weights,
+        ctxFor(call),
+      );
     },
     complete(input, call) {
       return [...completerFor(call).run(input, call)];

@@ -26,7 +26,8 @@ const engine = createEngine({ locales: [en], kinds: BUILTIN_KINDS });
 
 ```ts
 interface EngineOptions {
-  locales: Locale[];         // required; first is primary, rest are fallbacks
+  locales: Locale[];         // required; every language the engine reads
+  format?: string;           // the one language it writes; default locales[0].id
   kinds?: Kind[];
   packs?: LocalePack[];
   weights?: Weights;
@@ -44,10 +45,27 @@ interface EngineOptions {
 
 ### locales
 
-Required, and must be non-empty — an empty array throws. The first entry is the
-primary locale; the rest are fallbacks. When two locales disagree about number
-grammar (`1,500` is 1500 in `en` and 1.5 in `de`) both candidates are emitted and
-the primary locale scores higher.
+Required, and must be non-empty — an empty array throws. Every entry is a
+language the engine **reads**: a surface gets a reading if any of them can reach
+it, so a `[en, uk]` engine answers `5 kg`, `5 кг` and `5 кг in pounds` alike.
+
+### format
+
+The one language the engine **writes**, by id. Defaults to `locales[0].id`, and
+must name an installed locale — `createEngine` throws naming the id if it does
+not, so a misspelling fails on boot rather than at a keystroke.
+
+```ts
+const engine = createEngine({ locales: [en, uk], kinds: BUILTIN_KINDS, format: "uk" });
+engine.evaluate("5 kg").formatted; // "5 кілограмів"
+```
+
+Generation is single-locale on purpose: a `Result` is one string in one
+language, not a table. `format` also fixes the two input-side concerns that are
+not recognition — number grammar and segmentation — because both belong to the
+language the engine speaks rather than to any it merely reads. `EvalOptions.format`
+overrides the output for one call but deliberately does not move those; see
+[`EvalOptions`](/api/engine#evaloptions).
 
 ### kinds
 

@@ -25,6 +25,15 @@ export interface WeightArgs {
   kind: KindId;
   unit: string;
   surface: string;
+  /**
+   * The language that listed the spelling this reading was reached through —
+   * `AliasEntry.locale`, or the format locale's id for a reading no alias
+   * produced (a literal, a completer's own row). Required rather than
+   * optional on purpose: it makes the compiler name every call site, and the
+   * one that matters is `toExplanation`'s, where a forgotten field would put
+   * `locale:` rows in the score and none in the explanation of it.
+   */
+  locale: string;
   prior: number;
   layers: (Weights | undefined)[];
   /** Present only for a reading reached by correcting the surface. */
@@ -37,8 +46,30 @@ export interface WeightContribution {
   layer: number;
 }
 
+/**
+ * `locale:` comes last, after the three that name what a reading *is*, because
+ * it names where the reading was read from — and because appending keeps the
+ * row order of every explanation that existed before it did.
+ *
+ * It is a whole-vocabulary bias knob and not a same-token tiebreaker, which is
+ * narrower than it looks and worth saying out loud. `buildRegistry` tags each
+ * alias with the alphabetically first installed language that listed it, so on
+ * an `[en, uk]` engine `"kg"` is an `en` reading even though Ukrainian lists it
+ * too: `{ "locale:uk": 5 }` moves `"5 кг"` and never `"5 kg"`. What it buys is
+ * the ability to prefer, or refuse, the spellings a language uniquely owns.
+ *
+ * `"*"` is skipped rather than emitted. It is the language-neutral unit-key
+ * floor `buildRegistry` writes for a kind no installed language speaks for
+ * (ruling R6) — not a language, so no selector can name it, and a `locale:*`
+ * row would be an offer to weight something that has no language to weight.
+ */
 function selectorsFor(args: WeightArgs): string[] {
-  return [`token:${args.surface}`, `${args.kind}:${args.unit}`, args.kind];
+  return [
+    `token:${args.surface}`,
+    `${args.kind}:${args.unit}`,
+    args.kind,
+    ...(args.locale === "*" ? [] : [`locale:${args.locale}`]),
+  ];
 }
 
 export function weightBreakdown(args: WeightArgs): WeightContribution[] {

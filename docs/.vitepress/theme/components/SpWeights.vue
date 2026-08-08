@@ -77,7 +77,7 @@ function addRow() {
           type="text"
           class="sp-input sp-input--sm"
           spellcheck="false"
-          placeholder="kind, kind:unit or token:form"
+          placeholder="kind, kind:unit, token:form or locale:id"
         />
         <input
           v-model.number="row.value"

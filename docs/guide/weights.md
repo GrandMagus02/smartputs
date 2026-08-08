@@ -12,19 +12,28 @@ to influence the ranking.
 
 ## Selectors
 
-A selector names a set of candidates. Three shapes, from narrow to broad:
+A selector names a set of candidates. Four shapes:
 
 ```ts
 type Selector =
-  | `token:${string}`     // one surface form, any kind   "token:m"
+  | `token:${string}`     // one surface form, any kind    "token:m"
   | `${KindId}:${string}` // one unit of one kind          "duration:min"
-  | KindId;               // every unit of a kind          "length"
+  | KindId                // every unit of a kind          "length"
+  | `locale:${string}`;   // every spelling one language owns   "locale:uk"
 
 type Weights = Record<Selector, number>;
 ```
 
 `token:` selectors match the **case-folded** surface form as typed, before the
 analyzer chain runs.
+
+`locale:` matches on the language that **listed the spelling**, which is
+narrower than "the language you are reading in". An alias is tagged with the
+first installed language that lists it, so on a `[en, uk]` engine `kg` is an
+`en` reading even though Ukrainian lists it too, and `кг` is the `uk` one:
+`{ "locale:uk": 5 }` moves `5 кг` and never `5 kg`. Use it to prefer, or
+disfavour, the spellings a language uniquely owns — not to break a tie between
+two languages over one word.
 
 ## Weights are plain numbers and they add
 
@@ -42,12 +51,16 @@ precisely because it stays predictable when four layers compose:
 | # | Layer | Set via | Purpose |
 | --- | --- | --- | --- |
 | 1 | `kind.prior` | `defineKind` | the author's default |
-| 2 | `locale.weights` | `defineLocale` | locale conventions, e.g. `lb` in `en-GB` |
+| 2 | `language.weights` | `defineLanguage` | language conventions, e.g. `lb` in `en-GB` |
 | 3 | `engine.weights` | `createEngine` | the integrator's override |
 | 4 | `opts.weights` | `evaluate` / `suggest` | per-call adjustment |
 
 A plugin author must be able to outrank a built-in, and the integrator must be
 able to override the plugin. A single `0..1` prior allows neither.
+
+Layer 2 is **every installed language's** `weights`, merged, not just the one
+the engine prints in. A language pack declaring weights is describing its own
+vocabulary, and the engine reads that vocabulary whichever language it writes.
 
 <SpWeights />
 

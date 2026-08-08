@@ -152,6 +152,7 @@ export function createResolver(args: {
         weight: resolveWeight({
           kind: entry.kind,
           unit: entry.unit,
+          locale: entry.locale,
           surface: foldedSurface,
           prior: kind.prior,
           layers: args.layers,
@@ -195,6 +196,7 @@ export function createResolver(args: {
               resolveWeight({
                 kind: entry.kind,
                 unit: entry.unit,
+                locale: entry.locale,
                 surface: foldedSurface,
                 prior: kind.prior,
                 layers: args.layers,
@@ -278,6 +280,7 @@ export function createResolver(args: {
           resolveWeight({
             kind: m.kind,
             unit: m.unit,
+            locale: args.format.id,
             surface: foldedSurface,
             prior: args.registry.kinds.get(m.kind)?.prior ?? 0,
             layers: args.layers,

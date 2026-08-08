@@ -40,12 +40,36 @@ interface Slot {
  * span is what source order means, not the span of the whole conversion
  * expression (which starts at the operand, before the target).
  */
-function reportedOperands(root: Node, kinds: KindId[] | undefined): KindId[] {
+/**
+ * The two per-call narrowings a caller can put on the readings a slot may
+ * choose from, as one predicate so `collectSlots` and `reportedOperands`
+ * cannot drift apart on what "in scope" means.
+ *
+ * `locales` filters by the language that listed the spelling, which is what
+ * `Candidate.locale` records — narrower than "the languages I read", because a
+ * spelling both languages list is tagged with only the first of them. `"*"`
+ * survives every list: it is the language-neutral unit-key floor (ruling R6),
+ * so there is no language whose absence could exclude it, and dropping it
+ * would make `{ locales: ["uk"] }` unable to read `true`.
+ */
+function inScope(
+  kinds: KindId[] | undefined,
+  locales: string[] | undefined,
+): (c: Candidate) => boolean {
+  return (c) =>
+    (kinds === undefined || kinds.includes(c.kind)) &&
+    (locales === undefined || c.locale === "*" || locales.includes(c.locale));
+}
+
+function reportedOperands(
+  root: Node,
+  kinds: KindId[] | undefined,
+  locales: string[] | undefined,
+): KindId[] {
   const refs: Array<{ start: number; kind: KindId }> = [];
+  const keep = inScope(kinds, locales);
   const pick = (candidates: Candidate[]): KindId =>
-    (kinds === undefined
-      ? candidates
-      : candidates.filter((c) => kinds.includes(c.kind)))[0]?.kind ?? "unknown";
+    candidates.filter(keep)[0]?.kind ?? "unknown";
 
   walk(root, (node) => {
     if (node.type === "quantity") {
@@ -62,21 +86,18 @@ function reportedOperands(root: Node, kinds: KindId[] | undefined): KindId[] {
   return refs.sort((a, b) => a.start - b.start).map((r) => r.kind);
 }
 
-function collectSlots(root: Node, kinds: KindId[] | undefined): Slot[] {
+function collectSlots(
+  root: Node,
+  kinds: KindId[] | undefined,
+  locales: string[] | undefined,
+): Slot[] {
   const slots: Slot[] = [];
+  const keep = inScope(kinds, locales);
   walk(root, (node) => {
     if (node.type === "quantity" || node.type === "literal") {
-      const filtered =
-        kinds === undefined
-          ? node.candidates
-          : node.candidates.filter((c) => kinds.includes(c.kind));
-      slots.push({ node, candidates: filtered });
+      slots.push({ node, candidates: node.candidates.filter(keep) });
     } else if (node.type === "convert") {
-      const filtered =
-        kinds === undefined
-          ? node.target
-          : node.target.filter((c) => kinds.includes(c.kind));
-      slots.push({ node, candidates: filtered });
+      slots.push({ node, candidates: node.target.filter(keep) });
     }
   });
   return slots;
@@ -176,10 +197,10 @@ function softmax(scores: number[]): number[] {
 export function solve(
   program: Program,
   registry: Registry,
-  opts: { maxCandidates: number; kinds?: KindId[]; input: string },
+  opts: { maxCandidates: number; kinds?: KindId[]; locales?: string[]; input: string },
 ): Resolution[] {
   const root = program.root;
-  const slots = collectSlots(root, opts.kinds);
+  const slots = collectSlots(root, opts.kinds, opts.locales);
 
   const space = slots.reduce((n, s) => n * Math.max(s.candidates.length, 1), 1);
   if (space > opts.maxCandidates) {
@@ -225,7 +246,7 @@ export function solve(
   enumerate(0, {}, 0);
 
   if (viable.length === 0) {
-    const operands = reportedOperands(root, opts.kinds);
+    const operands = reportedOperands(root, opts.kinds, opts.locales);
     throw new DimensionMismatchError(
       opts.input,
       "operation",

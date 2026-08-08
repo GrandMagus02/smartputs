@@ -14,7 +14,7 @@ this codebase, so import them with `import type`.
 type KindId = string;
 type OpSymbol = "+" | "-" | "*" | "/" | "in" | "of";
 type Keyword = "in" | "of" | "plus" | "minus" | "times" | "over" | "by";
-type Selector = string;              // "token:m" | "duration:min" | "duration"
+type Selector = string;  // "token:m" | "duration:min" | "duration" | "locale:uk"
 type Weights = Record<Selector, number>;
 ```
 
@@ -331,7 +331,10 @@ different kind might fall back.
 
 ```ts
 interface EngineOptions {
+  /** Every language the engine reads. */
   locales: Locale[];
+  /** The one language it writes. Default `locales[0].id`; must be installed. */
+  format?: string;
   kinds?: Kind[];
   packs?: LocalePack[];
   weights?: Weights;
@@ -350,8 +353,13 @@ interface EngineOptions {
 
 interface EvalOptions {
   kinds?: KindId[];
+  /** Locale ids a reading's `Candidate.locale` must be one of. */
+  locales?: string[];
   weights?: Weights;
+  /** Per-call output language. Output only — see `EvalOptions` in /api/engine. */
+  format?: string;
   timeZone?: string;
+  comparePrecision?: number | "exact";
 }
 
 interface Result {
