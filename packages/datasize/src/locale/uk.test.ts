@@ -28,7 +28,7 @@ describe("datasize uk vocabulary", () => {
   test("the SI prefix is lowercase and the IEC one is not", () => {
     // The contrast `kB` against `KiB` carries in Latin, written in Cyrillic.
     // Kilo is lowercase in SI in every language, and the rest of this repo's uk
-    // vocabularies write it that way (`кг`, `км`, `кВт`, `кбіт/с`); IEC's binary
+    // vocabularies write it that way (`кг`, `км`, `кВт`, `кбіт`); IEC's binary
     // prefixes are `Ki`/`Mi`/`Gi`/`Ti` with a capital. The consumer-software
     // `КБ` is a transliterated `KB` and folds the two families' spellings toward
     // each other, so it is asserted against rather than left to preference.
@@ -44,6 +44,26 @@ describe("datasize uk vocabulary", () => {
     expect(() =>
       assertLocaleContract(composeLocale(ukrainian, [datasizeUk]), [datasize]),
     ).not.toThrow();
+  });
+
+  // The boundary `datarate`'s Ukrainian symbols depend on, pinned here because
+  // here is where it would be broken. Every unit in this kind is a **byte** unit
+  // — `units.ts` canonicalizes on `b` with ratio 1 and spells it "byte" — so no
+  // Cyrillic bit-word may appear in this vocabulary: "1 біт" registered against
+  // `datasize` would resolve to one *byte*, wrong by the factor of 8 that
+  // `@smartput/datarate`'s bridge signatures write out explicitly.
+  //
+  // The temptation is real and worth naming. `datarate` cannot print "Мбіт/с"
+  // and read it back, and the shape that *would* fix it is the one `speed:mps`
+  // uses — "/" lexes as an operator and `datasize ÷ duration` is a registered
+  // signature — which needs "Мбіт" to be a datasize. It cannot be, while this
+  // kind counts bytes; `datarate` prints the elided "Мбіт" instead.
+  test("declares no bit-word, because every unit here is a byte", () => {
+    for (const [unit, words] of Object.entries(datasizeUk.units)) {
+      for (const word of words.aliases) {
+        expect(word, `${unit} claims the bit-word "${word}"`).not.toMatch(/біт/);
+      }
+    }
   });
 
   test("an engine built from it reads and writes Ukrainian datasize", () => {

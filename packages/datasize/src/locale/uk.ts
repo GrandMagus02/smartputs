@@ -54,7 +54,7 @@ const alias = (unit: DatasizeUnit) => aliasesFor(DATASIZE_UNITS, unit);
  * The kilo prefix is **lowercase** `к` and the kibi prefix is **uppercase** `К`,
  * which is the whole of that distinction and not a typo either way. SI writes
  * kilo lowercase in every language, and every other `uk` vocabulary in this repo
- * follows it — `кг` in `mass`, `км` in `length`, `кВт` in `power`, `кбіт/с` in
+ * follows it — `кг` in `mass`, `км` in `length`, `кВт` in `power`, `кбіт` in
  * `datarate` — while IEC's binary prefixes are `Ki`/`Mi`/`Gi`/`Ti` with a
  * capital `K`. The consumer-software spelling `КБ` (a Latin `KB` with the
  * letters swapped for Cyrillic) loses that contrast and is not what a Ukrainian

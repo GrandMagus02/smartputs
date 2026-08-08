@@ -17,14 +17,45 @@ const alias = (unit: DatarateUnit) => aliasesFor(DATARATE_UNITS, unit);
  * character. Neither can lex back as one unit token (`parse/lex.ts`: a unit word
  * is letters plus trailing digits), so a `forms` table here would be eight keys
  * of prose that no input could ever reach. Absent forms keep the renderer on the
- * symbol, so a Ukrainian datarate prints "100Мбіт/с" — the same tight shape
+ * symbol, so a Ukrainian datarate prints "100Мбіт" — the same tight shape
  * English prints "100mbps" through.
  *
- * **Symbols.** Ukrainian writes these itself rather than borrowing the Latin
- * abbreviation: "біт/с", "кбіт/с", "Мбіт/с", "Гбіт/с", "Тбіт/с". The prefix
- * casing is SI's, not decoration — kilo is lowercase ("кбіт/с", as "кг" and
- * "км" are), mega and up are capital ("Мбіт/с", "Гбіт/с", "Тбіт/с"). The
- * uppercase "Кбіт/с" seen in consumer software is the exception, not the rule
+ * **Symbols, and the correctness this file trades away.** The orthographically
+ * correct Ukrainian symbols are "біт/с", "кбіт/с", "Мбіт/с", "Гбіт/с",
+ * "Тбіт/с", and those are what this file used to emit. They cannot be read
+ * back, and the elided forms below are what replaced them:
+ *
+ *   біт   кбіт   Мбіт   Гбіт   Тбіт
+ *
+ * The "/с" is gone, and losing it is a real loss: "100Мбіт" states a count of
+ * megabits where "100Мбіт/с" states a rate, and only the colloquial elision a
+ * Ukrainian speaker already makes ("у мене сто мегабіт") recovers the missing
+ * per-second. What it buys is that every string this vocabulary can print is a
+ * string it can read — the property `assertLocaleContract` does not check,
+ * because it checks that every *alias* resolves and never that every *emitted
+ * form* does.
+ *
+ * Why the compound cannot be rescued the way English rescues "m/s". English
+ * `speed:mps` prints "1m/s" and re-reads it not because "m/s" is an alias — it
+ * is not — but because "/" lexes as an operator and `length ÷ duration` has a
+ * registered signature that computes a speed. Ukrainian `energy:kwh` prints
+ * "кВт·год" and re-reads it the same way, through `* | power | duration`.
+ * "Мбіт/с" has no such route, and the reason is a fact about `datasize`: its
+ * canonical unit is the **byte** (`units.ts` ratio `b: "1"`, aliases "byte",
+ * "bytes"), and it declares no bit unit at all. So the bare bit-words cannot be
+ * handed to `datasize` the way this repo's own division bridge would need —
+ * "1 біт" registered against `datasize` would mean one *byte*, wrong by the
+ * factor of 8 that `index.ts`'s bridges write out explicitly. Left where they
+ * belong, on this kind, "Мбіт/с" lexes as `datarate ÷ duration`, a signature
+ * that does not exist and should not: dividing a rate by a time is not a rate.
+ *
+ * The road not taken was adding "Мбіт/с" to the alias list. It would look like
+ * a fix and be dead weight: "/" is always an operator (`parse/lex.ts`), so no
+ * alias containing one can ever be lexed as a single token.
+ *
+ * Prefix casing is still SI's, not decoration — kilo is lowercase ("кбіт", as
+ * "кг" and "км" are), mega and up are capital ("Мбіт", "Гбіт", "Тбіт"). The
+ * uppercase "Кбіт" seen in consumer software is the exception, not the rule
  * this file follows.
  *
  * **Aliases.** The Latin set is reused from `units.ts` rather than retyped —
@@ -33,18 +64,9 @@ const alias = (unit: DatarateUnit) => aliasesFor(DATARATE_UNITS, unit);
  * (see above) and inflected on purpose: the vocabulary is what the analyzer
  * falls back *from*, not a stem list, so the genitive plural a reader actually
  * types after a numeral ("5 мегабітів") is listed rather than left to the
- * language's suffix stripper. The bare prefix forms ("мбіт", "мегабіт") name a
- * count of megabits in strict Ukrainian and a rate only by the same elision
- * that lets English "mbps" mean megabits per second; `datasize` declares no bit
- * units at all in this repo, so nothing else claims those words.
- *
- * One thing this file cannot fix, recorded because it looks like a vocabulary
- * bug and is not: `engine.evaluate(engine.evaluate(x).formatted)` does not
- * survive a round trip in Ukrainian, for two reasons that both live in core.
- * The symbol carries "/", and Ukrainian groups thousands with U+00A0, which
- * `normalize()`'s NFKC pass folds to a plain space and the whitespace pass then
- * collapses — splitting "2 000" into two numbers. `uk.test.ts` pins both, so the
- * day either is fixed the pin fails and the ordinary round-trip replaces it.
+ * language's suffix stripper. Every symbol above is drawn from this list rather
+ * than invented beside it — that is the whole mechanism by which the printed
+ * output parses, and `uk.test.ts` asserts it unit by unit.
  */
 export default defineVocabulary({
   locale: "uk",
@@ -52,7 +74,7 @@ export default defineVocabulary({
   units: {
     bps: {
       aliases: [...alias("bps"), "біт", "біта", "біти", "бітів", "бітах"],
-      symbol: "біт/с",
+      symbol: "біт",
     },
     kbps: {
       aliases: [
@@ -64,7 +86,7 @@ export default defineVocabulary({
         "кілобітів",
         "кілобітах",
       ],
-      symbol: "кбіт/с",
+      symbol: "кбіт",
     },
     mbps: {
       aliases: [
@@ -76,7 +98,7 @@ export default defineVocabulary({
         "мегабітів",
         "мегабітах",
       ],
-      symbol: "Мбіт/с",
+      symbol: "Мбіт",
     },
     gbps: {
       aliases: [
@@ -88,7 +110,7 @@ export default defineVocabulary({
         "гігабітів",
         "гігабітах",
       ],
-      symbol: "Гбіт/с",
+      symbol: "Гбіт",
     },
     tbps: {
       aliases: [
@@ -100,7 +122,7 @@ export default defineVocabulary({
         "терабітів",
         "терабітах",
       ],
-      symbol: "Тбіт/с",
+      symbol: "Тбіт",
     },
   },
 });
