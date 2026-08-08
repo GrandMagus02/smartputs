@@ -1,0 +1,76 @@
+# input	kind	canonical	formatted
+10 км	length	10000	10 кілометрів
+1 кг + 500 г	mass	1500	1,5 кілограма
+30 год - 30 хв	duration	106200	29,5 години
+10 хв + 5 год	duration	18600	310 хвилин
+10 м + 5 км	length	5010	5 010 метрів
+2 км в м	length	2000	2 000 метрів
+10 км * 3	length	30000	30 кілометрів
+(1 + 2) * 3	number	9	9
+-5 км	length	-5000	-5 кілометрів
+1 500 г	mass	1500	1 500 грамів
+12 дюймів	length	0.3048	12 дюймів
+3 фунти	mass	1360.77711	3 фунти
+2 тиж	duration	1209600	2 тижні
+1,5 кілограма	mass	1500	1,5 кілограма
+# Ukrainian writes "," for the decimal mark and U+00A0 for the thousands
+# group, so this row and the one above it are the same quantity typed two ways
+# — and "1 500 г" three rows up is fifteen hundred grams, not one and a half.
+# The English corpus cannot express this pair at all: there, "1,500 g" is the
+# thousands form and there is no decimal spelling that collides with it.
+1,5 кг	mass	1500	1,5 кілограма
+# 23 significant digits: a JS number would round the input to
+# 1234567890123456800 and the canonical to 1.2345678901234568e+21.
+#
+# KNOWN WRONG, and recorded rather than hidden: Ukrainian says "кілометра"
+# after a fraction (genitive singular), not "кілометрів". `selectForm` reads
+# its count through `Decimal.toNumber()`, which loses everything past 2^53, so
+# this value arrives at `Intl.PluralRules` as an integer and takes the plural
+# category an integer takes. English cannot see this — its one/other split
+# gives "kilometres" either way — and no test in the repo covered it before
+# this row. The canonical column is what this row primarily guards.
+1234567890123456789,0625 км	length	1234567890123456789062.5	1 234 567 890 123 456 789,0625 кілометрів
+1 234 567 890 123 456 789 г	mass	1234567890123456789	1 234 567 890 123 456 789 грамів
+212 F в C	temperature	100	100°C
+30 C - 20 C	tempdelta	10	10°C
+20% від 50	number	10	10
+50 + 20%	number	60	60
+90 градусів в радіани	angle	1.570796326794896619231321692	1,5707963267948966192313217 радіана
+1 кіб в б	datasize	1024	1 024 байти
+3 м * 4 м	area	12	12м²
+100 км / 2 год	speed	13.88888888888888888888888889	13,888888888888888888888889м/с
+# The SI middle dot is multiplication, so a compound symbol resolves the way
+# "m/s" does in English: power times duration is energy.
+5 кВт·год	energy	18000000	18 000 000 джоулів
+# Word math. Every one of these was unreachable before the corpus was written:
+# `lex` cut "п'ять" into "п" and "ять", so every spelled numeral carrying an
+# apostrophe — 5, 9, 15, 50, 90 and the hundreds built on them — parsed as a
+# unit that did not exist, while `ukrainian.numerals(["п'ять"])` answered 5.
+один кг	mass	1000	1 кілограм
+одна тисяча тридцять два	number	1032	1 032
+# The hundreds are words, not compounds: двісті is not "два сто" the way "two
+# hundred" is, so they are table entries rather than a multiplication.
+двісті п'ять г	mass	205	205 грамів
+двадцять два км	length	22000	22 кілометри
+десять км плюс п'ять км	length	15000	15 кілометрів
+двадцять поділити на чотири	number	5	5
+мінус п'ять кг	mass	-5000	-5 кілограмів
+1,5 мільйона км	length	1500000000	1 500 000 кілометрів
+# A spaced dash is subtraction, not a hyphenated numeral.
+двадцять - два	number	18	18
+десять плюс два помножити на три	number	16	16
+десять мінус два помножити на три	number	4	4
+(десять плюс два) помножити на три	number	36	36
+# The four plural categories, one row each, on the unit spec §8 argues from.
+# English needs two of these and would pass with a singular/plural pair; the
+# whole reason `forms` is a table is the gap between the second and the third.
+1 кілограм	mass	1000	1 кілограм
+2 кг	mass	2000	2 кілограми
+5 кг	mass	5000	5 кілограмів
+21 кг	mass	21000	21 кілограм
+11 кг	mass	11000	11 кілограмів
+0 кг	mass	0	0 кілограмів
+# The conversion target takes the locative, because "в" governs it — the row
+# the one-dimensional `display` model could not express at all.
+2 кг в грамах	mass	2000	2 000 грамів
+2,5 год в хв	duration	9000	150 хвилин

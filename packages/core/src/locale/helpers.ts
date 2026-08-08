@@ -255,6 +255,16 @@ export function cardinalSpeller(opts: CardinalTables): NumeralSpeller {
 
   const spellUnderThousand = (n: Decimal): string | null => {
     if (hundred === undefined || n.lt(HUNDRED)) return spellUnderHundred(n);
+    // A language that has a *word* for a hundreds value uses it, rather than
+    // composing one it does not say. English composes every hundred ("two
+    // hundred") and declares none, so this lookup never hits for `en` and its
+    // spelling is unchanged by construction. Ukrainian declares all eight —
+    // двісті is not "два сто", and п'ятсот is one fused word — so without this
+    // the table would read those values correctly and spell them wrongly,
+    // which is the drift `CardinalTables` exists to prevent by being one
+    // table read in two directions.
+    const whole = tensByValue.get(n.toNumber()) ?? unitsByValue.get(n.toNumber());
+    if (whole !== undefined) return whole;
     const multiple = n.dividedToIntegerBy(HUNDRED);
     const remainder = n.minus(multiple.times(HUNDRED));
     const head = spellUnderHundred(multiple);

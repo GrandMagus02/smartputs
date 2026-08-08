@@ -278,6 +278,38 @@ export function lex(
   const isDigit = (c: string) => c >= "0" && c <= "9";
   const isLetter = (c: string) => /\p{L}/u.test(c);
 
+  /**
+   * An apostrophe *between two letters* is part of the word, not a boundary.
+   *
+   * Ukrainian needs this to say its own numbers: п'ять (5), дев'ять (9),
+   * п'ятнадцять (15), п'ятдесят (50), дев'яносто (90) and the hundreds built
+   * on them all carry one, and none of them is a compound — the apostrophe is
+   * an orthographic mark separating a consonant from a following iotated
+   * vowel, as much a part of the word as any letter. Without this, `lex` cut
+   * "п'ять кг" into "п", "ять" and "кг", and every spelled Ukrainian numeral
+   * containing an apostrophe was unreachable through the parser while
+   * `ukrainian.numerals(["п'ять"])` answered 5 correctly — the table was right
+   * and the word never arrived.
+   *
+   * Three spellings, because three are in use and a user types whichever their
+   * keyboard offers: U+2019 is what Ukrainian typography and most word
+   * processors produce, U+02BC is the letter-apostrophe some standards
+   * prescribe, and U+0027 is what a plain keyboard gives. `normalize()` folds
+   * none of them, so they arrive here as typed.
+   *
+   * Between two *letters*, and deliberately not otherwise: a trailing
+   * apostrophe stays a boundary, so a prime-mark unit ("5 ft'") is unaffected,
+   * and so is any input that ends a quoted word. English is untouched by
+   * construction — no alias in the repo contains an apostrophe, and neither
+   * corpus contains one at all.
+   */
+  const APOSTROPHES = new Set(["'", "’", "ʼ"]);
+  const isInnerApostrophe = (at: number) =>
+    APOSTROPHES.has(input[at] as string) &&
+    at > 0 &&
+    isLetter(input[at - 1] as string) &&
+    isLetter(input[at + 1] ?? "");
+
   // `normalize()` folds every whitespace run to a plain space before `lex` runs,
   // so a language whose group separator is a *non-breaking* space never sees its
   // own separator here: Ukrainian groups with U+00A0 and French ICU with U+202F,
@@ -368,7 +400,9 @@ export function lex(
 
     if (isLetter(ch)) {
       const start = i;
-      while (i < input.length && isLetter(input[i] as string)) i += 1;
+      while (i < input.length && (isLetter(input[i] as string) || isInnerApostrophe(i))) {
+        i += 1;
+      }
       const letterEnd = i;
       // A unit alias may end in digits -- M2 registers m2, cm2, km2 and m3.
       // Without absorbing that suffix the run lexes as a word followed by a

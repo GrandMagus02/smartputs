@@ -70,6 +70,31 @@ export const CARDINALS: CardinalTables = {
     вісімдесят: 80,
     "дев’яносто": 90,
     "дев'яносто": 90,
+    // The hundreds, 200–900. They sit in `tens` rather than `scales` because
+    // that is what they are here: whole values that *add*, not multipliers.
+    //
+    // English composes every one of these from a `units` word and the
+    // `hundred` scale — "two hundred", "nine hundred" — and Ukrainian does not.
+    // двісті is not "два сто", триста is not "три сто", and п'ятсот is a single
+    // fused word whose first half is no longer a free numeral. There is no
+    // multiplication to express, so declaring them here is the honest shape:
+    // `cardinalNumerals` merges `units` and `tens` into one flat table of
+    // addends with no assumption about their range (its own comment says so),
+    // and "двісті п'ять" is then read exactly the way "двадцять п'ять" already
+    // was — an addend and an addend.
+    //
+    // Only сто stays in `scales`, where it belongs: it genuinely multiplies,
+    // in "сто тисяч".
+    двісті: 200,
+    триста: 300,
+    чотириста: 400,
+    "п’ятсот": 500,
+    "п'ятсот": 500,
+    шістсот: 600,
+    сімсот: 700,
+    вісімсот: 800,
+    "дев’ятсот": 900,
+    "дев'ятсот": 900,
   },
   scales: {
     сто: 100,

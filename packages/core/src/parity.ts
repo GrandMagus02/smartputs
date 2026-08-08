@@ -44,6 +44,11 @@ const completeCorpus = await Bun.file(
   new URL("../corpus/en-complete.tsv", import.meta.url),
 ).text();
 
+const ukCorpus = await Bun.file(new URL("../corpus/uk.tsv", import.meta.url)).text();
+const ukCompleteCorpus = await Bun.file(
+  new URL("../corpus/uk-complete.tsv", import.meta.url),
+).text();
+
 const rows = (raw: string): string[][] =>
   raw
     .split("\n")
@@ -51,11 +56,85 @@ const rows = (raw: string): string[][] =>
     .filter((l) => l.length > 0 && !l.startsWith("#"))
     .map((l) => l.split("\t"));
 
+const inputsOf = (...raws: string[]): string[] =>
+  raws
+    .flatMap((raw) => rows(raw).map((r) => r[0] as string))
+    .filter((v, i, a) => a.indexOf(v) === i);
+
 /** Every input the recorder and the test both walk, in a stable order. */
-export const INPUTS: string[] = [
-  ...rows(corpus).map((r) => r[0] as string),
-  ...rows(completeCorpus).map((r) => r[0] as string),
-].filter((v, i, a) => a.indexOf(v) === i);
+export const INPUTS: string[] = inputsOf(corpus, completeCorpus);
+
+/**
+ * The same, for Ukrainian, against its own corpus.
+ *
+ * A separate list rather than a second column on the English one, because the
+ * two corpora are translations rather than transliterations: Ukrainian's rows
+ * exercise four plural categories where English needs two, a decimal comma
+ * that collides with English's thousands separator, and spelled numerals whose
+ * hundreds are words rather than compounds. Half of them have no English row
+ * to sit beside.
+ *
+ * The engine that replays this one is built from `ukrainian` and `BUILTIN_UK`,
+ * which is what makes it a parity net for a *language* rather than for the
+ * engine's plumbing — the two share every line of code below.
+ */
+export const UK_INPUTS: string[] = inputsOf(ukCorpus, ukCompleteCorpus);
+
+/**
+ * What a corpus row *declares*, for the columns beyond the input.
+ *
+ * These columns were decorative until this function existed: `INPUTS` read
+ * column 0 and nothing read the rest, so `en.tsv` carried 36 rows of
+ * unverified documentation. They were all correct, as it turned out — but
+ * nothing was keeping them that way, and for Ukrainian that gap is the whole
+ * risk. A recorded snapshot pins that output does not *change*; only a
+ * declared column pins that it was *right to begin with*, in a diff a reader
+ * who speaks the language can check.
+ */
+export interface DeclaredRow {
+  readonly input: string;
+  readonly kind: string;
+  readonly canonical: string;
+  readonly formatted: string;
+}
+
+/** What a completion corpus row declares about its first offered row. */
+export interface DeclaredCompletion {
+  readonly input: string;
+  readonly kind: string;
+  readonly unit: string;
+  readonly text: string;
+}
+
+const declared = (raw: string): DeclaredRow[] =>
+  rows(raw)
+    .filter((r) => r.length >= 4)
+    .map(([input, kind, canonical, formatted]) => ({
+      input: input as string,
+      kind: kind as string,
+      canonical: canonical as string,
+      formatted: formatted as string,
+    }));
+
+const declaredCompletions = (raw: string): DeclaredCompletion[] =>
+  rows(raw)
+    .filter((r) => r.length >= 4)
+    .map(([input, kind, unit, text]) => ({
+      input: input as string,
+      kind: kind as string,
+      unit: unit as string,
+      text: text as string,
+    }));
+
+export const DECLARED: Record<"en" | "uk", DeclaredRow[]> = {
+  en: declared(corpus),
+  uk: declared(ukCorpus),
+};
+
+export const DECLARED_COMPLETIONS: Record<"en" | "uk", DeclaredCompletion[]> = {
+  en: declaredCompletions(completeCorpus),
+  uk: declaredCompletions(ukCompleteCorpus),
+};
 
 /** JSON-safe, and deliberately lossy in no place a later task could hide in. */
 export function snapshot(engine: Engine, input: string): unknown {
@@ -116,8 +195,11 @@ export function snapshot(engine: Engine, input: string): unknown {
   };
 }
 
-export function record(engine: Engine): Record<string, unknown> {
+export function record(
+  engine: Engine,
+  inputs: readonly string[] = INPUTS,
+): Record<string, unknown> {
   const out: Record<string, unknown> = {};
-  for (const input of INPUTS) out[input] = snapshot(engine, input);
+  for (const input of inputs) out[input] = snapshot(engine, input);
   return out;
 }
