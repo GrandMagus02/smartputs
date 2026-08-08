@@ -99,8 +99,14 @@ export type Token =
  * question on the division side and stay out for now on the same rule this
  * commit followed: add the spelling a symbol the repo already *emits* is written
  * with, and nothing speculative beside it.
+ *
+ * Exported for `testing/locale.ts`, which derives the character set from it:
+ * that check has to tell a unit *word* from a printed *expression*, and this
+ * table is what decides which is which. Only the binding is exported, not a
+ * second constant built from it — a `new Set(...)` at this module's top level
+ * survives bundling into every package that lexes, and `check-size` sees it.
  */
-const OPS: Record<string, OpSymbol> = {
+export const OPS: Record<string, OpSymbol> = {
   "+": "+",
   "-": "-",
   "*": "*",

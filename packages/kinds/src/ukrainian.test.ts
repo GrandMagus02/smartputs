@@ -46,6 +46,17 @@ const engineFor = (locale: Locale) =>
  */
 const SKIP_BOOLEAN = { skip: [`${BOOLEAN_KIND}:${BOOLEAN_UNIT}`] } as const;
 
+/**
+ * English's one printed string English cannot read: `length:in`'s symbol is
+ * "in", core's conversion keyword, which `lex` emits as a keyword token and
+ * which `@smartput/length/locale/en` therefore drops from `aliases` on purpose.
+ * `contract.test.ts` carries the full reasoning beside the describe that pins
+ * the keyword collision; the waiver is repeated here rather than folded into
+ * `SKIP_BOOLEAN` because Ukrainian needs no such waiver — its inch is "дюйм",
+ * an alias, symbol and `forms` entry at once.
+ */
+const EN_ONLY = { ...SKIP_BOOLEAN, skipPrintable: ["length:in"] } as const;
+
 describe("Ukrainian, as proof (spec §8)", () => {
   const engine = engineFor(uk);
 
@@ -84,7 +95,7 @@ describe("Ukrainian, as proof (spec §8)", () => {
    */
   test("both languages satisfy the contract", () => {
     expect(() => assertLocaleContract(uk, BUILTIN_KINDS, SKIP_BOOLEAN)).not.toThrow();
-    expect(() => assertLocaleContract(en, BUILTIN_KINDS, SKIP_BOOLEAN)).not.toThrow();
+    expect(() => assertLocaleContract(en, BUILTIN_KINDS, EN_ONLY)).not.toThrow();
     // The default counts are every integer category and none of the fractional
     // one, so `nom-other`/`loc-other` — genitive *singular* in Ukrainian, the
     // row that is easiest to fill with a plural and hardest to notice — go
@@ -94,7 +105,7 @@ describe("Ukrainian, as proof (spec §8)", () => {
       assertLocaleContract(uk, BUILTIN_KINDS, { ...SKIP_BOOLEAN, counts }),
     ).not.toThrow();
     expect(() =>
-      assertLocaleContract(en, BUILTIN_KINDS, { ...SKIP_BOOLEAN, counts }),
+      assertLocaleContract(en, BUILTIN_KINDS, { ...EN_ONLY, counts }),
     ).not.toThrow();
   });
 

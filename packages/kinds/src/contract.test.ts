@@ -479,6 +479,18 @@ test("the en vocabularies satisfy the locale contract", () => {
     // is I10's degradation being taken deliberately — the one case `skip`
     // exists for.
     skip: [`${BOOLEAN_KIND}:${BOOLEAN_UNIT}`],
+    // The one printed string in either language that its own engine cannot
+    // read, and the describe above is the reason: "in" is the conversion
+    // keyword, so `lex` emits a keyword token and the alias index deliberately
+    // has no entry for it. That deliberate gap stops at `aliases` — `symbol`
+    // is still "in", so a `symbols: true` print emits "5in" and the engine
+    // rejects it. It stays because English has no other symbol for the inch:
+    // the double-prime does not lex either, "inch" is a word rather than a
+    // symbol, and "in" is what the micro path's `formatLength` already writes
+    // and `parseLength` already reads (no keyword grammar there). `skipPrintable`
+    // rather than `skip`: inch keeps every other assertion, including that
+    // "inch"/"inches" resolve and that both plural keys exist.
+    skipPrintable: ["length:in"],
   });
 });
 

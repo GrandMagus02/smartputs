@@ -5,7 +5,16 @@ import { composeLocale } from "../locale/compose";
 import type { EvalCtx, Kind, Language, Vocabulary } from "../types";
 
 export type { LocaleContractOptions } from "./locale";
-export { assertLocaleContract } from "./locale";
+/**
+ * `OPERATOR_CHARS` is exported here and nowhere else: a test that reads printed
+ * output back has to tell a unit word from a printed expression, and
+ * `assertLocaleContract` is not the only place that needs to —
+ * `@smartput/kinds`' round-trip net uses it to say which unit a compound symbol
+ * is allowed to come back as. A testing export rather than a public one,
+ * because the fact it states (which characters end a word token) is the lexer's
+ * business, not an engine consumer's.
+ */
+export { assertLocaleContract, OPERATOR_CHARS } from "./locale";
 
 /**
  * Assertions every kind must satisfy. Built-in and third-party kinds run the
