@@ -232,13 +232,21 @@ function weightLayers(
 function buildStages(opts: EngineOptions, registry: Registry, format: Locale) {
   return {
     normalizer: new Normalizer(),
-    // The format locale, not the whole list: what the tokenizer takes a
-    // locale *for* is number grammar and segmentation, both of which belong
-    // to the language the engine speaks (I8). Keywords are the one part of
-    // lexing that is many-locale, and they are Task 17's, not this stage
-    // signature's.
+    // Both lists, because lexing is split down exactly the line the phase is
+    // about. `locale` is the format one: number grammar, segmentation and the
+    // case fold belong to the language the engine speaks (I8). `locales` is
+    // every installed one, for the two parts that are many-locale — keywords
+    // and spelled numerals — so a bilingual engine reads "5 кг в грамах" and
+    // "двадцять два кг" while still writing one language.
+    //
+    // `weights` is the engine-level layers and only those: a numeral tie is
+    // broken inside this stage, which is built once and frozen, so a per-call
+    // `EvalOptions.weights` cannot reach it. `weightLayers` with no call layer
+    // is the same array `parserFor` builds, minus the slot only a call fills.
     tokenizer: new Tokenizer({
       locale: format,
+      locales: opts.locales,
+      weights: weightLayers(opts.locales, opts, undefined),
       registry,
       ...(opts.now === undefined ? {} : { now: opts.now }),
       ...(opts.timeZone === undefined ? {} : { timeZone: opts.timeZone }),

@@ -1,4 +1,4 @@
-import type { KindId, ResultCandidate, Span } from "./types";
+import type { Keyword, KindId, ResultCandidate, Span } from "./types";
 
 export class SmartputError extends Error {
   readonly input: string;
@@ -178,5 +178,42 @@ export class VocabularyConflictError extends SmartputError {
     this.name = "VocabularyConflictError";
     this.locale = locale;
     this.kind = kind;
+  }
+}
+
+/**
+ * One spelling that two installed languages read as two *different*
+ * connectives — "do" meaning `in` in one and `of` in another. Recognition is
+ * many-locale, so both tables feed one lexer, and a word the lexer cannot
+ * assign a single meaning to has no reading the parser could rank: the two
+ * readings differ in grammar, not in weight.
+ *
+ * The same keyword in several languages is not a conflict and is the common
+ * case — English and Ukrainian both spell `in` with their own words, and two
+ * Slavic languages sharing "в" for it should compose without comment.
+ *
+ * Raised from `buildKeywords`, i.e. once at `createEngine`, on the same
+ * philosophy as `LocaleMismatchError`: a bad configuration fails on boot,
+ * where the stack names the line that wired the languages together, and never
+ * at a keystroke (I9). All four facts are in the message because a reader
+ * needs every one of them to decide which language should give the word up.
+ */
+export class KeywordConflictError extends SmartputError {
+  readonly surface: string;
+  readonly keywords: readonly [Keyword, Keyword];
+  readonly locales: readonly [string, string];
+  constructor(
+    surface: string,
+    keywords: readonly [Keyword, Keyword],
+    locales: readonly [string, string],
+  ) {
+    super(
+      `${JSON.stringify(surface)} means ${JSON.stringify(keywords[0])} in ${JSON.stringify(locales[0])} and ${JSON.stringify(keywords[1])} in ${JSON.stringify(locales[1])}`,
+      surface,
+    );
+    this.name = "KeywordConflictError";
+    this.surface = surface;
+    this.keywords = keywords;
+    this.locales = locales;
   }
 }

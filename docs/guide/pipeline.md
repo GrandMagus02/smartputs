@@ -147,8 +147,16 @@ composable in practice: pass a string for the common case, or a
 
 `Intl.Segmenter` splits word runs by default; a locale can supply its own
 `segment` for scripts without spaces. Numbers are read through the locale's
-`numberFormat`, which is why `1,500` is 1500 in `en` and 1.5 in `de` — and why
-both candidates are emitted when the locale list contains both. Token types:
+`numberFormat`, which is why `1,500` is 1500 in `en` and 1.5 in `de`. Both of
+those are the **format** locale's, and only its: number grammar and
+segmentation are the two input-side concerns that belong to the one language
+the engine writes, so an `[en, uk]` engine formatting in English reads
+`1,000.5` and not `1 000,5`. Keywords are the opposite — `buildKeywords` folds
+every installed language's connectives into one table before lexing starts, so
+the same engine reads `5 кг in grams` and `5 кг в грамах` alike. A surface two
+languages read as two *different* keywords is a wiring error and throws
+`KeywordConflictError` on boot, where the stack names the line that installed
+them. Token types:
 `number`, `word`, `op`, `keyword`, `lparen`, `rparen`. `-` is emitted as an op
 token even between letters, so `"twenty-two"` lexes as word/op/word — which is
 what the hyphen rule in fold exists to undo.
@@ -181,10 +189,15 @@ matchers; [`@smartput/datetime`](/guide/datetime) supplies the only one that
 exists today.
 
 `foldNumerals` collapses a run of spelled-number words into a single `number`
-token by calling the locale's `numerals` hook, which claims a prefix of the run
-and reports how much it took. A hyphen between two numeral words is absorbed
-only when nothing separates it from either side, so `twenty-two` is 22 while
-`twenty - two` is 18.
+token by calling the `numerals` hook, which claims a prefix of the run and
+reports how much it took. The run is collected once and offered to *every*
+installed language, and the longest claim wins: a language that read two words
+where another read one has understood more of the input, whatever the reader
+prefers. Only a genuine tie — two languages claiming the same number of words —
+consults preference, first the `locale:` weight on the engine's layers and then
+the locale id ascending, so the answer never depends on the order `locales` was
+written in. A hyphen between two numeral words is absorbed only when nothing
+separates it from either side, so `twenty-two` is 22 while `twenty - two` is 18.
 
 `foldWordOps` rewrites the `plus`, `minus`, `times` and `over` keywords into
 `+`, `-`, `*` and `/`, swallowing a following `by` so that `divided by` is one

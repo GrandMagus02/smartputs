@@ -135,8 +135,8 @@ this kind exists beside `datetime-range`. Its `meta.zone` is the empty string,
 deliberately, and `meta.lengthNs` is computed modulo 24 hours so a wrapping span
 has a real length.
 
-`to` and `as` are not new operators. Core's `keywordFor` already folds both onto
-the `in` keyword — the same route `kyiv to warsaw` takes to reach
+`to` and `as` are not new operators. Core's folded keyword table already maps
+both onto the `in` keyword — the same route `kyiv to warsaw` takes to reach
 `in | place | place` — so the two-endpoint forms needed no change to the lexer.
 
 ### Days with hours — `datetime-range`

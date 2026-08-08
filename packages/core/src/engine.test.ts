@@ -9,6 +9,7 @@ import { createEngine, type EngineOptions } from "./engine";
 import {
   AmbiguityError,
   DimensionMismatchError,
+  KeywordConflictError,
   MissingRateError,
   NoCandidateError,
   UnitParseError,
@@ -939,4 +940,38 @@ test("EvalOptions.locales reaches coerce, which builds its own solver options", 
     NoCandidateError,
   );
   expect(bilingual.coerce("mass", "5 кг", { locales: ["uk"] }).unit).toBe("kg");
+});
+
+test("keywords are many-locale: every installed language's connectives lex", () => {
+  // The gap this closes, measured before the change: the alias half of
+  // recognition already worked on a two-locale engine ("5 кг" resolved), and
+  // the only reason Ukrainian *sentences* threw was that `lex` read one
+  // language's keyword table. "в"/"до" are uk-only, "in" is en-only, and one
+  // engine now reads both.
+  expect(bilingual.evaluate("5 кг в грамах").formatted).toBe("5,000 grams");
+  expect(bilingual.evaluate("5 кг до грамів").formatted).toBe("5,000 grams");
+  expect(bilingual.evaluate("5 кг in grams").formatted).toBe("5,000 grams");
+  expect(bilingual.evaluate("5 кг помножити на 2").formatted).toBe("10 kilograms");
+});
+
+test("numerals are many-locale: each language is offered the same word run", () => {
+  expect(bilingual.evaluate("двадцять два кг").value.canonical.toString()).toBe("22000");
+  expect(bilingual.evaluate("twenty two kg").value.canonical.toString()).toBe("22000");
+});
+
+test("a surface meaning two different keywords across languages fails on boot", () => {
+  // Not at a keystroke: `buildKeywords` runs once, inside `createEngine`, so
+  // the stack names the line that wired the two languages together (I9).
+  const clash = defineLanguage({
+    id: "clash",
+    numberFormat: "intl",
+    keywords: { of: ["in"] },
+    selectForm: () => "other",
+  });
+  expect(() =>
+    createEngine({
+      locales: [composeLocale(en, BUILTIN_EN), composeLocale(clash)],
+      kinds: BUILTIN_KINDS,
+    }),
+  ).toThrow(KeywordConflictError);
 });

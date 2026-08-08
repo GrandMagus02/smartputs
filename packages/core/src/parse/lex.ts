@@ -1,4 +1,5 @@
 import type { Decimal } from "../decimal";
+import { buildKeywords } from "../locale/compose";
 import { numberSymbols, parseNumber } from "../locale/number";
 import type { Keyword, LiteralReading, Locale, OpSymbol } from "../types";
 
@@ -158,20 +159,22 @@ function defaultSegment(run: string, localeId: string): string[] {
   return [...segmenter.segment(run)].filter((s) => s.isWordLike).map((s) => s.segment);
 }
 
-function keywordFor(word: string, locale: Locale): Keyword | null {
-  // Keywords match case-insensitively, like units do. The fold happens here and
-  // not in normalize() on purpose: normalize() feeds every kind, and later
-  // milestones (currency codes, hex colours) need the raw case preserved.
-  const folded = word.toLocaleLowerCase(locale.id);
-  for (const [keyword, aliases] of Object.entries(locale.language.keywords)) {
-    if (aliases?.some((a) => a.toLocaleLowerCase(locale.id) === folded)) {
-      return keyword as Keyword;
-    }
-  }
-  return null;
-}
-
-export function lex(input: string, locale: Locale): Token[] {
+/**
+ * @param locale The *format* locale: number grammar and segmentation belong to
+ * the one language the engine speaks (I8), and so does the case fold below.
+ * @param keywords Every installed language's connectives, folded by
+ * `buildKeywords`. Optional, and defaulting to this locale's own table, so the
+ * documented "compose the passes yourself" contract of `@smartput/core
+ * /tokenize` keeps working with the one argument it always took — but an
+ * engine passes the many-locale map, because reading two languages' units
+ * while reading one language's connectives would leave "5 кг in grams"
+ * readable and "5 кг в грамах" not.
+ */
+export function lex(
+  input: string,
+  locale: Locale,
+  keywords: ReadonlyMap<string, Keyword> = buildKeywords([locale]),
+): Token[] {
   const { group, decimal } = numberSymbols(locale.language);
   const tokens: Token[] = [];
   let i = 0;
@@ -291,9 +294,14 @@ export function lex(input: string, locale: Locale): Token[] {
         // The digits belong to the final word of the run and nowhere else.
         const text = index === words.length - 1 ? word + digits : word;
         const wordEnd = wordStart + text.length;
-        const keyword = keywordFor(text, locale);
+        // Keywords match case-insensitively, like units do. The fold happens
+        // here and not in normalize() on purpose: normalize() feeds every
+        // kind, and later milestones (currency codes, hex colours) need the
+        // raw case preserved. The map's keys are already folded, each under
+        // its own contributing language's id — see `buildKeywords`.
+        const keyword = keywords.get(text.toLocaleLowerCase(locale.id));
         tokens.push(
-          keyword === null
+          keyword === undefined
             ? { type: "word", text, start: wordStart, end: wordEnd }
             : { type: "keyword", keyword, start: wordStart, end: wordEnd },
         );

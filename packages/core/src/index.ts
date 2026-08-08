@@ -51,7 +51,7 @@ export type {
 } from "./live";
 export { createCachedEngine, createSnapshotCache } from "./live";
 export { createAnalyzerChain } from "./locale/analyze";
-export { composeLocale } from "./locale/compose";
+export { buildKeywords, composeLocale } from "./locale/compose";
 export { defineLanguage } from "./locale/define";
 export type { CardinalTables } from "./locale/helpers";
 export {
