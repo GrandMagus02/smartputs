@@ -18,7 +18,7 @@ const alias = (unit: TempoUnit) => aliasesFor(TEMPO_UNITS, unit);
  * Ukrainian phrase is "ударів на хвилину", four words, one of which ("на") is
  * already the `by` keyword. A `forms` table here would be eight keys of prose no
  * input could reach. Absent forms keep the renderer on the symbol, so a
- * Ukrainian tempo prints "120уд/хв" — the same tight shape English prints
+ * Ukrainian tempo prints "120бпм" — the same tight shape English prints
  * "120bpm" through.
  *
  * **`hz` declares all eight**, where `en.ts` needed two identical ones. This is
@@ -35,11 +35,24 @@ const alias = (unit: TempoUnit) => aliasesFor(TEMPO_UNITS, unit);
  *
  * **Symbols.** "Гц" is the Ukrainian SI symbol for hertz and is not optional —
  * unlike `datarate`'s Latin fallbacks, nobody writes "5 Hz" in a Ukrainian
- * sentence. "уд/хв" is the standard abbreviation for beats per minute, and it
- * carries "/", an operator character, so the printed tempo does not lex back.
- * `uk.test.ts` pins that rather than papering over it: `PrintOptions` already
- * documents that a symbol need not round-trip, and inventing a slash-free
- * spelling to make one test greener would be inventing Ukrainian.
+ * sentence. `bpm`'s symbol is "бпм", and that choice gave something up. "уд/хв"
+ * is the abbreviation printed on a metronome and the one a Ukrainian reader
+ * expects to see, but it cannot be a symbol here, and the reason is the lexer
+ * rather than an opinion about Ukrainian. It carries "/", which lexes as
+ * division — the same fact `units.ts` gives for refusing a "spb" unit — so
+ * "120уд/хв" reaches the engine as tempo ÷ duration, a signature no kind
+ * declares, and the printed tempo throws instead of reading back.
+ *
+ * `energy` and `datarate` survive that same shape by making the arithmetic true:
+ * "кВт·год" computes as power × duration, "Мбіт/с" as datasize ÷ duration. That
+ * escape is closed here, because tempo's canonical *is* beats per minute — there
+ * is no "beat" kind for "уд" to be a quantity of, and `index.ts` declares only
+ * the two reciprocal `in` bridges, no `/` at all. So the division has nothing to
+ * compute and the requirement collapses to one line: the symbol must be a single
+ * token that is already an alias. "бпм" is what a Ukrainian music thread writes,
+ * and it is the only spelling that is both. "уд/хв" is absent from this file
+ * entirely rather than demoted to an alias, since a "/" is just as unreadable
+ * there.
  *
  * The Cyrillic aliases are inflected on purpose — the vocabulary is what the
  * language's suffix stripper falls back *from*, not a stem list, so the genitive
@@ -47,10 +60,11 @@ const alias = (unit: TempoUnit) => aliasesFor(TEMPO_UNITS, unit);
  * at. Every one of `hz`'s eight `forms` values is in that list, the locative
  * singular `герці` included: a form the printer can emit is a form the parser
  * must read back at full weight, not one the stripper happens to recover with a
- * `-2` penalty. `уд` and `бпм` are slash-free ways in to a unit whose only symbol is not:
- * `бпм` is what a Ukrainian music thread writes, and `уд` is the numerator of
- * the abbreviation standing for the whole of it, by the same elision that lets
- * English "bpm" be typed for a tempo and `datarate`'s "мбіт" for a rate.
+ * `-2` penalty. It is the same rule that decided `bpm`'s symbol: what the
+ * printer emits, the parser reads back by declaration. `уд` stays alongside
+ * `бпм` as a second way in — the numerator of the abbreviation standing for the
+ * whole of it, by the same elision that lets English "bpm" be typed for a tempo
+ * and `datarate`'s "мбіт" for a rate — but only `бпм` also comes back out.
  */
 export default defineVocabulary({
   locale: "uk",
@@ -58,7 +72,7 @@ export default defineVocabulary({
   units: {
     bpm: {
       aliases: [...alias("bpm"), "бпм", "уд", "удар", "удари", "ударів", "ударах"],
-      symbol: "уд/хв",
+      symbol: "бпм",
     },
     hz: {
       aliases: [

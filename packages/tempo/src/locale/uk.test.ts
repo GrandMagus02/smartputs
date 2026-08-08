@@ -107,12 +107,12 @@ describe("tempo uk vocabulary", () => {
     expect(e.evaluate("1,5 герца").formatted).toBe("1,5 герца");
     // bpm has no forms, so the renderer stays on the symbol and sets it tight
     // against the number — the same shape `en` prints "120bpm" through.
-    expect(e.evaluate("120 bpm").formatted).toBe("120уд/хв");
-    expect(e.evaluate("120 бпм").formatted).toBe("120уд/хв");
-    expect(e.evaluate("120 ударів").formatted).toBe("120уд/хв");
+    expect(e.evaluate("120 bpm").formatted).toBe("120бпм");
+    expect(e.evaluate("120 бпм").formatted).toBe("120бпм");
+    expect(e.evaluate("120 ударів").formatted).toBe("120бпм");
     // Two conversions, one in each direction across the ratio. Both print as
     // finished quantities rather than targets, so hz comes back nominative.
-    expect(e.evaluate("3 гц в bpm").formatted).toBe("180уд/хв");
+    expect(e.evaluate("3 гц в bpm").formatted).toBe("180бпм");
     expect(e.evaluate("120 bpm в герцах").formatted).toBe("2 герци");
     // Latin in, Ukrainian out: a uk engine reads both scripts, because the
     // aliases derive from the one alias map in `units.ts` before the Cyrillic
@@ -145,17 +145,25 @@ describe("tempo uk vocabulary", () => {
 
   test("round-trips its own output", () => {
     const e = engine();
-    // hz round-trips because every one of its eight forms is also an alias. The
-    // inputs stay under a thousand: Ukrainian groups with U+00A0 and
-    // `parse/normalize.ts` folds every `\s` — NBSP included — to a plain space
-    // before `lex()` sees it, so "1 000 герців" comes back as two numbers. That
-    // is a core-level gap between the group separator and the normalizer, which
-    // is why the grouped case above is asserted as a string instead.
+    // hz round-trips because every one of its eight forms is also an alias, and
+    // bpm round-trips because its symbol is one — the two halves of the same
+    // rule, reached by different routes, since bpm has no forms and prints the
+    // symbol instead. A grouped input is in the list on purpose: Ukrainian
+    // groups thousands with U+00A0 and `parse/normalize.ts` folds every `\s` —
+    // NBSP included — to a plain space before `lex()` sees it, which used to
+    // split "1 000 герців" into two numbers. `lex` now accepts the folded
+    // separator, so the grouped case belongs here rather than being kept out.
     for (const input of [
       "2 герци",
       "5 герців",
       "21 герц",
       "1,5 герца",
+      "1000 герців",
+      "1 бпм",
+      "2 бпм",
+      "5 бпм",
+      "1,5 бпм",
+      "5000 бпм",
       "120 bpm в герцах",
     ]) {
       const first = e.evaluate(input);
@@ -167,17 +175,22 @@ describe("tempo uk vocabulary", () => {
     }
   });
 
-  // The round trip this vocabulary cannot carry, pinned rather than left to be
-  // rediscovered. "уд/хв" is the real Ukrainian abbreviation and it contains
-  // "/", an operator character — the same fact `units.ts` gives for refusing a
-  // "spb" unit. `PrintOptions` already documents that a symbol need not lex
-  // back; in Ukrainian that applies to bpm's only spelling, so the day a
-  // symbol-aware lexer lands this pin fails and an equality replaces it.
-  test("a printed bpm does not lex back, and the reason is the symbol", () => {
+  // Why bpm's symbol is not "уд/хв", asserted from the other end. That is the
+  // abbreviation on a metronome, and it contains "/" — the same fact `units.ts`
+  // gives for refusing a "spb" unit — so a "/" symbol prints something the lexer
+  // reads as a division rather than as a unit. `energy` and `datarate` answer
+  // that by making the division true; tempo cannot, because its canonical *is*
+  // beats per minute and there is no "beat" kind for the numerator to be. This
+  // pins the constraint itself: no symbol in this vocabulary carries an operator
+  // character, so no printed tempo can decompose into arithmetic.
+  test("no symbol carries a character the lexer reads as an operator", () => {
+    for (const [unit, words] of Object.entries(tempoUk.units)) {
+      expect(words.symbol, `${unit}'s symbol is not one token`).not.toMatch(/[/*+\-^()]/);
+    }
     const e = engine();
     const printed = e.evaluate("120 bpm").formatted;
-    expect(printed).toBe("120уд/хв");
-    expect(() => e.evaluate(printed)).toThrow();
+    expect(printed).toBe("120бпм");
+    expect(e.evaluate(printed).value?.unit).toBe("bpm");
     // The other half was core's rather than this file's — Ukrainian groups
     // thousands with U+00A0, `normalize()` folds it to a plain space, and
     // "1\u00A0000" reached the lexer as two numbers. `lex` now accepts the folded
