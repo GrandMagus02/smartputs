@@ -25,6 +25,21 @@ describe("datasize uk vocabulary", () => {
     }
   });
 
+  test("the SI prefix is lowercase and the IEC one is not", () => {
+    // The contrast `kB` against `KiB` carries in Latin, written in Cyrillic.
+    // Kilo is lowercase in SI in every language, and the rest of this repo's uk
+    // vocabularies write it that way (`кг`, `км`, `кВт`, `кбіт/с`); IEC's binary
+    // prefixes are `Ki`/`Mi`/`Gi`/`Ti` with a capital. The consumer-software
+    // `КБ` is a transliterated `KB` and folds the two families' spellings toward
+    // each other, so it is asserted against rather than left to preference.
+    expect(datasizeUk.units.b?.symbol).toBe("Б");
+    expect(datasizeUk.units.kb?.symbol).toBe("кБ");
+    expect(datasizeUk.units.kib?.symbol).toBe("КіБ");
+    // Mega and up are capital in both families, so only the `і` separates them.
+    expect(datasizeUk.units.mb?.symbol).toBe("МБ");
+    expect(datasizeUk.units.mib?.symbol).toBe("МіБ");
+  });
+
   test("satisfies the locale contract", () => {
     expect(() =>
       assertLocaleContract(composeLocale(ukrainian, [datasizeUk]), [datasize]),
@@ -76,7 +91,7 @@ describe("datasize uk vocabulary", () => {
     expect(forms[key(1)]).toBe("байті");
     expect(forms[key(2)]).toBe("байтах");
     expect(forms[key(5)]).toBe("байтах");
-    // No count at all (ruling R5): "1 КБ у байтах". This is the row the old
+    // No count at all (ruling R5): "1 кБ у байтах". This is the row the old
     // one-dimensional `display` model could not express.
     expect(key()).toBe("loc-other");
     expect(forms[key()]).toBe("байтах");

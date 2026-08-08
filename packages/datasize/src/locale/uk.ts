@@ -39,17 +39,26 @@ const alias = (unit: DatasizeUnit) => aliasesFor(DATASIZE_UNITS, unit);
  *
  * The locative half exists because a conversion target in Ukrainian is governed
  * by `в`/`у`, and that preposition takes the locative: "у 5 байтах", never
- * "у 5 байтів". `loc-other` is the count-free row — "1 КБ у байтах" names a
+ * "у 5 байтів". `loc-other` is the count-free row — "1 кБ у байтах" names a
  * unit with no magnitude attached to it at all (ruling R5) — and it is the row
  * the old one-dimensional `display` model had no way to express.
  *
  * Symbols are Cyrillic, because that is what a Ukrainian speaker actually
- * writes: `Б`, `КБ`, `МБ`, `ГБ`, `ТБ` for the decimal units, and the IEC binary
+ * writes: `Б`, `кБ`, `МБ`, `ГБ`, `ТБ` for the decimal units, and the IEC binary
  * prefixes transliterated with their `і` intact — `КіБ`, `МіБ`, `ГіБ`, `ТіБ` —
  * which keeps the decimal/binary distinction visible in the symbol exactly as
- * `kb`/`kib` keeps it visible in the id. The two families are separate units,
- * never two names for one (`1 КБ` is 1000 bytes, `1 КіБ` is 1024), so nothing
+ * `kB`/`KiB` keeps it visible in Latin. The two families are separate units,
+ * never two names for one (`1 кБ` is 1000 bytes, `1 КіБ` is 1024), so nothing
  * here may fold them together.
+ *
+ * The kilo prefix is **lowercase** `к` and the kibi prefix is **uppercase** `К`,
+ * which is the whole of that distinction and not a typo either way. SI writes
+ * kilo lowercase in every language, and every other `uk` vocabulary in this repo
+ * follows it — `кг` in `mass`, `км` in `length`, `кВт` in `power`, `кбіт/с` in
+ * `datarate` — while IEC's binary prefixes are `Ki`/`Mi`/`Gi`/`Ti` with a
+ * capital `K`. The consumer-software spelling `КБ` (a Latin `KB` with the
+ * letters swapped for Cyrillic) loses that contrast and is not what a Ukrainian
+ * standard writes.
  *
  * `aliases` keeps the Latin spellings — `aliasesFor` off the same `units.ts`
  * table `en.ts` reads, so the micro path and the engine path agree by
@@ -96,7 +105,7 @@ export default defineVocabulary({
         "кілобайті",
         "кілобайтах",
       ],
-      symbol: "КБ",
+      symbol: "кБ",
       forms: {
         "nom-one": "кілобайт",
         "nom-few": "кілобайти",
