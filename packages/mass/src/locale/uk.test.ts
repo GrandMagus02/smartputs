@@ -146,13 +146,19 @@ describe("mass uk vocabulary", () => {
 
   test("round-trips its own output", () => {
     const e = engine();
-    // Inputs whose output carries no thousands group: Ukrainian groups with
+    // The grouped conversion is in this list on purpose. Ukrainian groups with
     // U+00A0 and `parse/normalize.ts` folds every `\s` — NBSP included — to a
-    // plain space before `lex()` sees it, so "2 000 грамів" comes back as two
-    // numbers. That is a core-level gap between the group separator and the
-    // normalizer, not something a vocabulary can express its way out of, which
-    // is why the grouped conversion above is asserted as a string instead.
-    for (const input of ["1,5 кілограма", "5 тонн", "1 фунт в унціях", "500 мг"]) {
+    // plain space before `lex()` sees it, so "2\u00A0000 грамів" used to come back
+    // as two numbers. `lex` now accepts that folded separator when the language's
+    // own separator is a non-breaking space, which is what lets a Ukrainian engine
+    // read the one input it is guaranteed to be handed: its own output.
+    for (const input of [
+      "1,5 кілограма",
+      "5 тонн",
+      "1 фунт в унціях",
+      "500 мг",
+      "2 кг в г",
+    ]) {
       const first = e.evaluate(input);
       const again = e.evaluate(first.formatted);
       expect(again.value?.unit, input).toBe(first.value?.unit);

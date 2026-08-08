@@ -116,6 +116,29 @@ export function lex(input: string, locale: Locale): Token[] {
   const isDigit = (c: string) => c >= "0" && c <= "9";
   const isLetter = (c: string) => /\p{L}/u.test(c);
 
+  // `normalize()` folds every whitespace run to a plain space before `lex` runs,
+  // so a language whose group separator is a *non-breaking* space never sees its
+  // own separator here: Ukrainian groups with U+00A0 and French ICU with U+202F,
+  // and by this point the formatter's own "2\u00A0000" has arrived as "2 000".
+  // Accepting the folded form is what makes such a language's output re-readable
+  // — without it `evaluate(evaluate("2 кг в грамах").formatted)` lexes two
+  // numbers and throws, which is the gap `@smartput/datarate` and
+  // `@smartput/tempo` each pinned while waiting for this.
+  //
+  // The lookahead is what keeps it from swallowing a word boundary: a group
+  // separator is followed by exactly three digits, so "2 000 г" is one number
+  // while "2 3 кг" stays two tokens. A language that declares a plain space as
+  // its separator outright (`numberFormat: { group: " " }`) is left on the
+  // unconditional branch below, where it already was.
+  const groupFoldsToSpace = group !== " " && /\s/.test(group);
+  const isFoldedGroup = (at: number) =>
+    groupFoldsToSpace &&
+    input[at] === " " &&
+    isDigit(input[at + 1] ?? "") &&
+    isDigit(input[at + 2] ?? "") &&
+    isDigit(input[at + 3] ?? "") &&
+    !isDigit(input[at + 4] ?? "");
+
   while (i < input.length) {
     const ch = input[i] as string;
 
@@ -162,7 +185,10 @@ export function lex(input: string, locale: Locale): Token[] {
       const start = i;
       while (
         i < input.length &&
-        (isDigit(input[i] as string) || input[i] === group || input[i] === decimal)
+        (isDigit(input[i] as string) ||
+          input[i] === group ||
+          input[i] === decimal ||
+          isFoldedGroup(i))
       ) {
         i += 1;
       }

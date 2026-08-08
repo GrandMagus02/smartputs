@@ -20,12 +20,19 @@ export function numberSymbols(language: Language): NumberFormatSpec {
 
 export function parseNumber(text: string, language: Language): Decimal | null {
   const { group, decimal } = numberSymbols(language);
+  // A language whose separator is a non-breaking space also has to accept the
+  // plain one: `normalize()` folds every whitespace run before `lex()` runs, so
+  // "2\u00A0000" \u2014 this language's own printed output \u2014 reaches here as "2 000".
+  // Gated on the separator rather than unconditional, because for `en` a space
+  // inside a number is a word boundary and "1 500" must stay unparseable.
+  const groupIsSpaceLike = /\s/.test(group);
   let cleaned = "";
   for (const ch of text) {
     // Escapes, not literals: NBSP and narrow NBSP are invisible in source and
     // silently degrade to a plain space when retyped. French ICU uses U+202F as
     // its group separator, so this is load-bearing, not defensive padding.
     if (ch === group || ch === "\u00A0" || ch === "\u202F") continue;
+    if (groupIsSpaceLike && ch === " ") continue;
     cleaned += ch === decimal ? "." : ch;
   }
   if (cleaned.length === 0 || !/^-?\d*\.?\d+$/.test(cleaned)) return null;

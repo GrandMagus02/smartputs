@@ -82,23 +82,26 @@ describe("datarate uk vocabulary", () => {
     expect(canonical("2000 мбіт")).toEqual(["2000000000", "mbps"]);
   });
 
-  // The round trip Ukrainian cannot carry, pinned rather than left to be
-  // rediscovered. Both causes are in core, not here:
+  // Half of the round trip Ukrainian cannot carry, pinned rather than left to be
+  // rediscovered. The cause that remains is in core, not here: "Мбіт/с" contains
+  // "/", an operator character — the same fact `units.ts` gives for refusing
+  // byte-per-second units. `PrintOptions` already documents that a symbol need
+  // not lex back; in Ukrainian that applies to the only spelling the renderer
+  // has.
   //
-  //   1. "Мбіт/с" contains "/", an operator character — the same fact
-  //      `units.ts` gives for refusing byte-per-second units. `PrintOptions`
-  //      already documents that a symbol need not lex back; in Ukrainian that
-  //      applies to the only spelling the renderer has.
-  //   2. Ukrainian groups thousands with U+00A0. `normalize()` folds it to a
-  //      plain space under NFKC and then collapses the run, so "2 000" reaches
-  //      the lexer as two numbers.
-  //
-  // Each is asserted on its own input so a fix to either one fails the pin that
-  // names it, and whoever lands the fix replaces that line with an equality.
-  test("its printed form does not lex back, and both reasons are core's", () => {
+  // The other cause this test used to pin — Ukrainian groups thousands with
+  // U+00A0, `normalize()` folds it to a plain space, and "2\u00A0000" reached the
+  // lexer as two numbers — is fixed: `lex` accepts the folded separator when the
+  // language's own separator is a non-breaking space. So that line is now the
+  // equality its author asked whoever landed the fix to write.
+  test("a grouped number lexes back, and the symbol still does not", () => {
     const symbolOnly = engine.evaluate("100 мбіт").formatted;
     expect(symbolOnly).toBe("100Мбіт/с");
     expect(() => engine.evaluate(symbolOnly)).toThrow();
-    expect(() => engine.evaluate("2\u00A0000 мбіт")).toThrow();
+    const grouped = engine.evaluate("2\u00A0000 мбіт").value;
+    expect([grouped?.canonical.toString(), grouped?.unit]).toEqual([
+      "2000000000",
+      "mbps",
+    ]);
   });
 });

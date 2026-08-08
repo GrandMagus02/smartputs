@@ -162,7 +162,15 @@ describe("tempo uk vocabulary", () => {
     const printed = e.evaluate("120 bpm").formatted;
     expect(printed).toBe("120уд/хв");
     expect(() => e.evaluate(printed)).toThrow();
-    // The other half, and core's rather than this file's: the group separator.
-    expect(() => e.evaluate("1\u00A0000 герців")).toThrow();
+    // The other half was core's rather than this file's — Ukrainian groups
+    // thousands with U+00A0, `normalize()` folds it to a plain space, and
+    // "1\u00A0000" reached the lexer as two numbers. `lex` now accepts the folded
+    // separator when the language's own separator is a non-breaking space, so
+    // this line is the equality the pin asked for rather than a `toThrow`.
+    // `canonical` is in the kind's canonical unit, which is `bpm`, so a thousand
+    // hertz is sixty thousand beats a minute — the number to check is that the
+    // whole "1\u00A0000" was read, not just the leading "1".
+    const grouped = e.evaluate("1\u00A0000 герців").value;
+    expect([grouped?.canonical.toString(), grouped?.unit]).toEqual(["60000", "hz"]);
   });
 });

@@ -69,6 +69,47 @@ test("keeps grouped numbers as one token", () => {
   expect(tokens).toHaveLength(2);
 });
 
+/**
+ * `normalize()` folds every whitespace run to a plain space before `lex` runs,
+ * so a language that groups with U+00A0 — Ukrainian does, French ICU groups with
+ * U+202F — never sees its own separator here. Without accepting the folded form,
+ * such a language cannot read back the number it just printed: two kind packages
+ * carried a pinned `expect(...).toThrow()` naming exactly this.
+ */
+const uk = composeLocale(
+  defineLanguage({
+    id: "uk",
+    numberFormat: { group: "\u00A0", decimal: "," },
+    keywords: { in: ["в"] },
+    selectForm: () => "other",
+  }),
+);
+
+test("a group separator folded to a plain space still lexes as one number", () => {
+  // An escape for the separator itself, because the character is invisible in
+  // source: what the formatter emitted was "2\u00A0000", and what reaches `lex`
+  // after `normalize()` is "2 000" with a plain space.
+  const tokens = lex("2 000 грамів", uk);
+  expect(tokens[0]).toMatchObject({ type: "number", text: "2 000", start: 0, end: 5 });
+  expect(tokens.map((t) => t.type)).toEqual(["number", "word"]);
+  // Every group in a longer number, and a decimal on the end of it.
+  const long = lex("1 234 567,5", uk);
+  expect(long).toHaveLength(1);
+  expect(long[0]).toMatchObject({ type: "number", text: "1 234 567,5" });
+});
+
+test("only a run of exactly three digits counts as a folded group", () => {
+  // A group separator is followed by three digits and no more, which is what
+  // keeps the rule from swallowing a word boundary: two adjacent numbers stay
+  // two tokens.
+  expect(lex("2 3 кг", uk).map((t) => t.type)).toEqual(["number", "number", "word"]);
+  expect(lex("2 0000 кг", uk).map((t) => t.type)).toEqual(["number", "number", "word"]);
+  expect(lex("2 кг", uk).map((t) => t.type)).toEqual(["number", "word"]);
+  // And `en`, whose separator is not space-like at all, is untouched: a space
+  // inside a number is a word boundary there and stays one.
+  expect(lex("1 500 kg", en).map((t) => t.type)).toEqual(["number", "number", "word"]);
+});
+
 test("backs off a trailing separator that is not part of the number", () => {
   const tokens = lex("1,500. kg", en);
   expect(tokens[0]).toMatchObject({ type: "number", text: "1,500", start: 0, end: 5 });
