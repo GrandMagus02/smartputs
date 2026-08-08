@@ -6,17 +6,32 @@ import type {
   Result,
   Weights,
 } from "@smartput/core";
-import { createEngine, SmartputError } from "@smartput/core";
-import { english as en } from "@smartput/core/locale/en";
+import { composeLocale, createEngine, SmartputError } from "@smartput/core";
+import { english } from "@smartput/core/locale/en";
 import { COUNTRIES, definePlace, POSTAL_FORMATS, place } from "@smartput/country";
+import placeEn from "@smartput/country/locale/en";
 import { datetime } from "@smartput/datetime";
 import datetimeEn from "@smartput/datetime/locale/en";
 import { BUILTIN_KINDS } from "@smartput/kinds";
+import BUILTIN_EN from "@smartput/kinds/locale/en";
 import { CURRENCIES, money, snapshot } from "@smartput/rate";
 import moneyEn from "@smartput/rate/locale/en";
 
 export type { Completion, Engine, Result };
 export { COUNTRIES, CURRENCIES, definePlace, POSTAL_FORMATS };
+
+/**
+ * The language and the words are two descriptors now, and `composeLocale` is
+ * the only thing that may join them — so a demo engine names the vocabularies
+ * it wants exactly the way a consumer does. `english` alone is a `Language`,
+ * not a `Locale`, and passing it to `createEngine` throws inside
+ * `buildRegistry`; that is what this file did between the split and this fix.
+ *
+ * The extra kinds below each add their own vocabulary rather than a second
+ * locale: one language may hold at most one vocabulary per kind, so money's
+ * "quid" and datetime's "tokyo" ride in the same list as the built-ins'.
+ */
+export const en = composeLocale(english, BUILTIN_EN);
 
 export interface DocsEngineOptions {
   kinds?: Kind[];
@@ -71,9 +86,8 @@ export const DOCS_RATES = snapshot("EUR", "2026-08-04", {
  * engine is what that registration looks like.
  */
 export const moneyEngine: Engine = createEngine({
-  locales: [en],
+  locales: [composeLocale(english, [...BUILTIN_EN, moneyEn])],
   kinds: [...BUILTIN_KINDS, money],
-  packs: [moneyEn],
   rates: DOCS_RATES,
 });
 
@@ -96,11 +110,18 @@ export const placeEngine: Engine = createEngine({
  * `3pm in japan` reads `meta.zone` off a place Value, and neither package knows
  * the other exists. `now` is a live clock rather than the corpus's frozen
  * reference — a demo that says "today" and means January is a screenshot.
+ *
+ * `@smartput/country/locale/en` is not optional here even though `placeEngine`
+ * above runs without it. Measured on this pair of kinds: with only datetime's
+ * vocabulary installed, `3pm in tokyo` raises `DimensionMismatchError` and
+ * `3pm in japan` comes back as 10,708 kilometres — the bridge loses to the
+ * distance signature. Installing place's words restores both to a zone
+ * conversion. A kind that shares a conversion target with another kind needs
+ * its vocabulary, not just its matcher.
  */
 export const datetimeEngine: Engine = createEngine({
-  locales: [en],
+  locales: [composeLocale(english, [...BUILTIN_EN, datetimeEn, placeEn])],
   kinds: [...BUILTIN_KINDS, datetime, place],
-  packs: [datetimeEn],
   now: () => Date.now(),
   timeZone: "UTC",
 });

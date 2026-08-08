@@ -1,9 +1,14 @@
 <script setup lang="ts">
 import { createEngine, type Engine } from "@smartput/core";
 import { BUILTIN_KINDS } from "@smartput/kinds";
-import { english as en } from "@smartput/locale-en";
 import { computed, ref, shallowRef } from "vue";
-import { definePlace, type EvalOutcome, evaluateSafely, placeEngine } from "../engine";
+import {
+  definePlace,
+  type EvalOutcome,
+  en,
+  evaluateSafely,
+  placeEngine,
+} from "../engine";
 import DemoShell from "./DemoShell.vue";
 import SpResult from "./SpResult.vue";
 
