@@ -138,6 +138,58 @@ test("a degree sign is still skipped, so 20 °C resolves via the C word alone", 
   expect(tokens[1]).toMatchObject({ type: "word", text: "C" });
 });
 
+/**
+ * Every spelling of multiplication `OPS` accepts, written as escapes for the
+ * same reason the table is: U+00B7 and U+22C5 are indistinguishable from "."
+ * at most sizes, and a test whose point is "this is not a decimal point" must
+ * not be readable as one.
+ */
+const DOTS = ["\u00B7", "\u00D7", "\u22C5"] as const;
+
+test("an SI multiplication dot lexes as the multiplication operator", () => {
+  for (const dot of DOTS) {
+    const tokens = lex(`2 ${dot} 3`, en);
+    expect(
+      tokens.map((t) => t.type),
+      dot,
+    ).toEqual(["number", "op", "number"]);
+    // Canonicalized to "*", not carried through as a second name for one
+    // operation: `pratt.ts` prices `BINDING["*"]` and nothing else.
+    expect(tokens[1], dot).toMatchObject({ type: "op", op: "*", start: 2, end: 3 });
+  }
+});
+
+test("a multiplication dot between digits is an operator, not a decimal point", () => {
+  // Three tokens, so the value is 1 * 5 and never 1.5. The number scanner only
+  // absorbs the locale's own group and decimal symbols, and neither language
+  // here declares one of these — English's decimal is "." (U+002E), a different
+  // character from U+00B7 however alike they look, and Ukrainian's is ",".
+  for (const dot of DOTS) {
+    for (const locale of [en, uk]) {
+      const tokens = lex(`1${dot}5`, locale);
+      const label = `${locale.id} ${dot}`;
+      expect(
+        tokens.map((t) => t.type),
+        label,
+      ).toEqual(["number", "op", "number"]);
+      expect(tokens[0], label).toMatchObject({ type: "number", text: "1" });
+      expect(tokens[2], label).toMatchObject({ type: "number", text: "5" });
+    }
+  }
+});
+
+test("a dot ends a unit word, so a printed product symbol lexes as a product", () => {
+  // The case the table was added for: "кВт·год" is `energy:kwh`'s Ukrainian
+  // symbol, and what the resolver needs to see is two unit words with a `*`
+  // between them — kilowatt times hour — rather than one word it has never
+  // heard of. Evaluating it is `@smartput/kinds`' ukrainian.test.ts; this is
+  // only the token shape underneath.
+  const tokens = lex("5 \u043A\u0412\u0442\u00B7\u0433\u043E\u0434", uk);
+  expect(tokens.map((t) => t.type)).toEqual(["number", "word", "op", "word"]);
+  expect(tokens[1]).toMatchObject({ text: "\u043A\u0412\u0442" });
+  expect(tokens[3]).toMatchObject({ text: "\u0433\u043E\u0434" });
+});
+
 test("word runs are split by the locale segmenter when provided", () => {
   const zh = composeLocale(
     defineLanguage({

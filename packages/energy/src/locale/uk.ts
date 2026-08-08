@@ -120,14 +120,16 @@ export default defineVocabulary({
     },
     // The Ukrainian symbol for the watt-hour family is "Вт·год" — the interpunct
     // is the standard multiplication sign between a unit of power and a unit of
-    // time, not decoration. It is listed as an alias so the printed symbol is a
-    // registered spelling of the unit it came from, but `parse/lex.ts` builds a
-    // unit word out of letters plus trailing digits, so "·" ends the token and
-    // "5 кВт·год" reaches the resolver as "кВт" followed by "год" — neither of
-    // which is an alias. The Latin "kwh" is the spelling that reads back today;
-    // splitting the Cyrillic compound is P5's `compoundSplitter`, not this file's
-    // job, and inventing a run-together "кВтгод" to work around it would put a
-    // spelling nobody writes into the vocabulary.
+    // time, not decoration, and `parse/lex.ts` now reads it as one: U+00B7 is a
+    // spelling of `*`. So "5 кВт·год" reaches the resolver as "кВт", `*`, "год",
+    // and this kind's own `* | power | duration` signature multiplies kilowatts
+    // by hours into joules — the route English's "m/s" has always taken, where
+    // the symbol is likewise no alias and re-reads as arithmetic.
+    //
+    // The interpunct spellings stay listed anyway, as documentation of what the
+    // printer emits rather than as a working alias: "·" ends a word token, so no
+    // alias containing one can ever match. Inventing a run-together "кВтгод" to
+    // make one match would put a spelling nobody writes into the vocabulary.
     wh: { aliases: [...alias("wh"), "Вт·год"], symbol: "Вт·год" },
     kwh: { aliases: [...alias("kwh"), "кВт·год"], symbol: "кВт·год" },
     mwh: { aliases: [...alias("mwh"), "МВт·год"], symbol: "МВт·год" },

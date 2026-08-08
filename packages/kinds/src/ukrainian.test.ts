@@ -129,6 +129,44 @@ describe("Ukrainian, as proof (spec §8)", () => {
   });
 
   /**
+   * A printed product symbol reads back as the product it is — the acceptance
+   * case for `parse/lex.ts` lexing the SI multiplication dot as `*`.
+   *
+   * "кВт·год" is `energy:kwh`'s Ukrainian symbol, so this is a string the engine
+   * itself emits. It is not reachable as an alias and does not need to be: no
+   * unit word can contain "·" (the lexer ends a word there), so what the
+   * resolver receives is kilowatt, `*`, hour — and `@smartput/energy`'s
+   * `* | power | duration` signature, the one that already answers "2 kw * 3 h",
+   * answers this too. The same mechanism English has always relied on for
+   * "m/s": that symbol is not an alias either, it re-reads because "/" is an
+   * operator and length ÷ duration computes to a speed.
+   *
+   * The dot characters are escaped here for the reason the table escapes them —
+   * U+00B7 is not distinguishable from "." in a test that claims it is not a
+   * decimal point.
+   */
+  test("a printed product symbol reads back as the product it is", () => {
+    const KWH = "\u043A\u0412\u0442"; // кВт
+    const HOUR = "\u0433\u043E\u0434"; // год
+    // 5 kW for an hour: 5000 W × 3600 s, in canonical joules.
+    for (const dot of ["\u00B7", "\u00D7", "\u22C5"]) {
+      const result = engine.evaluate(`5 ${KWH}${dot}${HOUR}`);
+      expect(result.value?.kind, dot).toBe("energy");
+      expect(result.value?.canonical.toFixed(), dot).toBe("18000000");
+    }
+    // Not a Ukrainian operator: the character is accepted in every language,
+    // because a spec sheet pasted into an English engine carries it too.
+    expect(engineFor(en).evaluate("2 \u00B7 3").formatted).toBe("6");
+    // And a dot between two digits multiplies rather than pointing off a
+    // decimal — in Ukrainian, whose decimal separator is ",", and in English,
+    // whose is the ASCII "." this character is not.
+    for (const locale of [uk, en]) {
+      const one = engineFor(locale).evaluate("1\u00B75");
+      expect(one.value?.canonical.toFixed(), locale.id).toBe("5");
+    }
+  });
+
+  /**
    * The barrel's own contract, which nothing above would catch: a vocabulary
    * left out of `BUILTIN_UK` makes every check above pass over fifteen kinds
    * instead of sixteen and says nothing, because `assertLocaleContract` only

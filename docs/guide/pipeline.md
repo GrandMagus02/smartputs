@@ -153,6 +153,17 @@ both candidates are emitted when the locale list contains both. Token types:
 token even between letters, so `"twenty-two"` lexes as word/op/word — which is
 what the hyphen rule in fold exists to undo.
 
+Multiplication has four accepted spellings — `*`, plus U+00B7 MIDDLE DOT,
+U+00D7 MULTIPLICATION SIGN and U+22C5 DOT OPERATOR — all canonicalized to the
+one `*` op, so nothing downstream sees a second name for it. That is what makes
+a printed SI product symbol readable: `energy:kwh` prints as `кВт·год` in
+Ukrainian, which lexes as kilowatt `*` hour and evaluates through the
+`* | power | duration` signature, exactly as `speed:mps`'s `m/s` lexes as metre
+`/` second. Neither symbol is a registered alias — a unit word ends at the
+operator — and neither needs to be. A dot between digits is arithmetic too:
+`1·5` is 5, never 1.5, since the number scanner only absorbs the locale's own
+decimal symbol.
+
 ### Fold
 
 Three pure token rewrites — `foldLiterals`, `foldNumerals`, `foldWordOps` —

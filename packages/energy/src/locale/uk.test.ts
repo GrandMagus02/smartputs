@@ -107,16 +107,24 @@ describe("energy uk vocabulary", () => {
     expect(kj?.[key("kj", "conversion-target")]).toBe("кілоджоулях");
   });
 
-  test("the watt-hour symbol prints but does not read back yet", () => {
-    // Recorded rather than hidden. "кВт·год" is the correct Ukrainian symbol,
-    // and `parse/lex.ts` builds a unit word out of letters plus trailing
-    // digits, so the interpunct ends the token and the printed symbol reaches
-    // the resolver as "кВт" followed by "год". The Latin alias is the spelling
-    // that reads today; splitting the compound is P5's job. When it lands, this
-    // test is the one that should start failing.
+  test("the watt-hour symbol prints, and is a product where its operands exist", () => {
+    // "кВт·год" is the correct Ukrainian symbol, and `parse/lex.ts` builds a
+    // unit word out of letters plus trailing digits, so the interpunct ends the
+    // token and the printed symbol reaches the resolver as "кВт" and "год" —
+    // never as one alias, however many times the alias is listed. What changed
+    // is what sits between them: `lex` now reads U+00B7 as `*`, so the symbol is
+    // an expression, and this kind's own `* | power | duration` signature turns
+    // kilowatt times hour into joules. The same route "m/s" takes in English.
+    //
+    // Which means the two operands have to be *registered*, and the engine above
+    // is deliberately this kind alone — the point of a per-package locale test is
+    // that the vocabulary is checked without the rest of the repo propping it up.
+    // So the symbol still fails to read here, now for a stated reason ("кВт" is
+    // no unit of any registered kind) rather than for want of an operator, and
+    // the wired-up case lives in `@smartput/kinds`' `ukrainian.test.ts`.
     const e = engine();
     expect(e.evaluate("2 kwh").formatted).toBe("2кВт·год");
-    expect(() => e.evaluate("2 кВт·год")).toThrow();
+    expect(() => e.evaluate("2 кВт·год")).toThrow(/кВт/);
   });
 
   test("round-trips: reparsing the formatted text gives the same quantity", () => {

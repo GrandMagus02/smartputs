@@ -51,7 +51,64 @@ export type Token =
       end: number;
     };
 
-const OPS: Record<string, OpSymbol> = { "+": "+", "-": "-", "*": "*", "/": "/" };
+/**
+ * Single-character operators, by the character typed. The right-hand side is
+ * the canonical spelling, so three ways of writing multiplication collapse to
+ * one `OpSymbol` and nothing downstream — `pratt.ts`'s `BINDING`, the
+ * evaluator's signature tables, `print.ts`'s `OP_KEYWORDS` — grows a second
+ * name for one operation. Written as escapes because U+00B7 is visually
+ * confusable with "." and U+22C5 with both: a reader has to be able to tell
+ * from the source which character is in the table.
+ *
+ * The SI multiplication sign is arithmetic here, not a unit character, and the
+ * case that settled it is Ukrainian energy. `energy:kwh` has symbol "кВт·год",
+ * so a Ukrainian engine prints "2кВт·год" and — before this line — could not
+ * read its own output: "·" fell through to the unrecognized-character path,
+ * "кВт" and "год" arrived adjacent with nothing between them, and the parse
+ * failed outright. With "·" lexed as `*` the printed symbol is an expression:
+ * kilowatt × hour, which `@smartput/energy`'s `* | power | duration` signature
+ * already answers, the same signature that makes "2 kw * 3 h" work. That is
+ * the mechanism English has always used for "m/s" — `speed:mps`'s symbol is
+ * not an alias either, it re-reads because the lexer splits on "/" and length
+ * ÷ duration computes to a speed — so this is that rule extended to the other
+ * SI operator, not a second mechanism beside it.
+ *
+ * Listing "·" as a *unit* character instead (`UNIT_SYMBOLS`, or a compound
+ * alias) is the road not taken: it would make "кВт·год" a single opaque word
+ * that every kind writing a product symbol has to register by hand, while the
+ * arithmetic reading costs nothing per kind and gets "Н·м", "кг·м/с²" and
+ * anything else composed of registered units for free.
+ *
+ * Three spellings because a keyboard, a spec sheet and a TeX-derived document
+ * produce three different characters for the one sign, and a user pasting from
+ * any of them means multiply:
+ *   - U+00B7 MIDDLE DOT — the SI form, and the character the "кВт·год"
+ *     named above is actually written with.
+ *   - U+00D7 MULTIPLICATION SIGN — the school-arithmetic and datasheet form
+ *     ("1920 × 1080").
+ *   - U+22C5 DOT OPERATOR — Unicode's mathematical dot, what LaTeX's `\cdot`
+ *     and most math typesetting emit.
+ *
+ * Three groups are deliberately left out. U+2062 INVISIBLE TIMES is zero-width,
+ * so accepting it would make an input that looks like one word multiply — the
+ * one case where "people type what their keyboard offers" argues the other way,
+ * because nobody can see what they typed. U+2219 BULLET OPERATOR and U+2022
+ * BULLET are list markers first; a bullet leading a line is far commoner than a
+ * bullet meaning product, and reading one as `*` would turn a pasted list item
+ * into arithmetic. U+2044 FRACTION SLASH and U+2215 DIVISION SLASH are the same
+ * question on the division side and stay out for now on the same rule this
+ * commit followed: add the spelling a symbol the repo already *emits* is written
+ * with, and nothing speculative beside it.
+ */
+const OPS: Record<string, OpSymbol> = {
+  "+": "+",
+  "-": "-",
+  "*": "*",
+  "/": "/",
+  "\u00B7": "*",
+  "\u00D7": "*",
+  "\u22C5": "*",
+};
 
 /**
  * Comparison operators, longest first, because `>=` must be tried before `>`.
