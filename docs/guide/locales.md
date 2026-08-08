@@ -9,7 +9,7 @@ Three types, not one.
 
 | Type | Holds | Ships in |
 | --- | --- | --- |
-| `Language` | mechanics: segmentation, morphology, numerals, keywords, number grammar, plural selection | `@smartput/locale-en`, `@smartput/locale-uk` |
+| `Language` | mechanics: segmentation, morphology, numerals, keywords, number grammar, plural selection | `@smartput/core/locale/en`, `@smartput/core/locale/uk` |
 | `Vocabulary` | the words for **one kind** in **one language** | beside the kind: `@smartput/mass/locale/en` |
 | `Locale` | a language composed with its vocabularies | built by `composeLocale` |
 
@@ -55,7 +55,7 @@ a bad wiring is caught — on boot, never at a keystroke.
 
 ```ts
 import { composeLocale, createEngine } from "@smartput/core";
-import { english } from "@smartput/locale-en";
+import { english } from "@smartput/core/locale/en";
 import { mass, length, angle } from "@smartput/kinds";
 import massEn from "@smartput/mass/locale/en";
 import lengthEn from "@smartput/length/locale/en";
@@ -88,7 +88,7 @@ One import for the common case:
 ```ts
 import { BUILTIN_KINDS } from "@smartput/kinds";
 import BUILTIN_EN from "@smartput/kinds/locale/en";
-import { english } from "@smartput/locale-en";
+import { english } from "@smartput/core/locale/en";
 
 const en = composeLocale(english, BUILTIN_EN);
 ```
@@ -123,6 +123,10 @@ so `10 km` is a distance rather than Comoros.
 So two capabilities are separated, because they are not inverses of each other.
 **Recognition** is many-to-one: every inflected form must reach one lemma.
 **Generation** is one key per form the language distinguishes.
+
+That asymmetry holds a second time, one level up, between *languages* rather
+than between forms of one — see
+[Reading many languages, writing one](#reading-many-languages-writing-one).
 
 ## Recognition — the analyzer chain
 
@@ -209,7 +213,7 @@ English returns CLDR categories, so `one`/`other` is the whole table. Ukrainian
 returns a case-and-number key, and the same mechanism carries it:
 
 ```ts
-// @smartput/locale-uk
+// @smartput/core/locale/uk
 selectForm: ({ count, slot }) => {
   const grammaticalCase = slot === "conversion-target" ? "loc" : "nom";
   return `${grammaticalCase}-${plural.select(count?.toNumber() ?? 1)}`;
@@ -275,6 +279,244 @@ Ambiguous number grammar needs no new mechanism.
   :examples="['1,500 g', '1234567890123456789 g', '0.5 km']"
   hint="Group and decimal separators come from the language, not from a global setting." />
 
+## Reading many languages, writing one
+
+`locales` is a list, and every language in it is **read**. Exactly one is
+**written**, and `format` names it.
+
+```ts
+import { composeLocale, createEngine } from "@smartput/core";
+import { english } from "@smartput/core/locale/en";
+import { ukrainian } from "@smartput/core/locale/uk";
+import { BUILTIN_KINDS } from "@smartput/kinds";
+import BUILTIN_EN from "@smartput/kinds/locale/en";
+import BUILTIN_UK from "@smartput/kinds/locale/uk";
+
+const en = composeLocale(english, BUILTIN_EN);
+const uk = composeLocale(ukrainian, BUILTIN_UK);
+
+const engine = createEngine({ locales: [en, uk], kinds: BUILTIN_KINDS, format: "en" });
+
+engine.evaluate("5 kg").formatted;             // "5 kilograms"
+engine.evaluate("5 кг").formatted;             // "5 kilograms"
+engine.evaluate("5 кг in pounds").formatted;   // "11.02311310924387903614869 pounds"
+engine.evaluate("5 кг в фунтах").formatted;    // "11.02311310924387903614869 pounds"
+engine.evaluate("двадцять два кг").formatted;  // "22 kilograms"
+```
+
+Every layer of the input side widened, not just the alias index. `в` is a
+Ukrainian conversion keyword and `in` is an English one, and the engine above
+takes either; `двадцять два` is read by Ukrainian's `numerals` and `twenty two`
+by English's. A reader who types half a sentence in each is not doing anything
+the engine has to be told about.
+
+The output side did not widen, and that is the design rather than an unfinished
+edge (design decision I6). A `Result` carries one `formatted` string. Making it
+many-locale means either returning a table nobody asked for, or picking a
+language anyway — silently, from the input, which is the one signal that is
+least reliable, since `5 kg` on a bilingual engine is spelled identically in
+both. So the choice is made once, explicitly, by configuration.
+
+### `format`
+
+Defaults to `locales[0].id`, so an engine that installs one language never
+mentions it. Reordering the list moves the output language and nothing else:
+
+```ts
+const ukEngine = createEngine({ locales: [uk, en], kinds: BUILTIN_KINDS });
+ukEngine.evaluate("5 kg").formatted;  // "5 кілограмів"
+```
+
+It must name an installed locale, and `createEngine` refuses on boot when it
+does not — a format locale with no vocabulary behind it has nothing to print
+from, and the alternative is discovering that at a keystroke:
+
+```ts
+createEngine({ locales: [en, uk], kinds: BUILTIN_KINDS, format: "de" });
+// Error: format "de" is not among the installed locales (en, uk)
+```
+
+Every method that takes `EvalOptions` — `evaluate`, `suggest`, `coerce`,
+`explain` — takes a per-call `format` too, for the case where one engine serves
+readers in two languages:
+
+```ts
+engine.evaluate("2 km in m").formatted;                    // "2,000 metres"
+engine.evaluate("2 km in m", { format: "uk" }).formatted;  // "2 000 метрів"
+```
+
+Per-call `format` is **output only**. It rebuilds the printer and the evaluator,
+not the tokenizer — see [the two deliberate limits](#the-two-deliberate-limits)
+below for what that costs and why it is drawn there.
+
+### `locale:` weights
+
+`locale:<id>` is a fourth selector beside `token:`, `${kind}:${unit}` and
+`${kind}`, summed with them like everything else — the
+[weights guide](/guide/weights#selectors) has the whole model. It matches on the
+language that **listed the spelling** a reading was reached through, which is
+narrower than "the language you are reading in".
+
+Here are two tiny languages that genuinely collide, each spelling one of its own
+units `zz`:
+
+```ts
+const alfa = composeLocale(defineLanguage({ id: "aa", /* … */ }), [
+  defineVocabulary({ locale: "aa", kind: "widget", units: { w: { aliases: ["zz"], /* … */ } } }),
+]);
+const bravo = composeLocale(defineLanguage({ id: "ab", /* … */ }), [
+  defineVocabulary({ locale: "ab", kind: "gadget", units: { g: { aliases: ["zz"], /* … */ } } }),
+]);
+
+createEngine({ locales: [alfa, bravo], kinds }).evaluate("5 zz");
+// AmbiguityError: "5 zz" is ambiguous between gadget:g, widget:w
+
+const prefersAlfa = createEngine({ locales: [alfa, bravo], kinds, weights: { "locale:aa": 20 } });
+const prefersBravo = createEngine({ locales: [alfa, bravo], kinds, weights: { "locale:ab": 20 } });
+
+prefersAlfa.evaluate("5 zz").kind;   // "widget"
+prefersBravo.evaluate("5 zz").kind;  // "gadget"
+```
+
+`explain()` shows it as one more row, because that is all it is:
+
+```
+gadget  score 20   prior 0 | locale:ab 20 | analyzer 0 | contextBonus 0
+widget  score  0   prior 0 | analyzer 0 | contextBonus 0
+```
+
+**English and Ukrainian never reach that contest, and it is worth knowing why
+before reaching for the selector.** Of the 780 keys in the built-in `[en, uk]`
+alias index, not one is claimed by two languages: English is Latin and Ukrainian
+is Cyrillic, and where they overlap on a symbol — both vocabularies list `kg` —
+the entry is tagged with the first language that listed it, so there is one
+reading rather than two competing. On that pair `locale:` is a bias applied to
+everything a language uniquely spells — under
+`weights: { "locale:uk": 5 }`, `explain()` gives:
+
+```
+"5 кг"  score 5   prior 0 | locale:uk 5 | analyzer 0 | contextBonus 0
+"5 kg"  score 0   prior 0 | analyzer 0 | contextBonus 0
+```
+
+Use it to favour or disfavour a language's whole vocabulary. It is a tie-break
+between two languages over one word only when two languages actually claim that
+word, which is a property of the languages you install, not of the mechanism.
+
+### Filtering by language: `EvalOptions.locales`
+
+`locales` narrows recognition exactly the way `kinds` narrows it, in the same
+place and with the same semantics — a hard filter applied before scoring, not a
+weight:
+
+```ts
+engine.evaluate("5 kg", { locales: ["en"] }).formatted;  // "5 kilograms"
+engine.evaluate("5 кг", { locales: ["uk"] }).formatted;  // "5 kilograms"
+engine.evaluate("5 кг", { locales: ["en"] });            // throws DimensionMismatchError
+```
+
+The second line is the one that shows what is being filtered. It still prints
+English, because `locales` is about *reading* and `format` is about *writing*;
+they are independent, and an engine that formats English while accepting only
+Ukrainian input is a sensible thing to configure.
+
+The third line throws `DimensionMismatchError` rather than `NoCandidateError`
+for the same reason `{ kinds: [...] }` does: the surface *was* recognised and
+then refused. "No reading exists" and "every reading was ruled out" are
+different facts and the caller can act on them differently.
+
+### Keyword collisions fail on boot
+
+Unit words are indexed per language and a collision between two of them is just
+ambiguity, ranked like any other. Keywords are not: the lexer consults **one**
+table, folded from every installed language, because an engine reading two
+languages has to take `5 кг in grams` and `5 кг в грамах` alike.
+
+Two languages agreeing on a surface is the ordinary case and collapses to one
+entry. Two languages *disagreeing* is a wiring error, and it is raised where the
+wiring happens:
+
+```ts
+const nordic = defineLanguage({ id: "aa", keywords: { in: ["na"] }, /* … */ });
+const southern = defineLanguage({ id: "ab", keywords: { minus: ["na"] }, /* … */ });
+
+createEngine({ locales: [composeLocale(nordic), composeLocale(southern)], kinds: [] });
+// KeywordConflictError: "na" means "in" in "aa" and "minus" in "ab"
+```
+
+```ts
+// Agreement is not a conflict.
+buildKeywords([composeLocale(nordic), composeLocale(agreeing)]).get("na");  // "in"
+```
+
+The alternative is worse than it looks. A surface that means `in` to one
+installed language and `minus` to another has **no** reading — it is not
+ambiguous between two operators, it is a token the parser cannot shape an
+expression around — so the failure surfaces as an unparseable input, at a
+keystroke, with the two innocent-looking language packs nowhere in the message.
+`KeywordConflictError` names the surface, both keywords and both languages, at
+`createEngine`, where someone is holding the two packs that disagree.
+
+### The two deliberate limits
+
+Two input-side concerns are **not** many-locale, and both follow `format`:
+
+| Concern | Whose | Consequence |
+| --- | --- | --- |
+| number grammar — group and decimal separators | the format locale's | `1,5` is one and a half only when the format locale writes it that way |
+| segmentation — where a word run breaks | the format locale's | a language's `segment` hook runs only when that language is the format locale |
+
+Said plainly, with the two built-ins:
+
+```ts
+const enFmt = createEngine({ locales: [en, uk], kinds: BUILTIN_KINDS, format: "en" });
+const ukFmt = createEngine({ locales: [en, uk], kinds: BUILTIN_KINDS, format: "uk" });
+
+enFmt.evaluate("1,5 кг").formatted;  // "15 kilograms"   — "," grouped, per en
+ukFmt.evaluate("1,5 кг").formatted;  // "1,5 кілограма"  — "," decimal, per uk
+
+enFmt.evaluate("1.5 кг").formatted;  // "1.5 kilograms"
+ukFmt.evaluate("1.5 кг").formatted;  // throws UnitParseError
+```
+
+The Ukrainian unit word is read on both engines. The Ukrainian *number* is read
+on neither unless Ukrainian is the format locale — `1,5 кг` on the English-
+formatting engine is fifteen kilograms, silently and correctly by English rules.
+Per-call `format` does not move this either, because it rebuilds the printer and
+not the tokenizer:
+
+```ts
+enFmt.evaluate("1,5 кг", { format: "uk" }).formatted;  // "15 кілограмів"
+```
+
+Fifteen, in Ukrainian. Move the whole engine when the input grammar has to move.
+
+Segmentation draws the same line. A language whose `segment` hook knows where
+its own unspaced words break has that hook consulted only while it holds
+`format`, even though its vocabulary is read either way:
+
+```ts
+// `unspaced` writes without spaces and splits its own runs; `spaced` does not.
+const formatUnspaced = createEngine({ locales: [spaced, unspaced], kinds, format: "xh" });
+const formatSpaced = createEngine({ locales: [spaced, unspaced], kinds, format: "en" });
+
+formatUnspaced.evaluate("5 kilongagrama").formatted;  // "5 000 grama"
+formatSpaced.evaluate("5 kilongagrama").formatted;    // throws NoCandidateError
+formatSpaced.evaluate("5 kilo nga grama").formatted;  // "5,000 grams"
+```
+
+The third line is what makes this a segmentation limit rather than a vocabulary
+one: put the spaces in by hand and the English-formatting engine reads every
+`xh` word it had just refused, conversion keyword included. It knows the words.
+It was never offered them, because nothing cut the run.
+
+Neither limit is an oversight. Both are the same trade: reading a surface is a
+lookup that several languages can each attempt independently, while *cutting a
+string into surfaces* and *deciding what `1,5` denotes* are single decisions
+with no ranking to fall back on. Running them once, under the language the
+engine speaks, is what keeps `Result` a value rather than a matrix. If the input
+grammar has to move, `EngineOptions.format` is the thing that moves it.
+
 ## Publishing a translation
 
 A translation is a publishable package, never a pull request against this repo.
@@ -316,9 +558,14 @@ locale, so a second language is additive:
 No existing URL moves, because English never lived under `/en/`.
 
 ::: info Status
-`@smartput/locale-uk` and the analyzer helpers beyond `identity` /
-`suffixStripper` / `tableAnalyzer` are still landing. Today the shipped language
-is `en`, and the engine still selects a `forms` key with `Intl.PluralRules`
-directly rather than through `Language.selectForm` — the field is required of a
-language now so the switch moves no bytes when it lands.
+Two languages ship, `@smartput/core/locale/en` and `@smartput/core/locale/uk`,
+and every built-in kind has a vocabulary in both. `Language.selectForm` is what
+picks a `forms` key — Ukrainian's two-axis `` `${case}-${category}` `` is the
+reason the return type is an opaque string rather than a CLDR category, and
+`Intl.PluralRules` is now one language's implementation detail rather than the
+engine's.
+
+The analyzer helpers shipped are `identity`, `suffixStripper` and
+`tableAnalyzer`, with `cardinalNumerals` and `cardinalSpeller` for numbers.
+Anything beyond them is an ordinary function of the `Analyzer` type.
 :::
