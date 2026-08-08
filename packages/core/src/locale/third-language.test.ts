@@ -471,6 +471,38 @@ describe("three languages in one engine", () => {
   });
 
   /**
+   * The same degradation on the *other* generation path, which is the one that
+   * has already been wrong once.
+   *
+   * P4 found `complete()` offering the language it read rather than the one it
+   * writes, and fixed the case where the format language ships words for the
+   * unit but not this spelling of it. What it could not see is the case below,
+   * because a two-language engine cannot produce it: both built-ins ship all
+   * fifteen vocabularies, so `wordsFor(format, …)` came back `undefined` only
+   * for a kind *neither* language had spoken for, where the alias that keyed
+   * the index is the unit key and falling through to it is right. A third
+   * language translated for one kind is the first engine where "the format
+   * language has no word for this unit" and "nobody has a word for this unit"
+   * come apart — and there the alias is some *other* language's word.
+   *
+   * So the floor is the registry unit key, exactly as `unit-word.ts` has it:
+   * the two generation paths must degrade to the same string, or an engine
+   * answers `5 mb` and offers `5 megabyte` in the same breath.
+   */
+  test("a completion under a format locale with no vocabulary offers the unit key", () => {
+    // `complete` writes in the engine's `format` and takes no per-call one, so
+    // the German-writing engine is built rather than borrowed.
+    const writesGerman = createEngine({
+      locales: [en, uk, de],
+      kinds: BUILTIN_KINDS,
+      format: "de",
+    });
+    const datasize = writesGerman.complete("5 me").filter((o) => o.kind === "datasize");
+    expect(datasize.length).toBeGreaterThan(0);
+    expect(datasize.map((o) => o.text)).toEqual(datasize.map((o) => `5 ${o.unit}`));
+  });
+
+  /**
    * `EvalOptions.locales` filters on the language that *listed the spelling*,
    * so it separates the three by vocabulary rather than by reader. Refusing
    * every reading of a slot is `DimensionMismatchError` — the surface was

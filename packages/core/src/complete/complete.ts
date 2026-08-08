@@ -155,13 +155,24 @@ export function complete(args: {
        * English, `datarate`, `area`, `temperature` and `percent` among them.
        *
        * So the fallback walks the format language's own words instead: its
-       * symbol, then its first alias. `words === undefined` still ends at
-       * `alias`, and must: that is R2's unit-key floor, a kind no installed
-       * language has spoken for, where the key *is* the only name there is.
+       * symbol, then its first alias.
+       *
+       * `words === undefined` is R2's unit-key floor and ends at `entry.unit`,
+       * which is `unit-word.ts`'s own last resort — the two generation paths
+       * have to degrade to the same string or one engine answers "5 mb" and
+       * offers "5 megabyte" in the same breath. It ended at `alias` until a
+       * third language was installed, and on two languages the two are the
+       * same string: both built-ins ship all fifteen vocabularies, so this
+       * branch was reachable only for a kind *neither* had spoken for, where
+       * the alias that keyed the index is the unit key. A language translated
+       * for one kind separates them — German here has words for `length` and
+       * for nothing else — and there the alias is English's word.
        *
        * Nothing here can move a single-locale engine. An entry whose language
        * declares words at all declares the alias that produced this index key
-       * among them, so `owned` is `alias` and the expression is what it was.
+       * among them, so `owned` is `alias` and the expression is what it was;
+       * an entry whose language declares none reaches the floor, and on one
+       * language the only alias in the index for it *is* the unit key.
        */
       const owned =
         words === undefined
@@ -169,7 +180,7 @@ export function complete(args: {
           : words.aliases.some((a) => a.toLocaleLowerCase(locale.id) === alias)
             ? alias
             : (words.symbol ?? words.aliases[0]);
-      const word = words?.forms?.[formKey] ?? owned ?? alias;
+      const word = words?.forms?.[formKey] ?? owned ?? entry.unit;
       const key = `${entry.kind}:${entry.unit}`;
       const existing = best.get(key);
 
