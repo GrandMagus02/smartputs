@@ -53,11 +53,18 @@ export { createCachedEngine, createSnapshotCache } from "./live";
 export { createAnalyzerChain } from "./locale/analyze";
 export { buildKeywords, composeLocale } from "./locale/compose";
 export { defineLanguage } from "./locale/define";
-export type { CardinalTables } from "./locale/helpers";
+export type { CardinalTables, ScriptSegmenterOptions } from "./locale/helpers";
+// Everything a language author assembles a `Language` out of. `scriptSegmenter`
+// produces a `Language.segment` rather than an `Analyzer`, and is here for the
+// same reason it is in `helpers.ts`: it is reached for in the same breath.
 export {
   cardinalNumerals,
   cardinalSpeller,
+  compoundSplitter,
   identity,
+  phraseAnalyzer,
+  prefixStripper,
+  scriptSegmenter,
   suffixStripper,
   tableAnalyzer,
 } from "./locale/helpers";

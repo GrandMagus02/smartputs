@@ -1,6 +1,38 @@
 import { Decimal } from "../decimal";
 import type { AnalyzedForm, Analyzer, NumeralParser, NumeralSpeller } from "../types";
 
+/**
+ * The four helpers Task 20 added, re-exported so `locale/helpers` stays the
+ * one door a language author knocks on. Each lives in its own module — they
+ * were written in parallel, and one shared file would have been the phase's
+ * only merge conflict.
+ *
+ * **They do not need subpaths of their own the way `locale/en` does, and that
+ * was measured rather than assumed.** Each is a bare function declaration
+ * whose module does no import-time work, so a bundler drops the ones a
+ * consumer does not name. `bun run build && bun run check-size`, run on both
+ * sides of these five lines: all 48 rows byte-identical on `min` — the number
+ * the budgets are set against — with a handful of gzip counts moving by −21 to
+ * +5 bytes, which is the compression window reacting to length-preserving
+ * identifier renaming in the barrel and not to added code. The control that
+ * makes those zeros mean something: a synthetic entry importing all four
+ * alongside `createEngine` is 80,445 B where one importing only
+ * `createEngine` is 78,787 B, and the marker strings (`Script_Extensions`,
+ * `minPart`, `minStem`) appear in the first bundle and in neither of the
+ * others. A consumer who wants them pays 1,658 B; a consumer who does not
+ * pays nothing. A subpath would buy zero bytes and cost a fifth entry in
+ * `package.json`'s `exports`.
+ *
+ * `scriptSegmenter` is the odd one: it returns a `Language.segment`, not an
+ * `Analyzer`. Different seam, same family — a language reaches for it in the
+ * same breath as the analyzers, so it is behind the same door.
+ */
+export { compoundSplitter } from "./compound-splitter";
+export { phraseAnalyzer } from "./phrase-analyzer";
+export { prefixStripper } from "./prefix-stripper";
+export type { ScriptSegmenterOptions } from "./script-segmenter";
+export { scriptSegmenter } from "./script-segmenter";
+
 export function identity(): Analyzer {
   return (surface) => [{ form: surface, weight: 0 }];
 }
