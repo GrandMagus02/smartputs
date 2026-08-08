@@ -63,12 +63,15 @@ const plural = new Intl.PluralRules("en");
  * The English language: how English is read and written, with no word for any
  * unit in it.
  *
- * It lives in its own package rather than inside core (spec §10) because a
- * language is a shippable artifact like a kind is — someone who wants Ukrainian
- * should not link English to get it, and core should not be the place every
- * new language has to be merged into. Words for units are not here at all: they
- * are `Vocabulary` tables beside the kinds that declare the units, and they
- * reach this object through `composeLocale`.
+ * It lives inside core as a file with a subpath of its own —
+ * `@smartput/core/locale/en`, beside `locale/uk` (ruling R9, amending spec
+ * §10's package layout). The subpath is what a separate package was for: an
+ * engine that never imports Ukrainian never links it, and nothing else about
+ * shipping a language needed a package boundary. So a new language is a new
+ * file rather than a new package, and a consumer takes one dependency instead
+ * of two. Words for units are not here at all: they are `Vocabulary` tables
+ * beside the kinds that declare the units, and they reach this object through
+ * `composeLocale`.
  */
 export const english: Language = defineLanguage({
   id: "en",
