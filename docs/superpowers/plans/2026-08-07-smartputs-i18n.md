@@ -15,7 +15,7 @@
 ## Global Constraints
 
 - **Parity is the acceptance criterion for P1 and P2.** Every English output must be byte-identical before and after. The net already exists on `main`: `packages/core/src/parity.ts`, `packages/core/src/parity.test.ts`, the recorded snapshot, and `bun run parity:record`. Spec §11's P0 is therefore **already landed** — Task 1 only verifies it.
-- `@smartput/core` ships exactly **one** runtime dependency (`decimal.js`). Nothing in this plan changes that. New locale packages (`@smartput/locale-en`, `@smartput/locale-uk`) may depend on `@smartput/core` and `decimal.js` and nothing else.
+- `@smartput/core` ships exactly **one** runtime dependency (`decimal.js`). Nothing in this plan changes that. A language module is a **file inside core** (`src/locale/<id>.ts`) with a subpath of its own, not a package — see R9's reversal.
 - A vocabulary must **not** import its own kind. It names the kind by id string. This is what makes `locale/uk` importable without the ratio tables and shippable by someone who is not the kind's author (spec §10).
 - Never import `decimal.js` directly — Biome errors. Use `Decimal` from `@smartput/core` (or `./decimal` inside core).
 - `exactOptionalPropertyTypes` is on: build optional properties with conditional spread (`...(form !== undefined ? { form } : {})`), never `foo: undefined`.
@@ -41,7 +41,7 @@ The spec leaves these open or states them at a level the code cannot be written 
 | **R6** | `AliasEntry.locale` lands in **P1** (Task 3), not P4. `Candidate.locale`, per-language analyzer chains and the `locale:` selector stay in P4. | The alias index is built once, in one loop, in Task 3. Tagging the entry there costs one field; tagging it later means rewriting the same loop twice. |
 | **R7** | `Kind.lexicon` and `EngineOptions.packs` survive **inside P1 only**, as an unexported bridge (`legacyVocabulary` in `kind/define.ts`) that converts them into `en` vocabularies at registry-build time. Task 7 deletes the bridge and both fields. | It is what makes every task in the Wave-2 fan-out independently green: the registry reads vocabularies from the first task onward, and a package that has not migrated yet is served by a bridge producing the identical table. Two homes for vocabulary exist for the length of one phase and are then gone, which is the opposite of the drift I1 forbids. |
 | **R8** | Every `en` vocabulary carries an explicit `symbol` for every unit that has one today. The value is the one `toLexeme` computes now: explicit `symbol`, else `aliases[0]`, else the unit key. | `defaultRenderQuantity`'s third branch is `${number} ${unit}` **with a space**, where today's no-symbol fallback is `${numberText}${value.unit}` without one. Today that branch is unreachable (`toLexeme` always sets a symbol); a vocabulary that forgets `symbol` would make it reachable and move a byte. |
-| **R9** | `@smartput/core/locale/en` is **deleted**, not aliased. Its consumers (≈30 test files across the repo) import `english` from `@smartput/locale-en` and declare it as a devDependency. | Spec §10 gives the English language its own package. An alias left behind is a second import path that new code will keep choosing. |
+| **R9** | ~~`@smartput/core/locale/en` is deleted; English ships as `@smartput/locale-en`.~~ **REVERSED 2026-08-08, after P2.** A language ships inside `@smartput/core` under `src/locale/<id>.ts`, reachable at the `@smartput/core/locale/<id>` subpath. `@smartput/locale-en` no longer exists; `@smartput/locale-uk` will never be created — Task 12 writes `packages/core/src/locale/uk.ts` instead. Spelled-number generation (`spellNumber`, `numberFromWords`, `NUMBER_WORDS`) lives in `@smartput/number`, reversing I5's move as well. | Amends spec §10's package layout. A subpath keeps an unimported language out of the bundle, which is the only thing the separate package was buying, and it costs a consumer one dependency instead of two. The words move back because they were never the language's only copy: `Language.spell` is `cardinalSpeller` over core's own tables. |
 | **R10** | The built-in set is **seventeen** kinds across eighteen packages, not the spec's "twelve": `boolean, number, percent, length, mass, duration, temperature, tempdelta, angle, datasize, speed, area, volume, datarate, power, energy, tempo`, plus `measure` (opt-in), `money` (`@smartput/rate`), `datetime`, `place` (`@smartput/country`), and the range kinds. Every "twelve" in the spec means "all of them". | Counted from `packages/kinds/src/index.ts` on `main`. |
 
 ---
@@ -77,14 +77,17 @@ The spec leaves these open or states them at a level the code cannot be written 
 | `facade/quantity.ts` | claim `forms` values instead of `display` values |
 | `parse/candidates.ts`, `parse/lex.ts`, `complete/completer.ts`, `engine.ts` | `locale.X` → `locale.language.X` (R4) |
 | `index.ts`, `testing/index.ts` | export surface |
-| `src/locale/en.ts` | **deleted** — moves to `@smartput/locale-en` |
+| `src/locale/en.ts` | stays in core, gains `selectForm`; reachable at `@smartput/core/locale/en` |
 
 ### New packages
 
-| Package | Contents | Runtime deps |
+**None — see R9's reversal.** A language is a file inside core with a subpath of its own:
+
+| File | Subpath | Contents |
 | --- | --- | --- |
-| `packages/locale-en` | `english: Language` — analyzers, cardinals, `spell`, keywords, `selectForm`, `renderQuantity` default | `@smartput/core`, `decimal.js` |
-| `packages/locale-uk` | `ukrainian: Language` — four plural categories, case-by-slot `selectForm`, Cyrillic keywords, numerals | `@smartput/core`, `decimal.js` |
+| `packages/core/src/locale/en.ts` | `@smartput/core/locale/en` | `english: Language` — analyzers, cardinals, `spell`, keywords, `selectForm` |
+| `packages/core/src/locale/uk.ts` | `@smartput/core/locale/uk` | `ukrainian: Language` — four plural categories, case-by-slot `selectForm`, Cyrillic keywords, numerals |
+| `packages/number/src/words.ts` | `@smartput/number` | `spellNumber`, `numberFromWords`, `NUMBER_WORDS` |
 
 ### New files in every kind package
 
@@ -108,7 +111,7 @@ W1  T2  core types + defineVocabulary + composeLocale      (1 agent, serial)
       |
 W2  T3  registry + engine read vocabularies (bridge)       (1 agent, serial)
       |
-W3  T4  @smartput/locale-en + repo-wide import rewrite     (1 agent, serial)
+W3  T4  [SUPERSEDED by R9's reversal — English stays in core]  (1 agent, serial)
       |
 W4  T5  mass en vocabulary  (exemplar — sets the pattern)  (1 agent, serial)
       |
@@ -124,7 +127,7 @@ W7  T8  forms + selectForm            ─┐
     T10 spell/renderExpression move    ─┘
     T11 assertLocaleContract             (parallel with T9 and T10)
       |
-W8  T12 @smartput/locale-uk                                (1 agent, serial)
+W8  T12 core/src/locale/uk.ts + ./locale/uk subpath        (1 agent, serial)
       |
 W9  T13 ── FAN-OUT ×12 ── uk vocabularies                  (12 agents, parallel)
       |
@@ -1141,7 +1144,9 @@ git commit -m "feat(core): build the alias index from vocabularies, with a bridg
 
 ---
 
-## Task 4: `@smartput/locale-en`
+## Task 4: `@smartput/locale-en` — SUPERSEDED
+
+> **Executed, then reversed.** R9's reversal (2026-08-08) folded this package back into core; the English language is `packages/core/src/locale/en.ts` behind the `@smartput/core/locale/en` subpath, exactly where this task moved it *from*. The steps below are kept as the record of what was done and undone. **Do not execute them.**
 
 Moves the English language out of core into its own package, per spec §10, and rewrites every import in the repo (R9).
 
@@ -1294,7 +1299,7 @@ Create `packages/mass/src/locale/en.test.ts`:
 
 ```ts
 import { composeLocale, createEngine } from "@smartput/core";
-import { english } from "@smartput/locale-en";
+import english from "@smartput/core/locale/en";
 import { describe, expect, test } from "bun:test";
 import { mass } from "../index";
 import massEn from "./en";
@@ -1901,6 +1906,8 @@ Expected: PASS, PASS with zero diffs.
 
 ## Task 10: `spell` and `renderExpression` move to the language
 
+> **Executed, then partly reversed.** R9's reversal moved `spellNumber`/`numberFromWords`/`NUMBER_WORDS` back to `@smartput/number`, undoing I5's relocation; the `renderExpression` half of this task stands. The steps below are the record. **Do not execute the move.**
+
 `spellNumber` and `NUMBER_WORDS` are English grammar living in a kind package (I5). They move to `@smartput/locale-en`, beside recognition.
 
 **Files:**
@@ -1958,7 +1965,7 @@ export function assertLocaleContract(
 import { describe, expect, test } from "bun:test";
 import { mass } from "@smartput/mass";
 import massEn from "@smartput/mass/locale/en";
-import { english } from "@smartput/locale-en";
+import english from "@smartput/core/locale/en";
 import { composeLocale, defineVocabulary } from "../index";
 import { assertLocaleContract } from "./locale";
 
@@ -2057,16 +2064,20 @@ export function assertLocaleContract(locale, kinds, opts = {}) {
 
 ---
 
-## Task 12: `@smartput/locale-uk`
+## Task 12: Ukrainian, as a language module inside core
+
+> **R9 reversed.** There is no `@smartput/locale-uk` package and there must not be one. Ukrainian is a file in core beside English, with a subpath of its own — read `packages/core/src/locale/en.ts` first and mirror its shape exactly.
 
 **Files:**
-- Create: `packages/locale-uk/package.json`, `src/index.ts`, `src/ukrainian.ts`, `src/cardinals.ts`, `src/ukrainian.test.ts`
-- Modify: `scripts/check-deps.ts`
-- Test: `packages/locale-uk/src/ukrainian.test.ts`
+- Create: `packages/core/src/locale/uk.ts`, `packages/core/src/locale/uk-cardinals.ts`, `packages/core/src/locale/uk.test.ts`
+- Modify: `packages/core/package.json` (add the `./locale/uk` subpath, in the pinned `bun, types, default` order, next to `./locale/en`)
+- Test: `packages/core/src/locale/uk.test.ts`
 
 **Interfaces:**
-- Consumes: `defineLanguage`, `cardinalNumerals`, `cardinalSpeller`, `identity`, `suffixStripper` from `@smartput/core`.
-- Produces: `import { ukrainian } from "@smartput/locale-uk"` — a `Language` with `id: "uk"` whose `selectForm` returns `` `${case}-${pluralCategory}` `` keys.
+- Consumes: `defineLanguage` (`./define`), `cardinalNumerals`, `cardinalSpeller`, `identity`, `suffixStripper` (`./helpers`), `Language` (`../types`) — all by **relative** import, since this file is inside core.
+- Produces: `import ukrainian from "@smartput/core/locale/uk"` (also exported named, as `en.ts` does) — a `Language` with `id: "uk"` whose `selectForm` returns `` `${case}-${pluralCategory}` `` keys.
+
+> `check-deps.ts` needs no new row: core is not gaining a dependency, only a subpath. `check-size.ts` may want a `core/locale/uk` row proving an engine that never imports Ukrainian does not link it — that is the whole reason a subpath replaced a package, so add one if the file has a natural place for it.
 
 - [ ] **Step 1: Write the failing test**
 
@@ -2106,7 +2117,7 @@ describe("ukrainian", () => {
 - [ ] **Step 3: Write the language**
 
 ```ts
-// packages/locale-uk/src/ukrainian.ts
+// packages/core/src/locale/uk.ts
 import { cardinalNumerals, cardinalSpeller, defineLanguage, identity, type Language, suffixStripper } from "@smartput/core";
 import { CARDINALS } from "./cardinals";
 
@@ -2153,9 +2164,9 @@ export const ukrainian: Language = defineLanguage({
 
 `src/cardinals.ts` holds the `CardinalTables` for Ukrainian (units один…дев'ятнадцять, tens двадцять…дев'яносто, scales сто/тисяча/мільйон/мільярд, connectors `["і", "та"]`). Write them out in full; `cardinalNumerals`/`cardinalSpeller` read the same table in both directions.
 
-- [ ] **Step 4: Manifest and check-deps** — copy `packages/locale-en/package.json`, changing the name; add the `ALLOWED` row with the same comment shape.
-- [ ] **Step 5: Run the tests** — `bun test packages/locale-uk && bun run check`. Expected: PASS, green.
-- [ ] **Step 6: Commit** — `feat(locale-uk): Ukrainian language module — four plural categories and case by slot`
+- [ ] **Step 4: Add the subpath** — `./locale/uk` in `packages/core/package.json`'s `exports`, beside `./locale/en`, in the pinned `bun, types, default` order. No `check-deps` row: core gains no dependency.
+- [ ] **Step 5: Run the tests** — `bun test packages/core/src/locale && bun run check`. Expected: PASS, green.
+- [ ] **Step 6: Commit** — `feat(core): Ukrainian language module — four plural categories and case by slot`
 
 ---
 
@@ -2239,8 +2250,8 @@ export default defineVocabulary({
 ```ts
 import { composeLocale, createEngine } from "@smartput/core";
 import { assertLocaleContract } from "@smartput/core/testing";
-import { english } from "@smartput/locale-en";
-import { ukrainian } from "@smartput/locale-uk";
+import english from "@smartput/core/locale/en";
+import ukrainian from "@smartput/core/locale/uk";
 import { describe, expect, test } from "bun:test";
 import { BUILTIN_KINDS } from "./index";
 import BUILTIN_EN from "./locale/en";
@@ -2528,7 +2539,7 @@ test("a chain called with no run at all still works", () => {
 ```
 
 - [ ] **Step 2: Run it to verify it fails** — Expected: FAIL, the chain takes one argument.
-- [ ] **Step 3: Implement** — the chain's returned function becomes `(surface, position?: { words: readonly string[]; index: number })`, defaulting to `{ words: [surface], index: 0 }`. The memo key becomes `` `${position.index} ${position.words.join(" ")}` `` when a position is given, and stays the bare surface when it is not — so the common path keeps its one-entry-per-word cache. `parse/candidates.ts`'s `resolve` gains the same optional parameter and passes it through; its caller (`Tokenizer`'s word fold) supplies the segmented run.
+- [ ] **Step 3: Implement** — the chain's returned function becomes `(surface, position?: { words: readonly string[]; index: number })`, defaulting to `{ words: [surface], index: 0 }`. The memo key becomes `` `${position.index} ${position.words.join(" ")}` `` (index, space, the space-joined run) when a position is given, and stays the bare surface when it is not — so the common path keeps its one-entry-per-word cache. `parse/candidates.ts`'s `resolve` gains the same optional parameter and passes it through; its caller (`Tokenizer`'s word fold) supplies the segmented run.
 - [ ] **Step 4: Run** — `bun test packages/core && bun test packages/core/src/parity.test.ts`. Expected: PASS, zero diffs.
 - [ ] **Step 5: Commit** — `feat(core): analyzers can see the word run around them`
 
@@ -2583,10 +2594,12 @@ Each agent's steps are the same four:
 3. **Task 9 Step 1's test contradicts Step 3.** The test asserts `[conversion-target]` appears in printed output, which only the `renderQuantity` spy can emit — but Step 3 correctly says `renderTarget` does not call `renderQuantity` (a target is a bare word, and routing it through would emit a leading space and turn `1 kg in g` into ` grams`). Step 3 is the correct half. The slot assertion belongs where the slot actually travels: through `unitWord`'s `spell.slot` into `selectForm`.
 4. **Task 11's check 3 was unfalsifiable.** "Every alias resolves back to its own unit through the analyzer chain" is true by construction — `buildRegistry` pass 5 indexes every alias under an entry for the unit that declared it, so the lookup cannot miss. The plan's own test 4 did not throw when run against the verbatim implementation. The shipped check keeps the reachability loop (commented as true-by-construction today) and adds the clause that makes the name honest: **an exact alias must not be claimed by another unit of the same kind**. Deliberately not applied to analyzed forms — a stripper folding one unit's word onto another's within a kind (`ms` → `m`) is ordinary English, resolved by weight.
 
+**P1's package layout was reversed on 2026-08-08, after P2.** `@smartput/locale-en` is deleted: the English `Language` is back at `packages/core/src/locale/en.ts` behind the `@smartput/core/locale/en` subpath, and `spellNumber`/`numberFromWords`/`NUMBER_WORDS` are back in `@smartput/number`. Commit `9f9554e`. Ruling R9 carries the reasoning; Tasks 4 and 10 are marked superseded in place. Tests stayed 3014/0 and parity 86/0 across the reversal.
+
 **Two facts P3 inherits.**
 
 - `assertLocaleContract` over `en` + `BUILTIN_KINDS` reports exactly one gap: `boolean:bool has no words`. Legitimate, and passed via `opts.skip` — the kind prints through its own `format` hook, so the unit id never reaches a user. Ukrainian will need the same skip.
-- `spellNumber`/`numberFromWords`/`NUMBER_WORDS` now live in `@smartput/locale-en`. Four consumers the plan did not name were repointed: `scripts/geo/build.ts`, `scripts/geo/build.test.ts`, `packages/country/src/data/reserved.test.ts`, and `packages/range/src/phrases.ts` — the last being **untracked in-flight work**, whose manifest gained `@smartput/locale-en` as a runtime dependency.
+- `spellNumber`/`numberFromWords`/`NUMBER_WORDS` were moved to `@smartput/locale-en` and then, by R9's reversal, moved back to `@smartput/number`. Four consumers the plan did not name were repointed twice: `scripts/geo/build.ts`, `scripts/geo/build.test.ts`, `packages/country/src/data/reserved.test.ts`, and `packages/range/src/phrases.ts` — the last being **untracked in-flight work**, whose manifest gained `@smartput/locale-en` as a runtime dependency.
 
 **Known red, untouched by design:** `bun run check-size` reports three OVER rows — `range`, `range/class` and `query/sql` (the last by four bytes). All three are untracked in-flight packages whose budgets live in an uncommitted `scripts/check-size.ts`. Rebudgeting someone else's in-flight numbers is not this plan's call.
 
