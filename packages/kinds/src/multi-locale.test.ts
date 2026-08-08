@@ -509,7 +509,13 @@ describe("installing a second language changes no reading", () => {
     // vocabulary would make every check above pass over fewer words and say
     // nothing. 1,037 aliases today, minus the one named above.
     expect(swept).toBeGreaterThan(1000);
-  });
+    // 3,111 `evaluate` calls: ~200 ms on an idle machine, and measured at 21 s
+    // with four other `bun test` processes competing for the cores — past the
+    // 5 s default, which made this the one test in the file that could fail
+    // for a reason that is not about the code. The sweep's size is the whole
+    // point of it (`swept > 1000` above), so the budget moves rather than the
+    // loop.
+  }, 30_000);
 
   /**
    * And the exception itself, asserted rather than merely excluded — a skip
