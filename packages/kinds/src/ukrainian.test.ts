@@ -8,7 +8,7 @@ import {
 } from "@smartput/core";
 import { english } from "@smartput/core/locale/en";
 import { ukrainian } from "@smartput/core/locale/uk";
-import { assertLocaleContract } from "@smartput/core/testing";
+import { assertLocaleContract, OPERATOR_CHARS } from "@smartput/core/testing";
 import { BUILTIN_KINDS } from "./index";
 import BUILTIN_EN from "./locale/en";
 import BUILTIN_UK from "./locale/uk";
@@ -56,6 +56,29 @@ const SKIP_BOOLEAN = { skip: [`${BOOLEAN_KIND}:${BOOLEAN_UNIT}`] } as const;
  * an alias, symbol and `forms` entry at once.
  */
 const EN_ONLY = { ...SKIP_BOOLEAN, skipPrintable: ["length:in"] } as const;
+
+/**
+ * The units the round-trip net below cannot assert, each for a reason that is
+ * true of English as well and predates Ukrainian entirely. Named one by one,
+ * with the reason, rather than loosened out of the loop.
+ */
+const NO_ROUND_TRIP = new Set([
+  // `length`'s first alias is "m", which the engine refuses before it prints
+  // anything: "1 m" is ambiguous between `length:m` and `duration:min`, and
+  // both are real readings of that letter. That is the ambiguity machinery
+  // working — the net asks for the *first* alias, and this unit's happens to be
+  // a word two kinds claim. "1 metre" round-trips, and so does "1 м".
+  "length:m",
+  // `number:one` prints a bare numeral: "1", with no unit at all, because the
+  // number kind's formatter returns the number text before any word is read.
+  // Its self-alias is inert on the engine path in both languages (a bare
+  // numeral is a `number` AST node, never a lookup), so "1 one" does not parse
+  // in either. `@smartput/number/locale/en` explains it at length.
+  "number:one",
+  // The sentinel with no word in any language — the same case `SKIP_BOOLEAN`
+  // above is for, spelled the same way.
+  `${BOOLEAN_KIND}:${BOOLEAN_UNIT}`,
+]);
 
 describe("Ukrainian, as proof (spec §8)", () => {
   const engine = engineFor(uk);
@@ -135,6 +158,75 @@ describe("Ukrainian, as proof (spec §8)", () => {
           once.value?.canonical.toFixed(),
         );
         expect(twice.value?.unit, label).toBe(once.value?.unit);
+      }
+    }
+  });
+
+  /**
+   * Print, then read what was printed — over every unit of every kind, in both
+   * languages. This is the brute force that found P3's four defects after they
+   * had shipped: `datarate`, `energy`, `power` and `tempo` each printed a
+   * Ukrainian string their own engine then refused, and every test in the repo
+   * passed, `assertLocaleContract` included. It checks aliases, and an alias is
+   * what a user *types*; this checks what the engine *answers*, which is a
+   * different set of strings and was the one nobody was sampling.
+   *
+   * `assertLocaleContract` now closes most of that gap statically, and it is the
+   * better failure — it names the table and the row. It cannot close all of it:
+   * three of the four defects were *compound* symbols ("Мбіт/с", "кВт·год",
+   * "уд/хв"), which are read by arithmetic rather than by lookup, so whether one
+   * works depends on a registered op signature that no words check can see. That
+   * is what this test is for, and why it stays beside the static one.
+   *
+   * Each language is driven with its own decimal mark, because "1.5" against a
+   * Ukrainian engine is a multiplication and tests nothing about the fractional
+   * plural category. The counts are one of each Ukrainian agreement class: 1 is
+   * `one`, 2 is `few`, 5 is `many`, and the fraction is `other` — the genitive
+   * singular, the row a plural is easiest to write into by mistake.
+   */
+  test("every unit reads back what it prints, in both languages", () => {
+    for (const [locale, vocabularies, half] of [
+      [uk, BUILTIN_UK, "1,5"],
+      [en, BUILTIN_EN, "1.5"],
+    ] as const) {
+      const e = engineFor(locale);
+      const words = new Map(vocabularies.map((v) => [v.kind, v]));
+      for (const kind of BUILTIN_KINDS) {
+        const units =
+          kind.value.mode === "ratio"
+            ? Object.keys(kind.value.units)
+            : (kind.value.units ?? []);
+        for (const unit of units) {
+          if (NO_ROUND_TRIP.has(`${kind.id}:${unit}`)) continue;
+          const alias = words.get(kind.id)?.units[unit]?.aliases[0];
+          // Not a soft skip: a unit with no words in a language this file
+          // claims is complete is the gap `assertLocaleContract` reports, and
+          // silently passing over it here would make this loop shrink instead
+          // of fail.
+          expect(alias, `${locale.id} ${kind.id}:${unit} has no alias`).toBeDefined();
+          if (alias === undefined) continue;
+          for (const count of ["1", "2", "5", half]) {
+            const label = `${locale.id} ${kind.id}:${unit} ${count} ${alias}`;
+            const once = e.evaluate(`${count} ${alias}`);
+            const twice = e.evaluate(once.formatted);
+            expect(twice.value?.kind, label).toBe(once.value?.kind);
+            // `toFixed()`, not `toString()`: two Decimals equal in value can
+            // differ in exponent notation, and it is the value that has to
+            // survive.
+            expect(twice.value?.canonical.toFixed(), label).toBe(
+              once.value?.canonical.toFixed(),
+            );
+            // A printed compound is an expression, not a word: "5 kph" prints
+            // "5км/год", which the lexer splits at "/" and the engine computes
+            // as length / duration, so the quantity comes back in the kind's
+            // canonical unit rather than the one it was printed from. That is
+            // the mechanism working — the magnitude above is unchanged — so the
+            // expectation moves rather than relaxing.
+            const compound = [...once.formatted].some((c) => OPERATOR_CHARS.has(c));
+            const canonical = kind.value.mode === "ratio" ? kind.value.canonical : unit;
+            expect(twice.value?.unit, label).toBe(compound ? canonical : unit);
+          }
+        }
       }
     }
   });
