@@ -21,12 +21,16 @@ const alias = (unit: PowerUnit) => aliasesFor(POWER_UNITS, unit);
  * conversion target ("1 кВт у ватах"), the row the old one-dimensional `display`
  * table had no way to express at all.
  *
- * Four of the five units are one word: `ват` and its SI prefixes are masculine
- * hard stems, so they decline identically and only the stem changes — genitive
- * singular in -а, nominative plural in -и, genitive plural in -ів, locative
- * singular in -і, locative plural in -ах. Writing them out four times rather
- * than generating them from a stem is deliberate: the next unit added here may
- * not be a hard-stem masculine, and a generator would quietly inflect it wrong.
+ * Four of the five units carry that table. `ват` and its SI prefixes are
+ * masculine hard stems, so they decline identically and only the stem changes —
+ * genitive singular in -а, nominative plural in -и, genitive plural in -ів,
+ * locative singular in -і, locative plural in -ах. Writing them out four times
+ * rather than generating them from a stem is deliberate: the next unit added
+ * here may not be a hard-stem masculine, and a generator would quietly inflect
+ * it wrong. The fifth, `hp`, carries no `forms` at all and renders through its
+ * symbol; the entry below says why at length, and `uk.test.ts` holds the
+ * invariant that caught it — every string any `forms` table here can print is
+ * also a string this file's `aliases` can read.
  *
  * `aliases` reuses the Latin spellings from `units.ts` through `aliasesFor`
  * instead of retyping them, then appends the Cyrillic ones. Both scripts are
@@ -156,41 +160,45 @@ export default defineVocabulary({
         "loc-other": "гігаватах",
       },
     },
-    // The unit this row exists for. English says "horsepower", one word and its
-    // own plural; Ukrainian says "кінська сила" — an adjective agreeing with a
-    // feminine noun, so *both* words inflect, and the whole phrase moves to the
-    // genitive plural after 5 ("5 кінських сил") and to the genitive singular in
-    // the fractional row ("1,5 кінської сили").
+    // **No `forms`, and the symbol is "кс".** This is the one unit in the kind
+    // Ukrainian abbreviates rather than declines, and it took a measurement to
+    // admit it.
     //
-    // The phrase can be *printed* but not *read*: `parse/lex.ts` builds a word
-    // token out of a run of letters (plus trailing digits), so a space ends the
-    // token and "2 кінські сили" reaches the resolver as "кінські" followed by
-    // "сили" — a two-token unit no alias can claim. The same is true of the real
-    // Ukrainian abbreviation, "к.с.", whose periods are skipped as unrecognized
-    // characters and which therefore arrives as "к" then "с". Neither is
-    // registered as an alias: an alias the lexer cannot produce is dead weight
-    // that reads as coverage, and `uk.test.ts` records the gap as a live
-    // assertion instead. Multi-token unit words are P5's `compoundSplitter`;
-    // inventing a run-together "кінськасила" or "кс" to work around it would put
-    // a spelling nobody writes into the vocabulary.
+    // Ukrainian says "кінська сила" — an adjective agreeing with a feminine
+    // noun, so *both* words inflect ("5 кінських сил", "1,5 кінської сили").
+    // An earlier version of this file wrote all eight of those rows out and
+    // shipped them. They print beautifully and none of them can be read back:
+    // `parse/lex.ts` builds a word token from a run of letters plus trailing
+    // digits, so a space ends the token and "2 кінські сили" reaches the
+    // resolver as "кінські" then "сили" — a two-token unit no alias can claim.
+    // Registering the first word does not rescue it either; that was tried and
+    // measured, and the stranded "сили" turns the whole input into `Cannot
+    // parse "2 кінські сили" as a quantity`. So every string that table emitted
+    // was one the engine could not read, which is precisely the property §9
+    // asks a locale to have, and the table is gone rather than annotated.
     //
-    // So `aliases` here is the Latin pair from `units.ts` and nothing else, and
-    // `symbol` is "к.с." — the abbreviation Ukrainian actually uses — which R8
-    // wants recorded even though the eight `forms` rows mean the formatter never
-    // reaches for it.
+    // "к.с." is the abbreviation Ukrainian actually writes, and it is *not* the
+    // symbol for the same lexer reason one step down: "." is not a letter, so
+    // it is skipped as an unrecognized character and "150 к.с." arrives as "к"
+    // then "с" — measured, `Unknown unit "к"`. A symbol the printer emits and
+    // the lexer cannot return is the bug this entry just removed, so the symbol
+    // is the dotless contraction "кс": one letter run, one token, and listed in
+    // `aliases` so the round trip closes. It is the one Cyrillic spelling of
+    // this unit a Ukrainian can type today, and before this it had none at all
+    // — `aliases` was the Latin pair and nothing else.
+    //
+    // What that gives up is real: `150 hp` now prints "150кс", tight against
+    // the number the way `area`'s "3м²" and `temperature`'s "20°C" do, instead
+    // of the fully inflected phrase. That is the same trade those two kinds
+    // already make, and it is the right way round — a unit whose written form
+    // is an abbreviation legitimately has no word forms, while a unit whose
+    // printed words cannot be read is just broken output. When P5's
+    // `compoundSplitter` can route two tokens back to one unit, the phrase can
+    // come back as `forms` *and* as aliases together; until then it is not
+    // ready and pretending otherwise cost this kind its round trip.
     hp: {
-      aliases: alias("hp"),
-      symbol: "к.с.",
-      forms: {
-        "nom-one": "кінська сила",
-        "nom-few": "кінські сили",
-        "nom-many": "кінських сил",
-        "nom-other": "кінської сили",
-        "loc-one": "кінській силі",
-        "loc-few": "кінських силах",
-        "loc-many": "кінських силах",
-        "loc-other": "кінських силах",
-      },
+      aliases: [...alias("hp"), "кс"],
+      symbol: "кс",
     },
   },
 });

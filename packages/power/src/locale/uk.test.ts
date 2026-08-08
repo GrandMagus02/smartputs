@@ -37,11 +37,12 @@ describe("power uk vocabulary", () => {
     expect(JSON.stringify(power)).not.toMatch(/ват|кінськ/);
   });
 
-  test("every unit has forms, and every one has all eight keys", () => {
-    // All five units carry a table, matching the call `en.ts` makes for the same
-    // five. The contract check below samples counts and slots and reports what it
-    // happened to miss; this states the shape directly, so a table with seven
-    // rows fails on the count rather than on a lucky sample.
+  test("the four declined units have forms, and each has all eight keys", () => {
+    // The four watt units carry a table; `hp` deliberately carries none and
+    // renders through its symbol, the way `area`'s squared units and every
+    // `temperature` unit do. The contract check below samples counts and slots
+    // and reports what it happened to miss; this states the shape directly, so a
+    // table with seven rows fails on the count rather than on a lucky sample.
     const eight = [
       "nom-one",
       "nom-few",
@@ -53,8 +54,38 @@ describe("power uk vocabulary", () => {
       "loc-other",
     ];
     for (const [unit, words] of Object.entries(powerUk.units)) {
+      if (unit === "hp") {
+        expect(
+          words.forms,
+          "hp must not carry forms it cannot read back",
+        ).toBeUndefined();
+        continue;
+      }
       expect(words.forms, `${unit} has no forms`).toBeDefined();
       expect(Object.keys(words.forms ?? {}).sort(), `${unit}`).toEqual([...eight].sort());
+    }
+  });
+
+  test("every form this file can print is a form it can read", () => {
+    // The invariant that caught the horsepower bug, and the reason it is stated
+    // here rather than left to `assertLocaleContract`: the contract walks every
+    // *alias* and checks it resolves back to its unit, which is a different set
+    // from the strings the printer can *emit*. `hp` passed the contract with
+    // eight `forms` rows none of which was an alias, so the engine could not
+    // read its own output and nothing failed. Aliases fold case, so compare
+    // folded.
+    for (const [unit, words] of Object.entries(powerUk.units)) {
+      const readable = new Set(words.aliases.map((a) => a.toLocaleLowerCase("uk")));
+      for (const [key, form] of Object.entries(words.forms ?? {})) {
+        expect(
+          readable.has(form.toLocaleLowerCase("uk")),
+          `${unit}.${key} = "${form}"`,
+        ).toBe(true);
+      }
+      expect(
+        readable.has((words.symbol ?? "").toLocaleLowerCase("uk")),
+        `${unit}.symbol`,
+      ).toBe(true);
     }
   });
 
@@ -81,15 +112,16 @@ describe("power uk vocabulary", () => {
     // Both scripts read: a Cyrillic spelling and a Latin one add up.
     expect(e.evaluate("1 кВт + 500 Вт").formatted).toBe("1,5 кіловата");
     expect(e.evaluate("2 kw").formatted).toBe("2 кіловати");
-    // "кінська сила" is two words, and both of them inflect: the adjective
-    // agrees with the noun through the nominative singular, the nominative
-    // plural, the genitive plural after 5, and the genitive singular in the
-    // fractional row. English's "horsepower" is invariant, so this is the unit
-    // that shows the two axes doing work a plural table could not.
-    expect(e.evaluate("1 hp").formatted).toBe("1 кінська сила");
-    expect(e.evaluate("2 hp").formatted).toBe("2 кінські сили");
-    expect(e.evaluate("5 hp").formatted).toBe("5 кінських сил");
-    expect(e.evaluate("1,5 hp").formatted).toBe("1,5 кінської сили");
+    // `hp` renders through its symbol, tight against the number — the count
+    // never reaches a `forms` table because there is none, so all four of these
+    // are the same string with a different number in front.
+    expect(e.evaluate("1 hp").formatted).toBe("1кс");
+    expect(e.evaluate("5 hp").formatted).toBe("5кс");
+    expect(e.evaluate("1,5 hp").formatted).toBe("1,5кс");
+    // And the Cyrillic spelling reads, which before this it could not: `aliases`
+    // was the Latin pair alone, so a Ukrainian keyboard had no way to write this
+    // unit at all.
+    expect(e.evaluate("150 кс").formatted).toBe("150кс");
   });
 
   test("case follows the slot, not the count", () => {
@@ -105,21 +137,25 @@ describe("power uk vocabulary", () => {
     expect(kw?.[key("kw", "conversion-target")]).toBe("кіловатах");
   });
 
-  test("the horsepower phrase prints but does not read back yet", () => {
-    // Recorded as an assertion rather than left in a comment. `parse/lex.ts`
-    // builds a word token out of a run of letters plus trailing digits, so a
-    // space ends the token: "2 кінські сили" arrives as "кінські" followed by
-    // "сили", and no alias can claim a two-token unit. "к.с." — the abbreviation
-    // Ukrainian actually writes — fares no better, because "." is skipped as an
-    // unrecognized character and the run reaches the resolver as "к" then "с".
-    // Neither spelling is registered as an alias: one the lexer cannot produce
-    // would read as coverage while doing nothing. The Latin "hp" is what reads
-    // today; splitting the phrase is P5's `compoundSplitter`, and when it lands
-    // this is the test that should start failing.
+  test("the two spellings that cannot be the symbol, and why", () => {
+    // The measurements behind the `hp` entry, kept live so the reasoning cannot
+    // rot into a comment that used to be true.
+    //
+    // The inflected phrase: `parse/lex.ts` builds a word token from a run of
+    // letters plus trailing digits, so a space ends the token and "2 кінські
+    // сили" arrives as "кінські" then "сили". Registering the adjective does not
+    // help — the stranded noun fails the parse anyway, which is why none of the
+    // phrase's words are aliases. Splitting it is P5's `compoundSplitter`.
+    //
+    // "к.с.": the abbreviation Ukrainian actually writes, and unusable as the
+    // symbol because "." is not a letter — it is skipped as unrecognized, and
+    // the input reaches the resolver as "к" then "с". "кс" is that spelling with
+    // the dots removed, which is the one form of it the lexer can hand back.
     const e = engine();
     expect(() => e.evaluate("2 кінські сили")).toThrow();
-    expect(() => e.evaluate("150 к.с.")).toThrow();
-    expect(powerUk.units.hp?.aliases).toEqual(["hp", "horsepower"]);
+    expect(() => e.evaluate("150 к.с.")).toThrow(/Unknown unit "к"/);
+    expect(powerUk.units.hp?.aliases).toEqual(["hp", "horsepower", "кс"]);
+    expect(powerUk.units.hp?.symbol).toBe("кс");
   });
 
   test("round-trips: reparsing the formatted text gives the same quantity", () => {
@@ -129,13 +165,28 @@ describe("power uk vocabulary", () => {
     // "1 000 ватів" the conversion above prints comes back as two numbers and
     // fails to parse. That is a core-level gap between the group separator and
     // the normalizer, not something a vocabulary can express its way out of, so
-    // it is reported rather than pinned here. `hp` is absent for the reason the
-    // test above states: its printed form is two tokens.
+    // it is reported rather than pinned here.
     const e = engine();
     for (const input of ["1,5 кВт", "5 Вт", "21 Вт", "500 Вт в кіловатах", "3 ГВт"]) {
       const first = e.evaluate(input);
       const again = e.evaluate(first.formatted);
       expect(again.value, input).toEqual(first.value);
+    }
+  });
+
+  test("every unit prints something it can read, at every plural category", () => {
+    // The sweep the round-trip test above does not do: all five units, all four
+    // categories `ukrainian.selectForm` can return, print then re-read. This is
+    // what the horsepower bug failed and what nothing in this file checked. The
+    // counts stay under a thousand so no group separator appears — that gap is
+    // core's, not this vocabulary's, and pinning it here would hide this.
+    const e = engine();
+    for (const unit of Object.keys(powerUk.units)) {
+      for (const n of ["1", "2", "5", "1,5"]) {
+        const printed = e.evaluate(`${n} ${unit}`).formatted;
+        const again = e.evaluate(printed);
+        expect(again.formatted, `${n} ${unit} -> ${printed}`).toBe(printed);
+      }
     }
   });
 });
