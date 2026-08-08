@@ -64,6 +64,23 @@ describe("mass uk vocabulary", () => {
     }
   });
 
+  // The gap this closes is invisible to every other test here: a printed form
+  // that is not a listed alias still round-trips, because `ukrainian`'s suffix
+  // stripper recovers it — at `weight: -2`. So "1 кг в кілограмі" resolved, and
+  // nothing failed, while the vocabulary quietly relied on a guess for a word it
+  // had itself chosen to print. Asserting the containment is what keeps the two
+  // halves of a unit's entry — what it writes and what it reads — in step.
+  test("every form it prints is a form it reads", () => {
+    for (const [unit, words] of Object.entries(massUk.units)) {
+      for (const [key, form] of Object.entries(words.forms ?? {})) {
+        expect(
+          words.aliases,
+          `${unit} prints ${key}="${form}" but does not list it`,
+        ).toContain(form);
+      }
+    }
+  });
+
   test("satisfies the locale contract", () => {
     expect(() =>
       assertLocaleContract(composeLocale(ukrainian, [massUk]), [mass]),

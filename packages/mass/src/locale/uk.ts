@@ -14,7 +14,10 @@ const alias = (unit: MassUnit) => aliasesFor(MASS_UNITS, unit);
  * appended, in every inflected form a reader is likely to type — a vocabulary is
  * what the language's suffix stripper falls back *from*, not a stem list, and
  * the stripper is penalised (weight -2) precisely so an exact entry here
- * outranks anything it guesses.
+ * outranks anything it guesses. Every string this file *prints* is therefore
+ * also a string it reads: the locative singulars ("кілограмі", "грамі") are
+ * listed even though the `і` suffix rule would recover them, because a word the
+ * printer emits should never come back through the penalised path.
  *
  * Eight `forms` keys per unit, not two, because `ukrainian.selectForm` keys on
  * `` `${case}-${category}` ``: the case from the slot, the category from CLDR's
@@ -59,6 +62,7 @@ export default defineVocabulary({
         "міліграм",
         "міліграма",
         "міліграму",
+        "міліграмі",
         "міліграми",
         "міліграмів",
         "міліграмам",
@@ -85,6 +89,7 @@ export default defineVocabulary({
         "грам",
         "грама",
         "граму",
+        "грамі",
         "грами",
         "грамів",
         "грамам",
@@ -114,6 +119,7 @@ export default defineVocabulary({
         "кілограм",
         "кілограма",
         "кілограму",
+        "кілограмі",
         "кілограми",
         "кілограмів",
         "кілограмам",
@@ -196,6 +202,7 @@ export default defineVocabulary({
         "фунт",
         "фунта",
         "фунту",
+        "фунті",
         "фунти",
         "фунтів",
         "фунтам",
