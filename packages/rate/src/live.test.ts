@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
 import { composeLocale, RatesNotReadyError } from "@smartput/core";
-import { english as en } from "@smartput/locale-en";
+import { english as en } from "@smartput/core/locale/en";
 import { number } from "@smartput/number";
 import { createLiveEngine } from "./live";
 import { money } from "./money";

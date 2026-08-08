@@ -1,6 +1,7 @@
 import { mkdir } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { english as en } from "../../packages/core/src/locale/en";
 // The five imports below are reached by relative path rather than by package
 // name on purpose. This script is not a workspace member, so it has no
 // node_modules of its own and no package.json to declare them in; a relative
@@ -13,8 +14,7 @@ import { MIN_NAME_LENGTH } from "../../packages/country/src/matcher";
 import * as chrono from "../../packages/datetime/node_modules/chrono-node";
 import { BUILTIN_KINDS } from "../../packages/kinds/src/index";
 import BUILTIN_EN from "../../packages/kinds/src/locale/en";
-import { english as en } from "../../packages/locale-en/src/english";
-import { NUMBER_WORDS } from "../../packages/locale-en/src/words";
+import { NUMBER_WORDS } from "../../packages/number/src/words";
 
 /**
  * Builds the four vendored tables — `country/src/data/{countries,reserved}.ts`

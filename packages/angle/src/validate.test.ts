@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
 import { composeLocale, createEngine } from "@smartput/core";
-import { english as en } from "@smartput/locale-en";
+import { english as en } from "@smartput/core/locale/en";
 import { angle } from "./index";
 import angleEn from "./locale/en";
 import { ANGLE_UNITS, type AngleUnit } from "./units";

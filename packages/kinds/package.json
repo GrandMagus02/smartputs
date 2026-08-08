@@ -28,6 +28,7 @@
   "dependencies": {
     "@smartput/angle": "workspace:*",
     "@smartput/area": "workspace:*",
+    "@smartput/boolean": "workspace:*",
     "@smartput/core": "workspace:*",
     "@smartput/datarate": "workspace:*",
     "@smartput/datasize": "workspace:*",
@@ -45,6 +46,6 @@
     "@smartput/volume": "workspace:*"
   },
   "devDependencies": {
-    "@smartput/locale-en": "workspace:*"
+    "@smartput/core": "workspace:*"
   }
 }

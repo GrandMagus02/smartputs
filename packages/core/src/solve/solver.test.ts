@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
+import { english as enLocale } from "@smartput/core/locale/en";
 import { duration as durationKind, number as numberKind } from "@smartput/kinds";
-import { english as enLocale } from "@smartput/locale-en";
 import { Decimal } from "../decimal";
 import { createEngine } from "../engine";
 import { DimensionMismatchError, TooAmbiguousError } from "../errors";

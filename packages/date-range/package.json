@@ -17,7 +17,7 @@
     "@smartput/range-core": "workspace:*"
   },
   "devDependencies": {
-    "@smartput/kinds": "workspace:*",
-    "@smartput/locale-en": "workspace:*"
+    "@smartput/core": "workspace:*",
+    "@smartput/kinds": "workspace:*"
   }
 }

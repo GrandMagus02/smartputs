@@ -15,7 +15,6 @@
     "@smartput/currency": "workspace:*",
     "@smartput/datetime": "workspace:*",
     "@smartput/kinds": "workspace:*",
-    "@smartput/locale-en": "workspace:*",
     "@smartput/math": "workspace:*",
     "@smartput/rate": "workspace:*",
     "@smartput/timezone": "workspace:*",

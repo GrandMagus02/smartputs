@@ -20,6 +20,8 @@ Each milestone is independently shippable and gets its own implementation plan.
 | **M6** | `@smartput/country` and its three layers below: place kind, countries and cities, `kyiv to warsaw` as a distance, postal codes, the datetime and rates bridges, GeoNames providers, place completion. | **Shipped** |
 | **Ranges** | `date` and `time` as kinds of their own, `range-core`, and the three range kinds — `whole week`, `10:00 - 20:00`, `yesterday morning`, `from today until friday`. Core's one new field: [`OpSignature.weight`](#ranges-and-the-one-field-they-cost). | **Shipped** |
 | **Stages** | `createEngine`'s 329-line closure split into [seven frozen, config-holding stage classes](/api/stages): `Program` and stable node ids replace a bare AST, `Resolution` (renamed from `Assignment`) is keyed by id instead of node object, and the [`Printer`](/api/printer) is the one genuinely new stage. Two behaviour changes: `Result.spans` now indexes the caller's string, and every public output is deep-frozen. | **Shipped** |
+| **Query** | `@smartput/query`: a clause grammar over a declared schema, schema linking off the kind system, and a dialect-free IR with `SqlCompiler` and `MongoCompiler` on top of it. Core takes no change at all. | **Shipped** |
+| **Comparison** | Six comparison operators, `@smartput/boolean`, and a tolerance at the precision the engine displays. Core's changes: six `OpSymbol`s, `OpaqueSpec.ordered`, `EvalCtx.comparePrecision`. | **Shipped** |
 | **M7** | `@smartput/http`, meta-package, npm release. | Planned |
 
 M1 carried the only real invention risk. Most of what came after it is
@@ -93,6 +95,68 @@ What fell out for free: `nice`, `mobile` and `split` became places without
 costing any input its reading, `90210` stayed 90,210 with a postcode ranked
 underneath it, and the eighteen hand-written zones in `@smartput/datetime`
 stopped being the only places the engine knows.
+
+## Comparison, and the three fields it cost
+
+`1000 mb = 1 gb` is `true` — see [Comparison](/guide/comparison). Core took six
+new `OpSymbol`s and two optional fields, and the solver did not move.
+
+The six signatures per kind are generated, beside the `+`/`-` pair and the
+number-scaling trio that `generateRatioOps` has always produced. That is the
+whole implementation of "it works for every unit": nothing anywhere knows how to
+compare a megabyte to a gigabyte, and it does not need to — both operands
+resolve to `datasize` through the same unification that makes `1 kg + 500 g` a
+kilogram and a half, and the comparison runs over canonical bytes. A kind
+registered tomorrow gets it for free.
+
+Two fields carry the parts that could not be generated:
+
+- **`OpaqueSpec.ordered`.** A ratio kind's canonical is a magnitude and always
+  orders. An opaque kind's is whatever it chose — an instant for `datetime`, a
+  GeoNames feature id for `place` — so ordering is an opt-in rather than a
+  default. `place` never acquiring `>` is the point of the field, not an
+  omission from it.
+- **`EvalCtx.comparePrecision`.** Core computes at 28 digits and displays at 26,
+  and comparison uses the display figure so the rule is statable: two values
+  that print the same are the same. `1 km / 3 * 3 = 1 km` is true, which is
+  false of the arithmetic and true of what was meant. `"exact"` is there for a
+  caller who wants the arithmetic.
+
+What fell out for free: `1 < 2 < 3` refuses itself. Comparison is
+left-associative like every other operator, so it parses to `(1 < 2) < 3`, and
+`boolean` does not declare `ordered` — there is no signature to reach. The
+refusal is the op table's, and nobody had to write a chain rule to get it.
+
+## Query, and the milestone that cost core nothing
+
+`@smartput/query` reads `top 10 customers by revenue last month` and emits
+SQL, a MongoDB pipeline, or whatever a `Compiler<T>` a consumer wrote emits —
+see [Querying a database](/guide/querying). It is the first milestone since M1
+to take **no change to core at all**, and the reason is worth stating, because
+the design very nearly went the other way.
+
+The obvious shape was a `query` kind. It does not fit, and the misfit is
+structural rather than awkward: `OpSymbol` is seven arithmetic and conversion
+operators with no comparison among them, `Keyword` is a closed set with no
+clause word in it, and `Value.canonical` is a `Decimal` — a relation is none of
+those three. Registering a kind would have meant three new unions in
+`types.ts` and a `format` hook that renders SQL. So the clause grammar lives in
+the package and core is a dependency rather than a host, which is what
+`@smartput/shared` already established: a second entry point into the same
+tables that is not the engine.
+
+What core *does* supply is the half nobody else could. The package hands every
+value fragment to `engine.suggest()` and gets back kind-typed readings, so
+`500 eur`, `2 kg`, `last week` and `kyiv` all work without this package naming a
+single currency, unit, calendar or city. And the kind on a reading is what finds
+the column: `orders over 500 usd` names no column, the operand reads as money,
+exactly one column on `orders` is money — so the type system that exists to
+decide whether `10 m + 5 h` is legal turns out to be a schema linker too.
+
+The range and place shapes it needs off `Value.meta` are matched structurally,
+on the precedent `PlaceMeta` set. Nothing imports `@smartput/range-core` or
+`@smartput/country`; the shape is the contract, and the dependency table shows
+one edge for the whole package.
 
 ## Ranges, and the one field they cost
 

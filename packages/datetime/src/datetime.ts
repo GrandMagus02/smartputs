@@ -151,7 +151,7 @@ export interface DatetimeOptions {
 export function createDatetime(opts: DatetimeOptions = {}): Kind {
   return defineKind({
     id: DATETIME_KIND,
-    value: { mode: "opaque", units },
+    value: { mode: "opaque", ordered: true, units },
     // Date first: on a tie the fold keeps both readings, and "3pm gmt+3" is one
     // date whose offset the zone matcher would only ever claim a suffix of.
     // Extras last for the same reason in reverse: a phrase they claim is longer

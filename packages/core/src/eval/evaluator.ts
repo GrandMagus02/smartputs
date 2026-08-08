@@ -16,6 +16,8 @@ export interface EvaluatorOptions {
   locale: string;
   kindMeta?: Record<KindId, Record<string, unknown>>;
   rates?: RateLookup;
+  /** Significant digits a comparison rounds to; `"exact"` turns the guard off. */
+  comparePrecision?: number | "exact";
 }
 
 /**
@@ -34,18 +36,20 @@ export class Evaluator {
   private readonly locale: string;
   private readonly kindMeta?: Record<KindId, Record<string, unknown>>;
   private readonly rates?: RateLookup;
+  private readonly comparePrecision?: number | "exact";
 
   constructor(cfg: EvaluatorOptions) {
     this.registry = cfg.registry;
     this.locale = cfg.locale;
     // Copied, not aliased: `kindMeta` is a plain map a caller assembles and
     // could keep adding to or reassigning entries on after construction — the
-    // same class of bug `Autocompleter`'s `layers` copy defends against. `rates`
+    // same class of bug `Completer`'s `layers` copy defends against. `rates`
     // and `registry` are already-built service objects nobody incrementally
     // mutates the way a weights or kindMeta bag gets built up, so they are
     // held by reference, same as `Tokenizer`/`Parser` hold theirs.
     if (cfg.kindMeta !== undefined) this.kindMeta = Object.freeze({ ...cfg.kindMeta });
     if (cfg.rates !== undefined) this.rates = cfg.rates;
+    if (cfg.comparePrecision !== undefined) this.comparePrecision = cfg.comparePrecision;
     Object.freeze(this);
   }
 
@@ -58,6 +62,9 @@ export class Evaluator {
       input: program.input.source,
       ...(this.kindMeta !== undefined ? { kindMeta: this.kindMeta } : {}),
       ...(this.rates !== undefined ? { rates: this.rates } : {}),
+      ...(this.comparePrecision !== undefined
+        ? { comparePrecision: this.comparePrecision }
+        : {}),
     });
     return deepFreeze({ value, assumptions });
   }

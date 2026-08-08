@@ -7,8 +7,8 @@ import { BUILTIN_KINDS } from "@smartput/kinds";
 import BUILTIN_EN from "@smartput/kinds/locale/en";
 import { createEngine } from "../packages/core/src/engine";
 import { composeLocale } from "../packages/core/src/locale/compose";
+import { english as en } from "../packages/core/src/locale/en";
 import { record } from "../packages/core/src/parity";
-import { english as en } from "../packages/locale-en/src/english";
 
 const engine = createEngine({
   locales: [composeLocale(en, BUILTIN_EN)],

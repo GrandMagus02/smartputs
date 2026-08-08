@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test";
+import { english } from "@smartput/core/locale/en";
 import { BUILTIN_KINDS, measure } from "@smartput/kinds";
 import BUILTIN_EN from "@smartput/kinds/locale/en";
-import { english } from "@smartput/locale-en";
 import { UnitParseError } from "../errors";
 import { buildRegistry } from "../kind/registry";
 import { composeLocale } from "../locale/compose";

@@ -11,12 +11,12 @@ import {
   NUMBER_FALLBACK_WEIGHT,
   type PlaceMeta,
 } from "@smartput/core";
+import { english as coreEn } from "@smartput/core/locale/en";
 import { datetime } from "@smartput/datetime";
 import datetimeEn from "@smartput/datetime/locale/en";
 import { PlaceDistance, UnpositionedPlaceError } from "@smartput/distance";
 import { BUILTIN_KINDS } from "@smartput/kinds";
 import BUILTIN_EN from "@smartput/kinds/locale/en";
-import { english as coreEn } from "@smartput/locale-en";
 import { createPostalLiteral } from "@smartput/zip";
 import { Glob } from "bun";
 import { COUNTRIES } from "./data/countries";

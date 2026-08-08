@@ -1,12 +1,12 @@
+import type { Language } from "../types";
+import { defineLanguage } from "./define";
 import {
   type CardinalTables,
   cardinalNumerals,
   cardinalSpeller,
-  defineLanguage,
   identity,
-  type Language,
   suffixStripper,
-} from "@smartput/core";
+} from "./helpers";
 
 // One table, two directions: `cardinalNumerals` reads it to parse "thirty"
 // back to `30`, `cardinalSpeller` reads it to spell `30` as "thirty". Hoisted

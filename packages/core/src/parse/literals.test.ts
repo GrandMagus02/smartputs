@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
+import { english } from "@smartput/core/locale/en";
 import { length } from "@smartput/kinds";
-import { english } from "@smartput/locale-en";
 import { Decimal } from "../decimal";
 import { defineKind } from "../kind/define";
 import { buildRegistry } from "../kind/registry";

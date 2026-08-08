@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
-import { Decimal } from "@smartput/core";
-import { english } from "./english";
+import { Decimal } from "../decimal";
+import { english } from "./en";
 
 describe("english", () => {
   test("is a Language with the CLDR plural categories", () => {

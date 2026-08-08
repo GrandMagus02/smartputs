@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test";
 import { composeLocale, createEngine, Decimal } from "@smartput/core";
+import { english as en } from "@smartput/core/locale/en";
 import { CURRENCIES, formatAmount, parseAmount, parseCurrency } from "@smartput/currency";
-import { english as en } from "@smartput/locale-en";
 import { number } from "@smartput/number";
 import moneyEn from "./locale/en";
 import { money } from "./money";

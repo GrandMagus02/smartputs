@@ -29,8 +29,8 @@
     "temporal-polyfill": "^0.3.0"
   },
   "devDependencies": {
+    "@smartput/core": "workspace:*",
     "@smartput/country": "workspace:*",
-    "@smartput/kinds": "workspace:*",
-    "@smartput/locale-en": "workspace:*"
+    "@smartput/kinds": "workspace:*"
   }
 }

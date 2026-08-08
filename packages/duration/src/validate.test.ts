@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
 import { composeLocale, createEngine } from "@smartput/core";
-import { english as en } from "@smartput/locale-en";
+import { english as en } from "@smartput/core/locale/en";
 import { duration } from "./index";
 import durationEn from "./locale/en";
 import { DURATION_UNITS, type DurationUnit } from "./units";

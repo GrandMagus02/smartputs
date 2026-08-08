@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { english } from "@smartput/locale-en";
+import { english } from "@smartput/core/locale/en";
 import { Decimal } from "../decimal";
 import { createEngine } from "../engine";
 import { defineKind } from "../kind/define";

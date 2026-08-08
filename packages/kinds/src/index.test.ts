@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
 import { buildRegistry, composeLocale, Decimal } from "@smartput/core";
-import { english as en } from "@smartput/locale-en";
+import { english as en } from "@smartput/core/locale/en";
 import { BUILTIN_KINDS } from "./index";
 import BUILTIN_EN from "./locale/en";
 

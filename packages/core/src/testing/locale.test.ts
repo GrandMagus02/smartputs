@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { english } from "@smartput/locale-en";
+import { english } from "@smartput/core/locale/en";
 import { measure } from "@smartput/measure";
 import measureEn from "@smartput/measure/locale/en";
 import { composeLocale, defineVocabulary } from "../index";

@@ -8,11 +8,11 @@ import {
   NoCandidateError,
   type Vocabulary,
 } from "@smartput/core";
+import { english as coreEn } from "@smartput/core/locale/en";
 import { place } from "@smartput/country";
 import placeEn from "@smartput/country/locale/en";
 import { BUILTIN_KINDS } from "@smartput/kinds";
 import BUILTIN_EN from "@smartput/kinds/locale/en";
-import { english as coreEn } from "@smartput/locale-en";
 import { datetime } from "./datetime";
 import datetimeEn from "./locale/en";
 import { TEST_NOW, TEST_ZONE } from "./temporal";

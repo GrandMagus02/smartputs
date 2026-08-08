@@ -13,6 +13,6 @@
   "dependencies": {
     "@cortex-js/compute-engine": "^0.101.0",
     "@smartput/core": "workspace:*",
-    "@smartput/locale-en": "workspace:*"
+    "@smartput/number": "workspace:*"
   }
 }

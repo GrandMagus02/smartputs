@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
+import { english as enLocale } from "@smartput/core/locale/en";
 import { BUILTIN_KINDS } from "@smartput/kinds";
-import { english as enLocale } from "@smartput/locale-en";
 import { createEngine } from "../engine";
 import { DivideByZeroError } from "../errors";
 import { defineKind } from "../kind/define";

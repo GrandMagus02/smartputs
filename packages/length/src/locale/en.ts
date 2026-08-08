@@ -4,7 +4,7 @@ import { LENGTH_UNITS, type LengthUnit } from "../units";
 /**
  * Aliases the engine's lexer can never hand back as a word.
  *
- * `in` is core's conversion keyword (`@smartput/locale-en`'s `keywords.in`,
+ * `in` is core's conversion keyword (`@smartput/core/locale/en`'s `keywords.in`,
  * alongside `to` and `as`), so `lex` emits it as a `keyword` token and a
  * vocabulary entry for it is unreachable on the engine path — the hand-written
  * lexicon this table replaced listed only `["inch"]` for that reason.

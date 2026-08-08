@@ -11,9 +11,9 @@ import {
   type MatchCtx,
   type Value,
 } from "@smartput/core";
+import { english as en } from "@smartput/core/locale/en";
 import { PlaceDistance } from "@smartput/distance";
 import { length } from "@smartput/length";
-import { english as en } from "@smartput/locale-en";
 import { number } from "@smartput/number";
 import { COUNTRIES } from "./data/countries";
 import { RESERVED_WORDS } from "./data/reserved";

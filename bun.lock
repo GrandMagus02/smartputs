@@ -41,6 +41,7 @@
         "@smartput/shared": "workspace:*",
       },
       "devDependencies": {
+        "@smartput/core": "workspace:*",
         "@smartput/kinds": "workspace:*",
       },
     },
@@ -52,7 +53,23 @@
         "@smartput/shared": "workspace:*",
       },
       "devDependencies": {
+        "@smartput/core": "workspace:*",
         "@smartput/kinds": "workspace:*",
+      },
+    },
+    "packages/boolean": {
+      "name": "@smartput/boolean",
+      "version": "0.0.0",
+      "dependencies": {
+        "@smartput/core": "workspace:*",
+      },
+      "devDependencies": {
+        "@smartput/core": "workspace:*",
+        "@smartput/country": "workspace:*",
+        "@smartput/date": "workspace:*",
+        "@smartput/datetime": "workspace:*",
+        "@smartput/kinds": "workspace:*",
+        "@smartput/time": "workspace:*",
       },
     },
     "packages/city": {
@@ -69,7 +86,9 @@
         "decimal.js": "^10.6.0",
       },
       "devDependencies": {
+        "@smartput/core": "workspace:*",
         "@smartput/kinds": "workspace:*",
+        "@smartput/measure": "workspace:*",
         "@smartput/shared": "workspace:*",
       },
     },
@@ -84,6 +103,7 @@
         "decimal.js": "^10.6.0",
       },
       "devDependencies": {
+        "@smartput/core": "workspace:*",
         "@smartput/date": "workspace:*",
         "@smartput/date-range": "workspace:*",
         "@smartput/datetime": "workspace:*",
@@ -91,6 +111,7 @@
         "@smartput/kinds": "workspace:*",
         "@smartput/length": "workspace:*",
         "@smartput/number": "workspace:*",
+        "@smartput/range": "workspace:*",
         "@smartput/rate": "workspace:*",
         "@smartput/time": "workspace:*",
         "@smartput/time-range": "workspace:*",
@@ -112,6 +133,7 @@
         "@smartput/shared": "workspace:*",
       },
       "devDependencies": {
+        "@smartput/core": "workspace:*",
         "@smartput/kinds": "workspace:*",
       },
     },
@@ -123,6 +145,7 @@
         "@smartput/shared": "workspace:*",
       },
       "devDependencies": {
+        "@smartput/core": "workspace:*",
         "@smartput/kinds": "workspace:*",
       },
     },
@@ -134,6 +157,7 @@
         "@smartput/datetime": "workspace:*",
       },
       "devDependencies": {
+        "@smartput/core": "workspace:*",
         "@smartput/kinds": "workspace:*",
       },
     },
@@ -147,6 +171,7 @@
         "@smartput/range-core": "workspace:*",
       },
       "devDependencies": {
+        "@smartput/core": "workspace:*",
         "@smartput/kinds": "workspace:*",
       },
     },
@@ -162,6 +187,7 @@
         "temporal-polyfill": "^0.3.0",
       },
       "devDependencies": {
+        "@smartput/core": "workspace:*",
         "@smartput/country": "workspace:*",
         "@smartput/kinds": "workspace:*",
       },
@@ -178,6 +204,7 @@
         "@smartput/time": "workspace:*",
       },
       "devDependencies": {
+        "@smartput/core": "workspace:*",
         "@smartput/kinds": "workspace:*",
       },
     },
@@ -200,6 +227,9 @@
         "@smartput/core": "workspace:*",
         "@smartput/shared": "workspace:*",
       },
+      "devDependencies": {
+        "@smartput/core": "workspace:*",
+      },
     },
     "packages/energy": {
       "name": "@smartput/energy",
@@ -209,6 +239,7 @@
         "@smartput/shared": "workspace:*",
       },
       "devDependencies": {
+        "@smartput/core": "workspace:*",
         "@smartput/kinds": "workspace:*",
         "@smartput/power": "workspace:*",
       },
@@ -226,6 +257,7 @@
       "dependencies": {
         "@smartput/angle": "workspace:*",
         "@smartput/area": "workspace:*",
+        "@smartput/boolean": "workspace:*",
         "@smartput/core": "workspace:*",
         "@smartput/datarate": "workspace:*",
         "@smartput/datasize": "workspace:*",
@@ -242,6 +274,9 @@
         "@smartput/tempo": "workspace:*",
         "@smartput/volume": "workspace:*",
       },
+      "devDependencies": {
+        "@smartput/core": "workspace:*",
+      },
     },
     "packages/length": {
       "name": "@smartput/length",
@@ -250,6 +285,9 @@
         "@smartput/core": "workspace:*",
         "@smartput/shared": "workspace:*",
       },
+      "devDependencies": {
+        "@smartput/core": "workspace:*",
+      },
     },
     "packages/mass": {
       "name": "@smartput/mass",
@@ -257,6 +295,9 @@
       "dependencies": {
         "@smartput/core": "workspace:*",
         "@smartput/shared": "workspace:*",
+      },
+      "devDependencies": {
+        "@smartput/core": "workspace:*",
       },
     },
     "packages/math": {
@@ -276,6 +317,7 @@
         "@smartput/shared": "workspace:*",
       },
       "devDependencies": {
+        "@smartput/core": "workspace:*",
         "@smartput/kinds": "workspace:*",
       },
     },
@@ -295,6 +337,7 @@
         "@smartput/shared": "workspace:*",
       },
       "devDependencies": {
+        "@smartput/core": "workspace:*",
         "@smartput/kinds": "workspace:*",
       },
     },
@@ -304,6 +347,35 @@
       "dependencies": {
         "@smartput/core": "workspace:*",
         "@smartput/shared": "workspace:*",
+      },
+      "devDependencies": {
+        "@smartput/core": "workspace:*",
+        "@smartput/kinds": "workspace:*",
+      },
+    },
+    "packages/query": {
+      "name": "@smartput/query",
+      "version": "0.0.0",
+      "dependencies": {
+        "@smartput/core": "workspace:*",
+      },
+      "devDependencies": {
+        "@smartput/city": "workspace:*",
+        "@smartput/core": "workspace:*",
+        "@smartput/country": "workspace:*",
+        "@smartput/date": "workspace:*",
+        "@smartput/date-range": "workspace:*",
+        "@smartput/datetime": "workspace:*",
+        "@smartput/kinds": "workspace:*",
+        "@smartput/rate": "workspace:*",
+      },
+    },
+    "packages/range": {
+      "name": "@smartput/range",
+      "version": "0.0.0",
+      "dependencies": {
+        "@smartput/core": "workspace:*",
+        "@smartput/number": "workspace:*",
       },
       "devDependencies": {
         "@smartput/kinds": "workspace:*",
@@ -329,6 +401,7 @@
         "decimal.js": "^10.6.0",
       },
       "devDependencies": {
+        "@smartput/core": "workspace:*",
         "@smartput/country": "workspace:*",
         "@smartput/number": "workspace:*",
       },
@@ -345,6 +418,7 @@
         "@smartput/shared": "workspace:*",
       },
       "devDependencies": {
+        "@smartput/core": "workspace:*",
         "@smartput/kinds": "workspace:*",
       },
     },
@@ -356,6 +430,7 @@
         "@smartput/shared": "workspace:*",
       },
       "devDependencies": {
+        "@smartput/core": "workspace:*",
         "@smartput/kinds": "workspace:*",
       },
     },
@@ -367,6 +442,7 @@
         "@smartput/shared": "workspace:*",
       },
       "devDependencies": {
+        "@smartput/core": "workspace:*",
         "@smartput/kinds": "workspace:*",
       },
     },
@@ -378,6 +454,7 @@
         "@smartput/datetime": "workspace:*",
       },
       "devDependencies": {
+        "@smartput/core": "workspace:*",
         "@smartput/kinds": "workspace:*",
       },
     },
@@ -390,6 +467,7 @@
         "@smartput/time": "workspace:*",
       },
       "devDependencies": {
+        "@smartput/core": "workspace:*",
         "@smartput/datetime": "workspace:*",
         "@smartput/kinds": "workspace:*",
       },
@@ -406,6 +484,7 @@
         "@smartput/shared": "workspace:*",
       },
       "devDependencies": {
+        "@smartput/core": "workspace:*",
         "@smartput/kinds": "workspace:*",
       },
     },
@@ -690,6 +769,8 @@
 
     "@smartput/area": ["@smartput/area@workspace:packages/area"],
 
+    "@smartput/boolean": ["@smartput/boolean@workspace:packages/boolean"],
+
     "@smartput/city": ["@smartput/city@workspace:packages/city"],
 
     "@smartput/core": ["@smartput/core@workspace:packages/core"],
@@ -735,6 +816,10 @@
     "@smartput/percent": ["@smartput/percent@workspace:packages/percent"],
 
     "@smartput/power": ["@smartput/power@workspace:packages/power"],
+
+    "@smartput/query": ["@smartput/query@workspace:packages/query"],
+
+    "@smartput/range": ["@smartput/range@workspace:packages/range"],
 
     "@smartput/range-core": ["@smartput/range-core@workspace:packages/range-core"],
 

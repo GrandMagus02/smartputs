@@ -1,11 +1,11 @@
 import { expect, test } from "bun:test";
 import { composeLocale, createEngine } from "@smartput/core";
+import { english as coreEn } from "@smartput/core/locale/en";
 import { date } from "@smartput/date";
 import { datetime, TEST_NOW, TEST_ZONE } from "@smartput/datetime";
 import datetimeEn from "@smartput/datetime/locale/en";
 import { BUILTIN_KINDS } from "@smartput/kinds";
 import BUILTIN_EN from "@smartput/kinds/locale/en";
-import { english as coreEn } from "@smartput/locale-en";
 import { InvertedRangeError } from "@smartput/range-core";
 import { createDateRange, DATE_RANGE_UNIT, dateRange } from "./date-range";
 

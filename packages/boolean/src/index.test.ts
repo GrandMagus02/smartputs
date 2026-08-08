@@ -1,8 +1,8 @@
 import { expect, test } from "bun:test";
 import { composeLocale, createEngine, type Engine } from "@smartput/core";
+import { english as en } from "@smartput/core/locale/en";
 import { BUILTIN_KINDS } from "@smartput/kinds";
 import BUILTIN_EN from "@smartput/kinds/locale/en";
-import { english as en } from "@smartput/locale-en";
 import { BOOLEAN_UNIT, boolean } from "./index";
 
 const engine: Engine = createEngine({

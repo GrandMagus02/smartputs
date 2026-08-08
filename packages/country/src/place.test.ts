@@ -11,9 +11,9 @@ import {
   type Registry,
   wordsFor,
 } from "@smartput/core";
+import { english as en } from "@smartput/core/locale/en";
 import { length } from "@smartput/length";
 import lengthEn from "@smartput/length/locale/en";
-import { english as en } from "@smartput/locale-en";
 import { number } from "@smartput/number";
 import { COUNTRIES } from "./data/countries";
 import placeEn from "./locale/en";

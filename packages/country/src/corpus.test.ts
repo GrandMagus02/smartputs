@@ -1,9 +1,9 @@
 import { expect, test } from "bun:test";
 import { ADMIN1, CITIES } from "@smartput/city";
 import { composeLocale, createEngine } from "@smartput/core";
+import { english as en } from "@smartput/core/locale/en";
 import { length } from "@smartput/length";
 import lengthEn from "@smartput/length/locale/en";
-import { english as en } from "@smartput/locale-en";
 import { number } from "@smartput/number";
 import placeEn from "./locale/en";
 import { definePlace } from "./place";

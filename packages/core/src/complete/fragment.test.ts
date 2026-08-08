@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { english } from "@smartput/locale-en";
+import { english } from "@smartput/core/locale/en";
 import { composeLocale } from "../locale/compose";
 import { defineLanguage } from "../locale/define";
 import { leadingCount, trailingFragment } from "./fragment";

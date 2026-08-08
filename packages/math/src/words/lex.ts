@@ -2,7 +2,7 @@
 // at a misspelled unit: same weighting, same refusal to pick between two words
 // it is equally near. Core owns it so there is only one of it.
 import { nearestWord } from "@smartput/core";
-import { NUMBER_WORDS, numberFromWords } from "@smartput/locale-en";
+import { NUMBER_WORDS, numberFromWords } from "@smartput/number";
 import { WordParseError } from "../errors";
 
 /** How a sentence should be read. */

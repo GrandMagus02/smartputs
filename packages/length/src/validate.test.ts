@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
 import { composeLocale, createEngine } from "@smartput/core";
-import { english as en } from "@smartput/locale-en";
+import { english as en } from "@smartput/core/locale/en";
 import { length } from "./index";
 import lengthEn from "./locale/en";
 import { LENGTH_UNITS, type LengthUnit } from "./units";

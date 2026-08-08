@@ -58,14 +58,19 @@
       "bun": "./src/registry.ts",
       "types": "./dist/registry.d.ts",
       "default": "./dist/registry.js"
+    },
+    "./locale/en": {
+      "bun": "./src/locale/en.ts",
+      "types": "./dist/locale/en.d.ts",
+      "default": "./dist/locale/en.js"
     }
   },
   "dependencies": {
     "decimal.js": "^10.6.0"
   },
   "devDependencies": {
+    "@smartput/core": "workspace:*",
     "@smartput/kinds": "workspace:*",
-    "@smartput/locale-en": "workspace:*",
     "@smartput/measure": "workspace:*",
     "@smartput/shared": "workspace:*"
   }

@@ -21,8 +21,8 @@
     "decimal.js": "^10.6.0"
   },
   "devDependencies": {
+    "@smartput/core": "workspace:*",
     "@smartput/country": "workspace:*",
-    "@smartput/locale-en": "workspace:*",
     "@smartput/number": "workspace:*"
   }
 }

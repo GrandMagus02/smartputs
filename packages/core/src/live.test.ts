@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
+import { english as en } from "@smartput/core/locale/en";
 import { number } from "@smartput/kinds";
-import { english as en } from "@smartput/locale-en";
 import { createEngine } from "./engine";
 import { createCachedEngine, createSnapshotCache } from "./live";
 import { composeLocale } from "./locale/compose";

@@ -7,9 +7,9 @@ import {
   Decimal,
   type Kind,
 } from "@smartput/core";
+import { english as coreEn } from "@smartput/core/locale/en";
 import { BUILTIN_KINDS } from "@smartput/kinds";
 import BUILTIN_EN from "@smartput/kinds/locale/en";
-import { english as coreEn } from "@smartput/locale-en";
 import {
   completePlaces,
   createPlaceIndex,

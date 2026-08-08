@@ -518,16 +518,10 @@ export const BUDGETS: EntrySpec[] = [
     // Verified rather than assumed: the bundle this row measures contains no
     // string from the rule table — no `Easter`, no `js-yaml` — while the row
     // below contains both.
-    //
-    // Amendment, 2026-08-07: gzip rises 50_750 -> 50_800 (measured 50_753 B).
-    // Core's seven stage classes — Normalizer, Tokenizer, Parser, Solver,
-    // Evaluator, Autocompleter, Printer — and their frozen config plumbing
-    // landed in core's graph, and this bundle pulls core. Min is untouched:
-    // 144_342 B measured still clears 144_350. See spec §13's dated amendment.
     label: "datetime root (no holiday data)",
     from: "@smartput/datetime",
     names: ["datetime"],
-    min: 144_350,
+    min: 144_400,
     gzip: 50_800,
     floor: 138_000,
   },
@@ -585,22 +579,12 @@ export const BUDGETS: EntrySpec[] = [
   // the bundle" — a kind is 0.4–4.8 KB here, so a floor tight enough to catch
   // one disappearing would also fail on any honest refactor of it, and the
   // corpus test next door fails on that far more legibly than a byte count.
-  //
-  // Amendment, 2026-08-07: five of the six rows below rose 20-30 B, each on
-  // whichever side actually measured over, for the same reason as the
-  // `datetime root` row above — core's seven stage classes (Normalizer,
-  // Tokenizer, Parser, Solver, Evaluator, Autocompleter, Printer) and their
-  // frozen config plumbing are now part of every one of these graphs, and
-  // every one of them pulls core. `date` was already under budget on both
-  // sides and is untouched. See spec §13's dated amendment for the full
-  // measured/committed table; only the dimension that was actually over
-  // moved on any row here.
   {
     label: "date",
     from: "@smartput/date",
     names: ["date"],
-    min: 145_450,
-    gzip: 50_850,
+    min: 145_500,
+    gzip: 50_900,
     floor: 138_000,
   },
   {
@@ -679,109 +663,88 @@ export const BUDGETS: EntrySpec[] = [
     min: 1_587_000,
     gzip: 292_000,
   },
-
-  // Task 12: one row per `@smartput/core` stage subpath (spec §6), proving the
-  // separation the subpaths exist for — a caller who imports only `Normalizer`
-  // does not pay for the tokenizer, parser, solver, evaluator, printer or
-  // registry, and none of the others secretly reach back into a sibling stage.
-  //
-  // `normalize` is the one stage with no `Decimal` anywhere in its graph — no
-  // numeral has to become a number until the tokenizer sees it — so this is
-  // the only row in the file under 2 KB: 1665 B measured, nothing like the
-  // ~35 KB `decimal.js` floor every other row below carries. That gap *is*
-  // the separation this milestone's plan row asks to be proven.
   {
-    // Amendment, 2026-08-07: min rises 1700 -> 1750 (measured 1720 B). The
-    // whole-branch review's fix wave found `normalize()`'s `edits` array
-    // frozen but not its `Edit` entries (nor their nested `at` spans) — the
-    // last stage whose output was not fully frozen. Fixed by hand (two
-    // `Object.freeze` calls per entry), deliberately not via the shared
-    // `deepFreeze` helper: that pulls in `decimal.js`, and this row exists
-    // precisely to prove `core/normalize` carries none of the ~35 KB floor
-    // the rows below it do — see this block's own comment above. Gzip is
-    // untouched: 773 B measured still clears 800.
-    label: "core/normalize",
-    from: "@smartput/core/normalize",
-    names: ["Normalizer", "normalize"],
-    min: 1750,
-    gzip: 800,
-  },
-  // The other six sit within 6 KB of each other (36_450-42_256 B measured),
-  // the same band `zip root`/`distance root` occupy above: each is core's
-  // own graph — `Decimal`, `errors.ts`'s `SmartputError`, `freeze.ts` — plus
-  // a few kilobytes of the one stage named.
-  //
-  // `registry` is the largest of the six, and it is the row that actually
-  // carries the resolver graph (`buildRegistry` plus `createResolver`'s
-  // analyzer chain and edit-distance correction pass, spec §6): nothing here
-  // can contain that whole graph and still measure smaller than the row that
-  // is exactly that graph. Paired with `normalize`'s 1665 B two rows up,
-  // which plainly cannot hold a 37+ KB solver either, that rules out both
-  // directions a leak this size would take — a size-ordering guess about
-  // *which pair* leaked into which does not, and an earlier draft of this
-  // comment tried to make one anyway (`parse` at 37_983 B is larger than
-  // `solve` at 37_549 B, which alone neither confirms nor rules out `parse`
-  // containing the solver). The two rows this paragraph actually leans on are
-  // the only ones size alone can settle.
-  //
-  // The ceilings below also carry more headroom than this file's "round up
-  // to the next 50 B" convention implies: `core/registry` measured 42_256 B
-  // on one run and 41_701 B on another, 555 B apart on the same machine with
-  // nothing between the runs but re-measuring. Each ceiling rounds up from
-  // the higher of its two runs, so the ~600 B of slack these six rows carry
-  // is measurement jitter, not a rounding choice — still two orders of
-  // magnitude under what a genuine cross-stage leak would cost.
-  {
-    label: "core/tokenize",
-    from: "@smartput/core/tokenize",
-    names: ["Tokenizer", "lex"],
-    min: 39_950,
-    gzip: 16_000,
+    // The selection range, and the one range package that is not a hundred and
+    // forty kilobytes: it names neither Temporal nor chrono, so what it costs is
+    // core's own graph plus `numberFromWords`. Roughly what `zip root` and
+    // `distance root` cost, which is the band a kind with no data table sits in.
+    label: "range",
+    from: "@smartput/range",
+    names: ["RANGE_KINDS"],
+    min: 41_600,
+    gzip: 16_750,
   },
   {
-    label: "core/parse",
-    from: "@smartput/core/parse",
-    names: ["Parser"],
-    min: 38_000,
+    // The `./class` subpath, measured to record that it is an *ergonomics* door
+    // rather than a size one — 200 B above the root, not below it. `Range.parse`
+    // reaches the same phrase grammar the matcher does, and that grammar reads
+    // spelled counts through `@smartput/number`, so the subpath cannot be
+    // cheaper than the package. A future refactor that makes it genuinely
+    // lighter will trip the floor here and be noticed rather than assumed.
+    label: "range/class",
+    from: "@smartput/range/class",
+    names: ["Range"],
+    min: 41_800,
+    gzip: 16_750,
+  },
+  // Every row from here to the end of the range block was re-measured when
+  // comparison shipped, and moved by 5-48 B. Nothing in those packages changed:
+  // the six generated signatures, the two-character operator table in the lexer
+  // and six entries in the Pratt binding map all live in core, and core is in
+  // every one of these bundles. A milestone that adds to core adds to all of
+  // them, and the whole reason these are one-sided budgets rather than
+  // assertions is so that shift is a number someone reads rather than a test
+  // someone silences.
+  // What a comparison returns, and the smallest kind in the repo: an opaque
+  // spec with one aliasless unit, a two-branch formatter and a six-line class.
+  // The number is almost entirely core's graph, which is the point of measuring
+  // it — a regression here would mean the kind had grown a table.
+  {
+    label: "boolean",
+    from: "@smartput/boolean",
+    names: ["boolean", "truthOf"],
+    min: 33_850,
+    gzip: 13_500,
+  },
+  {
+    label: "boolean/class",
+    from: "@smartput/boolean/class",
+    names: ["Bool"],
+    min: 34_200,
+    gzip: 13_650,
+  },
+  // The query package's three entries. The number worth reading is the gap:
+  // each dialect is ~36 KB and the root is ~59 KB, so a dialect is *not* the
+  // root plus an emitter — it is core's graph plus an emitter, and the ~22 KB
+  // between them is the clause grammar and the schema index that a compiler
+  // never links. That is ruling R3 measured rather than asserted, and a dialect
+  // that started importing the parser would land on the root's number here.
+  //
+  // Core is in every one of the three because `errors.ts` extends
+  // `SmartputError`, which is deliberate: a caller distinguishes "no reading"
+  // from "a bug in the emitter" by class, and a query error that were a plain
+  // `Error` would be indistinguishable from a `TypeError`. The floor is what
+  // makes that visible if someone later "optimises" it away.
+  {
+    label: "query root (grammar + schema, no dialect)",
+    from: "@smartput/query",
+    names: ["QueryEngine", "defineSchema"],
+    min: 59_200,
+    gzip: 21_950,
+  },
+  {
+    label: "query/sql",
+    from: "@smartput/query/sql",
+    names: ["SqlCompiler"],
+    min: 36_550,
+    gzip: 14_700,
+  },
+  {
+    label: "query/mongo",
+    from: "@smartput/query/mongo",
+    names: ["MongoCompiler"],
+    min: 37_900,
     gzip: 15_150,
-  },
-  {
-    // Amendment, 2026-08-07: min rises 37_550 -> 37_600 (measured 37_564 B).
-    // The whole-branch review's fix wave froze `Solver.all`'s returned array
-    // itself, not just each `Resolution` inside it — see the spec's dated
-    // amendment for the measured/committed detail. Gzip is untouched: 14_843
-    // B measured still clears 14_850.
-    label: "core/solve",
-    from: "@smartput/core/solve",
-    names: ["Solver"],
-    min: 37_600,
-    gzip: 14_850,
-  },
-  {
-    label: "core/eval",
-    from: "@smartput/core/eval",
-    names: ["Evaluator"],
-    min: 36_450,
-    gzip: 14_500,
-  },
-  {
-    label: "core/print",
-    from: "@smartput/core/print",
-    names: ["Printer"],
-    min: 40_950,
-    gzip: 16_250,
-  },
-  {
-    // The registry subpath, importing both the constructor and the resolver
-    // factory `stages.test.ts` used to have no public way to reach — see
-    // `parse/candidates.ts`'s `createResolver`. Same band as the rest: this
-    // is `buildRegistry` and `createResolver` themselves, not the solver they
-    // feed.
-    label: "core/registry",
-    from: "@smartput/core/registry",
-    names: ["buildRegistry", "createResolver"],
-    min: 42_300,
-    gzip: 16_550,
   },
 ];
 

@@ -7,11 +7,11 @@ import type {
   Weights,
 } from "@smartput/core";
 import { createEngine, SmartputError } from "@smartput/core";
+import { english as en } from "@smartput/core/locale/en";
 import { COUNTRIES, definePlace, POSTAL_FORMATS, place } from "@smartput/country";
 import { datetime } from "@smartput/datetime";
 import datetimeEn from "@smartput/datetime/locale/en";
 import { BUILTIN_KINDS } from "@smartput/kinds";
-import { english as en } from "@smartput/locale-en";
 import { CURRENCIES, money, snapshot } from "@smartput/rate";
 import moneyEn from "@smartput/rate/locale/en";
 

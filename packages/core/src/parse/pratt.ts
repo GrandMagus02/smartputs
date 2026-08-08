@@ -35,6 +35,17 @@ const IMPLIED_COUNT = new Decimal(1);
 export type BinaryOp = Exclude<OpSymbol, "in">;
 
 const BINDING: Record<BinaryOp, number> = {
+  // Looser than everything, conversion included — ruling C2. `1 kg in g > 500`
+  // is `(1 kg in g) > 500`, which is the only reading anyone means, and
+  // `CONVERT_BINDING` is 5. Left-associative like the rest, which is what makes
+  // `1 < 2 < 3` parse as `(1 < 2) < 3` and then fail for want of a
+  // `< | boolean | number` signature rather than for want of a chain rule.
+  "<": 3,
+  "<=": 3,
+  ">": 3,
+  ">=": 3,
+  "=": 3,
+  "!=": 3,
   "+": 10,
   "-": 10,
   // Between + and *: "50 + 20% of 100" is 50 + (20% of 100). "of" arrives as

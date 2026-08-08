@@ -1,5 +1,5 @@
 {
-  "name": "@smartput/locale-en",
+  "name": "@smartput/range",
   "version": "0.0.0",
   "type": "module",
   "sideEffects": false,
@@ -8,10 +8,18 @@
       "bun": "./src/index.ts",
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
+    },
+    "./class": {
+      "bun": "./src/class.ts",
+      "types": "./dist/class.d.ts",
+      "default": "./dist/class.js"
     }
   },
   "dependencies": {
     "@smartput/core": "workspace:*",
-    "decimal.js": "^10.6.0"
+    "@smartput/number": "workspace:*"
+  },
+  "devDependencies": {
+    "@smartput/kinds": "workspace:*"
   }
 }

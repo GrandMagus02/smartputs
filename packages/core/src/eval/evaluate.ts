@@ -21,10 +21,12 @@ export interface EvaluateOptions {
   input: string;
   kindMeta?: Readonly<Record<string, Readonly<Record<string, unknown>>>>;
   rates?: RateLookup;
+  /** Significant digits a comparison rounds to. See `COMPARE_PRECISION`. */
+  comparePrecision?: number | "exact";
 }
 
 export function evaluateNode(opts: EvaluateOptions): EvalResult {
-  const { program, resolution, registry, locale, input, rates } = opts;
+  const { program, resolution, registry, locale, input, rates, comparePrecision } = opts;
   const kindMeta = opts.kindMeta ?? {};
   const assumptions: Assumption[] = [];
   const seen = new Set<string>();
@@ -43,6 +45,7 @@ export function evaluateNode(opts: EvaluateOptions): EvalResult {
     input,
     note,
     ...(rates ? { rates } : {}),
+    ...(comparePrecision === undefined ? {} : { comparePrecision }),
   });
 
   const evalNode = (n: Node): Value => {

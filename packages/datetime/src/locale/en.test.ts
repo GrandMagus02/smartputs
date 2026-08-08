@@ -1,8 +1,8 @@
 import { expect, test } from "bun:test";
 import { composeLocale, createEngine } from "@smartput/core";
+import { english as coreEn } from "@smartput/core/locale/en";
 import { BUILTIN_KINDS } from "@smartput/kinds";
 import BUILTIN_EN from "@smartput/kinds/locale/en";
-import { english as coreEn } from "@smartput/locale-en";
 import { OFFSET_ZONES, ZONES } from "@smartput/timezone";
 import { datetime } from "../datetime";
 import { TEST_NOW, TEST_ZONE } from "../temporal";

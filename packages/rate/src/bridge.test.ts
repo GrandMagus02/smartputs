@@ -8,9 +8,9 @@ import {
   SmartputError,
   type Value,
 } from "@smartput/core";
+import { english as en } from "@smartput/core/locale/en";
 import { place } from "@smartput/country";
 import placeEn from "@smartput/country/locale/en";
-import { english as en } from "@smartput/locale-en";
 import { number } from "@smartput/number";
 import { money } from "./money";
 import { snapshot } from "./snapshot";

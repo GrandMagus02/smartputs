@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test";
+import { english as en } from "@smartput/core/locale/en";
 import { BUILTIN_KINDS, length, number } from "@smartput/kinds";
 import BUILTIN_EN from "@smartput/kinds/locale/en";
-import { english as en } from "@smartput/locale-en";
 import { Decimal } from "./decimal";
 import { createEngine, type EngineOptions } from "./engine";
 import {
