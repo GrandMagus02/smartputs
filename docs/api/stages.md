@@ -25,17 +25,26 @@ against `createEngine` on a plain quantity, a binary expression and a
 convert:
 
 ```ts
+import { composeLocale } from "@smartput/core";
 import { Evaluator } from "@smartput/core/eval";
-import en from "@smartput/core/locale/en";
+import { english } from "@smartput/core/locale/en";
 import { Normalizer } from "@smartput/core/normalize";
 import { Parser } from "@smartput/core/parse";
 import { buildRegistry, createResolver } from "@smartput/core/registry";
 import { Solver } from "@smartput/core/solve";
 import { Tokenizer } from "@smartput/core/tokenize";
 import { BUILTIN_KINDS } from "@smartput/kinds";
+import BUILTIN_EN from "@smartput/kinds/locale/en";
 
-const registry = buildRegistry(BUILTIN_KINDS, [], en.id);
-const resolver = createResolver({ registry, locale: en, packs: [], layers: [en.weights] });
+const en = composeLocale(english, BUILTIN_EN);
+
+const registry = buildRegistry(BUILTIN_KINDS, [en]);
+const resolver = createResolver({
+  registry,
+  locales: [en],   // recognition is many-locale
+  format: en,      // generation, the case fold, and a literal's attribution
+  layers: [english.weights],
+});
 
 const normalizer = new Normalizer();
 const tokenizer = new Tokenizer({ locale: en, registry });
@@ -87,10 +96,23 @@ new Normalizer().run("  30 deg  ");
 
 ```ts
 class Tokenizer {
-  constructor(cfg: { locale: Locale; registry: Registry; now?: () => number; timeZone?: string });
+  constructor(cfg: {
+    locale: Locale;                 // the FORMAT locale: number grammar, segmentation, the case fold
+    locales?: readonly Locale[];    // every installed locale; defaults to [locale]
+    registry: Registry;
+    layers?: (Weights | undefined)[];
+    now?: () => number;
+    timeZone?: string;
+  });
   run(input: string | NormalizedInput, opts?: { timeZone?: string }): TokenStream;
 }
 ```
+
+Two locale fields, because only part of lexing is many-locale. `locale` is the
+one the engine writes and is what decides how a number is grouped and where a
+word run is cut; `locales` is every installed language and is read for the two
+things that *are* many-locale — keywords and spelled numerals. `layers` breaks
+a tie between two languages claiming the same word run as a number.
 
 `@smartput/core/tokenize`, alongside the four pure functions it composes:
 `lex`, `foldLiterals`, `foldNumerals`, `foldWordOps`. Accepts either a raw
@@ -127,7 +149,12 @@ here, it is exported from the root barrel only, not yet from
 import { Parser } from "@smartput/core/parse";
 import { createResolver } from "@smartput/core/registry";
 
-const resolver = createResolver({ registry, locale: en, packs: [], layers: [en.weights] });
+const resolver = createResolver({
+  registry,
+  locales: [en],
+  format: en,
+  layers: [english.weights],
+});
 const parser = new Parser({ resolver });
 const program = parser.run(stream); // stream from the Tokenizer example above
 program.nodes[program.root.id] === program.root; // true
@@ -177,6 +204,7 @@ class Evaluator {
     locale: string;   // locale id, not the Locale object
     kindMeta?: Record<KindId, Record<string, unknown>>;
     rates?: RateLookup;
+    comparePrecision?: number | "exact";
   });
   run(program: Program, resolution: Resolution): Evaluation;
 }

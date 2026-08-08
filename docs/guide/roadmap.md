@@ -16,7 +16,7 @@ Each milestone is independently shippable and gets its own implementation plan.
 | **Word math** | `NumeralParser`, `cardinalNumerals`, numeral folding, word operators — `"twenty two kg"`, `"ten km plus five km"`. | **Shipped** |
 | **M4** | `@smartput/datetime`: datetime kind, chrono bridge, Temporal ops, timezones. Core's literal-matcher seam and opaque-kind units. | **Shipped** |
 | **M4.5** | `@smartput/shared`: an engine-free parser, operation algebra and value-class factory. Every ratio kind gains `./units`, `./validate`, `./class` subpaths, plus `@smartput/kinds/validate` and `/class` barrels. Per-entry byte budgets enforced in CI. | **Shipped** |
-| **M5** | `@smartput/color`, the Ukrainian locale across every package, `defineLocalePack`, analyzer helpers, `assertLocaleContract`. | Planned |
+| **M5** | The Ukrainian locale across every kind package, and the [three-type locale model](#the-locale-model-and-the-type-it-split-in-three) that made room for it: `Language`, `Vocabulary`, `Locale` and `composeLocale`, many-locale recognition, the analyzer helpers, `assertLocaleContract`. `@smartput/color` was in scope and did not ship. | **Shipped** |
 | **M6** | `@smartput/country` and its three layers below: place kind, countries and cities, `kyiv to warsaw` as a distance, postal codes, the datetime and rates bridges, GeoNames providers, place completion. | **Shipped** |
 | **Ranges** | `date` and `time` as kinds of their own, `range-core`, and the three range kinds — `whole week`, `10:00 - 20:00`, `yesterday morning`, `from today until friday`. Core's one new field: [`OpSignature.weight`](#ranges-and-the-one-field-they-cost). | **Shipped** |
 | **Stages** | `createEngine`'s 329-line closure split into [seven frozen, config-holding stage classes](/api/stages): `Program` and stable node ids replace a bare AST, `Resolution` (renamed from `Assignment`) is keyed by id instead of node object, and the [`Printer`](/api/printer) is the one genuinely new stage. Two behaviour changes: `Result.spans` now indexes the caller's string, and every public output is deep-frozen. | **Shipped** |
@@ -32,7 +32,8 @@ shape (`3pm`, `kyiv to warsaw`, `SW1A 1AA`) has taken a change out of core, and
 M6 took three. The solver has never moved.
 
 Word math has shipped in full: `NumeralParser`, `cardinalNumerals`, and
-`Locale.numerals` are [documented](/api/define-locale#numerals), and the two
+`Language.numerals` are
+[documented](/guide/locales#spelled-out-numbers), and the two
 token passes that fold spelled numerals and word operators into ordinary
 number/op tokens run on every `evaluate()` call — see
 [Stage 2b — Fold](/guide/pipeline). `"twenty two kg"` and `"ten km plus five
@@ -198,6 +199,40 @@ second claimant, so two fully specified endpoints cannot reach a range through
 the op path at all. They are served by the `from X to Y` literal matcher
 instead. The alternative was taking `3pm in tokyo` away.
 
+## The locale model, and the type it split in three
+
+`2 кг в грамах` answers `2 000 грамів`, and `5 кг in pounds` answers in English
+on the same engine — see [Locales](/guide/locales). Ukrainian ships across all
+fifteen kind packages, but the shape it forced is the milestone.
+
+The old `Locale` was one descriptor holding a language's mechanics *and* every
+unit's words, so translating a kind meant editing the language, and a kind
+published by a third party had nowhere to put its own. It is three types now: a
+`Language` is mechanics with no unit word anywhere in it — number grammar,
+keywords, analyzers, `selectForm`; a `Vocabulary` is the words for one kind in
+one language, naming its kind by **id string** so it never imports it and ships
+from the kind's own package under `./locale/<id>`; and a `Locale` is what
+`composeLocale` builds from the two, and the only thing that may. Every wiring
+error a caller can make — a vocabulary whose locale is not the language's, two
+vocabularies for one kind, a unit the kind does not declare — is raised there,
+on boot.
+
+Recognition is **many**-locale and generation is **one**. An engine given
+`[en, uk]` offers a reading if any installed language can reach the surface, and
+prints in whichever language `format` names. Both halves of that asymmetry are
+deliberate: a `Result` is one string in one language rather than a table, and
+the two input-side concerns that are not recognition — number grammar and
+segmentation — follow `format` too, which is why `1,5 кг` on an English-format
+engine reads the comma as a group separator.
+
+Nothing above needed the solver, the registry's scoring or a new stage. What it
+did need was one field on a candidate (`locale`), one more term in the dedupe
+key, and a `locale:<id>` weight selector — the same shape every other milestone
+since M1 has cost.
+
+`@smartput/color` was in this milestone's scope and did not ship. It is the one
+line of M5 still outstanding, and it is a kind rather than a locale change.
+
 ## Percent, finished
 
 `percent` shipped in M2 with `of`, `+` and `-`. Two readings people actually
@@ -358,6 +393,7 @@ fractions (`half a kg`), and ordinals.
   `Kind`. A kind that wants none of the three is unaffected by all three — every
   one of them is opt-in, and `datasize` is still five lines.
 - **A new ratio kind reaches both doors from one table.** `units.ts` is the only
-  place a ratio or an English alias is written; the descriptor derives its
-  lexicon from it and the micro path reads it directly, so the two paths cannot
-  drift. `kinds/src/contract.test.ts` fails if they do.
+  place a ratio or an English alias is written; `locale/en.ts` derives the
+  kind's English `Vocabulary` from it through `aliasesFor`, and the micro path
+  reads it directly, so the two paths cannot drift.
+  `kinds/src/contract.test.ts` fails if they do.

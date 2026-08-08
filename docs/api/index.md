@@ -136,10 +136,12 @@ Full definitions: [Types](/api/types).
 ## Shape of a call
 
 ```ts
-import { createEngine } from "@smartput/core";
-import en from "@smartput/core/locale/en";
+import { composeLocale, createEngine } from "@smartput/core";
+import { english } from "@smartput/core/locale/en";
 import { BUILTIN_KINDS } from "@smartput/kinds";
+import BUILTIN_EN from "@smartput/kinds/locale/en";
 
+const en = composeLocale(english, BUILTIN_EN);
 const engine = createEngine({ locales: [en], kinds: BUILTIN_KINDS });
 
 engine.evaluate("1 kg + 500 g"); // Result       — strict, throws

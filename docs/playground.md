@@ -12,16 +12,16 @@ proxied through a server.
 The engine backing most of these demos is:
 
 ```ts
+const en = composeLocale(english, BUILTIN_EN);
 createEngine({ locales: [en], kinds: BUILTIN_KINDS })
 ```
 
-The money demos add one kind and a rate table:
+The money demos add one kind, its words, and a rate table:
 
 ```ts
 createEngine({
-  locales: [en],
+  locales: [composeLocale(english, [...BUILTIN_EN, moneyEn])],
   kinds: [...BUILTIN_KINDS, money],
-  packs: [moneyEn],
   rates: snapshot("EUR", "2026-08-04", { USD: 1.1, GBP: 0.8412, /* … */ }),
 })
 ```

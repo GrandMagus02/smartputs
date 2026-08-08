@@ -33,7 +33,10 @@ try {
 | `DimensionMismatchError` | `5 kg + 3 km` — no matching op signature | `left`, `right`, `op` |
 | `TooAmbiguousError` | the assignment search exceeds `maxCandidates` | `count` |
 | `KindConflictError` | registration: two kinds claim the same id or signature | both source ids |
-| `UnknownKindError` | registration: a `LocalePack` contributes vocabulary for an unregistered kind | `pack`, `kind` |
+| `UnknownKindError` | registration: a vocabulary names a kind, or a unit, the engine does not register | `pack` (the locale id), `kind`, `unit` |
+| `LocaleMismatchError` | `composeLocale`: a vocabulary whose `locale` is not the language's `id` | `locale`, `vocabularyLocale`, `kind` |
+| `VocabularyConflictError` | `composeLocale`: two vocabularies for one kind in one language | `locale`, `kind` |
+| `KeywordConflictError` | registration: two installed languages read one spelling as two *different* connectives | `surface`, `keywords`, `locales` |
 | `DivideByZeroError` | explicit; wraps the `Decimal` throw | — |
 | `MissingRateError` | an FX pair is absent from the snapshot, or no `rates` were supplied | `from`, `to`, `asOf` |
 | `RateProviderError` | a rate provider's fetch failed or returned something unusable | `provider` |
@@ -59,14 +62,17 @@ a live input.
 Three errors are deliberately *not* swallowed, because none of them means "this
 input has no interpretation": `MissingRateError` (a data problem — answering
 `[]` would report "no results" where the truth is "no rate for JPY"), and the
-two registration errors `KindConflictError` and `UnknownKindError`, which
-describe your wiring rather than your user's input. Anything that is not a
+registration errors — `KindConflictError`, `UnknownKindError`,
+`LocaleMismatchError`, `VocabularyConflictError` and `KeywordConflictError` —
+which describe your wiring rather than your user's input. Anything that is not a
 `SmartputError` — a `TypeError` from a bug in the pipeline — keeps its stack
 instead of masquerading as an empty result.
 
-**Registration errors always throw at `createEngine()`.** Never lazily at parse
-time. A bad plugin fails on boot, where the stack trace still points at the
-plugin, rather than on some user's first keystroke.
+**Registration errors always throw at `createEngine()`** — or at
+`composeLocale()`, one call earlier, for the two that are about wiring a
+language to its vocabularies. Never lazily at parse time. A bad plugin fails on
+boot, where the stack trace still points at the plugin, rather than on some
+user's first keystroke.
 
 ## Ambiguity is not a parse failure
 

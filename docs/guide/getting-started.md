@@ -32,16 +32,25 @@ optional weight overrides. Nothing is global, and engines with different options
 coexist in one process.
 
 ```ts
-import { createEngine } from "@smartput/core";
-import en from "@smartput/core/locale/en";
+import { composeLocale, createEngine } from "@smartput/core";
+import { english } from "@smartput/core/locale/en";
 import { BUILTIN_KINDS } from "@smartput/kinds";
+import BUILTIN_EN from "@smartput/kinds/locale/en";
+
+// A language and the words for a kind are two descriptors; `composeLocale`
+// joins them, and is the only thing that may. See [Locales](/guide/locales).
+const en = composeLocale(english, BUILTIN_EN);
 
 const engine = createEngine({
-  locales: [en], // first is primary, rest are fallbacks
+  locales: [en], // every language the engine READS
   kinds: BUILTIN_KINDS, // number, percent, length, mass, duration, temperature,
   //                       tempdelta, angle, datasize, speed, area, volume
 });
 ```
+
+`locales` is plural because recognition is many-locale: a surface gets a reading
+if any installed language can reach it. Generation is single — the engine writes
+in the one language `format` names, defaulting to `locales[0].id`.
 
 ::: tip Kinds are not implicit
 `createEngine` registers nothing on your behalf. Pass `BUILTIN_KINDS`, or the
@@ -143,9 +152,11 @@ import { money, snapshot } from "@smartput/rate";
 import moneyEn from "@smartput/rate/locale/en";
 
 const engine = createEngine({
-  locales: [en],
+  // moneyEn is "quid", "bucks" — colloquial English currency words. It joins
+  // the same list the built-ins' words are in: one vocabulary per kind, per
+  // language, so a kind's words travel with the language rather than beside it.
+  locales: [composeLocale(english, [...BUILTIN_EN, moneyEn])],
   kinds: [...BUILTIN_KINDS, money],
-  packs: [moneyEn], // "quid", "bucks" — colloquial English currency words
   rates: snapshot("EUR", "2026-08-04", { USD: 1.1, GBP: 0.8412 }),
 });
 

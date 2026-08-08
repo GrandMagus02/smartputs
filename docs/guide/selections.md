@@ -95,10 +95,13 @@ excludes the last item and stops at `-2`.
 Ordinary `Value`s, no new field, nothing `JSON.stringify` will choke on.
 
 ```ts
-import { createEngine } from "@smartput/core";
-import en from "@smartput/core/locale/en";
+import { composeLocale, createEngine } from "@smartput/core";
+import { english } from "@smartput/core/locale/en";
 import { BUILTIN_KINDS } from "@smartput/kinds";
+import BUILTIN_EN from "@smartput/kinds/locale/en";
 import { RANGE_KINDS } from "@smartput/range";
+
+const en = composeLocale(english, BUILTIN_EN);
 
 const engine = createEngine({
   locales: [en],

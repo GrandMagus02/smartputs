@@ -114,10 +114,12 @@ bun add @smartput/core
 ```
 
 ```ts
-import { createEngine } from "@smartput/core";
-import en from "@smartput/core/locale/en";
+import { composeLocale, createEngine } from "@smartput/core";
+import { english } from "@smartput/core/locale/en";
 import { BUILTIN_KINDS } from "@smartput/kinds";
+import BUILTIN_EN from "@smartput/kinds/locale/en";
 
+const en = composeLocale(english, BUILTIN_EN);
 const engine = createEngine({ locales: [en], kinds: BUILTIN_KINDS });
 
 engine.evaluate("1 kg + 500 g").formatted; // "1.5 kilograms"
@@ -135,9 +137,10 @@ bun add @smartput/rate
 
 ```ts
 import { money, snapshot } from "@smartput/rate";
+import moneyEn from "@smartput/rate/locale/en";
 
 const engine = createEngine({
-  locales: [en],
+  locales: [composeLocale(english, [...BUILTIN_EN, moneyEn])],
   kinds: [...BUILTIN_KINDS, money],
   rates: snapshot("EUR", "2026-08-04", { USD: 1.1, GBP: 0.8412 }),
 });

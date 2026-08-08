@@ -15,9 +15,10 @@ bun add @smartput/date @smartput/time @smartput/range-core \
 ```
 
 ```ts
-import { createEngine } from "@smartput/core";
-import en from "@smartput/core/locale/en";
+import { composeLocale, createEngine } from "@smartput/core";
+import { english } from "@smartput/core/locale/en";
 import { BUILTIN_KINDS } from "@smartput/kinds";
+import BUILTIN_EN from "@smartput/kinds/locale/en";
 import { datetime } from "@smartput/datetime";
 import datetimeEn from "@smartput/datetime/locale/en";
 import { date } from "@smartput/date";
@@ -26,10 +27,11 @@ import { dateRange } from "@smartput/date-range";
 import { timeRange } from "@smartput/time-range";
 import { datetimeRange } from "@smartput/datetime-range";
 
+const en = composeLocale(english, [...BUILTIN_EN, datetimeEn]);
+
 const engine = createEngine({
   locales: [en],
   kinds: [...BUILTIN_KINDS, datetime, date, time, dateRange, timeRange, datetimeRange],
-  packs: [datetimeEn],
   now: () => Date.now(),
   timeZone: "UTC",
 });
@@ -431,9 +433,8 @@ bun add @smartput/datetime-range @smartput/holiday
 import { datetimeRangeHoliday } from "@smartput/datetime-range/holiday";
 
 const engine = createEngine({
-  locales: [en],
+  locales: [en], // composeLocale(english, [...BUILTIN_EN, datetimeEn]), as above
   kinds: [...BUILTIN_KINDS, datetime, date, time, datetimeRangeHoliday],
-  packs: [datetimeEn],
   now: () => Date.now(),
   timeZone: "UTC",
 });

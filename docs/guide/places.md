@@ -14,10 +14,13 @@ bun add @smartput/country
 ```
 
 ```ts
-import { createEngine } from "@smartput/core";
-import en from "@smartput/core/locale/en";
+import { composeLocale, createEngine } from "@smartput/core";
+import { english } from "@smartput/core/locale/en";
 import { place } from "@smartput/country";
 import { BUILTIN_KINDS } from "@smartput/kinds";
+import BUILTIN_EN from "@smartput/kinds/locale/en";
+
+const en = composeLocale(english, BUILTIN_EN);
 
 const engine = createEngine({
   locales: [en],
@@ -29,8 +32,20 @@ engine.evaluate("japan to france").formatted; // "9,712.518 kilometres"
 ```
 
 `length` has to be registered beside it, because the distance op resolves to a
-length — `BUILTIN_KINDS` covers that. There is no locale pack and no engine
-option: the place names are the data, and the data ships in the package.
+length — `BUILTIN_KINDS` covers that. There is no engine option and no
+vocabulary to install: the place names are the data, and the data ships in the
+package. `@smartput/country/locale/en` exists and carries the unit words, but
+nothing above needs it, because a place is recognised by a literal matcher
+rather than through the alias index.
+
+::: warning It stops being optional next to `datetime`
+Register `place` and `datetime` together and the vocabulary starts to matter.
+Measured on that pair: without it, `3pm in tokyo` raises
+`DimensionMismatchError` and `3pm in japan` comes back as 10,708 kilometres —
+the [zone bridge](/guide/datetime) loses to the distance signature. Install
+`@smartput/country/locale/en` beside `@smartput/datetime/locale/en` and both
+read as zone conversions again.
+:::
 
 `place` is countries and [postal codes](#postal-codes). Cities are a second
 package and a factory call, and the section on
@@ -97,7 +112,6 @@ Cities live in a package of their own and arrive as an argument:
 
 ```ts
 import { createEngine } from "@smartput/core";
-import en from "@smartput/core/locale/en";
 import { definePlace } from "@smartput/country";
 import { ADMIN1, CITIES } from "@smartput/city";
 import { BUILTIN_KINDS } from "@smartput/kinds";

@@ -1,6 +1,6 @@
 ---
 title: createEngine
-description: Compose locales, kinds and packs into an immutable Engine.
+description: Compose locales and kinds into an immutable Engine.
 ---
 
 # createEngine
@@ -15,10 +15,12 @@ process, and every registration error is raised here rather than lazily at parse
 time.
 
 ```ts
-import { createEngine } from "@smartput/core";
-import en from "@smartput/core/locale/en";
+import { composeLocale, createEngine } from "@smartput/core";
+import { english } from "@smartput/core/locale/en";
 import { BUILTIN_KINDS } from "@smartput/kinds";
+import BUILTIN_EN from "@smartput/kinds/locale/en";
 
+const en = composeLocale(english, BUILTIN_EN);
 const engine = createEngine({ locales: [en], kinds: BUILTIN_KINDS });
 ```
 
@@ -29,13 +31,13 @@ interface EngineOptions {
   locales: Locale[];         // required; every language the engine reads
   format?: string;           // the one language it writes; default locales[0].id
   kinds?: Kind[];
-  packs?: LocalePack[];
   weights?: Weights;
   tiebreak?: "error" | "first";
   ambiguityEpsilon?: number;
   maxCandidates?: number;
   kindMeta?: Readonly<Record<KindId, Readonly<Record<string, unknown>>>>;
   formatPrecision?: number;
+  comparePrecision?: number | "exact";
   rates?: RateLookup;
   rounding?: Decimal.Rounding;
   now?: () => number;
@@ -46,8 +48,21 @@ interface EngineOptions {
 ### locales
 
 Required, and must be non-empty — an empty array throws. Every entry is a
-language the engine **reads**: a surface gets a reading if any of them can reach
-it, so a `[en, uk]` engine answers `5 kg`, `5 кг` and `5 кг in pounds` alike.
+`Locale`, which is a `Language` and its `Vocabulary` list joined by
+[`composeLocale`](/guide/locales) and by nothing else; a bare `Language` is not
+one and does not work.
+
+Every entry is a language the engine **reads**: a surface gets a reading if any
+of them can reach it, so a `[en, uk]` engine answers `5 kg`, `5 кг` and
+`5 кг in pounds` alike.
+
+There is no separate `packs` option. Vocabulary that is not a built-in — money's
+`quid`, datetime's `tokyo`, a private ticker's words — is named in the same
+`composeLocale` call as everything else, one vocabulary per kind per language:
+
+```ts
+locales: [composeLocale(english, [...BUILTIN_EN, moneyEn, datetimeEn])];
+```
 
 ### format
 
@@ -85,10 +100,8 @@ convert at all.
 Two kinds claiming the same id, or the same op signature, raise
 `KindConflictError` naming both sources. Registration order is irrelevant.
 
-### packs
-
-Vocabulary contributions from `defineLocalePack`. A pack naming an unregistered
-kind raises `UnknownKindError` here — never a silent no-op.
+A vocabulary naming a kind no `kinds` entry registers raises `UnknownKindError`
+here — never a silent no-op.
 
 ### weights
 
@@ -148,6 +161,14 @@ createEngine({
 Default `26` (`DISPLAY_PRECISION`) — two guard digits below the 28 `Decimal`
 computes at, which is what stops a round trip through a non-terminating ratio
 from surfacing as trailing noise.
+
+### comparePrecision
+
+Significant digits both operands of a [comparison](/guide/comparison) are
+rounded to before it decides. Defaults to the same `26` `formatPrecision` does,
+so two values that print identically compare identically. `"exact"` compares the
+canonicals as computed, for a caller checking the arithmetic rather than the
+intent.
 
 ### rates
 

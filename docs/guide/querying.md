@@ -91,18 +91,22 @@ type `revenue`.
 You build the engine. The kinds you register decide what a filter can say.
 
 ```ts
-import { createEngine } from "@smartput/core";
-import en from "@smartput/core/locale/en";
+import { composeLocale, createEngine } from "@smartput/core";
+import { english } from "@smartput/core/locale/en";
 import { BUILTIN_KINDS } from "@smartput/kinds";
+import BUILTIN_EN from "@smartput/kinds/locale/en";
 import { datetime } from "@smartput/datetime";
+import datetimeEn from "@smartput/datetime/locale/en";
 import { dateRange } from "@smartput/date-range";
 import { money, snapshot } from "@smartput/rate";
+import moneyEn from "@smartput/rate/locale/en";
 import { place } from "@smartput/country";
+import placeEn from "@smartput/country/locale/en";
 import { QueryEngine } from "@smartput/query";
 import { SqlCompiler } from "@smartput/query/sql";
 
 const engine = createEngine({
-  locales: [en],
+  locales: [composeLocale(english, [...BUILTIN_EN, datetimeEn, moneyEn, placeEn])],
   kinds: [...BUILTIN_KINDS, datetime, dateRange, place, money],
   rates: snapshot("EUR", "2026-08-04", { USD: 1.1 }),
 });

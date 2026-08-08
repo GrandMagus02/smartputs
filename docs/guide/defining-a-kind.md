@@ -11,12 +11,11 @@ too, which is what makes the extension seam real rather than aspirational.
 ## A minimal kind is five lines
 
 ```ts
-import { createEngine, defineKind } from "@smartput/core";
-import en from "@smartput/core/locale/en";
-import { BUILTIN_KINDS } from "@smartput/kinds";
+import { composeLocale, createEngine, defineKind } from "@smartput/core";
+import { english } from "@smartput/core/locale/en";
 
 const dataSize = defineKind({
-  id: "datasize",
+  id: "data-size",
   value: {
     mode: "ratio",
     canonical: "b",
@@ -24,9 +23,14 @@ const dataSize = defineKind({
   },
 });
 
-const engine = createEngine({ locales: [en], kinds: [...BUILTIN_KINDS, dataSize] });
-engine.evaluate("2 mib + 500 kb in kb"); // 2597.152 kb
+// A language with no vocabulary at all — the second bullet below, run.
+const engine = createEngine({ locales: [composeLocale(english, [])], kinds: [dataSize] });
+engine.evaluate("2 mib + 500 kb in kb"); // 2,597.152 kb
 ```
+
+`data-size` and not `datasize`: [`datasize` is a built-in](/guide/kinds), and two
+kinds claiming one id is a `KindConflictError` at `createEngine()` whichever of
+them is the plugin.
 
 Everything else has a working default:
 
@@ -182,9 +186,21 @@ It asserts that the kind registers, that its canonical unit is in its own unit
 table, that every unit has at least one typeable alias, and that no ratio is
 zero — a zero ratio makes a unit unconvertible in both directions.
 
-::: info Status
-`assertLocaleContract` — every lexeme's inflected forms reach their lemma, every
-plural category named by `Intl.PluralRules` has a `display` entry or a `symbol`
-fallback, and the analyzer chain is idempotent on already-lemmatized input —
-lands with the Ukrainian locale in M5.
-:::
+`@smartput/core/testing` also exports `assertLocaleContract`, which shipped with
+the Ukrainian locale in M5. It is the other half of the pair — `assertKindContract`
+asks whether a *kind* is well formed, this asks whether a *(locale, kinds)* pair
+is:
+
+```ts
+import { assertLocaleContract } from "@smartput/core/testing";
+
+assertLocaleContract(composeLocale(english, BUILTIN_EN), BUILTIN_KINDS);
+```
+
+Every unit has words, every word reads back to its own unit through the analyzer
+chain, every grammatical key `selectForm` can ask for exists in the table it
+will index, and — the check four Ukrainian kinds shipped broken without —
+**every string the printer can emit reads back as what it printed**. All the
+checks run before any of them throws, so a half-translated vocabulary reports
+its gaps in one go. See
+[What `assertLocaleContract` demands](/guide/locales#what-assertlocalecontract-demands).

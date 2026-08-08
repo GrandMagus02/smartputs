@@ -97,7 +97,7 @@ function normalize(input: string, opts?: NormalizerOptions): NormalizedInput;
 
 NFKC normalization, zero-width characters stripped, the degree sign removed
 (so `deg` never has to see it — `@smartput/temperature`'s `°C` alias is a
-concern of its own lexicon, not the normalizer), and the five dash characters
+concern of its own vocabulary, not the normalizer), and the five dash characters
 people actually type (`−` `‒` `–` `—` `―`) unified to ASCII `-`, the target,
 not one of the five. Every pass is
 individually gated in `NormalizerOptions` and on by default. **Never throws:**
@@ -242,9 +242,14 @@ analyze: [
 Analyzers return *several* candidates, not one — morphological ambiguity is
 resolved by the same machinery that resolves lexical ambiguity, and the
 negative weight on a stripped suffix means an exact alias always outranks a
-guessed stem. Each analyzed form is then looked up in the merged lexicon of
-every registered kind, which is where the candidate set above comes from. See
-[Locales](/guide/locales).
+guessed stem. Each analyzed form is then looked up in one alias index built from
+every installed vocabulary, which is where the candidate set above comes from.
+
+There is one chain **per installed language**, and `resolve` unions what all of
+them produce: recognition is many-locale, so a Ukrainian inflection reaches the
+Ukrainian vocabulary that lists its stem even on an engine that prints English.
+`Candidate.locale` records which language spelled the reading, and `locale:<id>`
+is a weight selector like any other. See [Locales](/guide/locales).
 
 The Pratt parser itself builds the AST from there: infix `+ - * /`, prefix
 `-`, the `in` / `to` / `as` conversion keyword, and parentheses. Nodes carry
@@ -365,14 +370,17 @@ class Printer {
 }
 ```
 
-`value()` is what stage 5 always ended with — `Intl.NumberFormat` for number
-grammar, the lexicon for the unit word, `Intl.PluralRules` for the plural
-category:
+`value()` is what stage 5 always ended with — number grammar from the format
+language's `numberFormat`, the unit word from that language's vocabulary for the
+kind, and the key into the unit's `forms` table from its `selectForm`. English's
+`selectForm` is `Intl.PluralRules`; that is the default implementation, not the
+model, which is why Ukrainian's genitive plural needs no core change:
 
 ```
-1 kg + 500 g  →  "1.5 kilograms"    // mass:kg declares display forms
-2 km in m     →  "2,000 metres"     // length:m declares display forms
+1 kg + 500 g  →  "1.5 kilograms"    // mass:kg has a forms table
+2 km in m     →  "2,000 metres"     // length:m has a forms table
 3 m * 4 m     →  "12m²"             // area:m2 declares only a symbol
+2 кг в грамах →  "2 000 грамів"     // same units, uk as the format locale
 ```
 
 `print()`/`node()` are new: three modes over a `Program`, one of which —

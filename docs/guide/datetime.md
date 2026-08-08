@@ -21,16 +21,16 @@ bun add @smartput/datetime
 ```
 
 ```ts
-import { createEngine } from "@smartput/core";
-import en from "@smartput/core/locale/en";
+import { composeLocale, createEngine } from "@smartput/core";
+import { english } from "@smartput/core/locale/en";
 import { datetime } from "@smartput/datetime";
 import { BUILTIN_KINDS } from "@smartput/kinds";
+import BUILTIN_EN from "@smartput/kinds/locale/en";
 import datetimeEn from "@smartput/datetime/locale/en";
 
 const engine = createEngine({
-  locales: [en],
+  locales: [composeLocale(english, [...BUILTIN_EN, datetimeEn])],
   kinds: [...BUILTIN_KINDS, datetime],
-  packs: [datetimeEn],
   now: () => Date.now(),      // injectable clock, epoch milliseconds
   timeZone: "UTC",            // defaults to the host zone
 });
@@ -220,23 +220,35 @@ them, which is why a zone id from either one works in every position.
 
 ### Adding vocabulary
 
-Zone words are ordinary lexicon entries, so a locale pack contributes them —
-the same channel `@smartput/datetime/locale/en` itself uses for `germany`,
-`ukraine` and `britain`:
+Zone words are ordinary [`Vocabulary`](/guide/locales) entries — the same
+channel `@smartput/datetime/locale/en` itself uses for `germany`, `ukraine` and
+`britain`. A language holds **one** vocabulary per kind, so an extra word merges
+into the shipped table rather than arriving as a second one; a second
+`datetime` vocabulary is a `VocabularyConflictError` at `composeLocale()`:
 
 ```ts
-import { defineLocalePack } from "@smartput/core";
+import { composeLocale, defineVocabulary } from "@smartput/core";
+import datetimeEn from "@smartput/datetime/locale/en";
 
-const myZones = defineLocalePack({
-  locale: "en",
-  contributes: { datetime: { "Europe/Kyiv": ["kyivcity"] } },
+const kyiv = datetimeEn.units["Europe/Kyiv"];
+
+const myZones = defineVocabulary({
+  ...datetimeEn,
+  units: {
+    ...datetimeEn.units,
+    "Europe/Kyiv": { ...kyiv, aliases: [...(kyiv?.aliases ?? []), "kyivcity"] },
+  },
 });
 
-createEngine({ /* … */ packs: [myZones] }).evaluate("3pm in kyivcity");
+createEngine({
+  locales: [composeLocale(english, [...BUILTIN_EN, myZones])],
+  kinds: [...BUILTIN_KINDS, datetime],
+}).evaluate("3pm in kyivcity");
 ```
 
-A zone the package does not ship at all is a `extendsKind` patch, since an
-opaque kind's `units` merge exactly like a ratio kind's:
+A zone the package does not ship at all is an `extendsKind` patch, since an
+opaque kind's `units` merge exactly like a ratio kind's. Those units are unit
+**ids** and carry no words — the words go where every kind's words go:
 
 ```ts
 import { defineKind } from "@smartput/core";
@@ -244,14 +256,19 @@ import { defineKind } from "@smartput/core";
 const extraZones = defineKind({
   id: "datetime-extra-zones",
   extendsKind: "datetime",
-  value: {
-    mode: "opaque",
-    units: { "Africa/Lagos": { aliases: ["lagos"], symbol: "WAT" } },
+  value: { mode: "opaque", units: ["Africa/Lagos"] },
+});
+
+const lagosEn = defineVocabulary({
+  ...datetimeEn,
+  units: {
+    ...datetimeEn.units,
+    "Africa/Lagos": { aliases: ["lagos"], symbol: "WAT" },
   },
 });
 
 createEngine({
-  locales: [en],
+  locales: [composeLocale(english, [...BUILTIN_EN, lagosEn])],
   kinds: [...BUILTIN_KINDS, datetime, extraZones],
 }).evaluate("3pm in lagos").formatted;
 // "2026-01-15 16:00 Africa/Lagos"
@@ -275,9 +292,8 @@ bun add @smartput/datetime @smartput/holiday
 import { datetimeWithHolidays } from "@smartput/datetime/holiday";
 
 const engine = createEngine({
-  locales: [en],
+  locales: [composeLocale(english, [...BUILTIN_EN, datetimeEn])],
   kinds: [...BUILTIN_KINDS, datetimeWithHolidays()],
-  packs: [datetimeEn],
   now: () => Date.now(),
   timeZone: "UTC",
 });

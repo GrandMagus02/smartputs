@@ -25,6 +25,7 @@ algebra and an immutable class, none of which needs a registry or `decimal.js`
 | --- | --- | --- | --- |
 | `number` | `one` | *(dimensionless)* | `@smartput/number/validate` |
 | `percent` | `%` | `%` | `@smartput/percent/validate` |
+| `boolean` | *(opaque)* | `bool` — what a [comparison](/guide/comparison) evaluates to, and the one built-in unit nobody types | — |
 | `length` | `m` | `mm` `cm` `m` `km` `in` `ft` `yd` `mi` | `@smartput/length/validate` |
 | `mass` | `g` | `mg` `g` `kg` `t` `oz` `lb` | `@smartput/mass/validate` |
 | `duration` | `s` | `ms` `s` `min` `h` `d` `wk` | `@smartput/duration/validate` |
@@ -35,6 +36,17 @@ algebra and an immutable class, none of which needs a registry or `decimal.js`
 | `speed` | `mps` | `mps` `kph` `mph` `knot` | `@smartput/speed/validate` |
 | `area` | `m2` | `m2` `cm2` `km2` `hectare` `acre` | `@smartput/area/validate` |
 | `volume` | `l` | `l` `ml` `m3` `gal` `pint` | `@smartput/volume/validate` |
+| `datarate` | `bps` | `bps` `kbps` `mbps` `gbps` `tbps` | `@smartput/datarate/validate` |
+| `power` | `w` | `w` `kw` `mw` `gw` `hp` | `@smartput/power/validate` |
+| `energy` | `j` | `j` `kj` `mj` `wh` `kwh` `mwh` `cal` `kcal` `btu` | `@smartput/energy/validate` |
+| `tempo` | `bpm` | `bpm` `hz` | `@smartput/tempo/validate` |
+
+`datarate` and `energy` are **bridging** kinds — datasize ÷ duration and power ×
+duration. Each names its operand kinds by id string, so it depends on neither
+side of the bridge: `1 gb / 10 s in mbps` is `800mbps` and `5 kw * 2 h in kwh`
+is `10kwh`, and neither `datasize` nor `power` knows the other kind exists.
+`boolean` has no words in any language and is the one built-in unit nobody
+types — a comparison produces it, and `bool` reaching a user would be a bug.
 
 Two more kinds ship but are **not** in `BUILTIN_KINDS`:
 
@@ -103,7 +115,8 @@ For color, datetime, and anything that is not a scalar:
 ```ts
 type OpaqueSpec = {
   mode: "opaque";
-  units?: Record<string, UnitLexeme | string[]>;            // labels, not ratios
+  units?: readonly string[];                                // unit ids, no words
+  ordered?: boolean;                                        // opt in to < <= > >=
   parse?: (token: string, ctx: EvalCtx) => unknown | null;  // null = not mine
   equals?: (a: unknown, b: unknown) => boolean;
 };
@@ -116,6 +129,16 @@ ops are generated for an opaque kind, so every operation it supports is an
 explicit signature, and recognition of anything not shaped like
 `<number><unit-word>` goes through a
 [literal matcher](/api/define-kind#literals).
+
+`units` is a list of **ids** and holds no word at all, the same as a ratio
+kind's unit keys: the names go in a [`Vocabulary`](/guide/locales), so
+`Europe/Kyiv` can be called `kyiv` in one language and `Київ` in another without
+the kind knowing either exists.
+
+`ordered` is opt-in rather than a default because an opaque kind's canonical is
+whatever that kind chose. `datetime`'s is an instant and orders; `place`'s is a
+GeoNames feature id, and `kyiv > warsaw` would have been a confident answer
+about nothing.
 
 ## The value model
 

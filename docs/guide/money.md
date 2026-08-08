@@ -20,16 +20,16 @@ bun add @smartput/rate
 ```
 
 ```ts
-import { createEngine } from "@smartput/core";
-import en from "@smartput/core/locale/en";
+import { composeLocale, createEngine } from "@smartput/core";
+import { english } from "@smartput/core/locale/en";
 import { BUILTIN_KINDS } from "@smartput/kinds";
+import BUILTIN_EN from "@smartput/kinds/locale/en";
 import { money, snapshot } from "@smartput/rate";
 import moneyEn from "@smartput/rate/locale/en";
 
 const engine = createEngine({
-  locales: [en],
+  locales: [composeLocale(english, [...BUILTIN_EN, moneyEn])],
   kinds: [...BUILTIN_KINDS, money],
-  packs: [moneyEn],
   rates: snapshot("EUR", "2026-08-04", { USD: 1.1, GBP: 0.8412 }),
 });
 

@@ -196,13 +196,16 @@ The shortest matcher that works, and the kind that registers it:
 
 ```ts
 import {
-  BUILTIN_KINDS,
+  composeLocale,
   createEngine,
   Decimal,
   defineKind,
+  defineVocabulary,
   type LiteralMatcher,
 } from "@smartput/core";
-import en from "@smartput/core/locale/en";
+import { english } from "@smartput/core/locale/en";
+import { BUILTIN_KINDS } from "@smartput/kinds";
+import BUILTIN_EN from "@smartput/kinds/locale/en";
 
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}/;
 
@@ -220,13 +223,21 @@ const isoDate: LiteralMatcher = (input, offset) => {
 
 const day = defineKind({
   id: "day",
-  value: { mode: "opaque", units: { UTC: ["utc", "z"] } },
+  value: { mode: "opaque", units: ["UTC"] },   // ids; the words are a Vocabulary
   literals: [isoDate],
   format: (v) => String(v.meta?.iso),
 });
 
-createEngine({ locales: [en], kinds: [...BUILTIN_KINDS, day] })
-  .evaluate("2026-03-01").formatted; // "2026-03-01"
+const dayEn = defineVocabulary({
+  locale: "en",
+  kind: "day",
+  units: { UTC: { aliases: ["utc", "z"] } },
+});
+
+createEngine({
+  locales: [composeLocale(english, [...BUILTIN_EN, dayEn])],
+  kinds: [...BUILTIN_KINDS, day],
+}).evaluate("2026-03-01").formatted; // "2026-03-01"
 ```
 
 `2026-03-01` lexes as number-op-number-op-number, which is why offsets exist:
