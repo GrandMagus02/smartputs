@@ -215,8 +215,13 @@ export function runOf(token: Token): WordPosition | undefined {
  * The gap check is what keeps it honest. Anything else between two words — a
  * number, an operator, a keyword, a paren — is a different token type and ends
  * the run by falling out of the group. An *unrecognized* character is the case
- * only the gap check catches: `lex` skips it silently, so "kg°C" would
+ * only the gap check catches: `lex` skips it silently, so "kg@C" would
  * otherwise arrive as two adjacent words and read as a phrase nobody wrote.
+ * `°` is **not** an example of this, though it is the unrecognized character
+ * one reaches for first: `normalize()` deletes it several stages upstream, so
+ * "kg°C" reaches `lex` as the single word "kgC" and there are no two words to
+ * separate. The characters this catches are the ones normalization keeps —
+ * "@", "~", every punctuation mark that is neither an operator nor a paren.
  *
  * Runs are recorded here, before the fold passes, so a token that a later fold
  * absorbs still counts as a neighbour of the ones that survive: the run is a
