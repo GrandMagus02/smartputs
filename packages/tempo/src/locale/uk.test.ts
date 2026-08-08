@@ -62,6 +62,22 @@ describe("tempo uk vocabulary", () => {
     expect(Object.keys(tempoUk.units.hz?.forms ?? {}).sort()).toEqual(EIGHT_KEYS);
   });
 
+  // The invariant the round-trip test below leans on, asserted instead of
+  // described. A form the printer can emit that is not an alias is only readable
+  // through `ukrainian`'s suffix stripper, at its `-2` penalty — so it reads
+  // back by accident rather than by declaration, and it stops reading back the
+  // moment a stem falls under `minStem: 3`. The locative singular "герці" is the
+  // one this vocabulary shipped without.
+  test("every form the printer can emit is also an alias", () => {
+    for (const [unit, words] of Object.entries(tempoUk.units)) {
+      for (const form of Object.values(words.forms ?? {})) {
+        expect(words.aliases, `${unit}: "${form}" is printed but not readable`).toContain(
+          form,
+        );
+      }
+    }
+  });
+
   test("satisfies the locale contract", () => {
     expect(() =>
       assertLocaleContract(composeLocale(ukrainian, [tempoUk]), [tempo]),

@@ -44,7 +44,10 @@ const alias = (unit: TempoUnit) => aliasesFor(TEMPO_UNITS, unit);
  * The Cyrillic aliases are inflected on purpose — the vocabulary is what the
  * language's suffix stripper falls back *from*, not a stem list, so the genitive
  * plural a reader actually types after a numeral is listed rather than guessed
- * at. `уд` and `бпм` are slash-free ways in to a unit whose only symbol is not:
+ * at. Every one of `hz`'s eight `forms` values is in that list, the locative
+ * singular `герці` included: a form the printer can emit is a form the parser
+ * must read back at full weight, not one the stripper happens to recover with a
+ * `-2` penalty. `уд` and `бпм` are slash-free ways in to a unit whose only symbol is not:
  * `бпм` is what a Ukrainian music thread writes, and `уд` is the numerator of
  * the abbreviation standing for the whole of it, by the same elision that lets
  * English "bpm" be typed for a tempo and `datarate`'s "мбіт" for a rate.
@@ -58,7 +61,16 @@ export default defineVocabulary({
       symbol: "уд/хв",
     },
     hz: {
-      aliases: [...alias("hz"), "гц", "герц", "герца", "герци", "герців", "герцах"],
+      aliases: [
+        ...alias("hz"),
+        "гц",
+        "герц",
+        "герца",
+        "герци",
+        "герців",
+        "герці",
+        "герцах",
+      ],
       symbol: "Гц",
       forms: {
         "nom-one": "герц",
