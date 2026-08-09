@@ -43,6 +43,7 @@
       "devDependencies": {
         "@smartput/core": "workspace:*",
         "@smartput/kinds": "workspace:*",
+        "@smartput/number": "workspace:*",
       },
     },
     "packages/area": {
@@ -55,6 +56,8 @@
       "devDependencies": {
         "@smartput/core": "workspace:*",
         "@smartput/kinds": "workspace:*",
+        "@smartput/length": "workspace:*",
+        "@smartput/number": "workspace:*",
       },
     },
     "packages/boolean": {
@@ -134,7 +137,10 @@
       },
       "devDependencies": {
         "@smartput/core": "workspace:*",
+        "@smartput/datasize": "workspace:*",
+        "@smartput/duration": "workspace:*",
         "@smartput/kinds": "workspace:*",
+        "@smartput/number": "workspace:*",
       },
     },
     "packages/datasize": {
@@ -147,6 +153,7 @@
       "devDependencies": {
         "@smartput/core": "workspace:*",
         "@smartput/kinds": "workspace:*",
+        "@smartput/number": "workspace:*",
       },
     },
     "packages/date": {
@@ -229,6 +236,7 @@
       },
       "devDependencies": {
         "@smartput/core": "workspace:*",
+        "@smartput/number": "workspace:*",
       },
     },
     "packages/energy": {
@@ -240,7 +248,9 @@
       },
       "devDependencies": {
         "@smartput/core": "workspace:*",
+        "@smartput/duration": "workspace:*",
         "@smartput/kinds": "workspace:*",
+        "@smartput/number": "workspace:*",
         "@smartput/power": "workspace:*",
       },
     },
@@ -287,6 +297,7 @@
       },
       "devDependencies": {
         "@smartput/core": "workspace:*",
+        "@smartput/number": "workspace:*",
       },
     },
     "packages/mass": {
@@ -298,6 +309,7 @@
       },
       "devDependencies": {
         "@smartput/core": "workspace:*",
+        "@smartput/number": "workspace:*",
       },
     },
     "packages/math": {
@@ -319,6 +331,7 @@
       "devDependencies": {
         "@smartput/core": "workspace:*",
         "@smartput/kinds": "workspace:*",
+        "@smartput/number": "workspace:*",
       },
     },
     "packages/number": {
@@ -339,6 +352,7 @@
       "devDependencies": {
         "@smartput/core": "workspace:*",
         "@smartput/kinds": "workspace:*",
+        "@smartput/number": "workspace:*",
       },
     },
     "packages/power": {
@@ -351,6 +365,7 @@
       "devDependencies": {
         "@smartput/core": "workspace:*",
         "@smartput/kinds": "workspace:*",
+        "@smartput/number": "workspace:*",
       },
     },
     "packages/query": {
@@ -419,7 +434,10 @@
       },
       "devDependencies": {
         "@smartput/core": "workspace:*",
+        "@smartput/duration": "workspace:*",
         "@smartput/kinds": "workspace:*",
+        "@smartput/length": "workspace:*",
+        "@smartput/number": "workspace:*",
       },
     },
     "packages/temperature": {
@@ -432,6 +450,7 @@
       "devDependencies": {
         "@smartput/core": "workspace:*",
         "@smartput/kinds": "workspace:*",
+        "@smartput/number": "workspace:*",
       },
     },
     "packages/tempo": {
@@ -443,7 +462,9 @@
       },
       "devDependencies": {
         "@smartput/core": "workspace:*",
+        "@smartput/duration": "workspace:*",
         "@smartput/kinds": "workspace:*",
+        "@smartput/number": "workspace:*",
       },
     },
     "packages/time": {
@@ -486,6 +507,7 @@
       "devDependencies": {
         "@smartput/core": "workspace:*",
         "@smartput/kinds": "workspace:*",
+        "@smartput/number": "workspace:*",
       },
     },
     "packages/zip": {

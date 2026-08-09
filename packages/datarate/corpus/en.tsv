@@ -1,0 +1,16 @@
+# input	kind	canonical	formatted
+100 mbps	datarate	100000000	100mbps
+1 gbps in mbps	datarate	1000000000	1,000mbps
+500 mb / 20 s	datarate	200000000	200mbps
+100 mbps * 1 min	datasize	750000000	750,000,000 bytes
+1 min * 100 mbps	datasize	750000000	750,000,000 bytes
+1 gb / 100 mbps	duration	80	80 seconds
+100 mbps + 50 mbps	datarate	150000000	150mbps
+1 tbps in gbps	datarate	1000000000000	1,000gbps
+2 mbps * 3	datarate	6000000	6mbps
+1 gbps / 4	datarate	250000000	0.25gbps
+-10 mbps	datarate	-10000000	-10mbps
+8000 bps in kbps	datarate	8000	8kbps
+one gbps	datarate	1000000000	1gbps
+1 gbps in bps	datarate	1000000000	1,000,000,000bps
+250 mbps	datarate	250000000	250mbps

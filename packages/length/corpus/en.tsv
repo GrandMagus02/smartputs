@@ -1,0 +1,16 @@
+# input	kind	canonical	formatted
+10 km	length	10000	10 kilometres
+12 inch	length	0.3048	12 inches
+2 km in m	length	2000	2,000 metres
+1 mi in km	length	1609.344	1.609344 kilometres
+10 m + 5 km	length	5010	5,010 metres
+1 km - 250 m	length	750	0.75 kilometres
+10 km * 3	length	30000	30 kilometres
+1 km / 4	length	250	0.25 kilometres
+-5 km	length	-5000	-5 kilometres
+3 ft in cm	length	0.9144	91.44 centimetres
+one kilometre	length	1000	1 kilometre
+1 yd in cm	length	0.9144	91.44 centimetres
+1,500 mm in m	length	1.5	1.5 metres
+5280 ft in mi	length	1609.344	1 mile
+two hundred and five km	length	205000	205 kilometres

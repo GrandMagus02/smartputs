@@ -1,0 +1,35 @@
+# from	to	pair	kind	unit	metres
+#
+# The one op this package publishes, measured over the shipped `COUNTRIES`
+# table: two places in, a `length` out. A row is a pair of alpha-2 codes rather
+# than a sentence because that is the whole input — the words "kyiv to warsaw"
+# are the place kind's to read, and this package is underneath it.
+#
+# `metres` is the canonical, rounded to the metre inside `between`: capital
+# coordinates carry five decimal places, so anything finer is invented
+# precision and a host's last-bit `Math.sin` must not decide a corpus row.
+# `unit` is km and not the canonical metre, so that a formatter prints
+# "689 kilometres" rather than seven digits for every pair of countries there is.
+#
+# Positions are the capitals'. `ua ua` is zero because a country is zero
+# kilometres from itself, and `is nz` is near the antipode, which is the case
+# the clamped `asin` in `metresBetween` exists for.
+#
+# The refusal — a postal code nothing has positioned — is asserted in
+# corpus.test.ts rather than written here: it has no distance to record, which
+# is the point of it.
+ua	pl	Ukraine to Poland	length	km	688971
+ua	jp	Ukraine to Japan	length	km	8198981
+fr	de	France to Germany	length	km	878399
+us	ca	United States to Canada	length	km	732873
+gb	ie	United Kingdom to Ireland	length	km	461936
+au	nz	Australia to New Zealand	length	km	2326170
+br	ar	Brazil to Argentina	length	km	2339527
+cn	in	China to India	length	km	3778189
+za	eg	South Africa to Egypt	length	km	6214086
+no	cl	Norway to Chile	length	km	12730094
+ua	ua	Ukraine to Ukraine	length	km	0
+is	nz	Iceland to New Zealand	length	km	17257124
+mx	es	Mexico to Spain	length	km	9062626
+ke	th	Kenya to Thailand	length	km	7209766
+se	fi	Sweden to Finland	length	km	395643

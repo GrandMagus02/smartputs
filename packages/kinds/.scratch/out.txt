@@ -1,0 +1,277 @@
+######## angle ########
+90 deg	angle	1.570796326794896619231321692	90 degrees
+90 deg in rad	angle	1.570796326794896619231321692	1.5707963267948966192313217 radians
+0.25 turn in deg	angle	1.570796326794896619231321692	90 degrees
+200 grad in deg	angle	3.141592653589793238462643383	180 degrees
+90 deg + 90 deg	angle	3.141592653589793238462643384	180 degrees
+1 turn - 90 deg	angle	4.712388980384689857693965075	0.75 turns
+45 deg * 2	angle	1.570796326794896619231321692	90 degrees
+180 deg / 4	angle	0.7853981633974483096156608458	45 degrees
+-90 deg	angle	-1.570796326794896619231321692	-90 degrees
+1 rad in deg	angle	1	57.295779513082320876798155 degrees
+one turn	angle	6.283185307179586476925286767	1 turn
+360 degrees in turns	angle	6.283185307179586476925286767	1 turn
+1.5 rad	angle	1.5	1.5 radians
+100 gon in grad	angle	1.570796326794896619231321692	100 gradians
+2 revolutions in deg	angle	12.56637061435917295385057353	720 degrees
+######## area ########
+3 m * 4 m	area	12	12m²
+1 hectare in m2	area	10000	10,000m²
+1 acre in m2	area	4046.8564224	4,046.8564224m²
+2 km2 in hectare	area	2000000	200 hectares
+5000 cm2 in m2	area	0.5	0.5m²
+10 m2 + 5 m2	area	15	15m²
+1 hectare - 2500 m2	area	7500	0.75 hectares
+3 m2 * 4	area	12	12m²
+100 m2 / 4	area	25	25m²
+-5 m2	area	-5	-5m²
+2 sqkm in sqm	area	2000000	2,000,000m²
+1 m2 in cm2	area	1	10,000cm²
+two hectares	area	20000	2 hectares
+1 km * 1 km	area	1000000	1,000,000m²
+12 m2	area	12	12m²
+######## datarate ########
+100 mbps	datarate	100000000	100mbps
+1 gbps in mbps	datarate	1000000000	1,000mbps
+500 mb / 20 s	datarate	200000000	200mbps
+100 mbps * 1 min	datasize	750000000	750,000,000 bytes
+1 min * 100 mbps	datasize	750000000	750,000,000 bytes
+1 gb / 100 mbps	duration	80	80 seconds
+100 mbps + 50 mbps	datarate	150000000	150mbps
+1 tbps in gbps	datarate	1000000000000	1,000gbps
+2 mbps * 3	datarate	6000000	6mbps
+1 gbps / 4	datarate	250000000	0.25gbps
+-10 mbps	datarate	-10000000	-10mbps
+8000 bps in kbps	datarate	8000	8kbps
+one gbps	datarate	1000000000	1gbps
+1 gbps in bps	datarate	1000000000	1,000,000,000bps
+250 mbps	datarate	250000000	250mbps
+######## datasize ########
+1 kib in b	datasize	1024	1,024 bytes
+1 gb in mb	datasize	1000000000	1,000 megabytes
+1 gib in mib	datasize	1073741824	1,024 mebibytes
+1 tb in gb	datasize	1000000000000	1,000 gigabytes
+500 mb + 500 mb	datasize	1000000000	1,000 megabytes
+1 gb - 200 mb	datasize	800000000	0.8 gigabytes
+2 gb * 3	datasize	6000000000	6 gigabytes
+1 tb / 4	datasize	250000000000	0.25 terabytes
+-1 gb	datasize	-1000000000	-1 gigabyte
+1024 b in kib	datasize	1024	1 kibibyte
+one gigabyte	datasize	1000000000	1 gigabyte
+1 mib in kb	datasize	1048576	1,048.576 kilobytes
+3 terabytes	datasize	3000000000000	3 terabytes
+1 gb in b	datasize	1000000000	1,000,000,000 bytes
+1500 bytes	datasize	1500	1,500 bytes
+######## duration ########
+2 wk	duration	1209600	2 weeks
+30 h - 30 min	duration	106200	29.5 hours
+90 min in h	duration	5400	1.5 hours
+1 d in h	duration	86400	24 hours
+1 wk in d	duration	604800	7 days
+500 ms + 500 ms	duration	1	1,000 milliseconds
+2 h * 3	duration	21600	6 hours
+1 d / 4	duration	21600	0.25 days
+-2 h	duration	-7200	-2 hours
+1 h in s	duration	3600	3,600 seconds
+one hour	duration	3600	1 hour
+3600 s in h	duration	3600	1 hour
+45 minutes	duration	2700	45 minutes
+1.5 h in min	duration	5400	90 minutes
+2 days + 12 hours	duration	216000	2.5 days
+######## energy ########
+1 kwh in j	energy	3600000	3,600,000 joules
+2 kw * 3 h	energy	21600000	21,600,000 joules
+3 h * 2 kw	energy	21600000	21,600,000 joules
+1 kwh / 1 h	power	1000	1,000 watts
+1 kwh / 1 kw	duration	3600	3,600 seconds
+1 kcal in j	energy	4184	4,184 joules
+1 btu in j	energy	1055.05585262	1,055.05585262 joules
+1 mj in kj	energy	1000000	1,000 kilojoules
+500 j + 500 j	energy	1000	1,000 joules
+2 kj * 3	energy	6000	6 kilojoules
+1 mwh in kwh	energy	3600000000	1,000kwh
+-1 kwh	energy	-3600000	-1kwh
+one kilojoule	energy	1000	1 kilojoule
+1000 cal in kcal	energy	4184	1 kilocalorie
+2.5 kwh	energy	9000000	2.5kwh
+######## length ########
+10 km	length	10000	10 kilometres
+12 inch	length	0.3048	12 inches
+2 km in m	length	2000	2,000 metres
+1 mi in km	length	1609.344	1.609344 kilometres
+10 m + 5 km	length	5010	5,010 metres
+1 km - 250 m	length	750	0.75 kilometres
+10 km * 3	length	30000	30 kilometres
+1 km / 4	length	250	0.25 kilometres
+-5 km	length	-5000	-5 kilometres
+3 ft in cm	length	0.9144	91.44 centimetres
+one kilometre	length	1000	1 kilometre
+1 yd in cm	length	0.9144	91.44 centimetres
+1,500 mm in m	length	1.5	1.5 metres
+5280 ft in mi	length	1609.344	1 mile
+two hundred and five km	length	205000	205 kilometres
+######## mass ########
+1 kg + 500 g	mass	1500	1.5 kilograms
+3 lbs	mass	1360.77711	3 pounds
+1,500 g	mass	1500	1,500 grams
+1 t in kg	mass	1000000	1,000 kilograms
+16 oz in lb	mass	453.59237	1 pound
+1 kg in g	mass	1000	1,000 grams
+2 kg - 500 g	mass	1500	1.5 kilograms
+3 kg * 4	mass	12000	12 kilograms
+1 t / 8	mass	125000	0.125 tonnes
+-2 kg	mass	-2000	-2 kilograms
+500 mg in g	mass	0.5	0.5 grams
+one kilogram	mass	1000	1 kilogram
+2.5 tonnes in kg	mass	2500000	2,500 kilograms
+1 lb in oz	mass	453.59237	16 ounces
+1.5 kilograms	mass	1500	1.5 kilograms
+######## measure ########
+1 inch in pt	measure	1	72 points
+72 pt in inch	measure	1	1 inch
+6 pc in inch	measure	1	1 inch
+1 inch in mm	measure	1	25.4 millimetres
+25.4 mm in inch	measure	1	1 inch
+1 inch in px	measure	1	96 pixels
+96 px in inch	measure	1	1 inch
+2 inch + 36 pt	measure	2.5	2.5 inches
+1 inch - 12 pt	measure	0.8333333333333333333333333333	0.83333333333333333333333333 inches
+3 inch * 2	measure	6	6 inches
+1 inch / 4	measure	0.25	0.25 inches
+-2 inch	measure	-2	-2 inches
+1 pc in pt	measure	0.1666666666666666666666666667	12 points
+10 mm in cm	measure	0.3937007874015748031496062992	1 centimetre
+one inch	measure	1	1 inch
+######## number ########
+(1 + 2) * 3	number	9	9
+1 + 1	number	2	2
+10 - 4	number	6	6
+6 * 7	number	42	42
+10 / 4	number	2.5	2.5
+-5	number	-5	-5
+1,500	number	1500	1,500
+one thousand thirty two	number	1032	1,032
+two hundred and five	number	205	205
+0.1 + 0.2	number	0.3	0.3
+2 * 3 * 7	number	42	42
+1234567890123456789	number	1234567890123456789	1,234,567,890,123,456,789
+3 * (4 + 5)	number	27	27
+100 / 3	number	33.33333333333333333333333333	33.333333333333333333333333
+nine	number	9	9
+######## percent ########
+20% of 50	number	10	10
+50 + 20%	number	60	60
+50 - 10%	number	45	45
+10%	percent	0.1	10%
+10% + 5%	percent	0.15	15%
+100 * 20%	percent	20	2,000%
+1 in percent	percent	1	100%
+0.5 in percent	percent	0.5	50%
+200%	percent	2	200%
+-10%	percent	-0.1	-10%
+15% of 200	number	30	30
+50 * 10%	percent	5	500%
+100 - 25%	number	75	75
+2.5%	percent	0.025	2.5%
+100% of 42	number	42	42
+######## power ########
+1 kw in w	power	1000	1,000 watts
+1 mw in kw	power	1000000	1,000 kilowatts
+1 hp in w	power	745.69987158227022	745.69987158227022 watts
+500 w + 500 w	power	1000	1,000 watts
+2 kw - 500 w	power	1500	1.5 kilowatts
+3 kw * 2	power	6000	6 kilowatts
+1 mw / 4	power	250000	0.25 megawatts
+-1 kw	power	-1000	-1 kilowatt
+1000 w in kw	power	1000	1 kilowatt
+one kilowatt	power	1000	1 kilowatt
+2.5 kw	power	2500	2.5 kilowatts
+746 w in hp	power	746	1.000402478837890839005544 horsepower
+1 gw in mw	power	1000000000	1,000 megawatts
+100 w	power	100	100 watts
+1.5 mw in w	power	1500000	1,500,000 watts
+######## speed ########
+100 km / 2 h	speed	13.88888888888888888888888889	13.888888888888888888888889m/s
+100 kph in mph	speed	27.77777777777777777777777778	62.137119223733396961743418mph
+60 mph in kph	speed	26.8224	96.56064kph
+1 knot in kph	speed	0.5144444444444444444444444444	1.852kph
+10 mps in kph	speed	10	36kph
+50 kph + 50 kph	speed	27.77777777777777777777777778	100kph
+100 kph - 20 kph	speed	22.22222222222222222222222222	80kph
+30 kph * 2	speed	16.66666666666666666666666667	60kph
+100 kph / 4	speed	6.944444444444444444444444445	25kph
+-10 kph	speed	-2.777777777777777777777777778	-10kph
+1 km / 1 min	speed	16.66666666666666666666666667	16.666666666666666666666667m/s
+one kph	speed	0.2777777777777777777777777778	1kph
+3.6 kph in mps	speed	1	1m/s
+120 kph	speed	33.33333333333333333333333334	120kph
+5 mps	speed	5	5m/s
+######## temperature ########
+212 F in C	temperature	100	100°C
+0 C in F	temperature	0	32°F
+100 C in K	temperature	100	373.15K
+0 K in C	temperature	-273.15	-273.15°C
+30 C - 20 C	tempdelta	10	10°C
+20 C	temperature	20	20°C
+98.6 F in C	temperature	37	37°C
+-40 C in F	temperature	-40	-40°F
+37 C in F	temperature	37	98.6°F
+273.15 K in C	temperature	0	0°C
+10 C + 5 C	temperature	15	15°C
+1 C	temperature	1	1°C
+72 F	temperature	22.22222222222222222222222222	72°F
+300 K	temperature	26.85	300K
+-10 C in K	temperature	-10	263.15K
+######## tempo ########
+120 bpm	tempo	120	120bpm
+120 bpm in ms	duration	0.5	500 milliseconds
+120 bpm in s	duration	0.5	0.5 seconds
+500 ms in bpm	tempo	120	120bpm
+1 s in bpm	tempo	60	60bpm
+60 bpm in s	duration	1	1 second
+2 hz in bpm	tempo	120	120bpm
+120 bpm in hz	tempo	120	2 hertz
+120 bpm + 8 bpm	tempo	128	128bpm
+140 bpm - 20 bpm	tempo	120	120bpm
+60 bpm * 2	tempo	120	120bpm
+120 bpm / 2	tempo	60	60bpm
+-10 bpm	tempo	-10	-10bpm
+one bpm	tempo	1	1bpm
+174 bpm	tempo	174	174bpm
+######## volume ########
+1 l in ml	volume	1	1,000 millilitres
+1 m3 in l	volume	1000	1,000 litres
+1 gal in l	volume	3.785411784	3.785411784 litres
+1 pint in ml	volume	0.473176473	473.176473 millilitres
+500 ml + 500 ml	volume	1	1,000 millilitres
+2 l - 250 ml	volume	1.75	1.75 litres
+3 l * 4	volume	12	12 litres
+1 l / 4	volume	0.25	0.25 litres
+-2 l	volume	-2	-2 litres
+1000 ml in l	volume	1	1 litre
+one litre	volume	1	1 litre
+1 gal in pint	volume	3.785411784	8 pints
+2 pints in l	volume	0.946352946	0.946352946 litres
+1.5 l	volume	1.5	1.5 litres
+250 ml in l	volume	0.25	0.25 litres
+######## boolean ########
+1000 mb = 1 gb	boolean	1	true
+1 km > 999 m	boolean	1	true
+1 km < 999 m	boolean	0	false
+1 m = 100 cm	boolean	1	true
+1 kg = 1 kg	boolean	1	true
+2 > 1	boolean	1	true
+1 >= 1	boolean	1	true
+1 <= 0	boolean	0	false
+5 != 4	boolean	1	true
+1 gb = 1000 mb	boolean	1	true
+1 mi > 1 km	boolean	1	true
+3 < 4	boolean	1	true
+10 = 10	boolean	1	true
+1 kib > 1 kb	boolean	1	true
+0 < 1	boolean	1	true
+20 C > 10 C	boolean	1	true
+1 hectare = 10000 m2	boolean	1	true
+100 kph < 60 mph	boolean	0	false
+1 kwh = 3.6 mj	boolean	1	true
+1 h != 60 min	boolean	0	false

@@ -1,0 +1,51 @@
+# input	reading	zone	length	symbol
+#
+# Two readings, because this package answers a zone question two ways and both
+# are public. `word` is the shipped `ZONES` table read through one of its
+# aliases; `offset` is `parseOffsetZone` on a written offset. They share a file
+# because they share an answer — the zone id — and `zoneSymbol` is asked of both.
+#
+# `length` is how much of the input the offset parser claimed, and it is a
+# column rather than a detail: the matcher that calls this splices the rest of
+# the sentence back, so `gmt+3 meeting` claiming 5 and not 13 is the contract.
+# Words claim nothing, so their length is `-`.
+#
+# `-` in the zone column is a refusal. `gmt` alone is one: with no sign it is
+# the UTC alias the row above already covers, and reading it here would make
+# this parser claim a word the kind has already registered.
+utc	word	UTC	-	UTC
+gmt	word	UTC	-	UTC
+zulu	word	UTC	-	UTC
+nyc	word	America/New_York	-	ET
+est	word	America/New_York	-	ET
+pst	word	America/Los_Angeles	-	PT
+la	word	America/Los_Angeles	-	PT
+london	word	Europe/London	-	London
+cet	word	Europe/Paris	-	CET
+kyiv	word	Europe/Kyiv	-	Kyiv
+kiev	word	Europe/Kyiv	-	Kyiv
+msk	word	Europe/Moscow	-	MSK
+tokyo	word	Asia/Tokyo	-	JST
+jst	word	Asia/Tokyo	-	JST
+beijing	word	Asia/Shanghai	-	CST
+sydney	word	Australia/Sydney	-	Sydney
+auckland	word	Pacific/Auckland	-	NZ
+delhi	word	Asia/Kolkata	-	IST
+brt	word	America/Sao_Paulo	-	BRT
+sgt	word	Asia/Singapore	-	SGT
+gmt+3	offset	+03:00	5	UTC+03:00
+GMT+3	offset	+03:00	5	UTC+03:00
+utc-5	offset	-05:00	5	UTC-05:00
+UTC+14	offset	+14:00	6	UTC+14:00
+gmt+5:30	offset	+05:30	8	UTC+05:30
+utc+0530	offset	+05:30	8	UTC+05:30
+gmt+05:45	offset	+05:45	9	UTC+05:45
+utc-03:00	offset	-03:00	9	UTC-03:00
+gmt + 3	offset	+03:00	7	UTC+03:00
+gmt+3 meeting	offset	+03:00	5	UTC+03:00
+gmt+0	offset	+00:00	5	UTC
+gmt	offset	-	-	-
+est+3	offset	-	-	-
+3pm	offset	-	-	-
+gmt+15	offset	-	-	-
+gmt-13	offset	-	-	-

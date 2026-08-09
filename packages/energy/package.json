@@ -41,7 +41,9 @@
   },
   "devDependencies": {
     "@smartput/core": "workspace:*",
+    "@smartput/duration": "workspace:*",
     "@smartput/kinds": "workspace:*",
+    "@smartput/number": "workspace:*",
     "@smartput/power": "workspace:*"
   }
 }

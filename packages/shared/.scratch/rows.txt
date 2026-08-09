@@ -1,0 +1,29 @@
+10 km	parse	loose	ok	km	10	10km
+10km	parse	loose	ok	km	10	10km
+  10 km  	parse	loose	ok	km	10	10km
+1.5 metres	parse	loose	ok	m	1.5	1.5m
+-5km	parse	loose	ok	km	-5	-5km
+1e3 m	parse	loose	ok	m	1000	1e3m
+12 inches	parse	loose	ok	in	12	12in
+km	parse	loose	ok	km	1	1km
+10	parse	loose	missing-unit	-	-	-
+	parse	loose	empty	-	-	-
+   	parse	loose	empty	-	-	-
+10 furlongs	parse	loose	unknown-unit	-	-	-
+smth	parse	loose	nan	-	-	-
+30,5km	parse	loose	nan	-	-	-
+10km	parse	strict	ok	km	10	10km
+10 km	parse	strict	ok	km	10	10km
+  10km	parse	strict	trailing	-	-	-
+km	parse	strict	nan	-	-	-
+10	parse	strict	missing-unit	-	-	-
+1 km + 500 m	add	loose	ok	km	1.5	1.5km
+30cm + 30cm	add	loose	ok	cm	60	60cm
+1 km - 250 m	sub	loose	ok	km	0.75	0.75km
+2m - 2m	sub	loose	ok	m	0	0m
+10 km * 3	scale	loose	ok	km	30	30km
+1 km * 0.25	scale	loose	ok	km	0.25	0.25km
+2 km in m	as	loose	ok	m	2000	2000m
+1 ft in cm	as	loose	ok	cm	30.48	30.48cm
+12 inch in cm	as	loose	ok	cm	30.479999999999997	30.479999999999997cm
+1500 mm in m	as	loose	ok	m	1.5	1.5m

@@ -1,0 +1,25 @@
+30 usd	plain	ok	usd	30	$30.00
+30 dollars	plain	ok	usd	30	$30.00
+1,250.50 dollars	plain	ok	usd	1250.5	$1250.50
+-4 eur	plain	ok	eur	-4	-€4.00
+0.05 eur	plain	ok	eur	0.05	€0.05
+1200 jpy	plain	ok	jpy	1200	¥1200
+1200 yen	plain	ok	jpy	1200	¥1200
+100 uah	plain	ok	uah	100	₴100.00
+50 gbp	plain	ok	gbp	50	£50.00
+7.5 chf	plain	ok	chf	7.5	CHF7.50
+30 USD	plain	ok	usd	30	$30.00
+2.345 usd	plain	ok	usd	2.345	$2.34
+1000 kwd	plain	unknown-currency	-	-	-
+$30	symbols	ok	usd	30	$30.00
+€0.05	symbols	ok	eur	0.05	€0.05
+30 €	symbols	ok	eur	30	€30.00
+£12.34	symbols	ok	gbp	12.34	£12.34
+-$10	symbols	nan	-	-	-
+¥1200	symbols	ok	jpy	1200	¥1200
+usd 30	plain	nan	-	-	-
+30	plain	missing-currency	-	-	-
+30 xyz	plain	unknown-currency	-	-	-
+30 usd each	plain	trailing	-	-	-
+$30	plain	nan	-	-	-
+dollars	plain	nan	-	-	-

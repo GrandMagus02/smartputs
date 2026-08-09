@@ -1,0 +1,31 @@
+kyiv	city	703448	Kyiv	ua	12	Europe/Kyiv
+kiev	city	703448	Kyiv	ua	12	Europe/Kyiv
+warsaw	city	756135	Warsaw	pl	78	Europe/Warsaw
+paris	city	2988507	Paris	fr	11	Europe/Paris
+tokyo	city	1850147	Tokyo	jp	40	Asia/Tokyo
+new york city	city	5128581	New York City	us	NY	America/New_York
+nyc	city	-	-	-	-	-
+london	city	2643743	London	gb	ENG	Europe/London
+berlin	city	2950159	Berlin	de	16	Europe/Berlin
+san francisco	city	5391959	San Francisco	us	CA	America/Los_Angeles
+los angeles	city	5368361	Los Angeles	us	CA	America/Los_Angeles
+sao paulo	city	3448439	São Paulo	br	27	America/Sao_Paulo
+mumbai	city	1275339	Mumbai	in	16	Asia/Kolkata
+bombay	city	1275339	Mumbai	in	16	Asia/Kolkata
+istanbul	city	745044	Istanbul	tr	34	Europe/Istanbul
+cairo	city	360630	Cairo	eg	11	Africa/Cairo
+reykjavik	city	3413829	Reykjavík	is	39	Atlantic/Reykjavik
+wellington	city	2179537	Wellington	nz	G2	Pacific/Auckland
+vatican city	city	6691831	Vatican City	va	-	Europe/Vatican
+shanghai	city	1796236	Shanghai	cn	23	Asia/Shanghai
+itu	city	-	-	-	-	-
+poa	city	-	-	-	-	-
+texas	admin1	US.TX	Texas	us	TX	-
+tx	admin1	US.TX	Texas	us	TX	-
+california	admin1	US.CA	California	us	CA	-
+ontario	admin1	CA.08	Ontario	ca	08	-
+bavaria	admin1	DE.02	Bavaria	de	02	-
+kent	admin1	-	-	-	-	-
+in	admin1	-	-	-	-	-
+or	admin1	-	-	-	-	-
+ca	admin1	-	-	-	-	-

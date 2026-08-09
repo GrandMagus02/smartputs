@@ -40,6 +40,7 @@
     "@smartput/shared": "workspace:*"
   },
   "devDependencies": {
-    "@smartput/core": "workspace:*"
+    "@smartput/core": "workspace:*",
+    "@smartput/number": "workspace:*"
   }
 }

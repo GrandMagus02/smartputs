@@ -1,0 +1,16 @@
+# input	kind	canonical	formatted
+1 l in ml	volume	1	1,000 millilitres
+1 m3 in l	volume	1000	1,000 litres
+1 gal in l	volume	3.785411784	3.785411784 litres
+1 pint in ml	volume	0.473176473	473.176473 millilitres
+500 ml + 500 ml	volume	1	1,000 millilitres
+2 l - 250 ml	volume	1.75	1.75 litres
+3 l * 4	volume	12	12 litres
+1 l / 4	volume	0.25	0.25 litres
+-2 l	volume	-2	-2 litres
+1000 ml in l	volume	1	1 litre
+one litre	volume	1	1 litre
+1 gal in pint	volume	3.785411784	8 pints
+2 pints in l	volume	0.946352946	0.946352946 litres
+1.5 l	volume	1.5	1.5 litres
+250 ml in l	volume	0.25	0.25 litres
