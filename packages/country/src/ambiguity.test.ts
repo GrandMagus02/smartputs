@@ -14,6 +14,7 @@ import {
   UnitParseError,
 } from "@smartput/core";
 import { english as coreEn } from "@smartput/core/locale/en";
+import { ukrainian as coreUk } from "@smartput/core/locale/uk";
 import { date } from "@smartput/date";
 import { dateRange } from "@smartput/date-range";
 import { datetime } from "@smartput/datetime";
@@ -21,6 +22,7 @@ import datetimeEn from "@smartput/datetime/locale/en";
 import { datetimeRange } from "@smartput/datetime-range";
 import { BUILTIN_KINDS } from "@smartput/kinds";
 import BUILTIN_EN from "@smartput/kinds/locale/en";
+import BUILTIN_UK from "@smartput/kinds/locale/uk";
 import { length } from "@smartput/length";
 import lengthEn from "@smartput/length/locale/en";
 import { number } from "@smartput/number";
@@ -435,6 +437,29 @@ const SUITES: readonly Suite[] = [
     engine: createEngine({
       locales: [composeLocale(coreEn, [...BUILTIN_EN, placeEn])],
       kinds: [...BUILTIN_KINDS, geo],
+    }),
+    completion: true,
+  },
+  // Ukrainian, through the same net. The engine installs two locales because
+  // the places vocabulary is English and `composeLocale` refuses a vocabulary
+  // whose locale is not its language's — which is the point rather than an
+  // obstacle: recognition is many-locale and generation is one, so `format`
+  // pins the output to Ukrainian while the city names stay readable. If six
+  // thousand of them could shadow a Ukrainian unit, this is where it shows.
+  {
+    file: "packages/core/corpus/uk.tsv",
+    engine: createEngine({
+      locales: [composeLocale(coreUk, BUILTIN_UK), composeLocale(coreEn, [placeEn])],
+      kinds: [...BUILTIN_KINDS, geo],
+      format: "uk",
+    }),
+  },
+  {
+    file: "packages/core/corpus/uk-complete.tsv",
+    engine: createEngine({
+      locales: [composeLocale(coreUk, BUILTIN_UK), composeLocale(coreEn, [placeEn])],
+      kinds: [...BUILTIN_KINDS, geo],
+      format: "uk",
     }),
     completion: true,
   },
