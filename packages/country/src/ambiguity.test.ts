@@ -610,6 +610,10 @@ const UNREPLAYED: Readonly<Record<string, string>> = {
     "instants, zones and boundaries — the interval algebra below every range kind, one layer under anything with a vocabulary",
   "packages/distance/corpus/en.tsv":
     "two alpha-2 codes and a distance in metres; the op is handed finished Values, and the sentence half is `packages/country/corpus/en.tsv` above",
+  "packages/geo/corpus/en.tsv":
+    "a search query and the hit that must rank first, replayed through a `Geo` over a pinned gazetteer; the package registers no kind, so there is no engine here for a city name to be claimed by and nothing for this net to re-read",
+  "packages/geo/corpus/uk.tsv":
+    "the same, in Cyrillic — and the reason it is a second file rather than a translation is that a place's words are the provider's, not this repository's",
 };
 
 const ROOT = new URL("../../../", import.meta.url);

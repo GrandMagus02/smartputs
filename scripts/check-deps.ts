@@ -118,6 +118,18 @@ const ALLOWED: Record<string, string[]> = {
     "@smartput/zip",
     "decimal.js",
   ],
+  // Free-text place search over the GeoNames web service and whatever else the
+  // consumer plugs in. One edge, to core, for `SmartputError` — and not to
+  // `decimal.js`, because nothing here is arithmetic on a Value: a score is a
+  // ranking artefact and a coordinate is data at rest, exactly as `CountryRow`'s
+  // header argues for the vendored tables.
+  //
+  // No edge to `@smartput/country` or `@smartput/city`, and that direction is
+  // load-bearing rather than incidental. This package ships no gazetteer;
+  // `bundled()` takes rows as an argument the way `definePlace()` already does,
+  // so the tiering rule holds — the dependency edge runs from the consumer
+  // inwards, and a consumer who only wants a live search links no table.
+  "packages/geo/package.json": ["@smartput/core"],
 
   // The micro-validation path. Zero runtime dependencies, enforced here: a
   // first one would mean decimal.js or core leaked into a 600-byte budget.

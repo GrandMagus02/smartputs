@@ -147,8 +147,15 @@ export class Corpora {
    * The test name carries the language id in front of the input because two
    * languages routinely record the same input — every row with no word in it,
    * which is most of the arithmetic — and Bun reports duplicates by name.
+   *
+   * `assert` may return a promise, and it is handed straight back to the test
+   * runner rather than dropped. Every kind package's door is sync — an engine
+   * evaluates on the calling stack — but a corpus over a *provider* is not:
+   * `@smartput/geo` replays its rows through `Geo.search`, and an assertion
+   * whose promise nothing awaited would report a passing test for an assertion
+   * that had not run yet.
    */
-  each(assert: (row: CorpusRow, language: CorpusLanguage) => void): void {
+  each(assert: (row: CorpusRow, language: CorpusLanguage) => void | Promise<void>): void {
     for (const language of this.languages) {
       const rows = this.tables.get(language.id);
       if (rows === undefined) {
@@ -159,9 +166,7 @@ export class Corpora {
         expect(rows.length).toBeGreaterThan(MIN_ROWS);
       });
       for (const row of rows) {
-        test(`corpus ${language.id}: ${row[0]}`, () => {
-          assert(row, language);
-        });
+        test(`corpus ${language.id}: ${row[0]}`, () => assert(row, language));
       }
     }
   }

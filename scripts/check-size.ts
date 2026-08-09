@@ -467,6 +467,30 @@ export const BUDGETS: EntrySpec[] = [
     gzip: 16_500,
   },
 
+  // Search, ranking and the cache, with no gazetteer and no `decimal.js`. This
+  // row is the claim the package's whole argument rests on: a live geocoder must
+  // cost a fraction of the table it replaces, or a consumer is better off with
+  // the table. It sits an order of magnitude under the `country root` row above,
+  // and the day someone imports a data file into this graph it does not drift —
+  // it jumps.
+  {
+    label: "geo root (search and ranking, no data at all)",
+    from: "@smartput/geo",
+    names: ["Geo", "rank"],
+    min: 40_500,
+    gzip: 16_200,
+  },
+  // The providers entry point, measured apart from the root for the reason it is
+  // a separate export: a consumer who only wants the types and the ranking must
+  // not link a fetch path they never call.
+  {
+    label: "geo providers (every adapter)",
+    from: "@smartput/geo/providers",
+    names: ["geonames", "postalCodes", "bundled", "custom"],
+    min: 42_900,
+    gzip: 16_550,
+  },
+
   // Holidays, and the guard row that is the entire argument for the subpath.
   //
   // The six numbers below shipped as placeholders from a `--target=bun` run and

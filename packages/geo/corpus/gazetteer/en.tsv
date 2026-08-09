@@ -1,0 +1,34 @@
+# The gazetteer the English corpus is searched against.
+#
+# Fixed rows and no network, for the reason every corpus in this repo is a file:
+# a test that asked GeoNames what "paris" is would assert GeoNames' uptime and
+# their current population figures, and would fail on a Sunday. What is under
+# test here is this package — the query grammar, the filters and the ranking —
+# so the gazetteer is pinned and the answers are the consequences of these rows.
+#
+# The `id` column is an identity **within this fixture**. It is not a GeoNames
+# id and must not be read as one; the corpus asserts names, kinds and countries,
+# never ids. `0` is the one id that carries its real meaning — a postal row has
+# no feature id at all, which `Place` rules and this file obeys.
+#
+# Populations and coordinates are approximately real, because two of the corpus
+# rows turn on them: `springfield` picks the bigger Springfield, and `paris` with
+# a `near` over east Texas has to flip away from France.
+#
+# id	name	kind	country	admin1	population	postal	lat	lon
+1	Paris	city	fr	11	2138551		48.85341	2.3488
+2	Paris	city	us	TX	25171		33.66094	-95.55551
+3	Kyiv	city	ua	30	2797553		50.45466	30.5238
+4	Warsaw	city	pl	78	1702139		52.22977	21.01178
+5	London	city	gb	ENG	8961989		51.50853	-0.12574
+6	London	city	ca	08	346765		42.98339	-81.23304
+7	Springfield	city	us	MO	167882		37.21533	-93.29824
+8	Springfield	city	us	IL	116250		39.80172	-89.64371
+9	Dnipro	city	ua	04	1032822		48.46664	35.04066
+10	Dnipro	water	ua		0		46.5	32.3
+11	Ukraine	country	ua		44622516		50.45466	30.5238
+12	Kyiv Oblast	admin	ua	13	1781000		50.05	30.76667
+13	Mount Everest	terrain	np	1	0		27.98785	86.92502
+14	Hyde Park	area	gb	ENG	0		51.50749	-0.16561
+15	München	city	de	02	1260391		48.13743	11.57549
+0	Beverly Hills	postal	us	CA	0	90210	34.0901	-118.4065

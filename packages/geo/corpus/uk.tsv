@@ -1,0 +1,46 @@
+# What this package answers, in Ukrainian, over `gazetteer-uk.tsv`.
+#
+# The same four columns as `en.tsv`: query, filters, and the name, kind and
+# country of the hit that must come back first.
+#
+# Shorter than the English table on purpose. Most of what `en.tsv` asserts —
+# proximity against population, a bbox admitting one of two, the postal index —
+# is script-independent, and repeating it in Cyrillic would assert the ranker
+# twice and the language not at all. What is here is the part that is genuinely
+# about the script: the case fold, the prefix band, and the ambiguity between a
+# name and the longer name it starts.
+#
+# query	filter	name	kind	country
+
+# The fold is Unicode-aware, not ASCII: Cyrillic uppercase has to lower.
+київ	-	Київ	city	ua
+КИЇВ	-	Київ	city	ua
+
+# `київ` is a prefix of `Київська область`, so both match and the shorter, exact
+# one has to win. This is the row that fails if `similarity` scores a prefix hit
+# without discounting it by how much of the name is still untyped.
+київ	kind:admin	Київська область	admin	ua
+
+# A city and a river sharing a name, in a second script.
+дніпро	-	Дніпро	city	ua
+дніпро	kind:water	Дніпро	water	ua
+
+# The feature classes, each named once.
+україна	kind:country	Україна	country	ua
+говерла	kind:terrain	Говерла	terrain	ua
+
+# Plain wins, including the three cities that exist only to give the ranker
+# something to reject.
+львів	-	Львів	city	ua
+одеса	-	Одеса	city	ua
+харків	-	Харків	city	ua
+
+# Places outside Ukraine, under their Ukrainian names — which is the fact that
+# makes `lang` the whole internationalization story: these are rows GeoNames
+# already holds, not a translation this repository maintains.
+варшава	-	Варшава	city	pl
+париж	-	Париж	city	fr
+лондон	-	Лондон	city	gb
+
+# A country filter that agrees with the answer must not lose it.
+київ	country:ua	Київ	city	ua
