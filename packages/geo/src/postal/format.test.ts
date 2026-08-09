@@ -1,5 +1,6 @@
 import { expect, test } from "bun:test";
-import { COUNTRIES } from "@smartput/country";
+import { COUNTRIES } from "../kind/places.fixture";
+import type { PostalCountry } from "../kind/types";
 import {
   isBacktrackRisk,
   MAX_CODE_LENGTH,
@@ -9,7 +10,6 @@ import {
   postalAccepts,
   postalShape,
 } from "./format";
-import type { PostalCountry } from "./types";
 
 /**
  * Spec §10, M6.4. The subject is `PostalFormat` and the thing most worth
@@ -78,7 +78,14 @@ test("a country with no postal system is null, not a format that takes anything"
     expect(postalAccepts(rowOf(a2), "12345")).toBe(false);
     expect(normalizePostal(rowOf(a2), "12345")).toBeNull();
   }
-  expect(COUNTRIES.length - WITH_FORMAT.length).toBe(74);
+  // Was `COUNTRIES.length - WITH_FORMAT.length === 74` against the committed
+  // table. That figure was a fact about GeoNames' column on the day it was
+  // generated, and a fixture cannot restate it — asserting "3" here would only
+  // be counting the three rows put in above. What survives is the shape of the
+  // claim: some countries have a format and some genuinely do not, and both
+  // halves are non-empty, so neither `for()` branch is dead.
+  expect(WITH_FORMAT.length).toBeGreaterThan(0);
+  expect(COUNTRIES.length - WITH_FORMAT.length).toBeGreaterThan(0);
 });
 
 test("Ireland is the near miss: the Eircode is in the column and validates", () => {
@@ -330,7 +337,12 @@ test("PostalFormat agrees with GeoNames' column for every country that has one",
     }
   }
   expect(disagreements).toEqual([]);
-  expect(WITH_FORMAT.length).toBe(178);
+  // The sweep still runs over every row it is given; what it can no longer say
+  // is that "every row" means 178 real countries. The rows below are the shapes
+  // upstream actually publishes — a prefixed code, two separators, letters
+  // first, and Ireland's unanchored pattern — so the agreement being asserted is
+  // still about real patterns even though the table is not a real table.
+  expect(WITH_FORMAT.length).toBeGreaterThan(10);
 });
 
 test("a valid prefix with rubbish after it is not a valid code", () => {

@@ -1,10 +1,10 @@
 import { expect, test } from "bun:test";
 import lengthEn from "@smartput/length/locale/en";
 import { NUMBER_WORDS } from "@smartput/number";
-import { COUNTRIES } from "./countries";
+import { COUNTRIES } from "./places.fixture";
 import { RESERVED_WORDS } from "./reserved";
 
-/** Duplicated from the generator for the reason `countries.test.ts` gives. */
+/** Duplicated from the generator, which is the one file that also writes it. */
 const BODY_MARKER = "// ---- generated body; the hash above covers everything below ----";
 
 const source = await Bun.file(new URL("./reserved.ts", import.meta.url)).text();
@@ -99,11 +99,17 @@ test("every alias and written form of a built-in kind is in it", () => {
   }
 });
 
-test("no country keeps a name the set would have taken", () => {
-  // The set is applied to CITIES and ADMIN1 and never to COUNTRIES, but if the
-  // two ever overlapped the ruling would be a choice rather than a free one.
-  // They do not: no country's name is a word the engine owns, so the separation
-  // costs nothing today and this test says so if that stops being true.
+test("no country in the fixture keeps a name the set would have taken", () => {
+  // The set is applied to cities and divisions and never to countries, but if
+  // the two ever overlapped the ruling would be a choice rather than a free one.
+  //
+  // **This is the fixture's version of the claim, and it is the weaker one.**
+  // Twenty-one countries cannot say anything about whether a real table has a
+  // country whose name is a keyword; what it does catch is a fixture row added
+  // later that would quietly break the separation for every test in this
+  // directory. The claim about real data is `no live alias is a word the engine
+  // needs` in `../live.network.test.ts`, which asks GeoNames for all ~250 and is
+  // skipped when no account is configured.
   const clashes: string[] = [];
   for (const country of COUNTRIES) {
     for (const alias of country.aliases) {

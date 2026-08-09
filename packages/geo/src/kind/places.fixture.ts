@@ -255,19 +255,6 @@ export const COUNTRIES: readonly CountryRow[] = [
     zone: "Asia/Dubai",
     geonameId: 290_557,
   }),
-  // A country with no postal system at all, so `POSTAL_FORMATS.for` has a real
-  // null to return rather than a contrived one.
-  country("ie", "irl", "Ireland", ["eire"], {
-    capital: "Dublin",
-    currency: "EUR",
-    phone: "353",
-    population: 4_853_506,
-    area: 70_280,
-    lat: 53.34399,
-    lon: -6.26719,
-    zone: "Europe/Dublin",
-    geonameId: 2_963_597,
-  }),
   country("pl", "pol", "Poland", ["polska"], {
     capital: "Warsaw",
     currency: "PLN",
@@ -342,6 +329,199 @@ export const COUNTRIES: readonly CountryRow[] = [
   }),
   // "soudan" is the French name and reaches the trie as an alias; "sudan" is the
   // English one. Both, because a test asserts an alias is not the display name.
+  // The rows the matcher's own tests name, each for a rule that needs a country
+  // with a particular *shape* of name rather than a particular country.
+  //
+  // "km" is the collision the whole two-letter refusal exists for: Comoros'
+  // alpha-2 is a kilometre, and the fold is destructive, so a code that did not
+  // yield to a registered unit alias would cost every "10 km" its reading.
+  country("km", "com", "Comoros", [], {
+    currency: "KMF",
+    zone: "Indian/Comoro",
+    geonameId: 921_929,
+  }),
+  // A long multi-word name whose first word is also a claim, for the trie's
+  // longest-match walk.
+  country("ba", "bih", "Bosnia and Herzegovina", ["bosnia"], {
+    currency: "BAM",
+    zone: "Europe/Sarajevo",
+    geonameId: 3_277_605,
+    postalRegex: "^\\d{5}$",
+  }),
+  // The four whose names contain a word the engine owns — "and", "guinea" three
+  // times over, "new" — which is what makes a scan-based matcher wrong and a
+  // trie walk right.
+  country("gn", "gin", "Guinea", [], {
+    currency: "GNF",
+    zone: "Africa/Conakry",
+    geonameId: 2_420_477,
+  }),
+  country("gq", "gnq", "Equatorial Guinea", [], {
+    currency: "XAF",
+    zone: "Africa/Malabo",
+    geonameId: 2_309_096,
+  }),
+  country("pg", "png", "Papua New Guinea", [], {
+    currency: "PGK",
+    zone: "Pacific/Port_Moresby",
+    geonameId: 2_088_628,
+  }),
+  country("sv", "slv", "El Salvador", ["salvador"], {
+    currency: "USD",
+    zone: "America/El_Salvador",
+    geonameId: 3_585_968,
+    postalRegex: "^\\d{4}$",
+  }),
+  // Two-letter alpha-2s that are English words in their own right: "as", "in"
+  // and "to" are American Samoa, India and Tonga, and every one of them is a
+  // keyword the parser needs more than it needs a country.
+  country("as", "asm", "American Samoa", [], {
+    currency: "USD",
+    zone: "Pacific/Pago_Pago",
+    geonameId: 5_880_801,
+  }),
+  country("ws", "wsm", "Samoa", [], {
+    currency: "WST",
+    zone: "Pacific/Apia",
+    geonameId: 4_034_894,
+  }),
+  country("in", "ind", "India", [], {
+    currency: "INR",
+    zone: "Asia/Kolkata",
+    geonameId: 1_269_750,
+    postalRegex: "^\\d{6}$",
+  }),
+  country("cn", "chn", "China", [], {
+    currency: "CNY",
+    zone: "Asia/Shanghai",
+    geonameId: 1_814_991,
+    postalRegex: "^\\d{6}$",
+  }),
+  // Two countries whose common English name is a *prefix phrase* of another
+  // country's official one, which is where a longest-match walk earns its keep.
+  country("kr", "kor", "South Korea", ["korea", "republic of korea"], {
+    currency: "KRW",
+    zone: "Asia/Seoul",
+    geonameId: 1_835_841,
+    postalRegex: "^\\d{5}$",
+  }),
+  country("tw", "twn", "Taiwan", ["republic of china"], {
+    currency: "TWD",
+    zone: "Asia/Taipei",
+    geonameId: 1_668_284,
+  }),
+  country("mc", "mco", "Monaco", [], {
+    currency: "EUR",
+    zone: "Europe/Monaco",
+    geonameId: 2_993_457,
+    postalRegex: "^980\\d{2}$",
+  }),
+  country("vg", "vgb", "British Virgin Islands", ["virgin islands"], {
+    currency: "USD",
+    zone: "America/Tortola",
+    geonameId: 3_577_718,
+  }),
+
+  // The postal shapes. These rows exist for `../postal/format.test.ts` and carry
+  // GeoNames' own `postalCodeRegex` verbatim, because the pattern *is* the
+  // subject: Portugal has two separators and cannot be rebuilt by one
+  // reinsertion, Andorra and Sweden prefix their codes with the country's
+  // letters, Ireland's is the one row upstream leaves without a closing anchor,
+  // Malta's is letters-then-digits, and Canada's alternates the two. A country
+  // here with nothing else about it is a country that had nothing else to say.
+  country("de", "deu", "Germany", ["deutschland"], {
+    currency: "EUR",
+    zone: "Europe/Berlin",
+    geonameId: 2_921_044,
+    postalRegex: "^\\d{5}$",
+  }),
+  country("ad", "and", "Andorra", ["principality of andorra"], {
+    currency: "EUR",
+    zone: "Europe/Andorra",
+    geonameId: 3_041_565,
+    postalRegex: "^(?:AD)*(\\d{3})$",
+  }),
+  country("se", "swe", "Sweden", ["sverige"], {
+    currency: "SEK",
+    zone: "Europe/Stockholm",
+    geonameId: 2_661_886,
+    postalRegex: "^(?:SE)*(\\d{3}\\s?\\d{2})$",
+  }),
+  country("az", "aze", "Azerbaijan", [], {
+    currency: "AZN",
+    zone: "Asia/Baku",
+    geonameId: 587_116,
+    // A space where Moldova has a dash, so the separator search is exercised on
+    // both characters rather than only on the one that is easy to spot.
+    postalRegex: "^AZ \\d{4}$",
+  }),
+  country("md", "mda", "Moldova", [], {
+    currency: "MDL",
+    zone: "Europe/Chisinau",
+    geonameId: 617_790,
+    // The separator is inside the prefix here, not between the digits, which is
+    // what makes this row worth having: a normalizer that assumed the separator
+    // splits the numeric part would put it in the wrong place.
+    postalRegex: "^MD-\\d{4}$",
+  }),
+  country("cz", "cze", "Czechia", ["czech republic"], {
+    currency: "CZK",
+    zone: "Europe/Prague",
+    geonameId: 3_077_311,
+    postalRegex: "^\\d{3}\\s?\\d{2}$",
+  }),
+  country("br", "bra", "Brazil", ["brasil"], {
+    currency: "BRL",
+    zone: "America/Sao_Paulo",
+    geonameId: 3_469_034,
+    postalRegex: "^\\d{5}-\\d{3}$",
+  }),
+  // Two separators, and the row that proves a normalizer cannot work by
+  // reinserting one.
+  country("pt", "prt", "Portugal", [], {
+    currency: "EUR",
+    zone: "Europe/Lisbon",
+    geonameId: 2_264_397,
+    postalRegex: "^\\d{4}-\\d{3}\\s?[a-zA-Z]{0,25}$",
+  }),
+  // Letters first, then digits: the separator search cannot assume a position.
+  country("mt", "mlt", "Malta", [], {
+    currency: "EUR",
+    zone: "Europe/Malta",
+    geonameId: 2_562_770,
+    postalRegex: "^[A-Z]{3}\\s?\\d{2,4}$",
+  }),
+  // The one pattern upstream ships with no closing `$`, which is what makes
+  // `PostalFormat`'s re-anchoring observable rather than theoretical.
+  country("ie", "irl", "Ireland", ["eire"], {
+    capital: "Dublin",
+    currency: "EUR",
+    phone: "353",
+    population: 4_853_506,
+    area: 70_280,
+    lat: 53.34399,
+    lon: -6.26719,
+    zone: "Europe/Dublin",
+    geonameId: 2_963_597,
+    postalRegex: "^(?:^[AC-FHKNPRTV-Y][0-9]{2}|D6W)[ -]?[0-9AC-FHKNPRTV-Y]{4}",
+  }),
+  // The three with no postal system at all, so `for()` has a real null to
+  // return: an empty pattern anchored as `^(?:)$` matches the empty string and,
+  // unanchored, matches everything.
+  country("aq", "ata", "Antarctica", [], {
+    zone: "Antarctica/Casey",
+    geonameId: 6_697_173,
+  }),
+  country("to", "ton", "Tonga", [], {
+    currency: "TOP",
+    zone: "Pacific/Tongatapu",
+    geonameId: 4_032_283,
+  }),
+  country("ky", "cym", "Cayman Islands", [], {
+    currency: "KYD",
+    zone: "America/Cayman",
+    geonameId: 3_580_718,
+  }),
   country("sd", "sdn", "Sudan", ["soudan"], {
     capital: "Khartoum",
     currency: "SDG",
@@ -446,13 +626,6 @@ export const CITIES: readonly CityRow[] = [
     lat: 41.66394,
     lon: -83.55521,
   }),
-  city(2_510_409, "Toledo", "es", {
-    admin1: "54",
-    population: 83_226,
-    zone: "Europe/Madrid",
-    lat: 39.86288,
-    lon: -4.02742,
-  }),
   city(5_814_616, "Vancouver", "us", {
     admin1: "WA",
     population: 183_012,
@@ -474,12 +647,32 @@ export const CITIES: readonly CityRow[] = [
     lat: -33.86785,
     lon: 151.20732,
   }),
-  city(6_159_905, "Sydney", "ca", {
+  city(6_354_908, "Sydney", "ca", {
     admin1: "07",
     population: 29_904,
     zone: "America/Glace_Bay",
     lat: 46.13511,
     lon: -60.18313,
+  }),
+  // Cities whose name is also a country's, which is where §6.1's country-over-
+  // city ruling is observable: a country is +3 and no city goes above +2, so the
+  // country takes the name and `singapore to japan` stays a distance between two
+  // countries. One per shape — a city-state, a city in a different country from
+  // the one it shares a name with, and a city whose namesake country is an alias
+  // rather than a display name.
+  city(2_993_458, "Monaco", "mc", {
+    population: 32_965,
+    capital: true,
+    zone: "Europe/Monaco",
+    lat: 43.73333,
+    lon: 7.41667,
+  }),
+  city(3_450_554, "Salvador", "br", {
+    admin1: "05",
+    population: 2_711_840,
+    zone: "America/Bahia",
+    lat: -12.97111,
+    lon: -38.51083,
   }),
   // The reserved-word collisions. Every one of these is a real city of over
   // 100 000 people whose name is a word the engine needs, and the generator's
@@ -596,5 +789,4 @@ export const ADMIN1: readonly Admin1Row[] = [
   { key: "CA.BC", name: "British Columbia", aliases: ["british columbia", "bc"] },
   { key: "CA.NS", name: "Nova Scotia", aliases: ["nova scotia", "ns"] },
   { key: "AU.02", name: "New South Wales", aliases: ["new south wales", "nsw"] },
-  { key: "ES.54", name: "Castille-La Mancha", aliases: ["castille la mancha"] },
 ];

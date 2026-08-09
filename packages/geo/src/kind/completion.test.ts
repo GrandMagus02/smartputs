@@ -1,5 +1,4 @@
 import { expect, test } from "bun:test";
-import { CITIES } from "@smartput/city";
 import {
   type CompleteCtx,
   composeLocale,
@@ -10,16 +9,16 @@ import {
 import { english as coreEn } from "@smartput/core/locale/en";
 import { BUILTIN_KINDS } from "@smartput/kinds";
 import BUILTIN_EN from "@smartput/kinds/locale/en";
+import { placeVocabulary } from "../locale/vocabulary";
 import {
   completePlaces,
   createPlaceIndex,
   DEFAULT_LIMIT,
   PlaceCompleter,
 } from "./completion";
-import { COUNTRIES } from "./data/countries";
-import placeEn from "./locale/en";
 import { MIN_NAME_LENGTH } from "./matcher";
 import { definePlace } from "./place";
+import { CITIES, COUNTRIES } from "./places.fixture";
 
 /**
  * The two builds spec §3 tiers, side by side in every test that has an opinion
@@ -66,7 +65,7 @@ test("a country completes from the countries-only build", () => {
   expect(first?.unit).toBe("ua");
 });
 
-test("definePlace() with no cities completes no city at all", () => {
+test("definePlace({ countries: COUNTRIES }) with no cities completes no city at all", () => {
   for (const fragment of ["kyi", "chicag", "springfield", "tokyo", "leningrad"]) {
     expect(rows(countryOnly, fragment)).toEqual([]);
   }
@@ -215,8 +214,11 @@ test("a multi-word name completes, through core as well as here", () => {
   // that does not exist. `CompleteCtx` now carries the whole input and the
   // fragment's span, and a row may name the offset it replaces from.
   const engine = createEngine({
-    locales: [composeLocale(coreEn, [...BUILTIN_EN, placeEn])],
-    kinds: [...BUILTIN_KINDS, { ...definePlace({ cities: CITIES }) }],
+    locales: [composeLocale(coreEn, [...BUILTIN_EN, placeVocabulary(COUNTRIES)])],
+    kinds: [
+      ...BUILTIN_KINDS,
+      { ...definePlace({ countries: COUNTRIES, cities: CITIES }) },
+    ],
   });
   const first = engine.complete("san fran")[0];
   expect(first?.text).toBe("San Francisco");
@@ -241,8 +243,8 @@ test("a look-back row is scored against the whole of what was typed", () => {
   // fragment, "yor", which neither alias begins with. Both scored zero, the tie
   // fell through to the country code, and "id" sorts above "us".
   const engine = createEngine({
-    locales: [composeLocale(coreEn, [...BUILTIN_EN, placeEn])],
-    kinds: [...BUILTIN_KINDS, definePlace({ cities: CITIES })],
+    locales: [composeLocale(coreEn, [...BUILTIN_EN, placeVocabulary(COUNTRIES)])],
+    kinds: [...BUILTIN_KINDS, definePlace({ countries: COUNTRIES, cities: CITIES })],
   });
   expect(engine.complete("new yor").map((r) => r.text)).toEqual([
     "New York City",
@@ -345,11 +347,11 @@ test("the call site: the kind registers the completer and core ranks the rows", 
   //
   //     completions: new PlaceCompleter(COUNTRIES, opts.cities).completions,
   const kind: Kind = {
-    ...definePlace({ cities: CITIES }),
+    ...definePlace({ countries: COUNTRIES, cities: CITIES }),
     completions: withCities.completions,
   };
   const engine = createEngine({
-    locales: [composeLocale(coreEn, [...BUILTIN_EN, placeEn])],
+    locales: [composeLocale(coreEn, [...BUILTIN_EN, placeVocabulary(COUNTRIES)])],
     kinds: [...BUILTIN_KINDS, kind],
   });
 

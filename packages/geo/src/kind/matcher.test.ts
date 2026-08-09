@@ -1,11 +1,9 @@
 import { expect, test } from "bun:test";
-import { ADMIN1, CITIES } from "@smartput/city";
-import type { Admin1Row, CityRow } from "@smartput/city/types";
 import type { LiteralMatch, LiteralMatcher, MatchCtx } from "@smartput/core";
-import { COUNTRIES } from "./data/countries";
-import { RESERVED_WORDS } from "./data/reserved";
 import { createPlaceLiteral, MIN_NAME_LENGTH, RANK_STEP } from "./matcher";
-import type { CountryRow } from "./types";
+import { ADMIN1, CITIES, COUNTRIES } from "./places.fixture";
+import { RESERVED_WORDS } from "./reserved";
+import type { Admin1Row, CityRow, CountryRow } from "./types";
 
 const placeLiteral = createPlaceLiteral(COUNTRIES);
 

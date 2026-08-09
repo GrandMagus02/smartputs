@@ -1,5 +1,4 @@
 import { expect, test } from "bun:test";
-import { ADMIN1, CITIES } from "@smartput/city";
 import {
   buildRegistry,
   composeLocale,
@@ -15,19 +14,29 @@ import { english as en } from "@smartput/core/locale/en";
 import { length } from "@smartput/length";
 import lengthEn from "@smartput/length/locale/en";
 import { number } from "@smartput/number";
-import { COUNTRIES } from "./data/countries";
-import placeEn from "./locale/en";
+import { placeVocabulary } from "../locale/vocabulary";
 import { MIN_NAME_LENGTH } from "./matcher";
-import { definePlace, place } from "./place";
+import { definePlace } from "./place";
+import { ADMIN1, CITIES, COUNTRIES } from "./places.fixture";
+
+/**
+ * The countries-only build, which used to be the module constant `place`.
+ *
+ * There is no such constant now: a kind cannot be built at import time from a
+ * table that arrives over a network, so every build names its tables. The tests
+ * below that contrast "the T0 build" with "the loaded build" still contrast two
+ * builds — they just both start here.
+ */
+const place = definePlace({ countries: COUNTRIES });
 
 /**
  * `lengthEn` because a distance is formatted as a length, and length's words
- * are a vocabulary now rather than a field on the kind. `placeEn` because a
+ * are a vocabulary now rather than a field on the kind. `placeVocabulary(COUNTRIES)` because a
  * country's names are too — and because a `place` no language has spoken for is
  * indexed under its own unit keys, which for this kind are the alpha-2 codes
  * every test below asserts stay out of the global index.
  */
-const enPlace = composeLocale(en, [lengthEn, placeEn]);
+const enPlace = composeLocale(en, [lengthEn, placeVocabulary(COUNTRIES)]);
 
 const engine = createEngine({
   locales: [enPlace],
@@ -43,7 +52,7 @@ const units = registry.kinds.get("place")?.units;
  * also the only proof that `definePlace` returns an independent Kind and not a
  * mutated singleton.
  */
-const cityPlace = definePlace({ cities: CITIES, admin1: ADMIN1 });
+const cityPlace = definePlace({ countries: COUNTRIES, cities: CITIES, admin1: ADMIN1 });
 const cityEngine = createEngine({
   locales: [enPlace],
   kinds: [number, length, cityPlace],
@@ -114,7 +123,9 @@ test("the kind declares two matchers and one op", () => {
   // because a postal format is T0 data — one column of COUNTRIES — and gating it
   // on `cities` would tie a country's own format to a gazetteer.
   expect(place.literals).toHaveLength(2);
-  expect(definePlace({ cities: CITIES, admin1: ADMIN1 }).literals).toHaveLength(2);
+  expect(
+    definePlace({ countries: COUNTRIES, cities: CITIES, admin1: ADMIN1 }).literals,
+  ).toHaveLength(2);
   expect(place.ops).toHaveLength(1);
 });
 
