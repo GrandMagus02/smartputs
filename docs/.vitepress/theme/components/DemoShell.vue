@@ -1,13 +1,23 @@
 <script setup lang="ts">
-defineProps<{
-  title: string;
-  icon?: string;
-  hint?: string;
-}>();
+withDefaults(
+  defineProps<{
+    title: string;
+    icon?: string;
+    hint?: string;
+    /**
+     * Let a child paint outside the card. Off by default — the rounded corners
+     * depend on it — and on for the one demo that opens a dropdown, which an
+     * `overflow: hidden` ancestor cuts off at the card's edge no matter how the
+     * list itself is positioned.
+     */
+    overflow?: boolean;
+  }>(),
+  { icon: undefined, hint: undefined, overflow: false },
+);
 </script>
 
 <template>
-  <section class="sp-demo">
+  <section class="sp-demo" :class="{ 'sp-demo--overflow': overflow }">
     <header class="sp-demo__head">
       <span class="sp-demo__icon" :class="icon ?? 'i-lucide-play'" aria-hidden="true" />
       <h4 class="sp-demo__title">{{ title }}</h4>
@@ -32,6 +42,20 @@ defineProps<{
   border-radius: 12px;
   background: var(--vp-c-bg-soft);
   overflow: hidden;
+}
+
+/* With the clip gone the header and footer have to round their own corners —
+   that is what `overflow: hidden` was doing for them. */
+.sp-demo--overflow {
+  overflow: visible;
+}
+
+.sp-demo--overflow .sp-demo__head {
+  border-radius: 12px 12px 0 0;
+}
+
+.sp-demo--overflow .sp-demo__hint {
+  border-radius: 0 0 12px 12px;
 }
 
 .sp-demo__head {

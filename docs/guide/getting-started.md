@@ -57,7 +57,7 @@ in the one language `format` names, defaulting to `locales[0].id`.
 subset you want, or the engine will have no vocabulary and every unit raises
 `NoCandidateError`. Two kinds are deliberately left out of `BUILTIN_KINDS` and
 must be named: `measure` (its `mm`/`cm` collide with `length`) and `money`,
-which lives in [`@smartput/rate`](/guide/money) because it needs a rate table
+which lives in [`@smartput/rate`](/packages/rate) because it needs a rate table
 you supply.
 :::
 
@@ -163,7 +163,7 @@ const engine = createEngine({
 engine.evaluate("30 usd in gbp").formatted; // "£22.94"
 ```
 
-See [Money and rates](/guide/money) for live rates, providers, and how a
+See [Money and rates](/packages/rate) for live rates, providers, and how a
 derived cross-rate is disclosed.
 
 ## Where to go next
@@ -171,5 +171,5 @@ derived cross-rate is disclosed.
 - [The pipeline](/guide/pipeline) — what happens between the string and the result.
 - [Ambiguity and weights](/guide/weights) — the full four-layer model.
 - [Completion](/guide/completion) — `complete()` in full.
-- [Money and rates](/guide/money) — `@smartput/rate`, providers, `createLiveEngine`.
+- [Money and rates](/packages/rate) — `@smartput/rate`, providers, `createLiveEngine`.
 - [API reference](/api/) — every exported symbol.

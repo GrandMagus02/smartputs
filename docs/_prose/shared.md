@@ -1,10 +1,3 @@
----
-title: Validating without the engine
-description: The micro path for one value — parse, convert, compare and hold it, at a fraction of the engine's weight.
----
-
-# Validating without the engine
-
 `createEngine()` is the right door for an expression: locales, ambiguity,
 `Decimal`, a solver. It is the wrong door for an HTML input that just needs to
 know whether `"30deg"` is a valid angle. Building a registry and a Pratt parser

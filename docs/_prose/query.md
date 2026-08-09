@@ -1,10 +1,3 @@
----
-title: Querying a database
-description: Natural-language filters compiled to SQL, MongoDB, or a dialect you wrote — with no model in the loop.
----
-
-# Querying a database
-
 `@smartput/query` turns a sentence into a database query. Not by asking a model,
 and not by pattern-matching whole sentences: it owns a clause grammar, and it
 reads every *value* inside that grammar through an engine you built.
@@ -17,8 +10,8 @@ shipments within 50 km of kyiv
 ```
 
 The value half of each of those is already solved elsewhere in this repo.
-`500 usd` is [money](/guide/money), `last week` is a [range](/guide/ranges),
-`50 km` is a length and `kyiv` is a [place](/guide/places). What this package
+`500 usd` is [money](/packages/rate), `last week` is a [range](/packages/range-core),
+`50 km` is a length and `kyiv` is a [place](/packages/geo). What this package
 adds is the two things no engine can know, because they are facts about your
 schema rather than about English: **which column was meant**, and **what that
 column stores**.

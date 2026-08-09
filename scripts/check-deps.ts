@@ -86,50 +86,25 @@ const ALLOWED: Record<string, string[]> = {
     "@smartput/core",
     "@smartput/number",
   ],
-  // The four halves of what M6 shipped as `@smartput/geo`, layered so the graph
-  // has one direction: zip, city and distance are underneath and country is the
-  // package that assembles a kind out of them.
-  //
-  // No data package anywhere in the four. GeoNames is vendored as generated
-  // TypeScript under src/data, committed and reviewable in a diff, so none of
-  // them carries an npm data dependency or the upstream maintenance risk that
-  // comes with one — an npm gazetteer would have been a second supply chain for
-  // a table that changes a few times a year.
-  //
-  // `@smartput/city` has no runtime dependency at all: it is the T1 tables and
-  // their two row types, and a table needs no engine to be a table.
-  "packages/city/package.json": [],
-  // Postal codes: a literal matcher and a validator over rows the caller brings.
-  // It names no gazetteer, which is what lets `country` name it.
-  "packages/zip/package.json": ["@smartput/core", "decimal.js"],
-  // The great-circle op. The edge to zip is one constant — the id a postal code
-  // carries when nothing has positioned it, which is the case `between` refuses.
-  "packages/distance/package.json": ["@smartput/core", "@smartput/zip", "decimal.js"],
-  // T0 and the place kind. `@smartput/city` is here for `CityRow` alone: the
-  // import is `import type` from the `/types` subpath and compiles away, and the
-  // check-size row below is what proves the gazetteer stays out of the bundle.
-  // It is a dependency rather than a devDependency because the emitted `.d.ts`
-  // names it, and a published declaration naming a package absent from the
-  // manifest is a dependency a consumer discovers on install.
-  "packages/country/package.json": [
-    "@smartput/city",
-    "@smartput/core",
-    "@smartput/distance",
-    "@smartput/zip",
-    "decimal.js",
-  ],
+  // The great-circle op, and nothing else. It used to name `@smartput/zip` for
+  // one constant — the id a postal code carries when nothing has positioned it,
+  // which is the case `between` refuses. That package is gone and its postal
+  // machinery lives inside `@smartput/geo`, whose kind names `PlaceDistance`, so
+  // importing the constant back would close a cycle. It is restated in
+  // `distance.ts` instead.
+  "packages/distance/package.json": ["@smartput/core", "decimal.js"],
   // Free-text place search over the GeoNames web service and whatever else the
   // consumer plugs in. One edge, to core, for `SmartputError` — and not to
   // `decimal.js`, because nothing here is arithmetic on a Value: a score is a
   // ranking artefact and a coordinate is data at rest, exactly as `CountryRow`'s
   // header argues for the vendored tables.
   //
-  // No edge to `@smartput/country` or `@smartput/city`, and that direction is
-  // load-bearing rather than incidental. This package ships no gazetteer;
-  // `bundled()` takes rows as an argument the way `definePlace()` already does,
-  // so the tiering rule holds — the dependency edge runs from the consumer
-  // inwards, and a consumer who only wants a live search links no table.
-  "packages/geo/package.json": ["@smartput/core"],
+  // The edge to `@smartput/distance` is the place kind's one op, and it is the
+  // only one: this package ships no gazetteer at all. `definePlace()` and
+  // `bundled()` both take their rows as arguments, so the tiering rule the four
+  // deleted packages existed to enforce now holds by construction — there is no
+  // table to keep out of a bundle.
+  "packages/geo/package.json": ["@smartput/core", "@smartput/distance", "decimal.js"],
 
   // The micro-validation path. Zero runtime dependencies, enforced here: a
   // first one would mean decimal.js or core leaked into a 600-byte budget.

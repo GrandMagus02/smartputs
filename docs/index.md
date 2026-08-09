@@ -16,6 +16,9 @@ hero:
       text: Playground
       link: /playground
     - theme: alt
+      text: Packages
+      link: /packages/
+    - theme: alt
       text: GitHub
       link: https://github.com/GrandMagus/smartputs
 
@@ -65,11 +68,17 @@ features:
     details: >-
       Every value is a decimal.js Decimal in a canonical unit. A 23-significant-
       digit input survives the whole pipeline intact.
+  - icon: '<span class="i-lucide-square-check-big"></span>'
+    title: A 1.5 KB door for one field
+    details: >-
+      An HTML input asking whether "30deg" is valid does not need a registry and
+      a Pratt parser. Every kind ships an engine-free parseX, and its size is a
+      budget CI enforces.
   - icon: '<span class="i-lucide-package"></span>'
     title: One runtime dependency
     details: >-
       @smartput/core depends on decimal.js and nothing else. CI fails on a
-      second. Heavy kinds live in their own packages.
+      second. Heavy kinds live in their own packages — one page each.
 ---
 
 <style>

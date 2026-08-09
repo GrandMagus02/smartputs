@@ -1,8 +1,8 @@
 import { expect, test } from "bun:test";
 import { Decimal, type EvalCtx, type Value } from "@smartput/core";
 import { Corpora } from "@smartput/core/testing";
-import { COUNTRIES } from "@smartput/country";
 import { metresBetween, PlaceDistance, UnpositionedPlaceError } from "./distance";
+import { PLACES } from "./places.fixture";
 
 /**
  * The corpus for `@smartput/distance`: the great-circle op, over the table the
@@ -18,10 +18,10 @@ import { metresBetween, PlaceDistance, UnpositionedPlaceError } from "./distance
  * decimal places, and a corpus that had to say "within 1%" would not catch a
  * table row moving by a kilometre.
  */
-const distance = new PlaceDistance(COUNTRIES).op;
+const distance = new PlaceDistance(PLACES).op;
 
 const rowOf = (a2: string) => {
-  const row = COUNTRIES.find((r) => r.a2 === a2);
+  const row = PLACES.find((r) => r.a2 === a2);
   if (row === undefined) throw new Error(`the corpus names no country ${a2}`);
   return row;
 };

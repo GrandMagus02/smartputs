@@ -1,7 +1,0 @@
-#ISO	ISO3	ISO-Numeric	fips	Country	Capital	Area(in sq km)	Population	Continent	tld	CurrencyCode	CurrencyName	Phone	Postal Code Format	Postal Code Regex	Languages	geonameid	neighbours	EquivalentFipsCode
-AQ	ATA	010	AY	Antarctica		14000000	0	AN	.aq							6697173		
-GB	GBR	826	UK	United Kingdom	London	244820	66488991	EU	.uk	GBP	Pound	44	@# #@@|@## #@@|@@# #@@|@@## #@@|@#@ #@@|@@#@ #@@|GIR0AA	^([Gg][Ii][Rr]\s?0[Aa]{2})|((([A-Za-z][0-9]{1,2})|(([A-Za-z][A-Ha-hJ-Yj-y][0-9]{1,2})|(([A-Za-z][0-9][A-Za-z])|([A-Za-z][A-Ha-hJ-Yj-y][0-9]?[A-Za-z]))))\s?[0-9][A-Za-z]{2})$	en-GB,cy-GB,gd	2635167	IE	
-JP	JPN	392	JA	Japan	Tokyo	377835	126529100	AS	.jp	JPY	Yen	81	###-####	^\d{3}-\d{4}$	ja	1861060		
-PW	PLW	585	PS	Palau	Melekeok	458	17907	OC	.pw	USD	Dollar	680	96940	^(96940)$	pau,sov,en-PW,tox,ja,fil,zh	1559582		
-UA	UKR	804	UP	Ukraine	Kyiv	603700	40000000	EU	.ua	UAH	Hryvnia	380	#####	^(\d{5})$	uk,ru-UA,rom,pl,hu	690791	PL,MD,HU,SK,BY,RO,RU	
-US	USA	840	US	United States	Washington	9629091	327167434	NA	.us	USD	Dollar	1	#####-####	^\d{5}(-\d{4})?$	en-US,es-US,haw,fr	6252001	CA,MX,CU	

@@ -302,6 +302,6 @@ two kinds do not ship one.
 
 - [`@smartput/shared`](/api/validate) — `createValueClass`'s dependencies:
   `parse`, the operation algebra, `ValidationError`.
-- [Validating without the engine](/guide/validating) — the three-door table
+- [Validating without the engine](/packages/shared) — the three-door table
   and when to reach for a class instead of the free functions.
 - [`createFacade`](/api/facade) — the engine-side `Quantity` this bridges to.

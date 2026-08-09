@@ -1,15 +1,8 @@
----
-title: Selections
-description: "`first three`, `from 6 to 9`, `4-5`, `(1;5]` — two positions in a list, and what it costs to take the dash away from subtraction."
----
-
-# Selections
-
 `first three`, `last three`, `from 6 to 9`, `4-5`, `(1;5]`.
 
 One package, two kinds, and an answer that is **two positions in a list** rather
 than a quantity of anything. It is the range kind with no calendar in it: where
-[`date-range`](/guide/ranges) answers with two instants,
+[`date-range`](/packages/range-core) answers with two instants,
 [`@smartput/range`](https://npmjs.com/package/@smartput/range) answers with two
 array indices, for the launcher that has a list of results and a person typing
 which of them they meant.
@@ -74,7 +67,7 @@ here as it does in a quantity.
 **Ordinal words are deliberately absent.** `second` is a `duration` alias in
 every locale pack this repo ships, so claiming it here would put a selection
 reading on the right of "3 seconds" for the solver to weigh — the same reason
-[`date-range` refuses to claim a bare "week"](/guide/ranges). Positions are
+[`date-range` refuses to claim a bare "week"](/packages/range-core). Positions are
 written as numbers or not at all.
 
 ### Interval notation
@@ -166,7 +159,7 @@ wrong still throws.
 `4-5` is the input this package turns on, because `- | number | number` already
 claims it and answers **-1**.
 
-The answer is the one [`time-range`](/guide/ranges#the-dash-and-what-it-costs)
+The answer is the one [`time-range`](/packages/range-core#the-dash-and-what-it-costs)
 found for `10:00 - 20:00`: a second kind over the same surface, weighted so it
 loses every contest it is not wanted in, and an op signature that pays the
 penalty back.

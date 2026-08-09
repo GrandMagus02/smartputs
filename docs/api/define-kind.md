@@ -91,7 +91,7 @@ interface OpaqueSpec {
 ```
 
 An opaque unit is a **label**, not a position on a ratio line —
-[`datetime`](/guide/datetime)'s units are IANA time zones — but it is indexed by
+[`datetime`](/packages/datetime)'s units are IANA time zones — but it is indexed by
 alias, weighted, chosen by the solver, named as an `in` target and read by the
 formatter exactly like a ratio kind's unit. Its ratio is the identity and its
 offset is zero, so generic code never has to branch on `mode` before touching a
@@ -262,7 +262,7 @@ reading is gone before the solver ever runs — there is no lattice and no
 backtracking. So a matcher must be conservative, and `ctx.isUnitAlias` exists
 for exactly that: `@smartput/datetime` refuses any match whose letter runs are
 *all* registered unit aliases, which is what keeps `5 min` a duration. See
-[how it works](/guide/datetime#how-it-works).
+[how it works](/packages/datetime#how-it-works).
 
 `foldLiterals` is exported from the package root so a matcher can be tested in
 isolation, without an engine.
@@ -368,7 +368,7 @@ its matcher's `+3` for a country meant 56 of the 294 prefixes of a builtin unit
 alias lost their first row to a place — `me` completed Mesa rather than metre —
 so `completion.ts` rebases the same order onto a ceiling of `0` and keeps the
 spread underneath. See
-[a place among the units](/guide/places#a-place-is-not-a-quantity).
+[a place among the units](/packages/geo#a-place-is-not-a-quantity).
 
 ```ts
 // The whole of what @smartput/country registers:

@@ -437,14 +437,6 @@ export const BUDGETS: EntrySpec[] = [
   // table is ~99% of this number and would not move under any change to the
   // package's code; the default 70% band would let two thirds of the gazetteer
   // vanish silently.
-  {
-    label: "country root, T0 only (T1 must not leak in)",
-    from: "@smartput/country",
-    names: ["place"],
-    min: 132_000,
-    gzip: 46_000,
-    floor: 120_000,
-  },
   // The two packages below the kind, each measured for the claim that it is
   // usable without the gazetteer the kind ships. Both were inside the 128 KB row
   // above until the split, where "does the postal validator cost you a country
@@ -452,13 +444,6 @@ export const BUDGETS: EntrySpec[] = [
   // code is worth: decimal.js is ~35 KB of both numbers and is the floor for
   // anything that builds a Value at all. What these rows watch is the delta —
   // a country table arriving in either one is +90 KB and unmissable.
-  {
-    label: "zip root (postal machinery, no gazetteer)",
-    from: "@smartput/zip",
-    names: ["PostalFormat", "PostalFormats", "createPostalLiteral"],
-    min: 39_000,
-    gzip: 16_000,
-  },
   {
     label: "distance root (the op, no gazetteer)",
     from: "@smartput/distance",
@@ -477,8 +462,8 @@ export const BUDGETS: EntrySpec[] = [
     label: "geo root (search and ranking, no data at all)",
     from: "@smartput/geo",
     names: ["Geo", "rank"],
-    min: 40_500,
-    gzip: 16_200,
+    min: 40_800,
+    gzip: 16_300,
   },
   // The providers entry point, measured apart from the root for the reason it is
   // a separate export: a consumer who only wants the types and the ranking must
@@ -487,8 +472,8 @@ export const BUDGETS: EntrySpec[] = [
     label: "geo providers (every adapter)",
     from: "@smartput/geo/providers",
     names: ["geonames", "postalCodes", "bundled", "custom"],
-    min: 42_900,
-    gzip: 16_550,
+    min: 43_000,
+    gzip: 16_650,
   },
 
   // Holidays, and the guard row that is the entire argument for the subpath.

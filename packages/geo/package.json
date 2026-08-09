@@ -22,8 +22,17 @@
   },
   "devDependencies": {
     "@smartput/core": "workspace:*",
+    "@smartput/date": "workspace:*",
+    "@smartput/date-range": "workspace:*",
+    "@smartput/datetime": "workspace:*",
+    "@smartput/datetime-range": "workspace:*",
     "@smartput/kinds": "workspace:*",
     "@smartput/length": "workspace:*",
-    "@smartput/number": "workspace:*"
+    "@smartput/measure": "workspace:*",
+    "@smartput/number": "workspace:*",
+    "@smartput/range": "workspace:*",
+    "@smartput/rate": "workspace:*",
+    "@smartput/time": "workspace:*",
+    "@smartput/time-range": "workspace:*"
   }
 }

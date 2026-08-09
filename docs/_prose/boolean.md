@@ -1,10 +1,3 @@
----
-title: Comparison
-description: `1000 mb = 1 gb` is true. Six operators, one boolean kind, and a tolerance you can predict.
----
-
-# Comparison
-
 ```
 1000 mb = 1 gb        → true
 1 kg > 500 g          → true

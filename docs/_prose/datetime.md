@@ -1,10 +1,3 @@
----
-title: Dates and time zones
-description: The datetime kind, the chrono bridge, Temporal arithmetic, and time-zone conversion through `in`.
----
-
-# Dates and time zones
-
 `@smartput/datetime` adds one kind. Once it is registered, `today` is a value,
 `today + 3 d` is arithmetic against core's `duration`, and `3pm in tokyo` is the
 ordinary `in` operator with a time zone as its target.

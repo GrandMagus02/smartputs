@@ -8,6 +8,10 @@ description: Every symbol exported by @smartput/core, @smartput/kinds, @smartput
 Every package is ESM only. Everything below is exported from the package root
 unless stated otherwise.
 
+This page is the symbol index. For one package at a time — its entry points, its
+unit table, what it weighs and what it depends on — see
+[Packages](/packages/), which has a page each.
+
 ## Entry points
 
 | Subpath | Contents |
@@ -79,7 +83,7 @@ unless stated otherwise.
 
 | Export | Purpose |
 | --- | --- |
-| [`datetime`](/guide/datetime) | The `datetime` `Kind`. Register it and set `now` / `timeZone`. |
+| [`datetime`](/packages/datetime) | The `datetime` `Kind`. Register it and set `now` / `timeZone`. |
 | `parseDateTime(input, offset, ctx)` | The chrono bridge, exposed for testing a match in isolation. |
 | `wrap(zdt)` / `unwrap(value)` | The `Value` ⇄ `Temporal.ZonedDateTime` boundary. |
 | `Temporal` | Re-exported from `temporal-polyfill` — the package's single import site. |
@@ -90,7 +94,7 @@ unless stated otherwise.
 | Export | Purpose |
 | --- | --- |
 | `ZONES` | The eighteen named time zones, keyed by IANA id. |
-| [`OFFSET_ZONES`](/guide/datetime#offset-zones) | Every quarter hour from `-12:00` to `+14:00`, keyed by Temporal zone id. |
+| [`OFFSET_ZONES`](/packages/datetime#offset-zones) | Every quarter hour from `-12:00` to `+14:00`, keyed by Temporal zone id. |
 | `parseOffsetZone(text)` | Reads `GMT+3` / `utc-05:30` at the start of `text` into a zone id and a length. |
 | `offsetZoneId(minutes)` | Minutes east of UTC as a zone id: `180` → `"+03:00"`. |
 | `zoneSymbol(zone)` | What a formatter prints for a zone id, falling back to the id. |

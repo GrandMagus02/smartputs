@@ -1,10 +1,3 @@
----
-title: Money and rates
-description: The money kind, rate snapshots, providers, and the async facade.
----
-
-# Money and rates
-
 Money is an ordinary kind. It parses through the same lexer, ranks through the
 same solver, and converts through the same `in`. The one thing it does not have
 is constant unit ratios — a euro is not a fixed number of dollars — so

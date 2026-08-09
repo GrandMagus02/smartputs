@@ -37,6 +37,18 @@
  * that imports a `GeoKind` links no fetch.
  */
 export { QueryCache, type QueryCacheOptions } from "./cache";
+// The `place` kind, and every table it is built from. There is no module-level
+// `place` constant and cannot be one: a kind whose units are countries needs the
+// countries, and those now arrive over a network. `definePlace({ countries })`
+// is the door, `createLivePlace` is the door for a consumer who would rather not
+// hold the fetch themselves, and `countryTable` is what fills either.
+export {
+  type CountryFeature,
+  type CountryTableOptions,
+  countryTable,
+  joinCountries,
+  regexFromMask,
+} from "./countries";
 export { GeoError, type ProviderFailure } from "./errors";
 export {
   featureClasses,
@@ -47,7 +59,33 @@ export {
   wantsToponyms,
 } from "./features";
 export { cacheKey, Geo, type GeoOptions, type GeoStrategy } from "./geo";
+export { GEONAMES_ATTRIBUTION } from "./kind/attribution";
+export {
+  completePlaces,
+  createPlaceIndex,
+  PlaceCompleter,
+  type PlaceIndex,
+} from "./kind/completion";
+export { createPlaceFormatter } from "./kind/format";
+export {
+  createPlaceLiteral,
+  MIN_NAME_LENGTH,
+  RANK_STEP,
+} from "./kind/matcher";
+export { definePlace, type PlaceOptions } from "./kind/place";
+// The generator's refusal list, published because a consumer assembling their
+// own city rows has to apply it: the literal fold is destructive, and a table
+// that claims "nice" or "reading" costs those words their ordinary reading.
+export { RESERVED_WORDS } from "./kind/reserved";
+export type { Admin1Row, CityRow, CountryRow, PostalCountry } from "./kind/types";
 export { RateLimiter, type RateLimiterOptions } from "./limiter";
+export {
+  createLivePlace,
+  type LivePlace,
+  type LivePlaceOptions,
+  type PlaceTables,
+} from "./live";
+export { placeVocabulary } from "./locale/vocabulary";
 export {
   normalizeName,
   type Place,
@@ -58,6 +96,19 @@ export {
   type PlaceSnapshot,
   placeSnapshot,
 } from "./place";
+// Validation and normalization as a question, rather than as something that
+// happens while an expression is parsed. `new PostalFormats(countries).for("GB")`
+// is the door.
+export {
+  isBacktrackRisk,
+  MAX_CODE_LENGTH,
+  normalizePostal,
+  PostalFormat,
+  PostalFormats,
+  postalAccepts,
+  postalShape,
+} from "./postal/format";
+export { createPostalLiteral, MIN_ALIAS_LENGTH, NO_GEONAME_ID } from "./postal/literal";
 // The ranking pieces are public because a consumer merging their own provider in
 // wants to know — and to be able to assert — how their rows will be ordered
 // against everyone else's. `WEIGHTS` above all: it is the one number in this

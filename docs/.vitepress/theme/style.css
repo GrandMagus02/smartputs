@@ -146,6 +146,14 @@
   border-color: var(--vp-c-brand-1);
 }
 
+/* A chip that is a choice rather than a shortcut — the kind switcher on the
+   input demos, where one of them is always the current one. */
+.sp-chip--on {
+  color: var(--vp-c-brand-1);
+  border-color: var(--vp-c-brand-1);
+  background: var(--vp-c-brand-soft);
+}
+
 /* Feature icons on the home page: the `icon` frontmatter field renders raw
    HTML, so an icon span needs a size the utility class does not carry. */
 .VPFeature .icon [class^="i-lucide-"] {

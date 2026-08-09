@@ -39,7 +39,7 @@ number/op tokens run on every `evaluate()` call — see
 [Stage 2b — Fold](/guide/pipeline). `"twenty two kg"` and `"ten km plus five
 km"` evaluate the same as their digit-and-symbol equivalents.
 
-M4 shipped `@smartput/datetime` — see [Dates and time zones](/guide/datetime).
+M4 shipped `@smartput/datetime` — see [Dates and time zones](/packages/datetime).
 It cost core one new capability and no date-specific code: a kind may now supply
 [literal matchers](/api/define-kind#literals), which claim a run of the source
 string and return a finished `Value`, and an opaque kind's `units` are indexed,
@@ -48,7 +48,7 @@ weighted and usable as `in` targets like any other kind's. `today + 3 d` and
 in the plugin.
 
 M4.5 shipped a second entry point into every ratio kind — see
-[Validating without the engine](/guide/validating). It cost every kind package
+[Validating without the engine](/packages/shared). It cost every kind package
 a build step and three subpath exports, and cost `@smartput/core` nothing:
 `@smartput/shared` never imports it, the dependency runs the other way. The
 byte figures that justify the split are measured, not estimated —
@@ -57,7 +57,7 @@ byte figures that justify the split are measured, not estimated —
 applied to the dependency table below.
 
 M6 shipped in four parts and then split into four packages — see
-[Places and distances](/guide/places). Core knows no geography: a place is an
+[Places and distances](/packages/geo). Core knows no geography: a place is an
 opaque kind whose units are country codes, the distance is one
 `in | place | place` signature, and the datetime and rates bridges are one op
 signature each in *those* packages, reading a string off core's `PlaceMeta`.
@@ -99,7 +99,7 @@ stopped being the only places the engine knows.
 
 ## Comparison, and the three fields it cost
 
-`1000 mb = 1 gb` is `true` — see [Comparison](/guide/comparison). Core took six
+`1000 mb = 1 gb` is `true` — see [Comparison](/packages/boolean). Core took six
 new `OpSymbol`s and two optional fields, and the solver did not move.
 
 The six signatures per kind are generated, beside the `+`/`-` pair and the
@@ -132,7 +132,7 @@ refusal is the op table's, and nobody had to write a chain rule to get it.
 
 `@smartput/query` reads `top 10 customers by revenue last month` and emits
 SQL, a MongoDB pipeline, or whatever a `Compiler<T>` a consumer wrote emits —
-see [Querying a database](/guide/querying). It is the first milestone since M1
+see [Querying a database](/packages/query). It is the first milestone since M1
 to take **no change to core at all**, and the reason is worth stating, because
 the design very nearly went the other way.
 
@@ -162,7 +162,7 @@ one edge for the whole package.
 ## Ranges, and the one field they cost
 
 Six packages and five kinds shipped so that a value can have two ends — see
-[Ranges](/guide/ranges). Core paid **one optional field**:
+[Ranges](/packages/range-core). Core paid **one optional field**:
 
 ```ts
 export interface OpSignature {
@@ -341,14 +341,14 @@ tested.
 magnitude louder: a 768 KB rule table that bundles to 1.43 MB, which would
 otherwise be paid by everyone who types `today + 3 d`. So it does not tax
 `@smartput/datetime` either — the bridge is
-[a subpath, not the root entry](/guide/datetime#holidays), the package under it
+[a subpath, not the root entry](/packages/datetime#holidays), the package under it
 takes no `@smartput` dependency, and a `check-size` row on the root fails by a
 megabyte if the import ever leaks inwards.
 
 `@smartput/datetime-range` makes the identical split for the identical reason,
 so there are now two guard rows rather than one: 147,846 B for the root against
 1,586,908 B for `./holiday`, measured. A package that wants
-[`from today to closest holiday`](/guide/ranges#holiday-endpoints) is a
+[`from today to closest holiday`](/packages/range-core#holiday-endpoints) is a
 different program from one that wants `whole week`.
 
 ## Deliberately rejected

@@ -1,10 +1,3 @@
----
-title: Equations and matrices
-description: Solving, systems of equations, function analysis and linear algebra in LaTeX.
----
-
-# Equations and matrices
-
 Everything on this page is `@smartput/math` answering a question about an
 expression rather than computing its value. Same engine, same LaTeX in and out,
 same steps.
@@ -125,5 +118,5 @@ answer.
 
 ## Next
 
-- [LaTeX math](/guide/math) — expressions, steps, exactness, reading it out.
+- [LaTeX math](/packages/math) — expressions, steps, exactness, reading it out.
 - [`@smartput/math` API reference](/api/math) — every export.

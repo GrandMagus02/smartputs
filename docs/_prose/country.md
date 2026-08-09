@@ -1,10 +1,3 @@
----
-title: Places and distances
-description: The place kind, countries and cities as values, postal codes and their formats, admin1 scoping, great-circle distance, prefix completion, the GeoNames providers, and the datetime and rates bridges.
----
-
-# Places and distances
-
 `@smartput/country` adds one kind. Once it is registered, `japan` is a value the way
 `5 kg` is a value: it has a unit — its ISO 3166-1 alpha-2 code — it formats to
 its facts, and it takes part in one operation.
@@ -42,7 +35,7 @@ rather than through the alias index.
 Register `place` and `datetime` together and the vocabulary starts to matter.
 Measured on that pair: without it, `3pm in tokyo` raises
 `DimensionMismatchError` and `3pm in japan` comes back as 10,708 kilometres —
-the [zone bridge](/guide/datetime) loses to the distance signature. Install
+the [zone bridge](/packages/datetime) loses to the distance signature. Install
 `@smartput/country/locale/en` beside `@smartput/datetime/locale/en` and both
 read as zone conversions again.
 :::
@@ -96,7 +89,7 @@ of a bundle that only wanted countries. See
 <SpPlace />
 
 A multi-word name works here and a multi-word time-zone alias
-[does not](/guide/datetime#time-zones), because the two are indexed by different
+[does not](/packages/datetime#time-zones), because the two are indexed by different
 things. Core's alias index is keyed on one segmented word — that is why `nyc`
 can be a zone alias and `new york` cannot. The place kind carries its own trie
 instead, walked a word at a time, longest match wins, and a match is always a
@@ -1329,7 +1322,7 @@ ship: `12345-6789` and `01310-100`
 
 ## Next
 
-- [Dates and time zones](/guide/datetime) — the other side of the zone bridge,
+- [Dates and time zones](/packages/datetime) — the other side of the zone bridge,
   and the literal-matcher seam in detail.
-- [Money and rates](/guide/money) — the other side of the currency bridge.
+- [Money and rates](/packages/rate) — the other side of the currency bridge.
 - [Kinds and units](/guide/kinds) — where the value model comes from.

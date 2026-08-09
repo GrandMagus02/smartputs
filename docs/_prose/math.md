@@ -1,10 +1,3 @@
----
-title: LaTeX math
-description: Evaluate, simplify and read LaTeX expressions, with the working shown.
----
-
-# LaTeX math
-
 `@smartput/math` is the second package that sits beside core rather than inside
 it. Core reads what people *type* — `1 kg + 500 g`, `30 usd in gbp`. This one
 reads what people *write*: LaTeX, the notation every markdown file already uses
@@ -226,5 +219,5 @@ math.evaluate("\\frac{1}{");
 
 ## Next
 
-- [Equations and matrices](/guide/math-solving) — solving, systems, function analysis, linear algebra.
+- [Equations and matrices](/packages/math) — solving, systems, function analysis, linear algebra.
 - [`@smartput/math` API reference](/api/math) — every export.

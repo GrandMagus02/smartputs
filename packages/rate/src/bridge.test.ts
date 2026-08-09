@@ -9,11 +9,73 @@ import {
   type Value,
 } from "@smartput/core";
 import { english as en } from "@smartput/core/locale/en";
-import { place } from "@smartput/country";
-import placeEn from "@smartput/country/locale/en";
+import { definePlace, placeVocabulary } from "@smartput/geo";
 import { number } from "@smartput/number";
 import { money } from "./money";
 import { snapshot } from "./snapshot";
+
+/**
+ * The countries this file's assertions name, and nothing else.
+ *
+ * `@smartput/geo` ships no gazetteer — `definePlace` takes its table as an
+ * argument — so a bridge test brings the three rows it needs rather than
+ * importing a table that no longer exists anywhere. That is the shape the geo
+ * package is built around, and a bridge test is exactly the consumer it was
+ * built for.
+ */
+const COUNTRIES = [
+  {
+    a2: "jp",
+    a3: "jpn",
+    name: "Japan",
+    aliases: ["japan", "jpn", "jp"],
+    capital: "Tokyo",
+    currency: "JPY",
+    phone: "81",
+    population: 127_185_332,
+    area: 377_835,
+    lat: 35.68536,
+    lon: 139.75309,
+    zone: "Asia/Tokyo",
+    geonameId: 1_861_060,
+    postalRegex: "^\\d{3}-\\d{4}$",
+  },
+  {
+    a2: "ua",
+    a3: "ukr",
+    name: "Ukraine",
+    aliases: ["ukraine", "ukr", "ua"],
+    capital: "Kyiv",
+    currency: "UAH",
+    phone: "380",
+    population: 44_622_516,
+    area: 603_700,
+    lat: 50.45466,
+    lon: 30.5238,
+    zone: "Europe/Kyiv",
+    geonameId: 690_791,
+    postalRegex: "^\\d{5}$",
+  },
+  {
+    a2: "us",
+    a3: "usa",
+    name: "United States",
+    aliases: ["united states", "america", "usa", "us"],
+    capital: "Washington",
+    currency: "USD",
+    phone: "1",
+    population: 327_167_434,
+    area: 9_629_091,
+    lat: 38.89511,
+    lon: -77.03637,
+    zone: "America/New_York",
+    geonameId: 6_252_001,
+    postalRegex: "^\\d{5}(-\\d{4})?$",
+  },
+];
+
+const place = definePlace({ countries: COUNTRIES });
+const placeEn = placeVocabulary(COUNTRIES);
 
 const CORPUS = (await Bun.file(new URL("../corpus/en.tsv", import.meta.url)).text())
   .split("\n")

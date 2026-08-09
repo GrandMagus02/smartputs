@@ -149,12 +149,12 @@ symbols, so a locale that groups with U+202F reads its own output back.
 ::: warning Two limits worth knowing
 `Money.parse(new Money(30, "usd").toString())` throws: `toString()` produces
 `"$30.00"` and a leading `$` is not something the parser takes. See
-[the money guide](/guide/money#known-limitation).
+[the money guide](/packages/rate#known-limitation).
 
 `combine`-style arithmetic on the facade converts silently. `Quantity` has no
 assumption channel, so a facade-level `add` across two currencies derives a
 cross rate without recording it — the engine path
-[discloses this correctly](/guide/money#cross-rates-are-never-silent); the
+[discloses this correctly](/packages/rate#cross-rates-are-never-silent); the
 facade cannot.
 :::
 

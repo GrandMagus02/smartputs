@@ -1,10 +1,3 @@
----
-title: Ranges
-description: The date and time kinds, the three range kinds, and how `10:00 - 20:00` stops being a subtraction.
----
-
-# Ranges
-
 `whole week`, `10:00 - 20:00`, `yesterday morning`, `from today until friday`.
 Six packages add five kinds so that a launcher can answer with a value that has
 **two ends** instead of one.
@@ -47,7 +40,7 @@ Registering them without it gives you two kinds that never claim a thing.
 
 Every example on this page is a corpus row, asserted against the fixed clock
 **2026-01-15T12:00:00Z** — a Thursday — in **UTC**, the same fixture
-[`@smartput/datetime`](/guide/datetime) uses. The only exceptions are the
+[`@smartput/datetime`](/packages/datetime) uses. The only exceptions are the
 [holiday](#holiday-endpoints) rows, which are unit assertions in
 `holiday.test.ts` because that subpath ships no corpus of its own; they are
 marked where they appear.
@@ -369,7 +362,7 @@ is preserved:
 
 Whole days and weeks go through the **calendar** rather than a millisecond count,
 reusing `addDuration` from `@smartput/datetime` — the same rule
-[`today + 1 d`](/guide/datetime#arithmetic) follows across a DST boundary.
+[`today + 1 d`](/packages/datetime#arithmetic) follows across a DST boundary.
 
 Shifting is declared on `date-range` only. `time-range` and `datetime-range`
 carry no `+`/`-` signatures; if you want them, they are a copy of the three
@@ -421,7 +414,7 @@ in fact six hours earlier.
 
 `from today to closest holiday` needs no new data and no new package — only a
 route by which a range endpoint can be resolved by the holiday grammar
-[`@smartput/datetime/holiday`](/guide/datetime#holidays) already owns.
+[`@smartput/datetime/holiday`](/packages/datetime#holidays) already owns.
 
 That route is a subpath, for the reason that subpath exists:
 
@@ -546,7 +539,7 @@ Two more the implementation added to that list:
 
 ## Next
 
-- [Dates and time zones](/guide/datetime) — the kind all six of these read
+- [Dates and time zones](/packages/datetime) — the kind all six of these read
   through, and the holiday grammar the endpoint parser reuses.
 - [Ambiguity and weights](/guide/weights) — the four layers a signature weight
   now sits beside.
