@@ -1,0 +1,31 @@
+# What a comparison returns. Registering this kind is what turns
+# `1000 мб = 1 гб` from an unresolvable expression into `true`.
+#
+# `true` and `false` are not translated, and that is this file's finding
+# rather than an oversight it hides: the kind ships no vocabulary at all,
+# so `formatValue` degrades to the unit key in every language. A Ukrainian
+# engine answering "true" is what the code does today, and a row asserting
+# it is what makes a later `boolean/locale/uk` a visible diff here.
+# input	kind	canonical	formatted
+1000 мб = 1 гб	boolean	1	true
+1 км > 999 м	boolean	1	true
+1 км < 999 м	boolean	0	false
+1 м = 100 см	boolean	1	true
+1 кг = 1 кг	boolean	1	true
+2 > 1	boolean	1	true
+1 >= 1	boolean	1	true
+1 <= 0	boolean	0	false
+5 != 4	boolean	1	true
+1 гб = 1000 мб	boolean	1	true
+1 миля > 1 км	boolean	1	true
+3 < 4	boolean	1	true
+10 = 10	boolean	1	true
+1 кіб > 1 кб	boolean	1	true
+0 < 1	boolean	1	true
+20 C > 10 C	boolean	1	true
+1 гектар = 10000 м2	boolean	1	true
+1 kwh = 3,6 МДж	boolean	1	true
+1 год != 60 хв	boolean	0	false
+# The decimal comma on both sides of a comparison: "3,6" is one number in
+# Ukrainian and would be two arguments in English.
+3,6 МДж = 1 kwh	boolean	1	true

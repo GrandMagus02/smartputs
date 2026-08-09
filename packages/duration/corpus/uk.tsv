@@ -1,0 +1,26 @@
+# input	kind	canonical	formatted
+2 тиж	duration	1209600	2 тижні
+30 год - 30 хв	duration	106200	29,5 години
+90 хв в год	duration	5400	1,5 години
+1 д в год	duration	86400	24 години
+1 тиж в днях	duration	604800	7 днів
+500 мс + 500 мс	duration	1	1 000 мілісекунд
+2 год * 3	duration	21600	6 годин
+1 д / 4	duration	21600	0,25 дня
+-2 год	duration	-7200	-2 години
+1 год в с	duration	3600	3 600 секунд
+одна година	duration	3600	1 година
+3600 с в год	duration	3600	1 година
+45 хвилин	duration	2700	45 хвилин
+1,5 год в хв	duration	5400	90 хвилин
+2 дні + 12 годин	duration	216000	2,5 дня
+# `година` is feminine and `день` is masculine, so their paradigms are two
+# different decisions rather than one applied twice — and the fractional
+# category is the genitive singular in both.
+21 година	duration	75600	21 година
+11 годин	duration	39600	11 годин
+2 години	duration	7200	2 години
+1 год + 30 хв	duration	5400	1,5 години
+21 день	duration	1814400	21 день
+2 дні	duration	172800	2 дні
+5 днів	duration	432000	5 днів

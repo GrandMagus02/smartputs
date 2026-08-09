@@ -1,4 +1,5 @@
 import { expect, test } from "bun:test";
+import { Corpora } from "@smartput/core/testing";
 import { Temporal } from "@smartput/datetime";
 import {
   endOfMonth,
@@ -38,40 +39,34 @@ const SNAPS: Record<
   "end of year": (zdt) => endOfYear(zdt),
 };
 
-const raw = await Bun.file(new URL("../corpus/en.tsv", import.meta.url)).text();
+/**
+ * One language, and the table shape anyway — for the reason the comment above
+ * gives: a row here is an instant, a zone and a boundary, and a boundary is not
+ * named in any language until a kind names it. The shared loader is still what
+ * reads it, so a corpus that stopped existing fails rather than passing empty.
+ */
+const corpora = await Corpora.load(new URL("../corpus/", import.meta.url), [
+  { id: "en" },
+]);
 
-const rows = raw
-  .split("\n")
-  .map((line) => line.trim())
-  .filter((line) => line.length > 0 && !line.startsWith("#"))
-  .map((line) => line.split("\t"));
+corpora.each(([subject, zone, op, weekStart, result]) => {
+  if (op === "window") {
+    const window = WINDOWS[subject as string];
+    expect(window).toBeDefined();
+    if (window === undefined) return;
+    const wraps = window.wraps ? "wraps" : "open";
+    expect(`${window.start}/${window.end} ${wraps}`).toBe(result as string);
+    return;
+  }
 
-test("the corpus has rows", () => {
-  expect(rows.length).toBeGreaterThan(10);
+  const snap = SNAPS[op as string];
+  expect(snap).toBeDefined();
+  if (snap === undefined) return;
+
+  const zdt = Temporal.Instant.from(subject as string).toZonedDateTimeISO(zone as string);
+  const opts: SnapOptions = weekStart === "-" ? {} : { weekStart: Number(weekStart) };
+  expect(snap(zdt, opts).toString()).toBe(result as string);
 });
-
-for (const [subject, zone, op, weekStart, result] of rows) {
-  test(`corpus: ${op} ${subject}${zone === "-" ? "" : ` ${zone}`}`, () => {
-    if (op === "window") {
-      const window = WINDOWS[subject as string];
-      expect(window).toBeDefined();
-      if (window === undefined) return;
-      const wraps = window.wraps ? "wraps" : "open";
-      expect(`${window.start}/${window.end} ${wraps}`).toBe(result as string);
-      return;
-    }
-
-    const snap = SNAPS[op as string];
-    expect(snap).toBeDefined();
-    if (snap === undefined) return;
-
-    const zdt = Temporal.Instant.from(subject as string).toZonedDateTimeISO(
-      zone as string,
-    );
-    const opts: SnapOptions = weekStart === "-" ? {} : { weekStart: Number(weekStart) };
-    expect(snap(zdt, opts).toString()).toBe(result as string);
-  });
-}
 
 /**
  * `wraps` is stored on the window rather than derived, so the two can disagree.

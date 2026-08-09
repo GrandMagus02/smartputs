@@ -113,6 +113,7 @@
         "@smartput/datetime-range": "workspace:*",
         "@smartput/kinds": "workspace:*",
         "@smartput/length": "workspace:*",
+        "@smartput/measure": "workspace:*",
         "@smartput/number": "workspace:*",
         "@smartput/range": "workspace:*",
         "@smartput/rate": "workspace:*",

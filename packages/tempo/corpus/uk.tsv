@@ -1,0 +1,21 @@
+# input	kind	canonical	formatted
+120 бпм	tempo	120	120бпм
+120 бпм в мс	duration	0.5	500 мілісекунд
+120 бпм в с	duration	0.5	0,5 секунди
+500 мс в бпм	tempo	120	120бпм
+1 с в бпм	tempo	60	60бпм
+60 бпм в с	duration	1	1 секунда
+2 гц в бпм	tempo	120	120бпм
+120 бпм в гц	tempo	120	2 герци
+120 бпм + 8 бпм	tempo	128	128бпм
+140 бпм - 20 бпм	tempo	120	120бпм
+60 бпм * 2	tempo	120	120бпм
+120 бпм / 2	tempo	60	60бпм
+-10 бпм	tempo	-10	-10бпм
+один бпм	tempo	1	1бпм
+174 бпм	tempo	174	174бпм
+# `уд` — beats — is what a Ukrainian musician actually writes, and it is an
+# alias for the same unit the Latin `bpm` names.
+120 уд	tempo	120	120бпм
+2 герци	tempo	120	2 герци
+5 герців	tempo	300	5 герців

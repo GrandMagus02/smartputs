@@ -1,0 +1,45 @@
+# input	op	mode	outcome	unit	value	formatted
+#
+# The micro path in a second language, which for this package means a second
+# `UnitTable` — there is no vocabulary, no plural selector and no number format
+# anywhere underneath, so the table is the only place a language can live. The
+# unit *keys* here are Cyrillic because `format` writes `${raw}${unit}` and the
+# key is what a form field shows; `corpus.test.ts` declares the table these rows
+# run against, next to the English one.
+#
+# Lines are NOT trimmed by the reader, same as `en.tsv`: the third row is about
+# the whitespace around a value.
+#
+# The two rows worth reading are the comma ones near the bottom of the loose
+# block. A Ukrainian keyboard types "1,5 км" and this parser reads "." and
+# nothing else, so the value is refused — and refused under two different codes
+# depending on a space: "1,5 км" stops at `1` and finds " км" after it, which is
+# trailing input, while "1,5км" finds ",5км", which is not a unit word and is
+# therefore not a number at all. That is the boundary of a dependency-free
+# parser, recorded rather than hidden: a consumer shipping this behind a comma
+# keyboard needs to know where it is, and the answer is `@smartput/core`.
+10 км	parse	loose	ok	км	10	10км
+10км	parse	loose	ok	км	10	10км
+  10 км  	parse	loose	ok	км	10	10км
+1.5 метрів	parse	loose	ok	м	1.5	1.5м
+-5км	parse	loose	ok	км	-5	-5км
+1e3 м	parse	loose	ok	м	1000	1e3м
+12 дюймів	parse	loose	ok	дюйм	12	12дюйм
+км	parse	loose	ok	км	1	1км
+10	parse	loose	missing-unit	-	-	-
+10 фарлонгів	parse	loose	unknown-unit	-	-	-
+щось	parse	loose	nan	-	-	-
+1,5 км	parse	loose	trailing	-	-	-
+1,5км	parse	loose	nan	-	-	-
+10км	parse	strict	ok	км	10	10км
+  10км	parse	strict	trailing	-	-	-
+км	parse	strict	nan	-	-	-
+10	parse	strict	missing-unit	-	-	-
+1 км + 500 м	add	loose	ok	км	1.5	1.5км
+30см + 30см	add	loose	ok	см	60	60см
+1 км - 250 м	sub	loose	ok	км	0.75	0.75км
+10 км * 3	scale	loose	ok	км	30	30км
+2 км в м	as	loose	ok	м	2000	2000м
+1 фут в см	as	loose	ok	см	30.48	30.48см
+12 дюймів в см	as	loose	ok	см	30.479999999999997	30.479999999999997см
+1500 мм в м	as	loose	ok	м	1.5	1.5м

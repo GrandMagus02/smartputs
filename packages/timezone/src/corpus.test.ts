@@ -16,6 +16,21 @@ import { ZONES } from "./zones";
  * the package publishes the table and not a lookup — a consumer who wants one
  * builds exactly this, and a row that stopped resolving would mean the shipped
  * table changed under them.
+ *
+ * One corpus file, where every kind package in the repo now has two, and the
+ * reason is in the table rather than in this test. A zone's words here are its
+ * IANA id, its abbreviation and a handful of English spellings, so a `uk.tsv`
+ * would have nothing to record until `ZONES` carries a Cyrillic alias — and it
+ * cannot get one cheaply: the aliases are what a bundle pays for, and this
+ * package exists to be the small one. The written-offset half (`гмт+3`) is
+ * likewise Latin because `parseOffsetZone` matches `gmt`/`utc` and no other
+ * spelling. `@smartput/datetime/locale/uk` is where a Ukrainian name for
+ * `Europe/Kyiv` belongs, since that is a vocabulary and this is a table.
+ *
+ * It also loads its own corpus rather than using `@smartput/core/testing`'s
+ * `Corpora`, for the reason above the fold: this package declares zero
+ * dependencies, and the harness would be the first edge for a loop of eight
+ * lines.
  */
 const byAlias = new Map<string, string>();
 for (const [id, def] of Object.entries(ZONES)) {

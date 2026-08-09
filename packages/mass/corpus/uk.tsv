@@ -1,0 +1,28 @@
+# input	kind	canonical	formatted
+1 кг + 500 г	mass	1500	1,5 кілограма
+3 фунти	mass	1360.77711	3 фунти
+1 500 г	mass	1500	1 500 грамів
+1 т в кг	mass	1000000	1 000 кілограмів
+16 унцій в фунтах	mass	453.59237	1 фунт
+1 кг в г	mass	1000	1 000 грамів
+2 кг - 500 г	mass	1500	1,5 кілограма
+3 кг * 4	mass	12000	12 кілограмів
+1 т / 8	mass	125000	0,125 тонни
+-2 кг	mass	-2000	-2 кілограми
+500 мг в г	mass	0.5	0,5 грама
+один кілограм	mass	1000	1 кілограм
+2,5 тонни в кг	mass	2500000	2 500 кілограмів
+1 фунт в унціях	mass	453.59237	16 унцій
+1,5 кілограма	mass	1500	1,5 кілограма
+# The pair English cannot write at all: "1 500 г" is fifteen hundred grams
+# typed with the group separator and "1,5 кілограма" is one and a half
+# kilograms typed with the decimal comma. In English "1,500 g" is the
+# first of those and there is no spelling that collides with it.
+1,5 кг	mass	1500	1,5 кілограма
+# `тонна` is feminine where `кілограм` is masculine, so the two paradigms
+# diverge exactly where a hand-pasted one would look right and be wrong.
+21 тонна	mass	21000000	21 тонна
+11 тонн	mass	11000000	11 тонн
+2 тонни	mass	2000000	2 тонни
+21 кілограм	mass	21000	21 кілограм
+2 кілограми	mass	2000	2 кілограми

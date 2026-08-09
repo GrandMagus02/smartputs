@@ -1,0 +1,32 @@
+# input	kind	canonical	formatted
+1 дюйм в пунктах	measure	1	72 пункти
+72 пункти в дюймах	measure	1	1 дюйм
+6 пік в дюймах	measure	1	1 дюйм
+1 дюйм в мм	measure	1	25,4 міліметра
+25,4 мм в дюймах	measure	1	1 дюйм
+1 дюйм в пікселях	measure	1	96 пікселів
+96 пікселів в дюймах	measure	1	1 дюйм
+2 дюйми + 36 пунктів	measure	2.5	2,5 дюйма
+1 дюйм - 12 пунктів	measure	0.8333333333333333333333333333	0,83333333333333333333333333 дюйма
+3 дюйми * 2	measure	6	6 дюймів
+1 дюйм / 4	measure	0.25	0,25 дюйма
+-2 дюйми	measure	-2	-2 дюйми
+1 піка в пунктах	measure	0.1666666666666666666666666667	12 пунктів
+10 мм в см	measure	0.3937007874015748031496062992	1 сантиметр
+один дюйм	measure	1	1 дюйм
+# Three paradigms, not one applied three times. `пункт` is a hard-stem
+# masculine and `піксель` a soft-stem one, so their plurals differ by a
+# letter; `піка` is feminine, so its nominative plural and genitive singular
+# coincide and its genitive plural is the bare stem.
+21 пункт	measure	0.2916666666666666666666666667	21 пункт
+11 пунктів	measure	0.1527777777777777777777777778	11 пунктів
+2 пункти	measure	0.02777777777777777777777777778	2 пункти
+2 пікселі	measure	0.02083333333333333333333333334	2 пікселі
+5 пікселів	measure	0.05208333333333333333333333335	5 пікселів
+2 піки	measure	0.3333333333333333333333333333	2 піки
+5 пік	measure	0.8333333333333333333333333333	5 пік
+# Latin aliases still read on a Ukrainian engine — a designer types `pt`
+# whatever the keyboard is — and the printed symbol for the three
+# typographic units stays Latin because that is what gets written.
+72 pt в дюймах	measure	1	1 дюйм
+96 px в дюймах	measure	1	1 дюйм

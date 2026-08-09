@@ -25,7 +25,12 @@ import BUILTIN_EN from "@smartput/kinds/locale/en";
 import BUILTIN_UK from "@smartput/kinds/locale/uk";
 import { length } from "@smartput/length";
 import lengthEn from "@smartput/length/locale/en";
+import { measure } from "@smartput/measure";
+import measureEn from "@smartput/measure/locale/en";
+import measureUk from "@smartput/measure/locale/uk";
 import { number } from "@smartput/number";
+import numberEn from "@smartput/number/locale/en";
+import numberUk from "@smartput/number/locale/uk";
 import { RANGE_KINDS } from "@smartput/range";
 import { money, snapshot } from "@smartput/rate";
 import { time } from "@smartput/time";
@@ -424,6 +429,60 @@ const selections = createEngine({
   kinds: [...BUILTIN_KINDS, ...RANGE_KINDS, geo],
 });
 
+/**
+ * The kind packages whose corpora are replayed as a set, one entry per package
+ * and two files each.
+ *
+ * Written out rather than globbed so that a package appearing here is a
+ * decision: `measure` is deliberately absent (it is not in `BUILTIN_KINDS`) and
+ * gets its own pair below, and a kind package added later shows up as a
+ * discovery-check failure instead of being swept in with an engine nobody chose
+ * for it.
+ */
+const BUILTIN_CORPORA = [
+  "angle",
+  "area",
+  "boolean",
+  "datarate",
+  "datasize",
+  "duration",
+  "energy",
+  "kinds",
+  "length",
+  "mass",
+  "number",
+  "percent",
+  "power",
+  "speed",
+  "temperature",
+  "tempo",
+  "volume",
+] as const;
+
+/**
+ * Every built-in kind and the gazetteer, which is the pairing the per-package
+ * corpora were never read against: each of them proves its rows with two or
+ * three kinds registered, and this asks whether the answer survives the other
+ * fifteen plus six thousand city names.
+ */
+const builtins = createEngine({
+  locales: [composeLocale(coreEn, [...BUILTIN_EN, placeEn])],
+  kinds: [...BUILTIN_KINDS, geo],
+});
+
+/**
+ * The same in Ukrainian, and two locales for the reason the core `uk` entry
+ * gives: the places vocabulary is English, `composeLocale` refuses a vocabulary
+ * whose locale is not its language's, and `format: "uk"` pins the output while
+ * the city names stay readable. If six thousand of them could shadow a
+ * Ukrainian unit word, this is where it shows.
+ */
+const builtinsUk = createEngine({
+  locales: [composeLocale(coreUk, BUILTIN_UK), composeLocale(coreEn, [placeEn])],
+  kinds: [...BUILTIN_KINDS, geo],
+  format: "uk",
+});
+
 const SUITES: readonly Suite[] = [
   {
     file: "packages/core/corpus/en.tsv",
@@ -481,7 +540,77 @@ const SUITES: readonly Suite[] = [
   { file: "packages/time-range/corpus/en.tsv", engine: ranges },
   { file: "packages/datetime-range/corpus/en.tsv", engine: ranges },
   { file: "packages/range/corpus/en.tsv", engine: selections },
+  // Every built-in kind's own corpus, in both languages, through the engine a
+  // consumer builds rather than the narrow one the owning package tests with.
+  // That is the whole question this file asks: `@smartput/mass` proves "3 lbs"
+  // reads with `number` and `mass` registered, and only here does it have to
+  // survive fifteen other kinds and six thousand city names as well.
+  ...BUILTIN_CORPORA.flatMap((pkg) => [
+    { file: `packages/${pkg}/corpus/en.tsv`, engine: builtins },
+    { file: `packages/${pkg}/corpus/uk.tsv`, engine: builtinsUk },
+  ]),
+  // `measure` gets its own pair because it is not in `BUILTIN_KINDS` at all —
+  // its mm/cm aliases collide with `length`, so the roster leaves it out and a
+  // consumer who wants it registers it without them. Geo is still in front.
+  {
+    file: "packages/measure/corpus/en.tsv",
+    engine: createEngine({
+      locales: [composeLocale(coreEn, [numberEn, measureEn, placeEn])],
+      kinds: [number, measure, geo],
+    }),
+  },
+  {
+    file: "packages/measure/corpus/uk.tsv",
+    engine: createEngine({
+      locales: [
+        composeLocale(coreUk, [numberUk, measureUk]),
+        composeLocale(coreEn, [placeEn]),
+      ],
+      kinds: [number, measure, geo],
+      format: "uk",
+    }),
+  },
+  {
+    file: "packages/rate/corpus/uk.tsv",
+    engine: createEngine({
+      locales: [composeLocale(coreUk), composeLocale(coreEn, [placeEn])],
+      kinds: [number, money, geo],
+      format: "uk",
+      rates,
+    }),
+  },
 ];
+
+/**
+ * The corpora this net cannot replay, and why each one is not a gap.
+ *
+ * The discovery check below compares the filesystem against `SUITES` *plus*
+ * this map, so a corpus is either replayed or excluded on the record — a file
+ * that is neither fails, which is the property that made this check worth
+ * having. Before P6 the check compared against `SUITES` alone and had been red
+ * since the per-package corpora landed, which is exactly the failure mode a
+ * silent exclusion list would have reintroduced.
+ *
+ * Every entry here is excluded for the same underlying reason: column 0 is not
+ * a sentence an engine reads. There is no ambiguity for a gazetteer to create
+ * in a string no engine ever sees.
+ */
+const UNREPLAYED: Readonly<Record<string, string>> = {
+  "packages/shared/corpus/en.tsv":
+    "the micro path — a UnitTable, a parser and a formatter, with no engine underneath and no registry for a place name to enter",
+  "packages/shared/corpus/uk.tsv":
+    "the same, against the Ukrainian table that file declares",
+  "packages/currency/corpus/en.tsv":
+    "`parseAmount` and `formatAmount`, the engine-free door; a row's columns are a parse outcome and a rendering, not a kind and a canonical",
+  "packages/currency/corpus/uk.tsv":
+    "the same, rendered through a Ukrainian `formatNumber`",
+  "packages/timezone/corpus/en.tsv":
+    "a zone alias and its symbol, read by a table lookup and `parseOffsetZone`; the package ships no kind at all",
+  "packages/range-core/corpus/en.tsv":
+    "instants, zones and boundaries — the interval algebra below every range kind, one layer under anything with a vocabulary",
+  "packages/distance/corpus/en.tsv":
+    "two alpha-2 codes and a distance in metres; the op is handed finished Values, and the sentence half is `packages/country/corpus/en.tsv` above",
+};
 
 const ROOT = new URL("../../../", import.meta.url);
 
@@ -501,7 +630,22 @@ test("every corpus in the repo is replayed", () => {
   const found = [...new Glob("packages/*/corpus/*.tsv").scanSync(ROOT.pathname)]
     .map((p) => p.replaceAll("\\", "/"))
     .sort();
-  expect(found).toEqual(SUITES.map((s) => s.file).sort());
+  expect(found).toEqual(
+    [...SUITES.map((s) => s.file), ...Object.keys(UNREPLAYED)].sort(),
+  );
+});
+
+/**
+ * The exclusion list cannot be padded with names, which is what would turn it
+ * from a record into a way out. Every key has to be a corpus that exists.
+ */
+test("every excluded corpus is a real file", () => {
+  const found = new Set(
+    [...new Glob("packages/*/corpus/*.tsv").scanSync(ROOT.pathname)].map((p) =>
+      p.replaceAll("\\", "/"),
+    ),
+  );
+  expect(Object.keys(UNREPLAYED).filter((f) => !found.has(f))).toEqual([]);
 });
 
 for (const { file, engine, completion, kinds } of SUITES) {

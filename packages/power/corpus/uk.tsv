@@ -1,0 +1,26 @@
+# input	kind	canonical	formatted
+1 кВт в Вт	power	1000	1 000 ватів
+1 МВт в кВт	power	1000000	1 000 кіловатів
+1 кс в Вт	power	745.69987158227022	745,69987158227022 вата
+500 Вт + 500 Вт	power	1000	1 000 ватів
+2 кВт - 500 Вт	power	1500	1,5 кіловата
+3 кВт * 2	power	6000	6 кіловатів
+1 МВт / 4	power	250000	0,25 мегавата
+-1 кВт	power	-1000	-1 кіловат
+1000 Вт в кВт	power	1000	1 кіловат
+один кіловат	power	1000	1 кіловат
+2,5 кВт	power	2500	2,5 кіловата
+746 Вт в кс	power	746	1,000402478837890839005544кс
+1 ГВт в МВт	power	1000000000	1 000 мегаватів
+100 Вт	power	100	100 ватів
+1,5 МВт в Вт	power	1500000	1 500 000 ватів
+# Horsepower is `кінська сила` in full, two words, so the vocabulary's
+# symbol is the abbreviation `кс` — a printed phrase would be unreadable
+# back, which is the failure `assertLocaleContract` names.
+1 кс	power	745.69987158227022	1кс
+2 кс	power	1491.39974316454044	2кс
+# The declined watt, all four categories.
+21 ват	power	21	21 ват
+11 ватів	power	11	11 ватів
+2 вати	power	2	2 вати
+500 Вт + 250 Вт	power	750	750 ватів

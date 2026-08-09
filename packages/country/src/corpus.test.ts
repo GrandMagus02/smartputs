@@ -1,7 +1,7 @@
-import { expect, test } from "bun:test";
 import { ADMIN1, CITIES } from "@smartput/city";
 import { composeLocale, createEngine } from "@smartput/core";
 import { english as en } from "@smartput/core/locale/en";
+import { Corpora } from "@smartput/core/testing";
 import { length } from "@smartput/length";
 import lengthEn from "@smartput/length/locale/en";
 import { number } from "@smartput/number";
@@ -27,23 +27,16 @@ const engine = createEngine({
   locales: [composeLocale(en, [lengthEn, placeEn])],
   kinds: [number, length, definePlace({ cities: CITIES, admin1: ADMIN1 })],
 });
-const raw = await Bun.file(new URL("../corpus/en.tsv", import.meta.url)).text();
+const corpora = await Corpora.load(new URL("../corpus/", import.meta.url), [
+  {
+    id: "en",
+    engine,
+  },
+  {
+    id: "uk",
+    pending:
+      "a place's words are its names, and the shipped gazetteer carries the English ones; a Ukrainian corpus needs a Ukrainian name column in `@smartput/city`, which is data this package does not have",
+  },
+]);
 
-const rows = raw
-  .split("\n")
-  .map((line) => line.trim())
-  .filter((line) => line.length > 0 && !line.startsWith("#"))
-  .map((line) => line.split("\t"));
-
-test("the corpus has rows", () => {
-  expect(rows.length).toBeGreaterThan(10);
-});
-
-for (const [input, kind, canonical, formatted] of rows) {
-  test(`corpus: ${input}`, () => {
-    const r = engine.evaluate(input as string);
-    expect(r.kind).toBe(kind as string);
-    expect(r.value.canonical.toString()).toBe(canonical as string);
-    expect(r.formatted).toBe(formatted as string);
-  });
-}
+corpora.evaluate();

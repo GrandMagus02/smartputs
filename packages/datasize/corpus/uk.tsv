@@ -1,0 +1,22 @@
+# input	kind	canonical	formatted
+1 кіб в б	datasize	1024	1 024 байти
+1 гб в мб	datasize	1000000000	1 000 мегабайтів
+1 гіб в міб	datasize	1073741824	1 024 мебібайти
+1 тб в гб	datasize	1000000000000	1 000 гігабайтів
+500 мб + 500 мб	datasize	1000000000	1 000 мегабайтів
+1 гб - 200 мб	datasize	800000000	0,8 гігабайта
+2 гб * 3	datasize	6000000000	6 гігабайтів
+1 тб / 4	datasize	250000000000	0,25 терабайта
+-1 гб	datasize	-1000000000	-1 гігабайт
+1024 б в кіб	datasize	1024	1 кібібайт
+один гігабайт	datasize	1000000000	1 гігабайт
+1 міб в кб	datasize	1048576	1 048,576 кілобайта
+3 терабайти	datasize	3000000000000	3 терабайти
+1 гб в б	datasize	1000000000	1 000 000 000 байтів
+1500 байтів	datasize	1500	1 500 байтів
+# The four plural categories on the byte, and the fraction that takes the
+# genitive singular rather than a plural.
+21 байт	datasize	21	21 байт
+11 байтів	datasize	11	11 байтів
+2 байти	datasize	2	2 байти
+1 гб - 500 мб	datasize	500000000	0,5 гігабайта

@@ -1,0 +1,24 @@
+# input	kind	canonical	formatted
+212 F в C	temperature	100	100°C
+0 C в F	temperature	0	32°F
+100 C в K	temperature	100	373,15K
+0 K в C	temperature	-273.15	-273,15°C
+30 C - 20 C	tempdelta	10	10°C
+20 C	temperature	20	20°C
+98,6 F в C	temperature	37	37°C
+-40 C в F	temperature	-40	-40°F
+37 C в F	temperature	37	98,6°F
+273,15 K в C	temperature	0	0°C
+10 C + 5 C	temperature	15	15°C
+1 C	temperature	1	1°C
+72 F	temperature	22.22222222222222222222222222	72°F
+300 K	temperature	26.85	300K
+-10 C в K	temperature	-10	263,15K
+# The scales spelled out. A Ukrainian reader writes `20 цельсія`, and the
+# printed answer stays the degree symbol in both languages — a scale is one
+# of the few units whose symbol is not a translation of anything.
+20 цельсія	temperature	20	20°C
+300 кельвінів	temperature	26.85	300K
+72 фаренгейта	temperature	22.22222222222222222222222222	72°F
+# The decimal comma on a temperature, where English's period would be.
+36,6 C	temperature	36.6	36,6°C

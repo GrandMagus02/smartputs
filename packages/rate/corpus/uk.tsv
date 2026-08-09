@@ -1,0 +1,27 @@
+# input	kind	canonical	formatted
+30 usd	money	27.27272727272727272727272727	$30,00
+30 usd - 10 eur	money	17.27272727272727272727272727	$19,00
+100 usd в uah	money	90.90909090909090909090909091	₴4 136,36
+5 eur + 5 eur	money	10	€10,00
+-10 usd	money	-9.090909090909090909090909091	-$10,00
+10 usd в eur	money	9.090909090909090909090909091	€9,09
+10 eur * 3	money	30	€30,00
+100 eur / 4	money	25	€25,00
+(1 usd / 3) * 3	money	0.909090909090909090909090909	$1,00
+50 uah + 50 uah	money	2.197802197802197802197802198	₴100,00
+100 uah в usd	money	2.197802197802197802197802198	$2,42
+# What this file adds over `en.tsv`, and the reason it is worth having: the
+# ISO codes are the same in every language, so the *input* half of a money
+# corpus barely moves — and the output half moves entirely. Ukrainian writes
+# the decimal comma and groups with U+00A0, so "₴1 000,00" is the same
+# amount English prints as "₴1,000.00" and the two strings share no
+# separator. A currency symbol is not a translation and stays put.
+1 000 uah	money	21.97802197802197802197802198	₴1 000,00
+1,5 eur	money	1.5	€1,50
+1 000 000 uah в eur	money	21978.02197802197802197802198	€21 978,02
+# No vocabulary is composed into this engine at all — `composeLocale(uk)`
+# with nothing after it — so every code above is reached through the kind's
+# own unit keys. That is the same claim `en.tsv` makes, and it is what says
+# the money kind is language-free: `грн` is not readable here, and adding it
+# would be `@smartput/rate/locale/uk`'s job rather than the table's.
+45,5 uah в eur	money	1	€1,00

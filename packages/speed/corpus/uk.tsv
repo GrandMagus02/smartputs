@@ -1,0 +1,25 @@
+# input	kind	canonical	formatted
+100 км / 2 год	speed	13.88888888888888888888888889	13,888888888888888888888889м/с
+100 kph в mph	speed	27.77777777777777777777777778	62,137119223733396961743418миль/год
+60 mph в kph	speed	26.8224	96,56064км/год
+1 вузол в kph	speed	0.5144444444444444444444444444	1,852км/год
+10 mps в kph	speed	10	36км/год
+50 kph + 50 kph	speed	27.77777777777777777777777778	100км/год
+100 kph - 20 kph	speed	22.22222222222222222222222222	80км/год
+30 kph * 2	speed	16.66666666666666666666666667	60км/год
+100 kph / 4	speed	6.944444444444444444444444445	25км/год
+-10 kph	speed	-2.777777777777777777777777778	-10км/год
+1 км / 1 хв	speed	16.66666666666666666666666667	16,666666666666666666666667м/с
+один kph	speed	0.2777777777777777777777777778	1км/год
+3,6 kph в mps	speed	1	1м/с
+120 kph	speed	33.33333333333333333333333334	120км/год
+5 mps	speed	5	5м/с
+# The three composed units have no Cyrillic alias — their words *are*
+# operators (`км/год`, `м/с`), so the lexer ends the token at the slash and
+# no alias index can hold them. That is why they read as arithmetic over
+# length and duration instead, which is the row below, and why the knot —
+# the one unit that is a noun — is the one with Ukrainian words.
+120 км/год	speed	33.33333333333333333333333333	33,333333333333333333333333м/с
+2 вузли	speed	1.028888888888888888888888889	2 вузли
+5 вузлів	speed	2.572222222222222222222222222	5 вузлів
+21 вузол	speed	10.80333333333333333333333333	21 вузол
