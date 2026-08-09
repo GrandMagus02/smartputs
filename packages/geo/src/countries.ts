@@ -73,21 +73,38 @@ const MAX_ALIAS_WORDS = 4;
  * and not upstream's hand-tuned pattern. `PostalFormat` uses it for exactly
  * that.
  *
- * `#` is a digit, `@` is a letter, `.` in a mask is a literal dot, and a space
- * is optional because half the world writes postcodes without one. Anything else
- * is escaped and kept.
+ * `#` is a digit, `@` is a letter, and a space is optional because half the world
+ * writes postcodes without one. Anything else is escaped and kept literally.
+ *
+ * `|` is **alternation, not a literal**, and that is the one thing about this
+ * format a reader would not guess. The United Kingdom's mask is
+ * `@# #@@|@## #@@|@@# #@@|@@## #@@|@#@ #@@|@@#@ #@@|GIR0AA` — seven shapes in
+ * one field — so escaping the pipe the way every other punctuation mark is
+ * escaped produces a pattern that matches none of them. The first version of
+ * this function did exactly that, and the test below caught it.
  */
 export function regexFromMask(mask: string): string {
   const trimmed = mask.trim();
   if (trimmed === "") return "";
-  let out = "";
-  for (const ch of trimmed) {
-    if (ch === "#") out += "\\d";
-    else if (ch === "@") out += "[A-Za-z]";
-    else if (ch === " ") out += "\\s?";
-    else out += ch.replace(/[.*+?^${}()|[\]\\]/, "\\$&");
+
+  const alternatives: string[] = [];
+  for (const alternative of trimmed.split("|")) {
+    const shape = alternative.trim();
+    if (shape === "") continue;
+    let out = "";
+    for (const ch of shape) {
+      if (ch === "#") out += "\\d";
+      else if (ch === "@") out += "[A-Za-z]";
+      else if (ch === " ") out += "\\s?";
+      else out += ch.replace(/[.*+?^${}()[\]\\]/, "\\$&");
+    }
+    alternatives.push(out);
   }
-  return `^${out}$`;
+  if (alternatives.length === 0) return "";
+  // Grouped, so the anchors apply to every alternative rather than to the first
+  // and the last — `^a|b$` matches anything containing "b", which is not a
+  // postal check at all.
+  return `^(?:${alternatives.join("|")})$`;
 }
 
 /**

@@ -9,11 +9,11 @@ import {
   type Result,
   type Vocabulary,
 } from "@smartput/core";
-import { countryTable, type CountryTableOptions } from "./countries";
+import { type CountryTableOptions, countryTable } from "./countries";
+import { GeoError } from "./errors";
 import { definePlace } from "./kind/place";
 import type { Admin1Row, CityRow, CountryRow } from "./kind/types";
 import { placeVocabulary } from "./locale/vocabulary";
-import { GeoError } from "./errors";
 import type { GeoNames } from "./providers/geonames";
 
 const DAY_MS = 86_400_000;

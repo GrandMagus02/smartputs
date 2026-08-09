@@ -1,6 +1,6 @@
 import { defineVocabulary, type UnitWords, type Vocabulary } from "@smartput/core";
-import type { CountryRow } from "../kind/types";
 import { MIN_NAME_LENGTH } from "../kind/matcher";
+import type { CountryRow } from "../kind/types";
 
 /**
  * The words for the country units, built from the table they name.
