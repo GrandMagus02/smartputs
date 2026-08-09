@@ -9,10 +9,16 @@
     "preview": "vitepress preview"
   },
   "dependencies": {
+    "@smartput/city": "workspace:*",
     "@smartput/core": "workspace:*",
+    "@smartput/country": "workspace:*",
+    "@smartput/currency": "workspace:*",
+    "@smartput/datetime": "workspace:*",
     "@smartput/kinds": "workspace:*",
     "@smartput/math": "workspace:*",
-    "@smartput/rates": "workspace:*",
+    "@smartput/rate": "workspace:*",
+    "@smartput/timezone": "workspace:*",
+    "@smartput/zip": "workspace:*",
     "katex": "^0.18.1"
   },
   "devDependencies": {

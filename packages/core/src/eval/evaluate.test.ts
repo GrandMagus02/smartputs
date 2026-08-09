@@ -1,14 +1,18 @@
 import { expect, test } from "bun:test";
+import { english as enLocale } from "@smartput/core/locale/en";
 import { BUILTIN_KINDS } from "@smartput/kinds";
 import { createEngine } from "../engine";
 import { DivideByZeroError } from "../errors";
 import { defineKind } from "../kind/define";
 import { buildRegistry } from "../kind/registry";
-import { defineLocale } from "../locale/define";
-import enLocale from "../locale/en";
+import { composeLocale } from "../locale/compose";
+import { defineLanguage } from "../locale/define";
+import { defineVocabulary } from "../locale/vocabulary";
 import { createResolver } from "../parse/candidates";
 import { lex } from "../parse/lex";
+import { normalize } from "../parse/normalize";
 import { parse } from "../parse/pratt";
+import { buildProgram } from "../parse/program";
 import { solve } from "../solve/solver";
 import { evaluateNode } from "./evaluate";
 
@@ -19,27 +23,49 @@ const number = defineKind({
 const length = defineKind({
   id: "length",
   value: { mode: "ratio", canonical: "m", units: { m: 1, km: 1000 } },
-  lexicon: { m: ["m"], km: ["km"] },
 });
 const duration = defineKind({
   id: "duration",
   value: { mode: "ratio", canonical: "s", units: { s: 1, min: 60, h: 3600 } },
-  lexicon: { min: ["min", "m"], h: ["h"], s: ["s"] },
 });
 
-const en = defineLocale({
-  id: "en",
-  numberFormat: "intl",
-  keywords: { in: ["in"], of: ["of"] },
-});
-const registry = buildRegistry([number, length, duration]);
+// `m` deliberately names both length's metre and duration's minute: half these
+// tests are about the solver choosing between them, so the ambiguity has to be
+// declared rather than inherited from the unit keys.
+const en = composeLocale(
+  defineLanguage({
+    id: "en",
+    numberFormat: "intl",
+    keywords: { in: ["in"], of: ["of"] },
+    selectForm: () => "other",
+  }),
+  [
+    defineVocabulary({
+      locale: "en",
+      kind: "length",
+      units: { m: { aliases: ["m"] }, km: { aliases: ["km"] } },
+    }),
+    defineVocabulary({
+      locale: "en",
+      kind: "duration",
+      units: {
+        min: { aliases: ["min", "m"] },
+        h: { aliases: ["h"] },
+        s: { aliases: ["s"] },
+      },
+    }),
+  ],
+);
+const registry = buildRegistry([number, length, duration], [en]);
 
 function evaluate(input: string) {
-  const resolver = createResolver({ registry, locale: en, packs: [], layers: [] });
-  const node = parse(lex(input, en), resolver, input);
-  const [best] = solve(node, registry, { maxCandidates: 10_000, input });
+  const resolver = createResolver({ registry, locales: [en], format: en, layers: [] });
+  const normalized = normalize(input);
+  const node = parse(lex(normalized.text, en), resolver, input);
+  const program = buildProgram(node, normalized);
+  const [best] = solve(program, registry, { maxCandidates: 10_000, input });
   if (best === undefined) throw new Error("no assignment");
-  return evaluateNode({ node, assignment: best, registry, locale: "en", input });
+  return evaluateNode({ program, resolution: best, registry, locale: "en", input });
 }
 
 test("evaluates a single quantity in its authored unit", () => {
@@ -111,13 +137,21 @@ test("evaluateNode collects the assumption of every signature it applies", () =>
     ],
   });
   const r = buildRegistry([number, length, duration, noted]);
-  const resolver = createResolver({ registry: r, locale: en, packs: [], layers: [] });
+  const resolver = createResolver({ registry: r, locales: [en], format: en, layers: [] });
   const input = "2 of 10 km";
-  const node = parse(lex(input, en), resolver, input);
-  const [best] = solve(node, r, { maxCandidates: 10_000, input });
+  const normalized = normalize(input);
+  const node = parse(lex(normalized.text, en), resolver, input);
+  const program = buildProgram(node, normalized);
+  const [best] = solve(program, r, { maxCandidates: 10_000, input });
   if (best === undefined) throw new Error("no assignment");
 
-  const out = evaluateNode({ node, assignment: best, registry: r, locale: "en", input });
+  const out = evaluateNode({
+    program,
+    resolution: best,
+    registry: r,
+    locale: "en",
+    input,
+  });
   expect(out.value.canonical.toString()).toBe("20000");
   expect(out.assumptions).toEqual([
     { code: "scale-factor", message: "read as a scale factor" },
@@ -130,10 +164,16 @@ test("a plain expression records no assumptions", () => {
 
 // A kind whose `+` records an assumption naming its own operands — the shape
 // money's cross-rate needs, where the detail is known only per expression.
+//
+// Its own locale, with no vocabulary: `en` above speaks for length and
+// duration, and installing a vocabulary for a kind an engine does not register
+// is a wiring error. `gld`/`slv` are typeable regardless — R2 indexes every
+// unit under its own key.
+const bare = composeLocale(en.language);
+
 const dynamicallyNoted = defineKind({
   id: "treasure",
   value: { mode: "ratio", canonical: "gld", units: { gld: 1, slv: 0.5 } },
-  lexicon: { gld: { aliases: ["gld"] }, slv: { aliases: ["slv"] } },
   ops: [
     {
       op: "+",
@@ -157,7 +197,10 @@ const dynamicallyNoted = defineKind({
 });
 
 test("an op can record an assumption dynamically through the context sink", () => {
-  const e = createEngine({ locales: [en], kinds: [number, dynamicallyNoted] });
+  const e = createEngine({
+    locales: [bare],
+    kinds: [number, dynamicallyNoted],
+  });
   const r = e.evaluate("10 gld + 4 slv");
   expect(r.meta.assumptions).toHaveLength(1);
   expect(r.meta.assumptions[0]?.code).toBe("melted-down");
@@ -166,14 +209,17 @@ test("an op can record an assumption dynamically through the context sink", () =
 });
 
 test("the same assumption recorded twice is kept once", () => {
-  const e = createEngine({ locales: [en], kinds: [number, dynamicallyNoted] });
+  const e = createEngine({
+    locales: [bare],
+    kinds: [number, dynamicallyNoted],
+  });
   // Two additions, identical operand units, so both notes serialize the same.
   expect(e.evaluate("1 gld + 2 gld + 3 gld").meta.assumptions).toHaveLength(1);
 });
 
 test("a value's meta is frozen, not just the value", () => {
   const engine = createEngine({
-    locales: [enLocale],
+    locales: [composeLocale(enLocale)],
     kinds: BUILTIN_KINDS,
     kindMeta: { mass: { note: "x" } },
   });

@@ -1,12 +1,15 @@
 import { expect, test } from "bun:test";
+import { english } from "@smartput/core/locale/en";
 import { length } from "@smartput/kinds";
 import { Decimal } from "../decimal";
 import { defineKind } from "../kind/define";
 import { buildRegistry } from "../kind/registry";
-import en from "../locale/en";
+import { composeLocale } from "../locale/compose";
 import type { LiteralMatcher, MatchCtx } from "../types";
 import { lex, type Token } from "./lex";
 import { foldLiterals } from "./literals";
+
+const en = composeLocale(english);
 
 /** Claims the literal word "today", and nothing else. */
 const todayMatcher: LiteralMatcher = (input, offset) => {
@@ -30,7 +33,7 @@ const straddling: LiteralMatcher = (input, offset) =>
 const day = (literals: LiteralMatcher[]) =>
   defineKind({
     id: "day",
-    value: { mode: "opaque", units: { UTC: ["utc"] } },
+    value: { mode: "opaque", units: ["UTC"] },
     literals,
   });
 
@@ -42,7 +45,7 @@ const ctx: MatchCtx = {
 };
 
 const fold = (input: string, literals: LiteralMatcher[]) => {
-  const registry = buildRegistry([day(literals), length], [], "en");
+  const registry = buildRegistry([day(literals), length]);
   return foldLiterals(lex(input, en), input, registry, ctx);
 };
 
@@ -151,7 +154,7 @@ test("two kinds claiming the same span both survive, not just the first to regis
   // order, so a kind sorted later lost its reading outright however heavy it was.
   const other = defineKind({
     id: "aday",
-    value: { mode: "opaque", units: { UTC: ["utc"] } },
+    value: { mode: "opaque", units: ["UTC"] },
     literals: [
       (input, offset) =>
         input.startsWith("today", offset)
@@ -159,7 +162,7 @@ test("two kinds claiming the same span both survive, not just the first to regis
           : null,
     ],
   });
-  const registry = buildRegistry([day([todayMatcher]), other, length], [], "en");
+  const registry = buildRegistry([day([todayMatcher]), other, length]);
   const tokens = foldLiterals(lex("today", en), "today", registry, ctx);
   expect(readingsOf(tokens[0] as Token).map((r) => r.kind)).toEqual(["aday", "day"]);
 });

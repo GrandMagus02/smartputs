@@ -14,7 +14,7 @@ import {
   patternFor,
   scale,
   sub,
-} from "@smartput/validate";
+} from "@smartput/shared";
 import { MASS_UNITS, type MassUnit } from "./units";
 
 export type { MassUnit } from "./units";

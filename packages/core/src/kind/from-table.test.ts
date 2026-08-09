@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import type { UnitTable } from "@smartput/validate";
+import type { UnitTable } from "@smartput/shared";
 import { aliasesFor, decimalRatios, type RatioTable } from "./from-table";
 
 /** Named separately so the assertions below compare against a `string`, not
@@ -32,7 +32,7 @@ test("aliasesFor inverts the flat map, in declaration order", () => {
 });
 
 test("a real UnitTable satisfies RatioTable, so core needs no import to accept one", () => {
-  // The assignment is the test, and it is why `@smartput/validate` is a
+  // The assignment is the test, and it is why `@smartput/shared` is a
   // devDependency of core rather than a dependency: the structural type has to
   // stay wide enough for the real one, and nothing but a compile error would
   // say otherwise. Core's own source never names the package (spec §4/§13).

@@ -1,4 +1,4 @@
-import { createValueClass } from "@smartput/validate";
+import { createValueClass } from "@smartput/shared";
 import { VOLUME_UNITS } from "./units";
 
 export type { VolumeUnit } from "./units";

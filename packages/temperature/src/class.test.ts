@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { ValidationError } from "@smartput/validate";
+import { ValidationError } from "@smartput/shared";
 import { TempDelta, Temperature } from "./class";
 import {
   TEMPDELTA_UNITS,

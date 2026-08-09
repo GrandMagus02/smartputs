@@ -1,0 +1,22 @@
+{
+  "name": "@smartput/zip",
+  "version": "0.0.0",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "bun": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "dependencies": {
+    "@smartput/core": "workspace:*",
+    "decimal.js": "^10.6.0"
+  },
+  "devDependencies": {
+    "@smartput/country": "workspace:*",
+    "@smartput/datetime": "workspace:*",
+    "@smartput/kinds": "workspace:*"
+  }
+}

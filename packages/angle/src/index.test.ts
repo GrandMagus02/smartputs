@@ -1,9 +1,13 @@
 import { expect, test } from "bun:test";
-import { createEngine } from "@smartput/core";
-import en from "@smartput/core/locale/en";
+import { composeLocale, createEngine } from "@smartput/core";
+import { english as en } from "@smartput/core/locale/en";
 import { BUILTIN_KINDS } from "@smartput/kinds";
+import BUILTIN_EN from "@smartput/kinds/locale/en";
 
-const engine = createEngine({ locales: [en], kinds: BUILTIN_KINDS });
+const engine = createEngine({
+  locales: [composeLocale(en, BUILTIN_EN)],
+  kinds: BUILTIN_KINDS,
+});
 
 test("degrees convert to radians", () => {
   expect(engine.evaluate("90 deg in rad").value.canonical.toFixed(10)).toBe(

@@ -1,21 +1,29 @@
 import { expect, test } from "bun:test";
+import { english as en } from "@smartput/core/locale/en";
+import { ukrainian } from "@smartput/core/locale/uk";
 import { BUILTIN_KINDS, length, number } from "@smartput/kinds";
+import BUILTIN_EN from "@smartput/kinds/locale/en";
+import BUILTIN_UK from "@smartput/kinds/locale/uk";
 import { Decimal } from "./decimal";
-import { createEngine } from "./engine";
+import { createEngine, type EngineOptions } from "./engine";
 import {
   AmbiguityError,
   DimensionMismatchError,
+  KeywordConflictError,
   MissingRateError,
   NoCandidateError,
   UnitParseError,
 } from "./errors";
 import { createFacades } from "./facade/index";
 import { defineKind } from "./kind/define";
-import { defineLocale } from "./locale/define";
-import en from "./locale/en";
+import { composeLocale } from "./locale/compose";
+import { defineLanguage } from "./locale/define";
 import type { LiteralMatcher, Value } from "./types";
 
-const engine = createEngine({ locales: [en], kinds: BUILTIN_KINDS });
+const engine = createEngine({
+  locales: [composeLocale(en, BUILTIN_EN)],
+  kinds: BUILTIN_KINDS,
+});
 
 test("evaluate returns a formatted result for an unambiguous input", () => {
   const r = engine.evaluate("1 kg + 500 g");
@@ -36,7 +44,7 @@ test("evaluate throws AmbiguityError on a genuine tie", () => {
 
 test("weights break the tie", () => {
   const biased = createEngine({
-    locales: [en],
+    locales: [composeLocale(en, BUILTIN_EN)],
     kinds: BUILTIN_KINDS,
     weights: { "length:m": 10 },
   });
@@ -45,7 +53,7 @@ test("weights break the tie", () => {
 
 test("per-call weights override engine weights", () => {
   const biased = createEngine({
-    locales: [en],
+    locales: [composeLocale(en, BUILTIN_EN)],
     kinds: BUILTIN_KINDS,
     weights: { "length:m": 10 },
   });
@@ -55,7 +63,11 @@ test("per-call weights override engine weights", () => {
 });
 
 test("tiebreak first resolves instead of throwing", () => {
-  const stable = createEngine({ locales: [en], kinds: BUILTIN_KINDS, tiebreak: "first" });
+  const stable = createEngine({
+    locales: [composeLocale(en, BUILTIN_EN)],
+    kinds: BUILTIN_KINDS,
+    tiebreak: "first",
+  });
   expect(stable.evaluate("10 m").kind).toBe("duration");
 });
 
@@ -71,7 +83,7 @@ test("suggest returns an empty array for unparseable input", () => {
 });
 
 test("suggest re-throws a genuine bug instead of swallowing it", () => {
-  const exploding = defineLocale({
+  const exploding = defineLanguage({
     id: "en",
     numberFormat: "intl",
     analyze: [
@@ -80,13 +92,17 @@ test("suggest re-throws a genuine bug instead of swallowing it", () => {
       },
     ],
     keywords: {},
+    selectForm: () => "other",
   });
-  const e = createEngine({ locales: [exploding], kinds: BUILTIN_KINDS });
+  const e = createEngine({
+    locales: [composeLocale(exploding, BUILTIN_EN)],
+    kinds: BUILTIN_KINDS,
+  });
   expect(() => e.suggest("10 kg")).toThrow(TypeError);
 });
 
 test("coerce re-throws a genuine bug instead of reporting no candidate", () => {
-  const exploding = defineLocale({
+  const exploding = defineLanguage({
     id: "en",
     numberFormat: "intl",
     analyze: [
@@ -95,8 +111,12 @@ test("coerce re-throws a genuine bug instead of reporting no candidate", () => {
       },
     ],
     keywords: {},
+    selectForm: () => "other",
   });
-  const e = createEngine({ locales: [exploding], kinds: BUILTIN_KINDS });
+  const e = createEngine({
+    locales: [composeLocale(exploding, BUILTIN_EN)],
+    kinds: BUILTIN_KINDS,
+  });
   expect(() => e.coerce("mass", "10 kg")).toThrow(TypeError);
 });
 
@@ -148,6 +168,13 @@ test("explain contributions sum to the score for every assignment", () => {
   // The one invariant that makes explain() trustworthy: every summand of the
   // solver's score has a row. Each case below broke it in a different place —
   // a token: selector on non-lowercase input, contextBonus, analyzer weight.
+  //
+  // The `locale:` rows are the P4 addition, and they are here rather than in
+  // their own test because the failure they guard against is invisible
+  // anywhere else: `toExplanation` rebuilds every row by re-calling
+  // `weightBreakdown` with fields pulled off the stored `Candidate`, so a
+  // `locale` that scoring passes and explaining forgets produces rows during
+  // scoring and none during explaining, and every case above still passes.
   const cases: Array<[string, Record<string, number> | undefined]> = [
     ["10 m", undefined],
     ["10 KG", { "token:kg": 7 }],
@@ -158,11 +185,18 @@ test("explain contributions sum to the score for every assignment", () => {
     ["1.5 kilograms", { "token:kilograms": 4, "mass:kg": 1 }],
     ["2 km in m", undefined],
     ["1 kg + 500 g in kg", { "mass:kg": 2, length: -1 }],
+    ["10 KG", { "locale:en": 7 }],
+    ["1 kg + 500 g in kg", { "locale:en": 2, "mass:kg": 2 }],
+    ["1.5 kilograms", { "locale:en": -3 }],
   ];
 
   for (const [input, weights] of cases) {
     const e = weights
-      ? createEngine({ locales: [en], kinds: BUILTIN_KINDS, weights })
+      ? createEngine({
+          locales: [composeLocale(en, BUILTIN_EN)],
+          kinds: BUILTIN_KINDS,
+          weights,
+        })
       : engine;
     const x = e.explain(input);
     expect(x.assignments.length).toBeGreaterThan(0);
@@ -175,7 +209,7 @@ test("explain contributions sum to the score for every assignment", () => {
 
 test("explain lists a token selector matched against non-lowercase input", () => {
   const e = createEngine({
-    locales: [en],
+    locales: [composeLocale(en, BUILTIN_EN)],
     kinds: BUILTIN_KINDS,
     weights: { "token:kg": 7 },
   });
@@ -189,6 +223,15 @@ test("explain lists contextBonus as its own row", () => {
   expect(rows.filter((c) => c.selector === "contextBonus")).toEqual([
     { selector: "contextBonus", value: 30, layer: 0 },
   ]);
+});
+
+test("explain lists no signature row when no signature carries a weight", () => {
+  // The row is emitted only when non-zero, so every built-in kind — none of
+  // which weights a signature — explains exactly as it did before the term
+  // existed. The positive case lives in solve/solver.test.ts, next to the one
+  // fixture that sets a weight.
+  const rows = engine.explain("10 m + 5 km").assignments[0]?.contributions ?? [];
+  expect(rows.some((c) => c.selector === "signature")).toBe(false);
 });
 
 test("explain lists the analyzer's own weight", () => {
@@ -227,15 +270,22 @@ test("a custom five-line kind works end to end", () => {
       units: { b: 1, kb: 1e3, kib: 1024, mib: 1024 ** 2 },
     },
   });
-  const e = createEngine({ locales: [en], kinds: [...BUILTIN_KINDS, datasize2] });
+  const e = createEngine({
+    locales: [composeLocale(en, BUILTIN_EN)],
+    kinds: [...BUILTIN_KINDS, datasize2],
+  });
   const r = e.evaluate("2 mib + 500 kb in kb", { kinds: ["datasize2"] });
   expect(r.kind).toBe("datasize2");
-  expect(r.formatted).toBe("2,597.152kb");
+  // The space is `defaultRenderQuantity`'s last branch: no vocabulary names
+  // `datasize2`, so the unit has neither a word nor a symbol and the render
+  // degrades to the registry key (I10). A kind that ships an `en` vocabulary
+  // carries a symbol for every unit (ruling R8) and reads "2,597.152kb".
+  expect(r.formatted).toBe("2,597.152 kb");
 });
 
 test("kindMeta configured on the engine reaches Value.meta via evaluate and coerce", () => {
   const withMeta = createEngine({
-    locales: [en],
+    locales: [composeLocale(en, BUILTIN_EN)],
     kinds: BUILTIN_KINDS,
     kindMeta: { length: { source: "engine-default" } },
   });
@@ -244,9 +294,12 @@ test("kindMeta configured on the engine reaches Value.meta via evaluate and coer
 });
 
 test("engines with different locales coexist", () => {
-  const a = createEngine({ locales: [en], kinds: BUILTIN_KINDS });
+  const a = createEngine({
+    locales: [composeLocale(en, BUILTIN_EN)],
+    kinds: BUILTIN_KINDS,
+  });
   const b = createEngine({
-    locales: [en],
+    locales: [composeLocale(en, BUILTIN_EN)],
     kinds: BUILTIN_KINDS,
     weights: { "length:m": 99 },
   });
@@ -262,11 +315,23 @@ test("engine.complete completes a partial unit", () => {
 
 test("engine.complete honours engine-level weights", () => {
   const biased = createEngine({
-    locales: [en],
+    locales: [composeLocale(en, BUILTIN_EN)],
     kinds: BUILTIN_KINDS,
     weights: { duration: 20 },
   });
   expect(biased.complete("1 mi")[0]?.kind).toBe("duration");
+});
+
+test("engine.complete honours a per-call weights override", () => {
+  // Locks in that `complete()` rebuilds its `Autocompleter` per call the same
+  // way `evaluate()` rebuilds its `Parser`: `CompleteOptions.weights` is
+  // documented as "layer 4, identical to EvalOptions.weights", so a
+  // once-built `Autocompleter` that ignored it would silently stop honouring
+  // a per-call weights argument while every other test here still passed.
+  const plain = engine.complete("1 mi");
+  const boosted = engine.complete("1 mi", { weights: { duration: 20 } });
+  expect(plain[0]?.kind).not.toBe("duration");
+  expect(boosted[0]?.kind).toBe("duration");
 });
 
 test("engine.complete never throws on half-typed input", () => {
@@ -277,7 +342,7 @@ test("engine.complete never throws on half-typed input", () => {
 
 test("a unit ratio reads the injected rates, and the result is dated", () => {
   // Half a "florin" per "guilder" — an invented pair, so nothing here depends
-  // on a real currency table or on @smartput/rates existing yet.
+  // on a real currency table or on @smartput/rate existing yet.
   const rates = {
     base: "GLD",
     asOf: "2026-08-04",
@@ -307,13 +372,79 @@ test("a unit ratio reads the injected rates, and the result is dated", () => {
         },
       },
     },
-    lexicon: { gld: { aliases: ["gld"] }, fln: { aliases: ["fln"] } },
   });
 
-  const e = createEngine({ locales: [en], kinds: [number, treasure], rates });
+  const e = createEngine({
+    locales: [composeLocale(en)],
+    kinds: [number, treasure],
+    rates,
+  });
   const r = e.evaluate("10 fln + 1 gld");
   expect(r.value.canonical.toString()).toBe("6");
   expect(r.meta.ratesAsOf).toBe("2026-08-04");
+});
+
+test("mutating the options object after createEngine does not affect later calls", () => {
+  // The concrete failure this guards against: `Evaluator` snapshots `rates`
+  // at construction, so `value.canonical` is already fixed to the table that
+  // existed when `createEngine` ran. If the engine's own formatting/meta path
+  // read the *live* options object instead of a frozen copy, a caller
+  // mutating `opts.rates` afterward would make `evaluate()` answer with one
+  // rate table baked into `value` and a different one showing up in
+  // `formatted`/`meta.ratesAsOf` — two rate tables in one `Result`.
+  const ratesA = {
+    base: "GLD",
+    asOf: "2026-08-04",
+    get: (from: string, to: string) =>
+      from === "FLN" && to === "GLD" ? new Decimal("0.5") : null,
+  };
+  const ratesB = {
+    base: "GLD",
+    asOf: "2099-01-01",
+    get: (from: string, to: string) =>
+      from === "FLN" && to === "GLD" ? new Decimal("99") : null,
+  };
+  const treasure = defineKind({
+    id: "treasure",
+    value: {
+      mode: "ratio",
+      canonical: "gld",
+      units: {
+        gld: 1,
+        fln: {
+          ratio: (ctx) => {
+            const rate = ctx.rates?.get("FLN", "GLD");
+            if (rate === null || rate === undefined) {
+              throw new MissingRateError(
+                ctx.input ?? "",
+                "FLN",
+                "GLD",
+                ctx.rates?.asOf ?? "",
+              );
+            }
+            return rate;
+          },
+        },
+      },
+    },
+  });
+
+  const opts: EngineOptions = {
+    locales: [composeLocale(en)],
+    kinds: [number, treasure],
+    rates: ratesA,
+  };
+  const e = createEngine(opts);
+  const before = e.evaluate("10 fln + 1 gld");
+
+  // Mutate the very object `createEngine` was given, after construction.
+  opts.rates = ratesB;
+  opts.formatPrecision = 2;
+
+  const after = e.evaluate("10 fln + 1 gld");
+  expect(after.value.canonical.toString()).toBe(before.value.canonical.toString());
+  expect(after.meta.ratesAsOf).toBe(before.meta.ratesAsOf);
+  expect(after.formatted).toBe(before.formatted);
 });
 
 test("without rates, a rate-dependent unit raises MissingRateError", () => {
@@ -345,9 +476,12 @@ test("without rates, a rate-dependent unit raises MissingRateError", () => {
         },
       },
     },
-    lexicon: { gld: { aliases: ["gld"] }, fln: { aliases: ["fln"] } },
   });
-  const e = createEngine({ locales: [en], kinds: [number, treasure], rates });
+  const e = createEngine({
+    locales: [composeLocale(en)],
+    kinds: [number, treasure],
+    rates,
+  });
   expect(() => e.evaluate("10 fln")).toThrow(MissingRateError);
 });
 
@@ -357,9 +491,12 @@ test("rounding does not perturb an ordinary kind's formatted output", () => {
   // let it decide the 26th significant digit of every kind — this same input
   // rendered ...334 under ROUND_UP before the scoping, purely by promoting
   // round-trip noise to a policy.
-  const plain = createEngine({ locales: [en], kinds: BUILTIN_KINDS });
+  const plain = createEngine({
+    locales: [composeLocale(en, BUILTIN_EN)],
+    kinds: BUILTIN_KINDS,
+  });
   const up = createEngine({
-    locales: [en],
+    locales: [composeLocale(en, BUILTIN_EN)],
     kinds: BUILTIN_KINDS,
     rounding: Decimal.ROUND_UP,
   });
@@ -369,7 +506,10 @@ test("rounding does not perturb an ordinary kind's formatted output", () => {
 });
 
 test("a result carries no ratesAsOf when no rates were supplied", () => {
-  const e = createEngine({ locales: [en], kinds: BUILTIN_KINDS });
+  const e = createEngine({
+    locales: [composeLocale(en, BUILTIN_EN)],
+    kinds: BUILTIN_KINDS,
+  });
   expect(e.evaluate("1 km").meta.ratesAsOf).toBeUndefined();
 });
 
@@ -397,14 +537,14 @@ const gated: LiteralMatcher = (input, offset, ctx) => {
 const probe = (literals: LiteralMatcher[]) =>
   defineKind({
     id: "probe",
-    value: { mode: "opaque", units: { UTC: ["utc"], other: ["other"] } },
+    value: { mode: "opaque", units: ["UTC", "other"] },
     literals,
     format: (v) => v.canonical.toFixed(),
   });
 
 test("EngineOptions.now is what the matcher sees", () => {
   const engine = createEngine({
-    locales: [en],
+    locales: [composeLocale(en)],
     kinds: [number, probe([clockProbe])],
     now: () => 1_768_478_400_000,
     timeZone: "UTC",
@@ -415,7 +555,7 @@ test("EngineOptions.now is what the matcher sees", () => {
 
 test("EvalOptions.timeZone overrides the engine's", () => {
   const engine = createEngine({
-    locales: [en],
+    locales: [composeLocale(en)],
     kinds: [number, probe([clockProbe])],
     now: () => 1_768_478_400_000,
     timeZone: "UTC",
@@ -425,7 +565,7 @@ test("EvalOptions.timeZone overrides the engine's", () => {
 
 test("isUnitAlias reports what the registry indexed", () => {
   const engine = createEngine({
-    locales: [en],
+    locales: [composeLocale(en)],
     kinds: [number, length, probe([gated])],
     now: () => 0,
     timeZone: "UTC",
@@ -438,16 +578,36 @@ test("isUnitAlias reports what the registry indexed", () => {
 });
 
 test("createFacades skips opaque kinds rather than generating a broken class", () => {
-  const facades = createFacades({ kinds: [number, length, probe([])], locale: en });
+  const facades = createFacades({
+    kinds: [number, length, probe([])],
+    locale: composeLocale(en),
+  });
   expect(Object.keys(facades).sort()).toEqual(["length", "number"]);
 });
 
 test("completion offers nothing for an opaque kind", () => {
   const engine = createEngine({
-    locales: [en],
+    locales: [composeLocale(en)],
     kinds: [number, length, probe([])],
   });
-  expect(engine.complete("1 ut").every((c) => c.kind !== "probe")).toBe(true);
+  // `.every()` over a possibly-empty array is vacuously true — it would pass
+  // just as well if `complete()` always returned `[]`, opaque kind or not.
+  // `toEqual([])` is the actual claim.
+  expect(engine.complete("1 ut")).toEqual([]);
+
+  // The companion: the identical alias, on a non-opaque kind, proves the
+  // emptiness above comes from `probe` being opaque — not from "1 ut" simply
+  // having no match for any kind, which the assertion above could not by
+  // itself distinguish.
+  const clock = defineKind({
+    id: "clock",
+    value: { mode: "ratio", canonical: "utc", units: { utc: 1 } },
+  });
+  const nonOpaqueEngine = createEngine({
+    locales: [composeLocale(en)],
+    kinds: [number, length, clock],
+  });
+  expect(nonOpaqueEngine.complete("1 ut").some((c) => c.kind === "clock")).toBe(true);
 });
 
 /**
@@ -460,7 +620,10 @@ const untargetable: LiteralMatcher = (input, offset) =>
     : null;
 
 test("a literal that does not opt in cannot be a conversion target", () => {
-  const engine = createEngine({ locales: [en], kinds: [number, probe([untargetable])] });
+  const engine = createEngine({
+    locales: [composeLocale(en)],
+    kinds: [number, probe([untargetable])],
+  });
 
   // The claim still works on the left, where it is a value.
   expect(engine.evaluate("mark").kind).toBe("probe");
@@ -473,7 +636,7 @@ test("a targetable literal reaches apply with its own meta, not the stand-in's",
   let sawRight: Value | undefined;
   const kind = defineKind({
     id: "probe",
-    value: { mode: "opaque", units: { UTC: ["utc"], other: ["other"] } },
+    value: { mode: "opaque", units: ["UTC", "other"] },
     literals: [
       (input, offset) =>
         input.slice(offset).startsWith("mark")
@@ -501,7 +664,7 @@ test("a targetable literal reaches apply with its own meta, not the stand-in's",
     ],
     format: (v) => v.canonical.toFixed(),
   });
-  const engine = createEngine({ locales: [en], kinds: [number, kind] });
+  const engine = createEngine({ locales: [composeLocale(en)], kinds: [number, kind] });
 
   engine.evaluate("mark in mark");
   // The stand-in core synthesizes for an ordinary unit target carries canonical
@@ -543,7 +706,10 @@ const twoCities: LiteralMatcher = (input, offset) =>
     : null;
 
 test("suggest returns every reading of one claim, best first", () => {
-  const engine = createEngine({ locales: [en], kinds: [number, probe([twoCities])] });
+  const engine = createEngine({
+    locales: [composeLocale(en)],
+    kinds: [number, probe([twoCities])],
+  });
   const suggested = engine.suggest("athens");
   expect(suggested.map((r) => r.value.meta?.name)).toEqual(["Athens, GR", "Athens, GA"]);
   // Ranked, not merely listed: the weights order them and the confidences say so.
@@ -572,7 +738,10 @@ const postal: LiteralMatcher = (input, offset) =>
     : null;
 
 test("a claimed number evaluates as a number and suggests the claim beneath it", () => {
-  const engine = createEngine({ locales: [en], kinds: [number, probe([postal])] });
+  const engine = createEngine({
+    locales: [composeLocale(en)],
+    kinds: [number, probe([postal])],
+  });
 
   const r = engine.evaluate("90210");
   expect(r.kind).toBe("number");
@@ -594,7 +763,10 @@ test("a claim that names no weight still beats the number underneath it", () => 
     /^\d{5}(?!\d)/.test(input.slice(offset))
       ? { kind: "probe", unit: "UTC", canonical: new Decimal(1), length: 5 }
       : null;
-  const engine = createEngine({ locales: [en], kinds: [number, probe([unweighted])] });
+  const engine = createEngine({
+    locales: [composeLocale(en)],
+    kinds: [number, probe([unweighted])],
+  });
   expect(engine.evaluate("90210").kind).toBe("probe");
   expect(engine.suggest("90210").map((s) => s.kind)).toEqual(["probe", "number"]);
 });
@@ -606,7 +778,7 @@ test("a claimed word keeps the unit reading of the word underneath it", () => {
   // the alias — the 17 city names datetime's zones took.
   const kind = defineKind({
     id: "probe",
-    value: { mode: "opaque", units: { UTC: ["utc"], other: ["other"] } },
+    value: { mode: "opaque", units: ["UTC", "other"] },
     literals: [
       (input, offset) =>
         input.slice(offset).startsWith("utc")
@@ -622,7 +794,7 @@ test("a claimed word keeps the unit reading of the word underneath it", () => {
     ops: [{ op: "in", left: "probe", right: "probe", result: "probe", apply: (l) => l }],
     format: (v) => v.canonical.toFixed(),
   });
-  const engine = createEngine({ locales: [en], kinds: [number, kind] });
+  const engine = createEngine({ locales: [composeLocale(en)], kinds: [number, kind] });
 
   // "utc" is unit UTC's alias and now also a claim of unit `other`. Both reach
   // the conversion-target slot: the claim because it opted in, and the label
@@ -633,4 +805,173 @@ test("a claimed word keeps the unit reading of the word underneath it", () => {
     "other,other",
     "UTC,other",
   ]);
+});
+
+/*
+ * P4 Task 16 — `locale:` weights, `format`, `EvalOptions.locales`.
+ *
+ * Recognition is many-locale and generation is exactly one (design decision
+ * I6), so everything below is about the seam between the two: which readings
+ * exist (every installed language's), which language they are printed in
+ * (`format`, one), and how a caller biases or narrows the first without
+ * touching the second.
+ */
+
+const uk = composeLocale(ukrainian, BUILTIN_UK);
+const bilingual = createEngine({
+  locales: [composeLocale(en, BUILTIN_EN), uk],
+  kinds: BUILTIN_KINDS,
+});
+
+test("both languages are accepted, and a locale: weight biases one", () => {
+  const preferred = createEngine({
+    locales: [composeLocale(en, BUILTIN_EN), uk],
+    kinds: BUILTIN_KINDS,
+    weights: { "locale:en": 10, "locale:uk": 5 },
+  });
+  expect(preferred.evaluate("5 kg").kind).toBe("mass");
+  expect(preferred.evaluate("5 кг").kind).toBe("mass");
+  // The claim the assertions above cannot make on their own: the weight is
+  // reaching the readings at all. `locale:` is a whole-vocabulary bias knob,
+  // not a same-token tiebreaker — `buildRegistry` tags each alias with the
+  // alphabetically first language that listed it, so "kg" is an `en` reading
+  // even here and "кг" is the `uk` one.
+  const rows = (e: ReturnType<typeof createEngine>, input: string) =>
+    e.explain(input).assignments[0]?.contributions ?? [];
+  expect(rows(preferred, "5 kg")).toContainEqual({
+    selector: "locale:en",
+    value: 10,
+    layer: 2,
+  });
+  expect(rows(preferred, "5 кг")).toContainEqual({
+    selector: "locale:uk",
+    value: 5,
+    layer: 2,
+  });
+  // And the sum invariant with a `locale:` row present on a two-locale
+  // engine, which is the one configuration the table above cannot build.
+  for (const input of ["5 kg", "5 кг", "5 кг in pounds"]) {
+    for (const a of preferred.explain(input).assignments) {
+      const sum = a.contributions.reduce((s, c) => s + c.value, 0);
+      expect(`${input} [${a.kind}] ${sum}`).toBe(`${input} [${a.kind}] ${a.score}`);
+    }
+  }
+});
+
+test("format decides the output language, not the input", () => {
+  const ukFormat = createEngine({
+    locales: [composeLocale(en, BUILTIN_EN), uk],
+    kinds: BUILTIN_KINDS,
+    format: "uk",
+  });
+  expect(ukFormat.evaluate("5 kg").formatted).toBe("5 кілограмів");
+  expect(ukFormat.evaluate("5 кг").formatted).toBe("5 кілограмів");
+  expect(bilingual.evaluate("5 kg").formatted).toBe("5 kilograms");
+  expect(bilingual.evaluate("5 кг").formatted).toBe("5 kilograms");
+});
+
+test("format names a locale that must be installed", () => {
+  expect(() =>
+    createEngine({
+      locales: [composeLocale(en, BUILTIN_EN)],
+      kinds: BUILTIN_KINDS,
+      format: "uk",
+    }),
+  ).toThrow(/format "uk" is not among the installed locales \(en\)/);
+});
+
+test("a per-call format rebuilds the printer instead of moving the engine's", () => {
+  // The bug this catches is a per-call override that mutates the shared
+  // stage: the third call has no override and must still be the engine's own
+  // language, whatever the two before it asked for.
+  expect(bilingual.evaluate("5 kg", { format: "uk" }).formatted).toBe("5 кілограмів");
+  expect(bilingual.evaluate("5 kg", { format: "en" }).formatted).toBe("5 kilograms");
+  expect(bilingual.evaluate("5 kg").formatted).toBe("5 kilograms");
+  // And the reverse order, on a uk-format engine, so neither direction can
+  // pass by leaking the value it was already going to produce.
+  const ukFormat = createEngine({
+    locales: [composeLocale(en, BUILTIN_EN), uk],
+    kinds: BUILTIN_KINDS,
+    format: "uk",
+  });
+  expect(ukFormat.evaluate("5 kg", { format: "en" }).formatted).toBe("5 kilograms");
+  expect(ukFormat.evaluate("5 kg").formatted).toBe("5 кілограмів");
+});
+
+test("a per-call format names a locale that must be installed", () => {
+  expect(() => bilingual.evaluate("5 kg", { format: "zz" })).toThrow(
+    /format "zz" is not among the installed locales \(en, uk\)/,
+  );
+});
+
+test("EvalOptions.locales filters by language the way kinds filters by kind", () => {
+  expect(bilingual.evaluate("5 кг", { locales: ["uk"] }).value.unit).toBe("kg");
+  expect(bilingual.evaluate("5 kg", { locales: ["en"] }).value.unit).toBe("kg");
+  // Exactly the error `kinds` raises when its filter empties every slot: the
+  // reading was found and then refused, so the parse succeeded and the solver
+  // is where nothing is left. (The plan expected NoCandidateError; that is
+  // what an *unrecognised* surface raises, in the parser, before any filter.)
+  expect(() => bilingual.evaluate("5 кг", { locales: ["en"] })).toThrow(
+    DimensionMismatchError,
+  );
+});
+
+test("EvalOptions.locales keeps the language-neutral tag", () => {
+  // `"*"` is the unit-key floor `buildRegistry` writes for a kind no installed
+  // language speaks for (ruling R6) — `sprocket` below is one, so its `spk` is
+  // reachable by spelling alone. `"*"` is not a language, so no `locales` list
+  // could name it, and a filter that dropped it would make asking for a
+  // language silently unregister every kind without a vocabulary.
+  const sprocket = defineKind({
+    id: "sprocket",
+    value: { mode: "ratio", canonical: "spk", units: { spk: 1 } },
+  });
+  const e = createEngine({
+    locales: [composeLocale(en, BUILTIN_EN), uk],
+    kinds: [...BUILTIN_KINDS, sprocket],
+  });
+  expect(e.evaluate("5 spk").kind).toBe("sprocket");
+  expect(e.evaluate("5 spk", { locales: ["uk"] }).kind).toBe("sprocket");
+  expect(e.evaluate("5 spk", { locales: [] }).kind).toBe("sprocket");
+});
+
+test("EvalOptions.locales reaches coerce, which builds its own solver options", () => {
+  expect(() => bilingual.coerce("mass", "5 кг", { locales: ["en"] })).toThrow(
+    NoCandidateError,
+  );
+  expect(bilingual.coerce("mass", "5 кг", { locales: ["uk"] }).unit).toBe("kg");
+});
+
+test("keywords are many-locale: every installed language's connectives lex", () => {
+  // The gap this closes, measured before the change: the alias half of
+  // recognition already worked on a two-locale engine ("5 кг" resolved), and
+  // the only reason Ukrainian *sentences* threw was that `lex` read one
+  // language's keyword table. "в"/"до" are uk-only, "in" is en-only, and one
+  // engine now reads both.
+  expect(bilingual.evaluate("5 кг в грамах").formatted).toBe("5,000 grams");
+  expect(bilingual.evaluate("5 кг до грамів").formatted).toBe("5,000 grams");
+  expect(bilingual.evaluate("5 кг in grams").formatted).toBe("5,000 grams");
+  expect(bilingual.evaluate("5 кг помножити на 2").formatted).toBe("10 kilograms");
+});
+
+test("numerals are many-locale: each language is offered the same word run", () => {
+  expect(bilingual.evaluate("двадцять два кг").value.canonical.toString()).toBe("22000");
+  expect(bilingual.evaluate("twenty two kg").value.canonical.toString()).toBe("22000");
+});
+
+test("a surface meaning two different keywords across languages fails on boot", () => {
+  // Not at a keystroke: `buildKeywords` runs once, inside `createEngine`, so
+  // the stack names the line that wired the two languages together (I9).
+  const clash = defineLanguage({
+    id: "clash",
+    numberFormat: "intl",
+    keywords: { of: ["in"] },
+    selectForm: () => "other",
+  });
+  expect(() =>
+    createEngine({
+      locales: [composeLocale(en, BUILTIN_EN), composeLocale(clash)],
+      kinds: BUILTIN_KINDS,
+    }),
+  ).toThrow(KeywordConflictError);
 });

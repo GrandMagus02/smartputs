@@ -1,6 +1,6 @@
 ---
 title: API overview
-description: Every symbol exported by @smartput/core, @smartput/kinds, @smartput/rates, @smartput/datetime and @smartput/math.
+description: Every symbol exported by @smartput/core, @smartput/kinds, @smartput/rate, @smartput/datetime and @smartput/math.
 ---
 
 # API overview
@@ -16,9 +16,10 @@ unless stated otherwise.
 | `@smartput/core/locale/en` | The English locale descriptor (default export) |
 | `@smartput/core/testing` | `assertKindContract` |
 | `@smartput/kinds` | The built-in kinds, by name and as `BUILTIN_KINDS` |
-| `@smartput/rates` | The `money` kind, snapshots, providers, `createLiveEngine` |
-| `@smartput/rates/locale/en` | Colloquial English currency words (default export) |
-| `@smartput/datetime` | The `datetime` kind, the chrono bridge, `ZONES`, `Temporal` |
+| `@smartput/rate` | The `money` kind, snapshots, providers, `createLiveEngine` |
+| `@smartput/rate/locale/en` | Colloquial English currency words (default export) |
+| `@smartput/datetime` | The `datetime` kind, the chrono bridge, `Temporal` |
+| `@smartput/timezone` | Zone tables and the written-offset parser, with no dependencies |
 | `@smartput/datetime/locale/en` | English zone words (default export) |
 | `@smartput/math` | `createMathEngine`, the LaTeX surface, the operator words |
 
@@ -52,27 +53,48 @@ unless stated otherwise.
 | `EXACT_BONUS`, `LENGTH_PENALTY`, `SCALE_BONUS` | the [completion](/api/complete#scoring) scoring constants |
 | `Decimal` | re-exported from `decimal.js`, so callers need not add the dependency |
 
-## @smartput/rates
+## @smartput/rate
 
 | Export | Purpose |
 | --- | --- |
-| [`money`](/api/rates#money) | The money `Kind`. Register it and supply `rates`. |
-| [`snapshot(base, asOf, table)`](/api/rates#snapshot) | Build a dated, immutable `RateSnapshot`. |
-| [`createLiveEngine(opts)`](/api/rates#createliveengine) | Async facade: fetch, cache, TTL, one shared in-flight request. |
-| [`ecb(opts?)`](/api/rates#ecb) | ECB daily reference rates provider. |
-| [`custom(fn)`](/api/rates#custom) | Wrap any async source in the provider shape. |
-| [`CURRENCIES`](/api/rates#currencies) | The twelve currency descriptors, keyed by lowercase ISO code. |
+| [`money`](/api/rate#money) | The money `Kind`. Register it and supply `rates`. |
+| [`snapshot(base, asOf, table)`](/api/rate#snapshot) | Build a dated, immutable `RateSnapshot`. |
+| [`createLiveEngine(opts)`](/api/rate#createliveengine) | Async facade: fetch, cache, TTL, one shared in-flight request. |
+| [`ecb(opts?)`](/api/rate#ecb) | ECB daily reference rates provider. |
+| [`custom(fn)`](/api/rate#custom) | Wrap any async source in the provider shape. |
+| [`CURRENCIES`](/api/rate#currencies) | Re-exported from `@smartput/currency`. The twelve currency descriptors, keyed by lowercase ISO code. |
+
+## @smartput/currency
+
+| Export | Purpose |
+| --- | --- |
+| [`CURRENCIES`](/api/currency#currencies) | The twelve currency descriptors, keyed by lowercase ISO code. |
+| [`currencyLexicon()`](/api/currency#currencylexicon) | The vocabulary a money kind registers: aliases, symbol, plurals, typical band. |
+| [`parseCurrency(word)`](/api/currency#parsecurrency) | The ISO code a word names, or `null`. |
+| [`parseAmount(input, opts?)`](/api/currency#parseamount) | `"30 usd"` to an amount and a currency, with no engine. |
+| [`formatAmount(amount, code, opts?)`](/api/currency#formatamount) | `-$10.00`: minor units, symbol, sign. |
+| [`Currency`](/api/currency#currency) | The class door — `Currency.for("dollars")`. |
 
 ## @smartput/datetime
 
 | Export | Purpose |
 | --- | --- |
 | [`datetime`](/guide/datetime) | The `datetime` `Kind`. Register it and set `now` / `timeZone`. |
-| `ZONES` | The eighteen shipped time zones, keyed by IANA id. |
 | `parseDateTime(input, offset, ctx)` | The chrono bridge, exposed for testing a match in isolation. |
 | `wrap(zdt)` / `unwrap(value)` | The `Value` ⇄ `Temporal.ZonedDateTime` boundary. |
 | `Temporal` | Re-exported from `temporal-polyfill` — the package's single import site. |
 | `DATETIME_KIND` | `"datetime"`, so a patch or op signature need not spell it. |
+
+## @smartput/timezone
+
+| Export | Purpose |
+| --- | --- |
+| `ZONES` | The eighteen named time zones, keyed by IANA id. |
+| [`OFFSET_ZONES`](/guide/datetime#offset-zones) | Every quarter hour from `-12:00` to `+14:00`, keyed by Temporal zone id. |
+| `parseOffsetZone(text)` | Reads `GMT+3` / `utc-05:30` at the start of `text` into a zone id and a length. |
+| `offsetZoneId(minutes)` | Minutes east of UTC as a zone id: `180` → `"+03:00"`. |
+| `zoneSymbol(zone)` | What a formatter prints for a zone id, falling back to the id. |
+| `ZoneDef` · `OffsetMatch` | The two row types. |
 
 ## @smartput/math
 
@@ -92,7 +114,7 @@ Every error extends `SmartputError`. See [Errors](/guide/errors).
 `UnknownKindError` · `DivideByZeroError` · `MissingRateError` ·
 `RateProviderError` · `RatesNotReadyError`
 
-The last three are defined in core and raised from `@smartput/rates`, so
+The last three are defined in core and raised from `@smartput/rate`, so
 `instanceof` works across the package boundary. `@smartput/math` defines its own
 — `MathError` and its four subclasses — which extend `SmartputError` for the
 same reason.
@@ -114,10 +136,12 @@ Full definitions: [Types](/api/types).
 ## Shape of a call
 
 ```ts
-import { createEngine } from "@smartput/core";
-import en from "@smartput/core/locale/en";
+import { composeLocale, createEngine } from "@smartput/core";
+import { english } from "@smartput/core/locale/en";
 import { BUILTIN_KINDS } from "@smartput/kinds";
+import BUILTIN_EN from "@smartput/kinds/locale/en";
 
+const en = composeLocale(english, BUILTIN_EN);
 const engine = createEngine({ locales: [en], kinds: BUILTIN_KINDS });
 
 engine.evaluate("1 kg + 500 g"); // Result       — strict, throws

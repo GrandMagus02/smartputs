@@ -14,7 +14,7 @@ import {
   patternFor,
   scale,
   sub,
-} from "@smartput/validate";
+} from "@smartput/shared";
 import { ANGLE_UNITS, type AngleUnit } from "./units";
 
 export type { AngleUnit } from "./units";

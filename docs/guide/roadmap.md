@@ -10,14 +10,18 @@ Each milestone is independently shippable and gets its own implementation plan.
 | Milestone | Scope | Status |
 | --- | --- | --- |
 | **M1** | Contracts, registry, lexer, Pratt parser, solver, layered weights, softmax confidence, `explain()`. Kinds: `number`, `length`, `mass`, `duration`. Locale: `en`. | **Shipped** |
-| **M2** | Temperature (affine), measure (dpi via `Value.meta`), angle, datasize, percent, speed/area/volume as explicit op signatures. Facade class generator. | **Shipped** |
+| **M2** | Temperature (affine), measure (dpi via `Value.meta`), angle, datasize, percent (`of`, `+`, `-` — [`in` and `off` came later](#percent-finished)), speed/area/volume as explicit op signatures. Facade class generator. | **Shipped** |
 | **M2.5** | `Engine.complete()`, prefix completion, `typical` bands, `display` on every unit, consistent word-form output. | **Shipped** |
-| **M3** | Money kind, `@smartput/rates`, ECB provider, `createLiveEngine`. | **Shipped** |
+| **M3** | Money kind, `@smartput/rate`, ECB provider, `createLiveEngine`. | **Shipped** |
 | **Word math** | `NumeralParser`, `cardinalNumerals`, numeral folding, word operators — `"twenty two kg"`, `"ten km plus five km"`. | **Shipped** |
 | **M4** | `@smartput/datetime`: datetime kind, chrono bridge, Temporal ops, timezones. Core's literal-matcher seam and opaque-kind units. | **Shipped** |
-| **M4.5** | `@smartput/validate`: an engine-free parser, operation algebra and value-class factory. Every ratio kind gains `./units`, `./validate`, `./class` subpaths, plus `@smartput/kinds/validate` and `/class` barrels. Per-entry byte budgets enforced in CI. | **Shipped** |
-| **M5** | `@smartput/color`, the Ukrainian locale across every package, `defineLocalePack`, analyzer helpers, `assertLocaleContract`. | Planned |
-| **M6** | `@smartput/geo`: place kind, countries and cities, `kyiv to warsaw` as a distance, postal codes, the datetime and rates bridges, GeoNames providers, place completion. | **Shipped** |
+| **M4.5** | `@smartput/shared`: an engine-free parser, operation algebra and value-class factory. Every ratio kind gains `./units`, `./validate`, `./class` subpaths, plus `@smartput/kinds/validate` and `/class` barrels. Per-entry byte budgets enforced in CI. | **Shipped** |
+| **M5** | The Ukrainian locale across every kind package, and the [three-type locale model](#the-locale-model-and-the-type-it-split-in-three) that made room for it: `Language`, `Vocabulary`, `Locale` and `composeLocale`, many-locale recognition, the analyzer helpers, `assertLocaleContract`. `@smartput/color` was in scope and did not ship. | **Shipped** |
+| **M6** | `@smartput/country` and its three layers below: place kind, countries and cities, `kyiv to warsaw` as a distance, postal codes, the datetime and rates bridges, GeoNames providers, place completion. | **Shipped** |
+| **Ranges** | `date` and `time` as kinds of their own, `range-core`, and the three range kinds — `whole week`, `10:00 - 20:00`, `yesterday morning`, `from today until friday`. Core's one new field: [`OpSignature.weight`](#ranges-and-the-one-field-they-cost). | **Shipped** |
+| **Stages** | `createEngine`'s 329-line closure split into [seven frozen, config-holding stage classes](/api/stages): `Program` and stable node ids replace a bare AST, `Resolution` (renamed from `Assignment`) is keyed by id instead of node object, and the [`Printer`](/api/printer) is the one genuinely new stage. Two behaviour changes: `Result.spans` now indexes the caller's string, and every public output is deep-frozen. | **Shipped** |
+| **Query** | `@smartput/query`: a clause grammar over a declared schema, schema linking off the kind system, and a dialect-free IR with `SqlCompiler` and `MongoCompiler` on top of it. Core takes no change at all. | **Shipped** |
+| **Comparison** | Six comparison operators, `@smartput/boolean`, and a tolerance at the precision the engine displays. Core's changes: six `OpSymbol`s, `OpaqueSpec.ordered`, `EvalCtx.comparePrecision`. | **Shipped** |
 | **M7** | `@smartput/http`, meta-package, npm release. | Planned |
 
 M1 carried the only real invention risk. Most of what came after it is
@@ -28,7 +32,8 @@ shape (`3pm`, `kyiv to warsaw`, `SW1A 1AA`) has taken a change out of core, and
 M6 took three. The solver has never moved.
 
 Word math has shipped in full: `NumeralParser`, `cardinalNumerals`, and
-`Locale.numerals` are [documented](/api/define-locale#numerals), and the two
+`Language.numerals` are
+[documented](/guide/locales#spelled-out-numbers), and the two
 token passes that fold spelled numerals and word operators into ordinary
 number/op tokens run on every `evaluate()` call — see
 [Stage 2b — Fold](/guide/pipeline). `"twenty two kg"` and `"ten km plus five
@@ -45,13 +50,13 @@ in the plugin.
 M4.5 shipped a second entry point into every ratio kind — see
 [Validating without the engine](/guide/validating). It cost every kind package
 a build step and three subpath exports, and cost `@smartput/core` nothing:
-`@smartput/validate` never imports it, the dependency runs the other way. The
+`@smartput/shared` never imports it, the dependency runs the other way. The
 byte figures that justify the split are measured, not estimated —
 `scripts/check-size.ts` builds each entry with `bun build --minify` and fails
 `bun run check` on regression, the same enforcement `check-deps.ts` already
 applied to the dependency table below.
 
-M6 shipped `@smartput/geo` in four parts — see
+M6 shipped in four parts and then split into four packages — see
 [Places and distances](/guide/places). Core knows no geography: a place is an
 opaque kind whose units are country codes, the distance is one
 `in | place | place` signature, and the datetime and rates bridges are one op
@@ -92,17 +97,205 @@ costing any input its reading, `90210` stayed 90,210 with a postcode ranked
 underneath it, and the eighteen hand-written zones in `@smartput/datetime`
 stopped being the only places the engine knows.
 
+## Comparison, and the three fields it cost
+
+`1000 mb = 1 gb` is `true` — see [Comparison](/guide/comparison). Core took six
+new `OpSymbol`s and two optional fields, and the solver did not move.
+
+The six signatures per kind are generated, beside the `+`/`-` pair and the
+number-scaling trio that `generateRatioOps` has always produced. That is the
+whole implementation of "it works for every unit": nothing anywhere knows how to
+compare a megabyte to a gigabyte, and it does not need to — both operands
+resolve to `datasize` through the same unification that makes `1 kg + 500 g` a
+kilogram and a half, and the comparison runs over canonical bytes. A kind
+registered tomorrow gets it for free.
+
+Two fields carry the parts that could not be generated:
+
+- **`OpaqueSpec.ordered`.** A ratio kind's canonical is a magnitude and always
+  orders. An opaque kind's is whatever it chose — an instant for `datetime`, a
+  GeoNames feature id for `place` — so ordering is an opt-in rather than a
+  default. `place` never acquiring `>` is the point of the field, not an
+  omission from it.
+- **`EvalCtx.comparePrecision`.** Core computes at 28 digits and displays at 26,
+  and comparison uses the display figure so the rule is statable: two values
+  that print the same are the same. `1 km / 3 * 3 = 1 km` is true, which is
+  false of the arithmetic and true of what was meant. `"exact"` is there for a
+  caller who wants the arithmetic.
+
+What fell out for free: `1 < 2 < 3` refuses itself. Comparison is
+left-associative like every other operator, so it parses to `(1 < 2) < 3`, and
+`boolean` does not declare `ordered` — there is no signature to reach. The
+refusal is the op table's, and nobody had to write a chain rule to get it.
+
+## Query, and the milestone that cost core nothing
+
+`@smartput/query` reads `top 10 customers by revenue last month` and emits
+SQL, a MongoDB pipeline, or whatever a `Compiler<T>` a consumer wrote emits —
+see [Querying a database](/guide/querying). It is the first milestone since M1
+to take **no change to core at all**, and the reason is worth stating, because
+the design very nearly went the other way.
+
+The obvious shape was a `query` kind. It does not fit, and the misfit is
+structural rather than awkward: `OpSymbol` is seven arithmetic and conversion
+operators with no comparison among them, `Keyword` is a closed set with no
+clause word in it, and `Value.canonical` is a `Decimal` — a relation is none of
+those three. Registering a kind would have meant three new unions in
+`types.ts` and a `format` hook that renders SQL. So the clause grammar lives in
+the package and core is a dependency rather than a host, which is what
+`@smartput/shared` already established: a second entry point into the same
+tables that is not the engine.
+
+What core *does* supply is the half nobody else could. The package hands every
+value fragment to `engine.suggest()` and gets back kind-typed readings, so
+`500 eur`, `2 kg`, `last week` and `kyiv` all work without this package naming a
+single currency, unit, calendar or city. And the kind on a reading is what finds
+the column: `orders over 500 usd` names no column, the operand reads as money,
+exactly one column on `orders` is money — so the type system that exists to
+decide whether `10 m + 5 h` is legal turns out to be a schema linker too.
+
+The range and place shapes it needs off `Value.meta` are matched structurally,
+on the precedent `PlaceMeta` set. Nothing imports `@smartput/range-core` or
+`@smartput/country`; the shape is the contract, and the dependency table shows
+one edge for the whole package.
+
+## Ranges, and the one field they cost
+
+Six packages and five kinds shipped so that a value can have two ends — see
+[Ranges](/guide/ranges). Core paid **one optional field**:
+
+```ts
+export interface OpSignature {
+  /** Summed into the candidate's score when this signature is applied. */
+  readonly weight?: number;
+}
+```
+
+The field is not a convenience. `solve()` scores a candidate as the sum of its
+**operand readings'** weights plus `contextBonus`, and every selector
+`weights.ts` offers is a property of a reading; the result kind is never
+consulted. So no existing knob can say "prefer this signature" without also
+saying "prefer this reading everywhere" — and the milestone's two requirements
+pull that single dial in opposite directions. `3pm` must stay a `datetime`,
+which wants the `time` reading weighted *down*; `10:00 - 20:00` must become a
+`time-range`, which wants it weighted *up*. `contextBonus` cannot break the tie
+either, because both operands agree on kind in both readings, so it lands on
+both paths and cancels.
+
+A weight on the signature is the missing term, and it lands beside
+`contextBonus` in the same tree walk. Default `0`, so nothing that existed
+scores differently and no corpus row moved. `Assignment` gained a matching
+field, because `explain()` has to be able to say where a score came from.
+
+Everything else the milestone needed already existed: the literal-matcher seam
+from M4, the non-destructive fold from M6.3, opaque-kind units, and the weight
+layers. `date` and `time` do not even load `chrono-node` a second time — they
+re-read the match `@smartput/datetime`'s bridge already made, which gained two
+booleans (`hasDate`, `hasTime`) and cost 47 B in the size row that watches it.
+
+One thing did not fall out, and is recorded rather than glossed:
+`in | datetime | datetime` belongs to zone conversion and the registry refuses a
+second claimant, so two fully specified endpoints cannot reach a range through
+the op path at all. They are served by the `from X to Y` literal matcher
+instead. The alternative was taking `3pm in tokyo` away.
+
+## The locale model, and the type it split in three
+
+`2 кг в грамах` answers `2 000 грамів`, and `5 кг in pounds` answers in English
+on the same engine — see [Locales](/guide/locales). Ukrainian ships across all
+fifteen kind packages, but the shape it forced is the milestone.
+
+The old `Locale` was one descriptor holding a language's mechanics *and* every
+unit's words, so translating a kind meant editing the language, and a kind
+published by a third party had nowhere to put its own. It is three types now: a
+`Language` is mechanics with no unit word anywhere in it — number grammar,
+keywords, analyzers, `selectForm`; a `Vocabulary` is the words for one kind in
+one language, naming its kind by **id string** so it never imports it and ships
+from the kind's own package under `./locale/<id>`; and a `Locale` is what
+`composeLocale` builds from the two, and the only thing that may. Every wiring
+error a caller can make — a vocabulary whose locale is not the language's, two
+vocabularies for one kind, a unit the kind does not declare — is raised there,
+on boot.
+
+Recognition is **many**-locale and generation is **one**. An engine given
+`[en, uk]` offers a reading if any installed language can reach the surface, and
+prints in whichever language `format` names. Both halves of that asymmetry are
+deliberate: a `Result` is one string in one language rather than a table, and
+the two input-side concerns that are not recognition — number grammar and
+segmentation — follow `format` too, which is why `1,5 кг` on an English-format
+engine reads the comma as a group separator.
+
+Nothing above needed the solver, the registry's scoring or a new stage. What it
+did need was one field on a candidate (`locale`), one more term in the dedupe
+key, and a `locale:<id>` weight selector — the same shape every other milestone
+since M1 has cost.
+
+`@smartput/color` was in this milestone's scope and did not ship. It is the one
+line of M5 still outstanding, and it is a kind rather than a locale change.
+
+## Percent, finished
+
+`percent` shipped in M2 with `of`, `+` and `-`. Two readings people actually
+type were missing, and they cost core very different amounts.
+
+| Reading | | Cost to core |
+| --- | --- | --- |
+| `5 / 50 in %` → `10%` | also `as %`, and `0.1 in %` | **none** — two op signatures in `@smartput/percent` |
+| `20% off 50` → `40` | `20% off 50 kg` → `40 kg` | one new `OpSymbol` |
+
+The first is a conversion the engine could always have done and had no route
+to: percent's canonical storage *is* the 0–1 ratio, so `in` between `number` and
+`percent` is the identity plus a change of kind. Neither direction's key was
+claimed by anything, so both are declared by the kind and core does not know
+they exist.
+
+The second is the first new `OpSymbol` since M1, and it earned that by not being
+an alias for anything. `20% off 50` puts the percentage on the left and the base
+on the right; `50 - 20%` puts the same two operands the other way round.
+Rewriting one into the other means a token fold that swaps operands, which is
+indistinguishable from a bug the first time anyone reads the parse tree. So
+`off` is a keyword the Pratt parser consumes at `of`'s binding — `10 + 20% off
+50` is `50`, not `36` — and `generateRatioOps` emits `off | percent | K` beside
+`of | percent | K` for every non-affine ratio kind. The affine branch closes the
+new key without being told to: `20% off 20 c` throws, because twenty percent
+less than a temperature is not a temperature.
+
+That is what a new operator costs when the design holds: five files, all of them
+the ones that enumerate operators, and no change to the solver.
+
 ## Packages
 
 Shipped:
 
 ```
 @smartput/core         registry, lexer, parser, solver, evaluator, ratio kinds
-@smartput/validate     engine-free parser, operation algebra, value-class factory
-@smartput/rates        money kind, RateSnapshot, ECB provider, async facade
+@smartput/shared     engine-free parser, operation algebra, value-class factory
+@smartput/rate         money kind, RateSnapshot, ECB provider, async facade
+@smartput/currency     currency table, vocabulary, engine-free parse and format
 @smartput/datetime     datetime kind, chrono bridge, Temporal ops, time zones
-@smartput/geo          place kind: countries, cities, postal codes, distance,
-                       zone and currency lookup, GeoNames providers
+@smartput/holiday      which holiday a phrase names and when it falls; reached
+                       from @smartput/datetime/holiday, never from its root
+@smartput/country      place kind: T0 countries, zone and currency lookup,
+                       completion, GeoNames providers
+@smartput/city         T1 gazetteer: 6,247 cities, 1,664 divisions, no code
+@smartput/zip          postal literal matcher, format validation, no data
+@smartput/distance     great-circle op for two place values, no data
+@smartput/datarate     datarate kind: bits per second, the datasize/duration
+                       bridge in both directions
+@smartput/power        power kind: watts through gigawatts, mechanical horsepower
+@smartput/energy       energy kind: joules, watt-hours, calories, BTU, and the
+                       power x duration bridge
+@smartput/tempo        tempo kind: bpm and hertz, reciprocal bridge to duration
+@smartput/date         date kind: the day half of a chrono match, weighted -5 so
+                       a bare "today" still reads as a datetime
+@smartput/time         time kind: the clock half, same weight, ns since midnight
+@smartput/range-core   no kind: half-open range values, boundary snapping, the
+                       window table, the endpoint seam, InvertedRangeError
+@smartput/date-range   date-range kind: "whole week", "today to friday"
+@smartput/time-range   time-range kind: "morning", "10:00 - 20:00", wrapping
+@smartput/datetime-range
+                       datetime-range kind: "yesterday morning", "from X to Y";
+                       holiday endpoints from its ./holiday subpath, never its root
 ```
 
 Planned:
@@ -120,9 +313,15 @@ Every package that defines a kind ships that kind's translations beside it under
 | --- | --- |
 | `core` | `decimal.js` — and nothing else |
 | `validate` | none — the standing target for this package, same as `core`'s one dependency |
-| any ratio kind (`angle`, `length`, …) | `@smartput/core`, `@smartput/validate` |
+| any ratio kind (`angle`, `length`, …) | `@smartput/core`, `@smartput/shared` |
+| `datarate`, `energy`, `power`, `tempo` | `@smartput/core`, `@smartput/shared` — a bridging kind names its operand kinds by string, so it depends on neither side of the bridge |
 | `*/locale/*` | none — descriptors only |
-| `datetime` | `temporal-polyfill`, `chrono-node`, `@smartput/core`, `decimal.js` |
+| `datetime` | `temporal-polyfill`, `chrono-node`, `@smartput/core`, `@smartput/timezone`, `decimal.js`, and `@smartput/holiday` — the last reachable only from the `./holiday` subpath |
+| `holiday` | `date-holidays` — and no `@smartput` edge at all, in either direction |
+| `date`, `time`, `range-core` | `@smartput/core`, `@smartput/datetime` — the last for `Temporal` and the chrono match, so `temporal-polyfill` still has exactly one import site in the repo |
+| `date-range` | `@smartput/core`, `@smartput/date`, `@smartput/range-core`, `@smartput/datetime` — the last for `addDuration`, because `whole week + 1 wk` walks the calendar rather than adding 604,800 seconds |
+| `time-range` | `@smartput/core`, `@smartput/time`, `@smartput/range-core` — no `datetime` edge, because a clock span never touches a calendar |
+| `datetime-range` | `@smartput/core`, `@smartput/date`, `@smartput/time`, `@smartput/datetime`, `@smartput/range-core`, and `@smartput/holiday` — the last reachable only from the `./holiday` subpath, exactly as `datetime`'s is |
 | `rates` | `decimal.js`, `@smartput/core`; provider adapters use `fetch` only |
 | `color` | `@urcolor/core`, `@urcolor/i18n` (peer) |
 | `geo` | `decimal.js`, `@smartput/core` — GeoNames data is vendored as generated TypeScript, not an npm package |
@@ -137,6 +336,20 @@ engine, so datetime moved out rather than taxing every consumer. That split was
 only possible because datetime is an ordinary plugin — which is the strongest
 available evidence that the extension seam is real, and M4 is where it was
 tested.
+
+`date-holidays` is the same argument one layer further out, and an order of
+magnitude louder: a 768 KB rule table that bundles to 1.43 MB, which would
+otherwise be paid by everyone who types `today + 3 d`. So it does not tax
+`@smartput/datetime` either — the bridge is
+[a subpath, not the root entry](/guide/datetime#holidays), the package under it
+takes no `@smartput` dependency, and a `check-size` row on the root fails by a
+megabyte if the import ever leaks inwards.
+
+`@smartput/datetime-range` makes the identical split for the identical reason,
+so there are now two guard rows rather than one: 147,846 B for the root against
+1,586,908 B for `./holiday`, measured. A package that wants
+[`from today to closest holiday`](/guide/ranges#holiday-endpoints) is a
+different program from one that wants `whole week`.
 
 ## Deliberately rejected
 
@@ -167,10 +380,10 @@ fractions (`half a kg`), and ordinals.
 - **`@smartput/core` ships one runtime dependency.** CI fails on a second. Still
   true after M6: the lifted snapshot cache is code, not a dependency, and geo’s
   GeoNames data is vendored as generated TypeScript inside geo. Still true after
-  M4.5: `@smartput/validate` is a devDependency of core, read structurally by
+  M4.5: `@smartput/shared` is a devDependency of core, read structurally by
   `kind/from-table.ts`, because an `import type` survives into the emitted
   `.d.ts` and would have named a dependency core does not have.
-- **`@smartput/validate` ships zero.** Not even `@smartput/core` — the
+- **`@smartput/shared` ships zero.** Not even `@smartput/core` — the
   dependency, and `decimal.js`’s ~30 KB, run the other way.
 - **A new ratio kind is five lines**, and needs no knowledge of the solver. Still
   true after M6, and worth stating precisely, because M6 was not free for core
@@ -180,6 +393,7 @@ fractions (`half a kg`), and ordinals.
   `Kind`. A kind that wants none of the three is unaffected by all three — every
   one of them is opt-in, and `datasize` is still five lines.
 - **A new ratio kind reaches both doors from one table.** `units.ts` is the only
-  place a ratio or an English alias is written; the descriptor derives its
-  lexicon from it and the micro path reads it directly, so the two paths cannot
-  drift. `kinds/src/contract.test.ts` fails if they do.
+  place a ratio or an English alias is written; `locale/en.ts` derives the
+  kind's English `Vocabulary` from it through `aliasesFor`, and the micro path
+  reads it directly, so the two paths cannot drift.
+  `kinds/src/contract.test.ts` fails if they do.

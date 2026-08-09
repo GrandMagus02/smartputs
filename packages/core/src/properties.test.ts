@@ -1,13 +1,17 @@
 import { expect, test } from "bun:test";
+import { english } from "@smartput/core/locale/en";
 import { BUILTIN_KINDS } from "@smartput/kinds";
+import BUILTIN_EN from "@smartput/kinds/locale/en";
 import { Decimal } from "./decimal";
 import { fromCanonical, toCanonical } from "./eval/convert";
 import { formatValue } from "./format/format";
 import { buildRegistry, NUMBER_KIND } from "./kind/registry";
-import en from "./locale/en";
+import { composeLocale } from "./locale/compose";
 import { parseNumber } from "./locale/number";
 
-const registry = buildRegistry(BUILTIN_KINDS, [], "en");
+const en = composeLocale(english, BUILTIN_EN);
+
+const registry = buildRegistry(BUILTIN_KINDS, [en]);
 const SAMPLES = [
   "0",
   "1",
@@ -100,7 +104,7 @@ test("parse(format(v)) === v for every unit of every kind (spec §10 property 2)
         // parseNumber tolerates (U+0020, U+00A0, U+202F).
         const digits = formatted.replace(/[^\d.,\-\u0020\u00A0\u202F]/gu, "").trim();
         const label = `${kind.id}:${unit}:${sample}`;
-        const parsed = parseNumber(digits, en);
+        const parsed = parseNumber(digits, english);
 
         if (parsed === null) {
           expect(`${label} UNPARSEABLE`).toBe(`${label} ${authored.toFixed()}`);
@@ -185,7 +189,12 @@ test("every kind satisfies the kind contract", async () => {
   // special-cased in ratio-ops.ts for the extra `*`/`/` signatures).
   for (const kind of BUILTIN_KINDS) {
     if (kind.id === NUMBER_KIND) continue;
-    assertKindContract(kind);
+    // A migrated kind's words are in `BUILTIN_EN`, not on the descriptor; one
+    // that still declares `lexicon` matches nothing here and is bridged.
+    assertKindContract(
+      kind,
+      BUILTIN_EN.filter((v) => v.kind === kind.id),
+    );
   }
 });
 

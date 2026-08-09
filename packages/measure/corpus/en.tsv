@@ -1,0 +1,16 @@
+# input	kind	canonical	formatted
+1 inch in pt	measure	1	72 points
+72 pt in inch	measure	1	1 inch
+6 pc in inch	measure	1	1 inch
+1 inch in mm	measure	1	25.4 millimetres
+25.4 mm in inch	measure	1	1 inch
+1 inch in px	measure	1	96 pixels
+96 px in inch	measure	1	1 inch
+2 inch + 36 pt	measure	2.5	2.5 inches
+1 inch - 12 pt	measure	0.8333333333333333333333333333	0.83333333333333333333333333 inches
+3 inch * 2	measure	6	6 inches
+1 inch / 4	measure	0.25	0.25 inches
+-2 inch	measure	-2	-2 inches
+1 pc in pt	measure	0.1666666666666666666666666667	12 points
+10 mm in cm	measure	0.3937007874015748031496062992	1 centimetre
+one inch	measure	1	1 inch

@@ -14,7 +14,7 @@ import {
   patternFor,
   scale,
   sub,
-} from "@smartput/validate";
+} from "@smartput/shared";
 import { DATASIZE_UNITS, type DatasizeUnit } from "./units";
 
 export type { DatasizeUnit } from "./units";

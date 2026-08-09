@@ -54,8 +54,12 @@ test("every built-in unit declares a typical band", () => {
   for (const [kindId, kind] of registry.kinds) {
     // `number`'s single unit has no aliases, so it can never be completed.
     if (kindId === "number") continue;
+    // `boolean` is here for the same reason and one more: its unit has no
+    // aliases either, and there is no magnitude to band. A comparison result is
+    // never something a user types a count in front of.
+    if (kindId === "boolean") continue;
     for (const [unitName, unit] of kind.units) {
-      if (unit.lexeme.typical === undefined) missing.push(`${kindId}:${unitName}`);
+      if (unit.typical === undefined) missing.push(`${kindId}:${unitName}`);
     }
   }
   expect(missing).toEqual([]);
@@ -66,7 +70,7 @@ test("every typical band runs low to high", () => {
   const inverted: string[] = [];
   for (const [kindId, kind] of registry.kinds) {
     for (const [unitName, unit] of kind.units) {
-      const band = unit.lexeme.typical;
+      const band = unit.typical;
       if (band !== undefined && band[0] >= band[1]) {
         inverted.push(`${kindId}:${unitName} [${band[0]}, ${band[1]}]`);
       }

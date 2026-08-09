@@ -5,7 +5,7 @@ import { parseNumber } from "../locale/number";
 import { MAX_RUN } from "../parse/numerals";
 import type { Locale, Span } from "../types";
 
-export interface Fragment {
+interface Fragment {
   text: string;
   span: Span;
 }
@@ -47,11 +47,11 @@ export function leadingCount(
     // Try the whole run first: a locale whose group separator is a space needs
     // "1 500,5" kept intact. Fall back to the last whitespace-delimited token,
     // which is what strips a binary operator's minus in "10 kg - 5 mil".
-    const whole = parseNumber(run, locale);
+    const whole = parseNumber(run, locale.language);
     if (whole !== null) return whole;
 
     const last = run.split(/\s+/).pop();
-    const parsed = last === undefined ? null : parseNumber(last, locale);
+    const parsed = last === undefined ? null : parseNumber(last, locale.language);
     if (parsed !== null) return parsed;
   }
 
@@ -69,9 +69,20 @@ export function leadingCount(
  * ends where the fragment begins. So try successively shorter suffixes of the
  * preceding words, longest first, and accept the first match that claims the
  * whole suffix. Hyphens split like whitespace so "twenty-two k" reads as 22.
+ *
+ * One language, unlike `foldNumerals`, which offers a run to every installed
+ * one. A known and deliberate gap, not an oversight: completion runs entirely
+ * on the format locale — `CompleteOptions` has no `format` and the whole
+ * `Autocompleter` is built from one `Locale` — so a per-language numeral scan
+ * here would be the only many-locale thing in a single-locale stage. The
+ * visible consequence is that on a bilingual engine formatting in English,
+ * `complete("двадцять два к")` does not find the count while
+ * `evaluate("двадцять два кг")` reads it. Closing it means giving completion
+ * an input language separate from its output language, which is a decision
+ * about `CompleteOptions`, not about this function.
  */
 function spelledCount(head: string, locale: Locale): Decimal | null {
-  const numerals = locale.numerals;
+  const numerals = locale.language.numerals;
   if (numerals === undefined) return null;
 
   const words = head.split(/[\s-]+/).filter((w) => w.length > 0);

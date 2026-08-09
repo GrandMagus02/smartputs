@@ -1,0 +1,25 @@
+{
+  "name": "@smartput/range",
+  "version": "0.0.0",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "bun": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./class": {
+      "bun": "./src/class.ts",
+      "types": "./dist/class.d.ts",
+      "default": "./dist/class.js"
+    }
+  },
+  "dependencies": {
+    "@smartput/core": "workspace:*",
+    "@smartput/number": "workspace:*"
+  },
+  "devDependencies": {
+    "@smartput/kinds": "workspace:*"
+  }
+}

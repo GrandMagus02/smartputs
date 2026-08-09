@@ -1,7 +1,8 @@
 import { expect, test } from "bun:test";
-import { createEngine } from "@smartput/core";
-import en from "@smartput/core/locale/en";
+import { composeLocale, createEngine } from "@smartput/core";
+import { english as en } from "@smartput/core/locale/en";
 import { mass } from "./index";
+import massEn from "./locale/en";
 import { MASS_UNITS, type MassUnit } from "./units";
 import { addMass, formatMass, parseMass, toMass } from "./validate";
 
@@ -12,7 +13,10 @@ test("valid and invalid input", () => {
   expect(parseMass("3 pounds")).toMatchObject({ ok: true, value: 3, unit: "lb" });
   expect(parseMass("1.5kilos")).toMatchObject({ ok: true, unit: "kg" });
   expect(parseMass("1.5smth")).toMatchObject({ ok: false, code: "unknown-unit" });
-  expect(parseMass("kg")).toMatchObject({ ok: false, code: "nan" });
+  // A unit with no count is one of it. A word that names no unit is still
+  // `nan`: with no number in the string, nothing said a unit was expected.
+  expect(parseMass("kg")).toMatchObject({ ok: true, value: 1 });
+  expect(parseMass("smth")).toMatchObject({ ok: false, code: "nan" });
 });
 
 test("the left operand's unit wins", () => {
@@ -43,7 +47,7 @@ test("conversion identity over every unit pair", () => {
 });
 
 test("cross-path agreement with the engine", () => {
-  const engine = createEngine({ locales: [en], kinds: [mass] });
+  const engine = createEngine({ locales: [composeLocale(en, [massEn])], kinds: [mass] });
   for (const unit of units) {
     const parsed = parseMass(`7${unit}`);
     expect(parsed.ok).toBe(true);
@@ -55,12 +59,16 @@ test("cross-path agreement with the engine", () => {
   }
 });
 
-test("contract: the table and the descriptor agree", () => {
+test("contract: the table, the descriptor and the vocabulary agree", () => {
   expect(Object.keys((mass.value as { units: object }).units).sort()).toEqual(
     Object.keys(MASS_UNITS.ratio).sort(),
   );
-  for (const [unit, lexeme] of Object.entries(mass.lexicon ?? {})) {
-    const aliases = Array.isArray(lexeme) ? lexeme : lexeme.aliases;
-    for (const a of aliases) expect(MASS_UNITS.alias[a], a).toBe(unit as MassUnit);
+  // The aliases the engine indexes are the aliases the micro path inverts.
+  // They used to be checked against the kind's `lexicon`; that table now lives
+  // in `./locale/en`, and it is the same claim asked of its new home — an
+  // English word only reaches the engine if `MASS_UNITS.alias` maps it to the
+  // very unit the vocabulary filed it under.
+  for (const [unit, words] of Object.entries(massEn.units)) {
+    for (const a of words.aliases) expect(MASS_UNITS.alias[a], a).toBe(unit as MassUnit);
   }
 });

@@ -1,7 +1,20 @@
 import { expect } from "bun:test";
 import { Decimal } from "../decimal";
-import { buildRegistry } from "../kind/registry";
-import type { EvalCtx, Kind } from "../types";
+import { buildRegistry, wordsFor } from "../kind/registry";
+import { composeLocale } from "../locale/compose";
+import type { EvalCtx, Kind, Language, Vocabulary } from "../types";
+
+export type { LocaleContractOptions } from "./locale";
+/**
+ * `OPERATOR_CHARS` is exported here and nowhere else: a test that reads printed
+ * output back has to tell a unit word from a printed expression, and
+ * `assertLocaleContract` is not the only place that needs to —
+ * `@smartput/kinds`' round-trip net uses it to say which unit a compound symbol
+ * is allowed to come back as. A testing export rather than a public one,
+ * because the fact it states (which characters end a word token) is the lexer's
+ * business, not an engine consumer's.
+ */
+export { assertLocaleContract, OPERATOR_CHARS } from "./locale";
 
 /**
  * Assertions every kind must satisfy. Built-in and third-party kinds run the
@@ -11,9 +24,43 @@ import type { EvalCtx, Kind } from "../types";
  * constructed directly by `evaluateNode`), so it is deliberately excluded
  * from this suite by its callers rather than exempted here — no real,
  * user-authored kind gets a pass on having typeable units.
+ *
+ * `vocabularies` are the words the kind is meant to be read and written with.
+ * They are a separate argument because a kind no longer carries any: words
+ * live in a `Vocabulary` keyed by kind id, so "every unit is typeable" is a
+ * claim about a (kind, language) pair rather than about the kind alone. Pass
+ * the kind's own `locale/<id>` module:
+ *
+ * ```ts
+ * assertKindContract(mass, [massEn]);
+ * ```
+ *
+ * Omitting them checks a kind that has no words at all: R2 indexes every unit
+ * under its own registry key, so the alias assertion passes for a kind whose
+ * unit ids are typeable and fails for one whose are not. That failure is
+ * correct — with no vocabulary installed, nothing else can type its units.
  */
-export function assertKindContract(kind: Kind): void {
-  const registry = buildRegistry([kind]);
+export function assertKindContract(
+  kind: Kind,
+  vocabularies: readonly Vocabulary[] = [],
+): void {
+  // The language the words are asserted in. Taken from the vocabularies rather
+  // than hardcoded so a translation can be contract-tested on the same terms as
+  // the original; "en" is only the default because it is what the built-ins
+  // ship.
+  //
+  // Mechanics-free on purpose: this helper asserts that units are *typeable*,
+  // which is the alias index's business, and an analyzer chain or a plural
+  // table would only let a kind pass on the strength of its language's
+  // cleverness rather than its own aliases.
+  const localeId = vocabularies[0]?.locale ?? "en";
+  const language: Language = {
+    id: localeId,
+    numberFormat: "intl",
+    keywords: {},
+    selectForm: () => "other",
+  };
+  const registry = buildRegistry([kind], [composeLocale(language, vocabularies)]);
   const normalized = registry.kinds.get(kind.id);
 
   expect(normalized).toBeDefined();
@@ -24,10 +71,12 @@ export function assertKindContract(kind: Kind): void {
   expect(normalized.units.has(normalized.spec.canonical)).toBe(true);
 
   for (const [unitName, unit] of normalized.units) {
-    expect(unit.lexeme.aliases.length).toBeGreaterThan(0);
+    expect(
+      wordsFor(registry, localeId, kind.id, unitName)?.aliases.length ?? 0,
+    ).toBeGreaterThan(0);
     const ctx: EvalCtx = {
       self: { kind: kind.id, canonical: new Decimal(0), unit: unitName },
-      locale: "en",
+      locale: localeId,
     };
     // A zero ratio would make the unit unconvertible in both directions.
     expect(unit.ratio(ctx).isZero()).toBe(false);

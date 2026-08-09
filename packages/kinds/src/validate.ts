@@ -6,7 +6,7 @@
  * under any bundler, because there is nothing else in the module. This barrel
  * only shakes as well as your bundler follows re-exports: esbuild, Rollup and
  * modern webpack drop the unused kinds, but a bundler that does not, or a
- * CommonJS consumer, pulls all thirteen tables and the shared parser. Reach for
+ * CommonJS consumer, pulls all seventeen tables and the shared parser. Reach for
  * it when you genuinely want most of the kinds, or in a Node script where size
  * does not matter; reach for the subpath in anything shipped to a browser.
  *
@@ -21,13 +21,17 @@
  */
 export * from "@smartput/angle/validate";
 export * from "@smartput/area/validate";
+export * from "@smartput/datarate/validate";
 export * from "@smartput/datasize/validate";
 export * from "@smartput/duration/validate";
+export * from "@smartput/energy/validate";
 export * from "@smartput/length/validate";
 export * from "@smartput/mass/validate";
 export * from "@smartput/measure/validate";
 export * from "@smartput/number/validate";
 export * from "@smartput/percent/validate";
+export * from "@smartput/power/validate";
 export * from "@smartput/speed/validate";
 export * from "@smartput/temperature/validate";
+export * from "@smartput/tempo/validate";
 export * from "@smartput/volume/validate";

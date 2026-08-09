@@ -1,0 +1,29 @@
+{
+  "name": "@smartput/boolean",
+  "version": "0.0.0",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "bun": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./class": {
+      "bun": "./src/class.ts",
+      "types": "./dist/class.d.ts",
+      "default": "./dist/class.js"
+    }
+  },
+  "dependencies": {
+    "@smartput/core": "workspace:*"
+  },
+  "devDependencies": {
+    "@smartput/core": "workspace:*",
+    "@smartput/country": "workspace:*",
+    "@smartput/date": "workspace:*",
+    "@smartput/datetime": "workspace:*",
+    "@smartput/kinds": "workspace:*",
+    "@smartput/time": "workspace:*"
+  }
+}

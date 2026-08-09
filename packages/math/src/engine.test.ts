@@ -75,11 +75,25 @@ describe("differentiate", () => {
 });
 
 describe("integrate", () => {
+  /**
+   * Thirty seconds, against bun's default five, and the name of the test is the
+   * reason: this is the call that makes `@cortex-js/compute-engine` load its
+   * integration rules, and it is the only test in the repo that pays a
+   * third-party lazy load rather than running the repo's own code.
+   *
+   * It is not slow on its own — around 700 ms in `bun test packages/math`. It is
+   * slow under `bun run check`, where 152 files are running and this one landed
+   * at 5429 ms against the 5000 ms default: a flake that failed the whole check
+   * and passed on the retry, which is the worst kind of red. The timeout is
+   * raised rather than the load being warmed in a `beforeAll`, because "the
+   * rules are loaded on demand" is the thing the test is asserting and warming
+   * it would assert nothing.
+   */
   test("integrates, with the integration rules loaded on demand", () => {
     const result = math.integrate("x^2");
     expect(result.latex).toBe("\\frac{x^3}{3}");
     expect(result.steps.length).toBeGreaterThan(0);
-  });
+  }, 30_000);
 
   test("evaluates a definite integral to an exact value", () => {
     expect(math.evaluate("\\int_0^1 x^2 dx").latex).toBe("\\frac{1}{3}");

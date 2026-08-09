@@ -1,13 +1,25 @@
 import type { Decimal } from "../decimal";
 import type { Candidate, OpSymbol, Span, Value } from "../types";
 
+/**
+ * Stable within one Program, assigned depth-first at parse time.
+ *
+ * The reason this field exists: `Assignment.choices` was a `Map<Node, Candidate>`,
+ * keyed by object identity, so a solver result was meaningless without the exact
+ * tree object that produced it — unloggable, unsnapshottable, undiffable. One
+ * number turns the solver's output from a pointer into a value.
+ */
+export type NodeId = number;
+
 export interface NumberNode {
+  readonly id: NodeId;
   type: "number";
   value: Decimal;
   span: Span;
 }
 
 export interface QuantityNode {
+  readonly id: NodeId;
   type: "quantity";
   value: Decimal;
   candidates: Candidate[];
@@ -26,6 +38,7 @@ export interface QuantityNode {
  * three Springfields are all `place:us` and differ only in which city they are.
  */
 export interface LiteralNode {
+  readonly id: NodeId;
   type: "literal";
   candidates: Candidate[];
   values: ReadonlyMap<Candidate, Value>;
@@ -33,6 +46,7 @@ export interface LiteralNode {
 }
 
 export interface BinaryNode {
+  readonly id: NodeId;
   type: "binary";
   op: Exclude<OpSymbol, "in">;
   left: Node;
@@ -41,6 +55,7 @@ export interface BinaryNode {
 }
 
 export interface UnaryNode {
+  readonly id: NodeId;
   type: "unary";
   op: "-";
   operand: Node;
@@ -48,6 +63,7 @@ export interface UnaryNode {
 }
 
 export interface ConvertNode {
+  readonly id: NodeId;
   type: "convert";
   operand: Node;
   target: Candidate[];

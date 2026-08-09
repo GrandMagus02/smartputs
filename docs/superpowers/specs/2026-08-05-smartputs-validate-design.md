@@ -121,21 +121,22 @@ Excluded, with reasons:
 | --- | --- |
 | `money` (`@smartput/rates`) | Unit ratios come from an injected live rate table. A micro path with no engine has nowhere to inject it, and a stale hard-coded FX table is worse than no feature. |
 | `datetime` (`@smartput/datetime`) | Opaque kind. Its "units" are IANA zones and its recognition is `chrono-node`. Nothing here applies. |
-| `geo` (`@smartput/geo`) | Opaque kind, like `datetime`. Its "units" are ISO 3166-1 country codes and its recognition is a trie over a vendored gazetteer, so there is no ratio to store and nothing to convert between. Amended 2026-08-06 — this row said "Not shipped", which stopped being a reason when M6 landed. |
+| `geo` (`@smartput/country` and the three packages under it) | Opaque kind, like `datetime`. Its "units" are ISO 3166-1 country codes and its recognition is a trie over a vendored gazetteer, so there is no ratio to store and nothing to convert between. Amended 2026-08-06 — this row said "Not shipped", which stopped being a reason when M6 landed. |
 
 ### A collision that stops existing
 
-`@smartput/geo` still takes the parts of this spec that are not about ratios,
+The place packages still take the parts of this spec that are not about ratios,
 because they are about packaging rather than about units: `sideEffects: false`,
-three-condition subpath exports for `.`, `./cities` and `./providers`, and a
-`check-size` row. `check-deps.ts` decides what a package owes by asking the
-module whether it exports a kind whose `value.mode` is `"ratio"`, so geo is
-exempt from `./units`, `./validate` and `./class` by the same test that requires
-them of `angle` — not by an entry in a list someone has to remember to write.
+three-condition subpath exports — `@smartput/country`'s `.` and `./providers`,
+`@smartput/city`'s `.` and `./types` — and a `check-size` row each. `check-deps.ts` decides what a package owes by asking the
+module whether it exports a kind whose `value.mode` is `"ratio"`, so none of the four is
+owed `./units`, `./validate` or `./class`, by the same test that requires them of
+`angle` — not by an entry in a list someone has to remember to write.
 
-The `check-size` row it does get enforces a claim geo already made in a comment:
-T1 city data lives behind `@smartput/geo/cities` "so that this module's import
-graph never reaches them". Measured, T1 is 1,011,415 B against the root's
+The `check-size` row it does get enforces a claim the package already made in a
+comment: T1 city data is `@smartput/city`'s "so that this package's import graph
+never reaches them" — after the 2026-08-06 split, an `import type` from
+`@smartput/city/types` and nothing else. Measured, T1 is 1,011,415 B against the root's
 128,435 B. V8's rule applies to that sentence exactly as it applies to a byte
 budget — a claim nothing measures is a claim that stops being true quietly.
 
@@ -219,6 +220,23 @@ lexicon fails a contract test (§12).
 on the locale analyzer's suffix stripper to reach `degrees`. The micro path has
 no analyzer, so plurals are enumerated in `units.ts`. The engine path gains them
 too, which is harmless — the analyzer already produced the same lemma.
+
+> **Amendment — i18n §12.** Superseded in part by
+> `2026-08-05-smartputs-i18n-design.md`. Under I1 a kind descriptor carries no
+> words at all, so `Kind.lexicon` no longer exists and the `defineKind` example
+> above keeps only `id` and `value` (plus `typical`, which moves up to the kind
+> as a language-free magnitude band). The derivation does not disappear, it
+> moves one file over: `@smartput/<kind>/src/locale/en.ts` calls
+> `defineVocabulary` and derives its `aliases` from `units.ts`'s `alias` map via
+> the same `aliasesFor`, adding `symbol` and renaming `display` to `forms`.
+>
+> The direction this section exists to protect is unchanged. `units.ts` remains
+> the single source of English aliases, which is what keeps the micro path and
+> the engine path in agreement, and the cross-path test of §12 now asks that
+> agreement of the vocabulary rather than of the lexicon — the same claim about
+> a new home. The micro path stays `en`-only, as V9 already states: `units.ts`
+> is data a vocabulary reads, not words a kind speaks, which is why it is the
+> one file exempt from the English-freedom test that enforces I1.
 
 ## 5. The parser
 
@@ -960,6 +978,128 @@ that were missing rather than numbers that moved:
   nothing measured it. The per-kind subpath cannot catch it, holding one class.
   `kinds/class barrel, one kind (shake check)` now measures 4671 B, byte for
   byte what `@smartput/angle/class` costs.
+
+#### Amendment, 2026-08-06 — the implied count moves every row
+
+A unit with no count in front of it now parses as one of that unit, in loose
+mode: `parseMass("kg")` is 1 kg, `parseAngle("deg")` is 1°. The branch is in
+`@smartput/shared`'s `parse`, so it is paid by every kind, and the shared
+parser rises from **883 B to ~990 B**. Every `validate` and `class` row in
+`check-size.ts` moved with it — twenty-five of them — each re-measured and
+rounded up to the next 50 B under the rule above.
+
+Three named rows in §13's table are superseded:
+
+| Entry | Was | Measured now |
+| --- | --- | --- |
+| `@smartput/number/validate` — `parseNumber` only | < 1.3 KB / < 750 B | 1330 B / 706 B |
+| `@smartput/angle/validate` — `parseAngle` only | < 1.3 KB / < 750 B | 1396 B / 764 B |
+| `@smartput/angle/validate` — `+ addAngle`, `toAngle` | < 2.3 KB / < 1.1 KB | 2380 B / 1102 B |
+| `@smartput/datasize/validate` | < 1.5 KB / < 850 B | 1528 B / 759 B |
+
+`number`'s row carries ~200 B of its own besides: `mode: "native"`, which reads
+the leading number the way `parseFloat` does and is deliberately *not* in the
+shared parser. The contrast is the point of both amendments read together. A
+leniency that only one kind can want costs one row; a leniency every kind wants
+costs nineteen. `parseLength("30 kg")` answering 30 metres would be a wrong
+answer, so `native` stays in `number`; `parseLength("km")` answering 1 km is a
+right one, so the implied count is shared. Neither placement is a preference.
+
+The `percent/validate` row is the one to watch, and it did what it was kept for:
+1000 B before, 1126 B after. It is the smallest table in the repo, so it is the
+first row any growth in the shared parser shows up in.
+
+#### Amendment, 2026-08-07 — the stage classes, six rows over
+
+`createEngine` is now a composition of seven stage classes — `Normalizer`,
+`Tokenizer`, `Parser`, `Solver`, `Evaluator`, `Autocompleter`, `Printer` — each
+holding its own frozen config, in place of the free functions and loose
+parameter bags the earlier design threaded by hand. All seven live in
+`@smartput/core`, so the change is paid by every bundle that pulls core, which
+is every row in this file. Six rows measured over their committed ceiling;
+`bun run check-size` was the only thing that caught it, since the increase is
+20-30 B per row and no test asserts a byte count.
+
+Re-measured, then rounded up to the next 50 B, touching only the dimension
+that was actually over — a row already under budget on one side is left alone,
+per the two-sided guard this section already keeps:
+
+| Entry | Was | Measured | Committed |
+| --- | --- | --- | --- |
+| `datetime root (no holiday data)` — min | 144_350 B | 144_342 B | 144_350 B (unchanged) |
+| `datetime root (no holiday data)` — gzip | 50_750 B | 50_753 B | 50_800 B |
+| `time` — min | 145_700 B | 145_724 B | 145_750 B |
+| `time` — gzip | 50_950 B | 50_965 B | 51_000 B |
+| `range-core` — min | 144_750 B | 144_754 B | 144_800 B |
+| `range-core` — gzip | 50_800 B | 50_786 B | 50_800 B (unchanged) |
+| `date-range` — min | 149_100 B | 149_123 B | 149_150 B |
+| `date-range` — gzip | 51_900 B | 51_910 B | 51_950 B |
+| `time-range` — min | 147_050 B | 147_070 B | 147_100 B |
+| `time-range` — gzip | 51_450 B | 51_429 B | 51_450 B (unchanged) |
+| `datetime-range root (no holiday data)` — min | 147_850 B | 147_876 B | 147_900 B |
+| `datetime-range root (no holiday data)` — gzip | 51_800 B | 51_767 B | 51_800 B (unchanged) |
+
+`date` — the seventh row in the same range-package block — measured 145_431 B
+/ 50_850 B against its 145_450 B / 50_850 B ceiling and is untouched; not every
+row in a block moves together, which is why the rule is "re-measure the
+affected row," not "bump the block." No other row in the file moved: the
+stage classes are core's graph, and only a bundle that already pulls the whole
+of core (the six above, all `datetime`-family or range-package roots) pays for
+the composition change at all.
+
+Every one of the six carries the explicit `floor: 138_000` this section's
+"two-sided budgets" amendment introduced, and none of today's measurements
+come close to tripping it — the smallest, `datetime root`'s 144_342 B, still
+clears the floor by 6_342 B. The floor is what would have caught the opposite
+mistake: a bundle that lost the composition rewrite entirely and shrank back
+toward the old free-function baseline.
+
+#### Amendment, 2026-08-07 — `core/solve`, the frozen-resolution-array fix
+
+The whole-branch review of the stage restructuring found `Solver.all`'s
+returned array itself unfrozen, though every `Resolution` inside it (and each
+one's `choices`) already was — `solve(...)[0] = fake` silently succeeded where
+`solve(...)[0].kind = "fake"` already threw. The fix wraps the array itself in
+`Object.freeze`, the container-level half of the freeze contract this
+section's rows exist to price.
+
+Measured 37_564 B min (37_549 B before the fix, so the freeze itself costs 15
+B) against `core/solve`'s 37_550 B ceiling — 14 B over, with no slack to
+absorb it: this row had 1 B of headroom left before the fix. Rounded up to the
+next 50 B, touching only the side actually over, same rule as the amendment
+above:
+
+| Entry | Was | Measured | Committed |
+| --- | --- | --- | --- |
+| `core/solve` — min | 37_550 B | 37_564 B | 37_600 B |
+| `core/solve` — gzip | 14_850 B | 14_843 B | 14_850 B (unchanged) |
+
+No other row moved: the fix touches only `solve/solver.ts`'s return
+statement, which nothing outside `@smartput/core/solve` pulls in on its own.
+
+#### Amendment, 2026-08-07 — `core/normalize`, the last frozen-entries gap
+
+The same review found one more corner of the freeze contract loose:
+`normalize()` froze its `edits` array but not the `Edit` objects inside it,
+nor their nested `at` spans — the only stage output left half-frozen after
+the `core/solve` fix above. Fixed by hand, two `Object.freeze` calls per
+entry, deliberately *not* via the shared `deepFreeze` helper (`../freeze`):
+that helper imports `Decimal`, and this row is the one place in the file
+whose whole point is proving `@smartput/core/normalize` carries none of the
+`decimal.js` weight every row below it does — the comment two rows above
+this one says so directly. Confirmed empirically first: routing through
+`deepFreeze` measured 35_022 B, a 20x jump, before switching to the
+two-`Object.freeze` version.
+
+Measured 1_720 B min (1_665 B before the fix) against `core/normalize`'s
+1_700 B ceiling — 20 B over. Rounded up to the next 50 B, same rule:
+
+| Entry | Was | Measured | Committed |
+| --- | --- | --- | --- |
+| `core/normalize` — min | 1_700 B | 1_720 B | 1_750 B |
+| `core/normalize` — gzip | 800 B | 773 B | 800 B (unchanged) |
+
+No other row moved.
 
 ### The honest comparison
 

@@ -37,6 +37,7 @@ export const en: LocaleSpecificConfig<DefaultTheme.Config> & {
           items: [
             { text: "Kinds and units", link: "/guide/kinds" },
             { text: "Validating without the engine", link: "/guide/validating" },
+            { text: "Comparison", link: "/guide/comparison" },
             { text: "Ambiguity and weights", link: "/guide/weights" },
             { text: "Completion", link: "/guide/completion" },
             { text: "Locales", link: "/guide/locales" },
@@ -48,7 +49,10 @@ export const en: LocaleSpecificConfig<DefaultTheme.Config> & {
           items: [
             { text: "Money and rates", link: "/guide/money" },
             { text: "Dates and time zones", link: "/guide/datetime" },
+            { text: "Ranges", link: "/guide/ranges" },
+            { text: "Selections", link: "/guide/selections" },
             { text: "Places and distances", link: "/guide/places" },
+            { text: "Querying a database", link: "/guide/querying" },
             { text: "LaTeX math", link: "/guide/math" },
             { text: "Equations and matrices", link: "/guide/math-solving" },
           ],
@@ -68,6 +72,8 @@ export const en: LocaleSpecificConfig<DefaultTheme.Config> & {
             { text: "Overview", link: "/api/" },
             { text: "createEngine", link: "/api/create-engine" },
             { text: "Engine", link: "/api/engine" },
+            { text: "Stages", link: "/api/stages" },
+            { text: "Printer", link: "/api/printer" },
             { text: "complete", link: "/api/complete" },
             { text: "defineKind", link: "/api/define-kind" },
             { text: "defineLocale", link: "/api/define-locale" },
@@ -76,15 +82,19 @@ export const en: LocaleSpecificConfig<DefaultTheme.Config> & {
           ],
         },
         {
-          text: "@smartput/validate",
+          text: "@smartput/shared",
           items: [
             { text: "Overview", link: "/api/validate" },
             { text: "Value classes", link: "/api/value-classes" },
           ],
         },
         {
-          text: "@smartput/rates",
-          items: [{ text: "Overview", link: "/api/rates" }],
+          text: "@smartput/rate",
+          items: [{ text: "Overview", link: "/api/rate" }],
+        },
+        {
+          text: "@smartput/currency",
+          items: [{ text: "Overview", link: "/api/currency" }],
         },
         {
           text: "@smartput/math",

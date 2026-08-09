@@ -1,0 +1,16 @@
+# input	kind	canonical	formatted
+1 kib in b	datasize	1024	1,024 bytes
+1 gb in mb	datasize	1000000000	1,000 megabytes
+1 gib in mib	datasize	1073741824	1,024 mebibytes
+1 tb in gb	datasize	1000000000000	1,000 gigabytes
+500 mb + 500 mb	datasize	1000000000	1,000 megabytes
+1 gb - 200 mb	datasize	800000000	0.8 gigabytes
+2 gb * 3	datasize	6000000000	6 gigabytes
+1 tb / 4	datasize	250000000000	0.25 terabytes
+-1 gb	datasize	-1000000000	-1 gigabyte
+1024 b in kib	datasize	1024	1 kibibyte
+one gigabyte	datasize	1000000000	1 gigabyte
+1 mib in kb	datasize	1048576	1,048.576 kilobytes
+3 terabytes	datasize	3000000000000	3 terabytes
+1 gb in b	datasize	1000000000	1,000,000,000 bytes
+1500 bytes	datasize	1500	1,500 bytes

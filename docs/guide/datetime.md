@@ -21,16 +21,16 @@ bun add @smartput/datetime
 ```
 
 ```ts
-import { createEngine } from "@smartput/core";
-import en from "@smartput/core/locale/en";
+import { composeLocale, createEngine } from "@smartput/core";
+import { english } from "@smartput/core/locale/en";
 import { datetime } from "@smartput/datetime";
 import { BUILTIN_KINDS } from "@smartput/kinds";
+import BUILTIN_EN from "@smartput/kinds/locale/en";
 import datetimeEn from "@smartput/datetime/locale/en";
 
 const engine = createEngine({
-  locales: [en],
+  locales: [composeLocale(english, [...BUILTIN_EN, datetimeEn])],
   kinds: [...BUILTIN_KINDS, datetime],
-  packs: [datetimeEn],
   now: () => Date.now(),      // injectable clock, epoch milliseconds
   timeZone: "UTC",            // defaults to the host zone
 });
@@ -71,6 +71,8 @@ Two behaviours worth stating outright, because both are choices:
 - **`next friday` is the Friday of the following week**, not tomorrow. That is
   how `chrono-node` reads a `next` modifier, and it is asserted in the corpus so
   an upgrade that changes it fails loudly rather than quietly.
+
+<SpDatetime />
 
 The value is an ordinary `Value` — no new field, nothing a `JSON.stringify` will
 choke on:
@@ -135,10 +137,11 @@ target is looked up in the same alias index.
 `in` keeps the instant and relabels the wall clock — `canonical` is unchanged
 across the conversion.
 
-Eighteen zones ship in `ZONES`, keyed by IANA id:
+Eighteen named zones ship in `ZONES`, keyed by IANA id — from
+[`@smartput/timezone`](#the-zone-tables), not from this package:
 
 ```ts
-import { ZONES } from "@smartput/datetime";
+import { ZONES } from "@smartput/timezone";
 
 ZONES["Asia/Tokyo"]; // { aliases: ["tokyo", "jst", "japan"], symbol: "JST" }
 ```
@@ -146,6 +149,44 @@ ZONES["Asia/Tokyo"]; // { aliases: ["tokyo", "jst", "japan"], symbol: "JST" }
 **Aliases are single words.** The alias index is keyed by one segmented word, so
 `nyc` can be an alias and `"new york"` cannot. Multi-word aliases need a
 multi-word index, which is [recorded as a followup](#limits).
+
+### Offset zones
+
+A zone written as an offset from UTC — `GMT+3`, `utc-05:30`, `gmt+5:45` — is a
+unit too, on every quarter hour from `-12:00` to `+14:00`:
+
+| Input | Result |
+| --- | --- |
+| `3pm gmt+3` | `2026-01-15 12:00 UTC` |
+| `3pm utc+0530` | `2026-01-15 09:30 UTC` |
+| `3pm in gmt+3` | `2026-01-15 18:00 UTC+03:00` |
+| `9:30 in gmt+5:45` | `2026-01-15 15:15 UTC+05:45` |
+| `GMT+3` | `2026-01-15 15:00 UTC+03:00` |
+
+Read the first two rows the same way as `3pm est`: an offset **inside** a date
+literal says which instant `3pm` was, and the engine zone still decides how the
+answer reads. An offset **after `in`** is a conversion target like `tokyo`.
+
+Written offsets accept `±H`, `±H:MM` and `±HHMM`, with or without spaces around
+the sign, after either `gmt` or `utc`. Anything outside the range, or off the
+quarter hour, is not claimed: `gmt+15` and `gmt+3:20` are no zone anyone keeps
+time in, and `gmt` with no sign after it is still the plain `UTC` alias.
+
+`GMT+3` on its own is the current time there — the only instant a zone alone can
+mean. That is one thing a bare zone *word* does not do: `utc` reaches the engine
+as a unit alias, and a lone unit alias has never been a quantity.
+
+These units carry no aliases, because `gmt+3` lexes as three tokens (a word, an
+operator, a number) and no single-word alias lookup could ever reach it. A
+literal matcher claims the run instead, over a parser the zone package owns:
+
+```ts
+import { OFFSET_ZONES, parseOffsetZone } from "@smartput/timezone";
+
+parseOffsetZone("gmt+5:30 tomorrow"); // { zone: "+05:30", length: 8 }
+OFFSET_ZONES["+05:30"];               // { aliases: [], symbol: "UTC+05:30" }
+OFFSET_ZONES["+00:00"];               // { aliases: [], symbol: "UTC" }
+```
 
 Time zones also change what a bare time *means*, so the engine zone is not only
 a display setting:
@@ -158,25 +199,56 @@ engine.evaluate("3pm", { timeZone: "Asia/Tokyo" }).formatted;
 `EvalOptions.timeZone` overrides `EngineOptions.timeZone` per call, which is
 what a server handling requests from many places needs.
 
-### Adding vocabulary
+### The zone tables
 
-Zone words are ordinary lexicon entries, so a locale pack contributes them —
-the same channel `@smartput/datetime/locale/en` itself uses for `germany`,
-`ukraine` and `britain`:
+Both tables, the offset parser and the symbol lookup live in
+**`@smartput/timezone`**, which has no runtime dependency at all:
 
 ```ts
-import { defineLocalePack } from "@smartput/core";
-
-const myZones = defineLocalePack({
-  locale: "en",
-  contributes: { datetime: { "Europe/Kyiv": ["kyivcity"] } },
-});
-
-createEngine({ /* … */ packs: [myZones] }).evaluate("3pm in kyivcity");
+import { OFFSET_ZONES, parseOffsetZone, ZONES, zoneSymbol } from "@smartput/timezone";
 ```
 
-A zone the package does not ship at all is a `extendsKind` patch, since an
-opaque kind's `units` merge exactly like a ratio kind's:
+They are a package of their own so that a zone picker costs a zone picker. A
+form field listing zones, or checking that a user typed a real one, needs the
+tables and nothing else; `@smartput/datetime` is those plus `chrono-node` and
+`temporal-polyfill`, which are several times the size of the engine. The
+dependency therefore runs from the consumer inwards — the same argument that
+keeps `@smartput/city` out of `@smartput/country`.
+
+`@smartput/datetime` registers both tables as its units and adds nothing to
+them, which is why a zone id from either one works in every position.
+
+### Adding vocabulary
+
+Zone words are ordinary [`Vocabulary`](/guide/locales) entries — the same
+channel `@smartput/datetime/locale/en` itself uses for `germany`, `ukraine` and
+`britain`. A language holds **one** vocabulary per kind, so an extra word merges
+into the shipped table rather than arriving as a second one; a second
+`datetime` vocabulary is a `VocabularyConflictError` at `composeLocale()`:
+
+```ts
+import { composeLocale, defineVocabulary } from "@smartput/core";
+import datetimeEn from "@smartput/datetime/locale/en";
+
+const kyiv = datetimeEn.units["Europe/Kyiv"];
+
+const myZones = defineVocabulary({
+  ...datetimeEn,
+  units: {
+    ...datetimeEn.units,
+    "Europe/Kyiv": { ...kyiv, aliases: [...(kyiv?.aliases ?? []), "kyivcity"] },
+  },
+});
+
+createEngine({
+  locales: [composeLocale(english, [...BUILTIN_EN, myZones])],
+  kinds: [...BUILTIN_KINDS, datetime],
+}).evaluate("3pm in kyivcity");
+```
+
+A zone the package does not ship at all is an `extendsKind` patch, since an
+opaque kind's `units` merge exactly like a ratio kind's. Those units are unit
+**ids** and carry no words — the words go where every kind's words go:
 
 ```ts
 import { defineKind } from "@smartput/core";
@@ -184,22 +256,199 @@ import { defineKind } from "@smartput/core";
 const extraZones = defineKind({
   id: "datetime-extra-zones",
   extendsKind: "datetime",
-  value: {
-    mode: "opaque",
-    units: { "Africa/Lagos": { aliases: ["lagos"], symbol: "WAT" } },
+  value: { mode: "opaque", units: ["Africa/Lagos"] },
+});
+
+const lagosEn = defineVocabulary({
+  ...datetimeEn,
+  units: {
+    ...datetimeEn.units,
+    "Africa/Lagos": { aliases: ["lagos"], symbol: "WAT" },
   },
 });
 
 createEngine({
-  locales: [en],
+  locales: [composeLocale(english, [...BUILTIN_EN, lagosEn])],
   kinds: [...BUILTIN_KINDS, datetime, extraZones],
 }).evaluate("3pm in lagos").formatted;
 // "2026-01-15 16:00 Africa/Lagos"
 ```
 
-The formatter reads its zone symbol from `ZONES`, so a zone added this way
+The formatter reads its zone symbol from `ZONES` and `OFFSET_ZONES`, so a zone
+added this way
 prints its IANA id rather than `WAT`. Registering the symbol for display is
 `format`'s business, and overriding `format` in the patch is the way to get it.
+
+## Holidays
+
+`christmas`, `next easter`, `day before christmas`, `closest bank holiday`. They
+are an opt-in behind a subpath, and the subpath is the whole design:
+
+```sh
+bun add @smartput/datetime @smartput/holiday
+```
+
+```ts
+import { datetimeWithHolidays } from "@smartput/datetime/holiday";
+
+const engine = createEngine({
+  locales: [composeLocale(english, [...BUILTIN_EN, datetimeEn])],
+  kinds: [...BUILTIN_KINDS, datetimeWithHolidays()],
+  now: () => Date.now(),
+  timeZone: "UTC",
+});
+
+engine.evaluate("next easter").formatted;              // "2026-04-05 00:00 UTC"
+engine.evaluate("3 weeks before christmas").formatted; // "2025-12-04 00:00 UTC"
+```
+
+`datetimeWithHolidays()` **is** the `datetime` kind — same id, same units, same
+op signatures — with one more literal matcher behind it. Register one or the
+other, never both.
+
+`@smartput/holiday` wraps `date-holidays`, which ships a 768 KB rule table and
+bundles to 1.43 MB minified, 236 KB gzipped. Those are measurements, not
+estimates: `scripts/check-size.ts` carries a row for the package alone, a row for
+the bridge, and a row for the root entry, and the subtraction is the price of the
+feature — 1.58 MB with holidays against 144 KB without, so opting in costs 1.43
+MB and the doc has no reason to round it in its own favour.
+
+Importing `@smartput/datetime` reaches none of that. The bridge is the only
+module in the repo that imports both packages, it lives at `./holiday`, and the
+root row fails CI by a megabyte if a re-export ever leaks the rule table inwards,
+rather than the leak appearing in somebody's bundle six months later. Stating the
+cost is the point: a launcher that wants `day before christmas` is a different
+program from a form field that wants `today + 3 d`.
+
+### Where to ask
+
+Holidays are a fact about a country, so the matcher takes one:
+
+```ts
+datetimeWithHolidays({ place: { country: "GB" } });
+datetimeWithHolidays({ place: { country: "US", state: "CA" } });
+datetimeWithHolidays({ defaultCountry: "UA" });   // no state, no region
+```
+
+**With nothing given, the country is `US`.** That is arbitrary and it is
+deliberate, so it is written down rather than discovered: `date-holidays` cannot
+enumerate without a country — there is no global holiday set to search — and
+sweeping all 206 would be slow and ambiguous, since `labour day` exists in dozens
+of them on different dates in different months. A default that one argument
+overrides beats a search that returns noise. Nothing guesses the country from the
+engine's time zone or the host locale either; a guess that is usually right is
+the worst of the three options, because the times it is wrong are silent.
+
+Two smaller rulings ride along with it. A `region` needs a `state` — the library
+keys regions under one, so a region on its own is dropped rather than half
+applied. And a country code nothing recognises returns no holidays instead of
+throwing, because this runs once per keystroke; `holidayCountries()` from
+`@smartput/holiday` is the door to validate one against.
+
+### The grammar
+
+```
+phrase   := shift? selector? subject
+shift    := count? durationWord ("before" | "after")
+selector := "closest" | "nearest" | "next" | "last" | "this"
+subject  := typeNoun | holidayName
+typeNoun := typeWord? ("holiday" | "holidays")
+typeWord := "public" | "bank" | "school" | "optional" | "observance"
+count    := digits | "a" | "an"
+durationWord := day(s) | week(s) | month(s) | year(s)
+```
+
+Named subjects, against the default `US` place:
+
+| Input | Result |
+| --- | --- |
+| `christmas` | `2025-12-25 00:00 UTC` |
+| `next easter` | `2026-04-05 00:00 UTC` |
+| `last christmas` | `2025-12-25 00:00 UTC` |
+| `this easter` | `2026-04-05 00:00 UTC` |
+| `day before christmas` | `2025-12-24 00:00 UTC` |
+| `2 days after easter` | `2026-04-07 00:00 UTC` |
+| `3 weeks before christmas` | `2025-12-04 00:00 UTC` |
+| `2 months after christmas` | `2026-02-25 00:00 UTC` |
+| `chrismas` | `2025-12-25 00:00 UTC` |
+| `next chrismas` | `2026-12-25 00:00 UTC` |
+| `christmas + 3 d` | `2025-12-28 00:00 UTC` |
+| `christmas in tokyo` | `2025-12-25 09:00 JST` |
+
+Nameless subjects, against `{ country: "NL" }` — because **the United States
+ships no `bank` and no `school` holiday at all**, so the obvious example on the
+default place returns nothing:
+
+| Input | Result |
+| --- | --- |
+| `holiday` | `2026-01-01 00:00 UTC` — New Year's Day |
+| `closest holiday` | `2026-01-01 00:00 UTC` |
+| `closest public holiday` | `2026-01-01 00:00 UTC` |
+| `closest bank holiday` | `2025-12-31 00:00 UTC` — New Year's Eve |
+| `nearest school holiday` | `2026-04-03 00:00 UTC` — Good Friday |
+| `next public holiday` | `2026-04-05 00:00 UTC` — Easter Sunday |
+| `last bank holiday` | `2025-12-31 00:00 UTC` |
+| `day before next public holiday` | `2026-04-04 00:00 UTC` |
+
+The last row is a shift and a selector stacked over a nameless subject, and it
+works. The two halves answer different questions — *which* occurrence, and *how
+far from it* — so refusing the pair would mean the grammar could express each
+alone but not both. A stack of *shifts* is refused: `day before 2 weeks after
+christmas` parses in principle and is not a thing anyone types.
+
+Behaviours worth stating outright, because each is a choice:
+
+- **`closest` reaches backwards, `next` does not.** That is what makes it more
+  than a synonym. With `now` on 2026-01-20, the day after Martin Luther King Jr
+  Day:
+
+  | Input | Result |
+  | --- | --- |
+  | `closest holiday` | `2026-01-19` — yesterday |
+  | `nearest holiday` | `2026-01-19` |
+  | `next holiday` | `2026-02-16` — Washington's Birthday |
+  | `last holiday` | `2026-01-19` |
+
+- **No selector means `closest`**, for both subject shapes. Bare `holiday` and
+  bare `christmas` are one rule, not two: in January, `christmas` is the one
+  three weeks behind rather than the one eleven months ahead.
+- **A selector with nothing to point at is refused.** `this easter` in a year
+  with no Easter in the window throws rather than quietly answering a nearby
+  question.
+- **The type filter excludes and never widens.** `closest bank holiday` on a US
+  engine throws, because the US has no bank holidays — it does not fall back to
+  the unfiltered set. A caller who wants that fallback asks twice, which makes it
+  their visible decision instead of this package's silent one.
+- **A named query applies no type filter unless you give it one.** You said which
+  holiday you meant; filtering on an assumed type would refuse a correct match,
+  since `boxing day` is `bank` in some countries and `public` in others.
+- **Shifts go through the calendar**, not through a millisecond count — the same
+  rule as `today + 1 d` above.
+- **The result is midnight in the engine's zone**, rebuilt from the holiday's
+  calendar date rather than converted from an instant. An `Asia/Tokyo` engine
+  reads `christmas` as `2025-12-25T00:00:00+09:00`, not as the Japanese wall
+  clock during American Christmas.
+- **Not a conversion target.** `3pm in christmas` throws, for the same reason
+  `today in tomorrow` does.
+
+### When it declines
+
+Names are matched by token similarity, so `chrismas` and `xmas day` land where
+they should. The cost of that tolerance is that some ordinary words sit within
+an edit of a holiday, and two rules keep them from stealing readings that were
+already right:
+
+- **A reading the date literal can produce on its own always wins.** `monday`
+  scores 0.833 against *Easter Monday* on a `GB` engine, and without this rule a
+  weekday that used to evaluate would become an `AmbiguityError`. A word chrono
+  reads as a date is a date; an edit-distance neighbour of a holiday name is a
+  guess, and a guess must not cost the answer that was already correct.
+- **A single word shorter than four characters is never a name.** `may` is 0.663
+  from *Christmas Day*, and nowhere near what anyone meant by it.
+
+Below `minScore` — 0.6, raise it with `datetimeWithHolidays({ minScore })` — a
+phrase is not claimed at all, so it fails the way any unknown word does. Raising
+it past 0.667 loses `chrismas`.
 
 ## How it works
 
@@ -258,7 +507,7 @@ Deliberate, and recorded in `docs/superpowers/m4-followups.md`:
   `<number><unit>`, which a time zone is not, so it offers no zone rather than
   offering `1 utc`. The door out of that is
   [`Kind.completions`](/api/define-kind#completions), added in M6.4 for exactly
-  this shape of vocabulary and used by `@smartput/geo`; this kind does not
+  this shape of vocabulary and used by `@smartput/country`; this kind does not
   declare one yet.
 - **No `DateTime` facade class.** `createFacade` generates `.to()` and `.scale()`
   from a ratio table an opaque kind does not have, so it refuses one outright.

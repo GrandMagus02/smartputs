@@ -41,6 +41,19 @@ test("an ordinary ratio kind gets percent arithmetic for free", () => {
   expect(keys(mass)).toContain("+|mass|percent");
   expect(keys(mass)).toContain("-|mass|percent");
   expect(keys(mass)).toContain("of|percent|mass");
+  expect(keys(mass)).toContain("off|percent|mass");
+});
+
+// `off` is `of`'s shape — percentage left, base right — with the complementary
+// arithmetic, and it is deliberately not an alias for `-|K|percent`, which
+// takes the same two operands the other way round. The result is the base
+// reduced, so it is sourced from the right operand like `of` is.
+test("off reduces the base by the percentage on its left", () => {
+  const sig = generateRatioOps(mass).find((s) => s.op === "off");
+  expect(sig).toMatchObject({ left: PERCENT_KIND, right: "mass", result: "mass" });
+  const r = sig?.apply(val(PERCENT_KIND, 0.2), val("mass", 50), ctx("20% off 50 g"));
+  expect(r?.kind).toBe("mass");
+  expect(r?.canonical.toString()).toBe("40");
 });
 
 // The keys an affine kind must *close* rather than leave absent: its delta
@@ -53,6 +66,12 @@ const AFFINE_REFUSALS = [
   "+|temperature|percent",
   "-|temperature|percent",
   "of|percent|temperature",
+  // Listed explicitly as well as being covered by the derived test below,
+  // because `off` is the newest member of the set and the one whose refusal
+  // is easiest to lose: temperature never declares it, so if the affine
+  // branch ever stopped closing it, "20% off 20 C" would be answered by
+  // tempdelta's own generated `off|percent|tempdelta` instead of refused.
+  "off|percent|temperature",
 ];
 
 test("an affine kind cannot be scaled or added to itself", () => {

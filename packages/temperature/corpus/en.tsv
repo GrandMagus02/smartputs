@@ -1,0 +1,16 @@
+# input	kind	canonical	formatted
+212 F in C	temperature	100	100°C
+0 C in F	temperature	0	32°F
+100 C in K	temperature	100	373.15K
+0 K in C	temperature	-273.15	-273.15°C
+30 C - 20 C	tempdelta	10	10°C
+20 C	temperature	20	20°C
+98.6 F in C	temperature	37	37°C
+-40 C in F	temperature	-40	-40°F
+37 C in F	temperature	37	98.6°F
+273.15 K in C	temperature	0	0°C
+10 C + 5 C	temperature	15	15°C
+1 C	temperature	1	1°C
+72 F	temperature	22.22222222222222222222222222	72°F
+300 K	temperature	26.85	300K
+-10 C in K	temperature	-10	263.15K

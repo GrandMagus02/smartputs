@@ -1,10 +1,14 @@
 import { expect, test } from "bun:test";
+import { english } from "@smartput/core/locale/en";
 import { BUILTIN_KINDS, measure, temperature } from "@smartput/kinds";
+import BUILTIN_EN from "@smartput/kinds/locale/en";
 import { KindConflictError } from "../errors";
 import { buildRegistry } from "../kind/registry";
-import en from "../locale/en";
+import { composeLocale } from "../locale/compose";
 import { createFacades } from "./index";
 import { createFacade, type Quantity, type QuantityClass } from "./quantity";
+
+const en = composeLocale(english, BUILTIN_EN);
 
 const F = createFacades({
   kinds: [...BUILTIN_KINDS, measure],
@@ -96,16 +100,12 @@ test("a kind that does not declare dpiUnit gets neither dpi nor withDpi", () => 
 });
 
 test("declaring a dpiUnit that is not a unit is a wiring error", () => {
-  const registry = buildRegistry(
-    [
-      {
-        id: "bogus",
-        value: { mode: "ratio", canonical: "a", units: { a: 1 }, dpiUnit: "b" },
-      },
-    ],
-    [],
-    "en",
-  );
+  const registry = buildRegistry([
+    {
+      id: "bogus",
+      value: { mode: "ratio", canonical: "a", units: { a: 1 }, dpiUnit: "b" },
+    },
+  ]);
   const bogus = registry.kinds.get("bogus");
   if (bogus === undefined) throw new Error("missing");
   expect(() => createFacade({ kind: bogus, registry, locale: en })).toThrow(
@@ -119,7 +119,7 @@ test("an affine facade built without its delta kind reports a wiring error, not 
   // can never find a delta class. This is a misconfiguration, not something
   // `UnitParseError` (whose message is always "Cannot parse ... as a
   // quantity") describes.
-  const registry = buildRegistry([temperature], [], "en");
+  const registry = buildRegistry([temperature]);
   const temperatureKind = registry.kinds.get("temperature");
   if (temperatureKind === undefined) throw new Error("missing");
   const Standalone = createFacade({

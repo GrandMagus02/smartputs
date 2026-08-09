@@ -1,10 +1,6 @@
 import { deepFreeze } from "../freeze";
-import type { Locale, LocalePack } from "../types";
+import type { Language } from "../types";
 
-export function defineLocale(l: Locale): Locale {
+export function defineLanguage(l: Language): Language {
   return deepFreeze(l);
-}
-
-export function defineLocalePack(p: LocalePack): LocalePack {
-  return deepFreeze(p);
 }

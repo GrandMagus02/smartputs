@@ -5,7 +5,7 @@ import {
   toCanonical,
   type ValueClass,
   type ValueInstance,
-} from "@smartput/validate";
+} from "@smartput/shared";
 import {
   TEMPDELTA_UNITS,
   TEMPERATURE_UNITS,

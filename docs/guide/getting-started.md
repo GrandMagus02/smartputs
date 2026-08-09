@@ -32,23 +32,32 @@ optional weight overrides. Nothing is global, and engines with different options
 coexist in one process.
 
 ```ts
-import { createEngine } from "@smartput/core";
-import en from "@smartput/core/locale/en";
+import { composeLocale, createEngine } from "@smartput/core";
+import { english } from "@smartput/core/locale/en";
 import { BUILTIN_KINDS } from "@smartput/kinds";
+import BUILTIN_EN from "@smartput/kinds/locale/en";
+
+// A language and the words for a kind are two descriptors; `composeLocale`
+// joins them, and is the only thing that may. See [Locales](/guide/locales).
+const en = composeLocale(english, BUILTIN_EN);
 
 const engine = createEngine({
-  locales: [en], // first is primary, rest are fallbacks
+  locales: [en], // every language the engine READS
   kinds: BUILTIN_KINDS, // number, percent, length, mass, duration, temperature,
   //                       tempdelta, angle, datasize, speed, area, volume
 });
 ```
+
+`locales` is plural because recognition is many-locale: a surface gets a reading
+if any installed language can reach it. Generation is single — the engine writes
+in the one language `format` names, defaulting to `locales[0].id`.
 
 ::: tip Kinds are not implicit
 `createEngine` registers nothing on your behalf. Pass `BUILTIN_KINDS`, or the
 subset you want, or the engine will have no vocabulary and every unit raises
 `NoCandidateError`. Two kinds are deliberately left out of `BUILTIN_KINDS` and
 must be named: `measure` (its `mm`/`cm` collide with `length`) and `money`,
-which lives in [`@smartput/rates`](/guide/money) because it needs a rate table
+which lives in [`@smartput/rate`](/guide/money) because it needs a rate table
 you supply.
 :::
 
@@ -131,21 +140,23 @@ engine.evaluate("10 m").formatted; // "10 metres"
 ## Add money
 
 Currencies are a kind like any other, except that their unit ratios are not
-constants. They live in `@smartput/rates`, which you register alongside the
+constants. They live in `@smartput/rate`, which you register alongside the
 built-ins and hand a rate table:
 
 ```sh
-bun add @smartput/rates
+bun add @smartput/rate
 ```
 
 ```ts
-import { money, snapshot } from "@smartput/rates";
-import moneyEn from "@smartput/rates/locale/en";
+import { money, snapshot } from "@smartput/rate";
+import moneyEn from "@smartput/rate/locale/en";
 
 const engine = createEngine({
-  locales: [en],
+  // moneyEn is "quid", "bucks" — colloquial English currency words. It joins
+  // the same list the built-ins' words are in: one vocabulary per kind, per
+  // language, so a kind's words travel with the language rather than beside it.
+  locales: [composeLocale(english, [...BUILTIN_EN, moneyEn])],
   kinds: [...BUILTIN_KINDS, money],
-  packs: [moneyEn], // "quid", "bucks" — colloquial English currency words
   rates: snapshot("EUR", "2026-08-04", { USD: 1.1, GBP: 0.8412 }),
 });
 
@@ -160,5 +171,5 @@ derived cross-rate is disclosed.
 - [The pipeline](/guide/pipeline) — what happens between the string and the result.
 - [Ambiguity and weights](/guide/weights) — the full four-layer model.
 - [Completion](/guide/completion) — `complete()` in full.
-- [Money and rates](/guide/money) — `@smartput/rates`, providers, `createLiveEngine`.
+- [Money and rates](/guide/money) — `@smartput/rate`, providers, `createLiveEngine`.
 - [API reference](/api/) — every exported symbol.

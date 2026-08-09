@@ -6,13 +6,11 @@ import type {
   FormatCtx,
   Kind,
   KindId,
-  Lexicon,
   LiteralMatcher,
   OpaqueSpec,
   OpSignature,
   RatioSpec,
   UnitDef,
-  UnitLexeme,
   Value,
 } from "../types";
 
@@ -20,7 +18,12 @@ export interface NormalizedUnit {
   unit: string;
   ratio: (ctx: EvalCtx) => Decimal;
   offset: (ctx: EvalCtx) => Decimal;
-  lexeme: UnitLexeme;
+  /**
+   * Read only by completion's `scaleFit`. Kind-level in the descriptor
+   * (ruling R3) — a magnitude band is physics, not language, so it is the one
+   * thing that stayed on the kind when the words left for a `Vocabulary`.
+   */
+  typical?: [number, number];
 }
 
 export interface NormalizedKind {
@@ -51,14 +54,19 @@ function toDecimalFn(
   return () => d;
 }
 
-function toLexeme(unit: string, entry: Lexicon[string] | undefined): UnitLexeme {
-  if (entry === undefined) return { aliases: [unit], symbol: unit };
-  if (Array.isArray(entry)) return { aliases: entry, symbol: entry[0] ?? unit };
-  return { symbol: entry.symbol ?? entry.aliases[0] ?? unit, ...entry };
+/** The unit ids of an opaque kind — bare strings, ruling R1. */
+export function opaqueUnitNames(spec: OpaqueSpec): string[] {
+  return [...(spec.units ?? [])];
 }
 
 export function normalizeKind(k: Kind): NormalizedKind {
   const units = new Map<string, NormalizedUnit>();
+
+  /** Kind-level, ruling R3: a magnitude band is physics, not language. */
+  const typical = (unit: string): { typical?: [number, number] } => {
+    const band = k.typical?.[unit];
+    return band === undefined ? {} : { typical: band };
+  };
 
   if (k.value.mode === "ratio") {
     for (const [unit, raw] of Object.entries(k.value.units)) {
@@ -68,7 +76,7 @@ export function normalizeKind(k: Kind): NormalizedKind {
         unit,
         ratio: toDecimalFn(def.ratio, 1),
         offset: toDecimalFn(def.offset, 0),
-        lexeme: toLexeme(unit, k.lexicon?.[unit]),
+        ...typical(unit),
       });
     }
   } else {
@@ -76,12 +84,12 @@ export function normalizeKind(k: Kind): NormalizedKind {
     // alias, chosen by the solver, named by `in`, and read by the formatter.
     // The identity ratio keeps toCanonical/fromCanonical total, so generic code
     // never has to branch on mode before touching a unit.
-    for (const [unit, entry] of Object.entries(k.value.units ?? {})) {
+    for (const unit of opaqueUnitNames(k.value)) {
       units.set(unit, {
         unit,
         ratio: toDecimalFn(1, 1),
         offset: toDecimalFn(0, 0),
-        lexeme: toLexeme(unit, k.lexicon?.[unit] ?? entry),
+        ...typical(unit),
       });
     }
   }

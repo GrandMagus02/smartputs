@@ -1,10 +1,10 @@
 import { Decimal } from "../decimal";
 
 /**
- * The shape these helpers read off a `@smartput/validate` `UnitTable`, spelled
+ * The shape these helpers read off a `@smartput/shared` `UnitTable`, spelled
  * structurally rather than imported.
  *
- * Spec §4 says core must not depend on `@smartput/validate`, and §13 says core
+ * Spec §4 says core must not depend on `@smartput/shared`, and §13 says core
  * ships one runtime dependency. `import type` compiles away, but it survives
  * into the emitted `.d.ts` — and a published `.d.ts` naming a package that is
  * not in core's manifest is that dependency in everything but the install line.
@@ -25,7 +25,7 @@ export interface RatioTable<U extends string> {
  * The engine-side view of a `UnitTable`. `units.ts` is the single source of a
  * kind's ratios and English aliases; this widens the decimal strings to
  * `Decimal` so the descriptor keeps every digit, and inverts the flat alias map
- * into the per-unit arrays a lexicon wants.
+ * into the per-unit arrays a vocabulary wants.
  *
  * A dynamic ratio has no constant form, so `decimalRatios` refuses it by name
  * rather than coercing a function to NaN. `measure` keeps declaring its own

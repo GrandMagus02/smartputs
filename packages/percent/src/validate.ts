@@ -14,7 +14,7 @@ import {
   patternFor,
   scale,
   sub,
-} from "@smartput/validate";
+} from "@smartput/shared";
 import { PERCENT_UNITS, type PercentUnit } from "./units";
 
 export type { PercentUnit } from "./units";

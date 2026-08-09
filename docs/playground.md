@@ -12,16 +12,16 @@ proxied through a server.
 The engine backing most of these demos is:
 
 ```ts
+const en = composeLocale(english, BUILTIN_EN);
 createEngine({ locales: [en], kinds: BUILTIN_KINDS })
 ```
 
-The money demos add one kind and a rate table:
+The money demos add one kind, its words, and a rate table:
 
 ```ts
 createEngine({
-  locales: [en],
+  locales: [composeLocale(english, [...BUILTIN_EN, moneyEn])],
   kinds: [...BUILTIN_KINDS, money],
-  packs: [moneyEn],
   rates: snapshot("EUR", "2026-08-04", { USD: 1.1, GBP: 0.8412, /* … */ }),
 })
 ```
@@ -176,7 +176,7 @@ with every bug report.
 | `3 m * 4 m` | area | 12 | `12m²` |
 | `100 km / 2 h` | speed | 13.88888888888888888888888889 | `13.888888888888888888888889m/s` |
 
-### packages/rates/corpus/en.tsv
+### packages/rate/corpus/en.tsv
 
 Against `snapshot("EUR", "2026-08-04", { USD: 1.1, UAH: 45.5 })`. Canonical is
 in euros, the kind's canonical unit.

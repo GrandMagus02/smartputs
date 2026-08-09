@@ -67,7 +67,7 @@ addAngle("30smth", "15deg");
 
 Strings are accepted directly — `addAngle` parses both operands internally —
 so importing an op pulls `parse`, and importing only `parse` does not pull the
-ops. See [`@smartput/validate`](/api/validate) for the complete surface,
+ops. See [`@smartput/shared`](/api/validate) for the complete surface,
 including the six `ErrCode`s and the full `strict`/`loose` table.
 
 ## The micro-path class
@@ -153,6 +153,66 @@ if (ok.ok) {
 The complete strict/loose difference — every accepted and rejected form — is
 one table in [the API reference](/api/validate#strict-vs-loose).
 
+### A unit with no count is one of it
+
+`loose` reads a bare unit word as a single one of that unit:
+
+```ts
+parseMass("kg");   // { ok: true, value: 1, unit: "kg", raw: "1" }
+parseLength("cm"); // { ok: true, value: 1, unit: "cm" }
+parseMass("smth"); // { ok: false, code: "nan" }
+```
+
+`strict` does not, for the same reason it has no bare-number fallback: it
+accepts exactly what `format()` emits, and `format()` always writes the number.
+So `parseMass("kg", { mode: "strict" })` is still `nan`, and the round trip
+stays a real one.
+
+A word that names no unit is `nan`, not `unknown-unit`. `unknown-unit` is what a
+*number* beside a bad word earns; with no number in the string, nothing ever
+said a unit was expected.
+
+The engine reads it the same way, and as an operand rather than a special case
+for one-token inputs:
+
+```ts
+engine.evaluate("kg");        // 1 kg
+engine.evaluate("kg + 3 kg"); // 4 kg
+engine.evaluate("2 kg + g");  // 2.001 kg
+```
+
+Only kinds whose units are scales get this. A place's units are country codes
+and a datetime's are zone names — "one UA" is not a quantity of anything — so a
+bare one of those is no more a value than it was before.
+
+### `native`, and only for `number`
+
+`@smartput/number` carries a third point on that axis, looser than `loose`:
+
+```ts
+import { parseNumber } from "@smartput/number/validate";
+
+parseNumber("20%");                    // { ok: false, code: "unknown-unit" }
+parseNumber("20%", { mode: "native" }); // { ok: true, value: 20, unit: "one" }
+parseNumber("30kg", { mode: "native" }); // { ok: true, value: 30 }
+parseNumber("kg", { mode: "native" });   // { ok: false, code: "nan" }
+```
+
+It reads the leading number the way `parseFloat` does and lets the rest of the
+string be whatever it is — which is what a value arriving from a form field, a
+CSV cell or an API that spells its own unit usually looks like. It is native in
+the sense `parseFloat` is, not in the sense the section below is, and it is
+native all the way down: `"1,234"` is 1, because a thousands separator needs
+`Intl` and the locale's `numberFormat`, which is the engine's job.
+
+Widening what counts as a number does not blur what counts as failing to find
+one. `""` is still `empty` and `"kg"` is still `nan`.
+
+No other kind has it, and none should. `parseLength("30 kg", { mode: "native" })`
+answering 30 metres would be a wrong answer wearing a lenient mode's clothes.
+`number` is the one kind whose unit carries no information, so discarding the
+word after the value discards nothing.
+
 ## Native validation, before any JavaScript runs
 
 `patternFor` emits an HTML `pattern` attribute value covering the same
@@ -184,6 +244,6 @@ built on, and all three are available today.
 
 ## Next
 
-- [`@smartput/validate`](/api/validate) — the full parser, ops and `patternFor` surface.
+- [`@smartput/shared`](/api/validate) — the full parser, ops and `patternFor` surface.
 - [Value classes](/api/value-classes) — the class surface and the `Quantity` bridge.
 - [Kinds and units](/guide/kinds) — which kinds ship a micro path and why two do not.

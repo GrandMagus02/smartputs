@@ -1,8 +1,9 @@
 import { expect, test } from "bun:test";
-import { createEngine } from "@smartput/core";
-import en from "@smartput/core/locale/en";
-import { toCanonical } from "@smartput/validate";
+import { composeLocale, createEngine } from "@smartput/core";
+import { english as en } from "@smartput/core/locale/en";
+import { toCanonical } from "@smartput/shared";
 import { percent } from "./index";
+import percentEn from "./locale/en";
 import { PERCENT_UNITS, type PercentUnit } from "./units";
 import {
   addPercent,
@@ -26,7 +27,10 @@ test("valid and invalid input", () => {
   expect(parsePercent("3pct")).toMatchObject({ ok: true, value: 3, unit: "%" });
   expect(parsePercent("3.5percents")).toMatchObject({ ok: true, unit: "%" });
   expect(parsePercent("20xyz")).toMatchObject({ ok: false, code: "unknown-unit" });
-  expect(parsePercent("%")).toMatchObject({ ok: false, code: "nan" });
+  // A unit with no count is one of it. A word that names no unit is still
+  // `nan`: with no number in the string, nothing said a unit was expected.
+  expect(parsePercent("%")).toMatchObject({ ok: true, value: 1 });
+  expect(parsePercent("smth")).toMatchObject({ ok: false, code: "nan" });
   // No `defaultUnit` is hardcoded here, unlike `number` — a bare "20" is not
   // a percentage, and the wrapper does not pretend otherwise.
   expect(parsePercent("20")).toMatchObject({ ok: false, code: "missing-unit" });
@@ -61,7 +65,10 @@ test("conversion identity: the one unit converts to itself, exactly", () => {
 // honest comparison against the engine's `Value.canonical` goes through
 // `toCanonical`, which actually applies the ratio.
 test("cross-path agreement: the micro path's canonical magnitude matches the engine's", () => {
-  const engine = createEngine({ locales: [en], kinds: [percent] });
+  const engine = createEngine({
+    locales: [composeLocale(en, [percentEn])],
+    kinds: [percent],
+  });
   for (const unit of units) {
     for (const n of ["1", "30.5", "0.25"]) {
       const parsed = parsePercent(`${n}${unit}`);
@@ -75,7 +82,10 @@ test("cross-path agreement: the micro path's canonical magnitude matches the eng
 });
 
 test("cross-path agreement: every alias resolves to the same unit on both paths", () => {
-  const engine = createEngine({ locales: [en], kinds: [percent] });
+  const engine = createEngine({
+    locales: [composeLocale(en, [percentEn])],
+    kinds: [percent],
+  });
   for (const [word, unit] of Object.entries(PERCENT_UNITS.alias)) {
     const parsed = parsePercent(`1${word}`);
     expect(parsed.ok, word).toBe(true);
@@ -104,15 +114,18 @@ test("the emitted pattern agrees with isPercent", () => {
   }
 });
 
-test("contract: units.ts and the descriptor agree on every key and alias", () => {
+test("contract: units.ts, the descriptor and the vocabulary agree on every key and alias", () => {
   const declared = Object.keys((percent.value as { units: object }).units).sort();
   expect(declared).toEqual(Object.keys(PERCENT_UNITS.ratio).sort());
 
-  const lexicon = percent.lexicon ?? {};
+  // The aliases the engine indexes are the aliases the micro path inverts.
+  // They used to be checked against the kind's `lexicon`; that table now lives
+  // in `./locale/en`, and it is the same claim asked of its new home — every
+  // spelling in `units.ts` reaches the engine, and only under the unit the
+  // vocabulary filed it under.
   const seen = new Set<string>();
-  for (const [unit, lexeme] of Object.entries(lexicon)) {
-    const aliases = Array.isArray(lexeme) ? lexeme : lexeme.aliases;
-    for (const a of aliases) {
+  for (const [unit, words] of Object.entries(percentEn.units)) {
+    for (const a of words.aliases) {
       expect(PERCENT_UNITS.alias[a], `${a} must be in units.ts`).toBe(
         unit as PercentUnit,
       );

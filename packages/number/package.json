@@ -23,10 +23,20 @@
       "bun": "./src/class.ts",
       "types": "./dist/class.d.ts",
       "default": "./dist/class.js"
+    },
+    "./locale/en": {
+      "bun": "./src/locale/en.ts",
+      "types": "./dist/locale/en.d.ts",
+      "default": "./dist/locale/en.js"
+    },
+    "./locale/uk": {
+      "bun": "./src/locale/uk.ts",
+      "types": "./dist/locale/uk.d.ts",
+      "default": "./dist/locale/uk.js"
     }
   },
   "dependencies": {
     "@smartput/core": "workspace:*",
-    "@smartput/validate": "workspace:*"
+    "@smartput/shared": "workspace:*"
   }
 }

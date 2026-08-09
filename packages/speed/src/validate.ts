@@ -14,7 +14,7 @@ import {
   patternFor,
   scale,
   sub,
-} from "@smartput/validate";
+} from "@smartput/shared";
 import { SPEED_UNITS, type SpeedUnit } from "./units";
 
 export type { SpeedUnit } from "./units";

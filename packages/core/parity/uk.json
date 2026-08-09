@@ -1,0 +1,9103 @@
+{
+  "10 км": {
+    "evaluate": {
+      "ok": {
+        "kind": "length",
+        "canonical": "10000",
+        "unit": "km",
+        "formatted": "10 кілометрів",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 5
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "length",
+          "canonical": "10000",
+          "formatted": "10 кілометрів",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "10",
+            "start": 0,
+            "end": 2
+          },
+          {
+            "type": "word",
+            "text": "км",
+            "start": 3,
+            "end": 5
+          }
+        ],
+        "candidates": [
+          {
+            "kind": "length",
+            "unit": "km",
+            "weight": 0,
+            "form": "км"
+          }
+        ],
+        "assignments": [
+          {
+            "kind": "length",
+            "score": 0,
+            "confidence": 1,
+            "units": ["km"],
+            "contributions": [
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "contextBonus",
+                "value": 0,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "км",
+          "span": {
+            "start": 3,
+            "end": 5
+          },
+          "text": "10 кілометрів",
+          "kind": "length",
+          "unit": "km",
+          "score": 13
+        },
+        {
+          "alias": "км2",
+          "span": {
+            "start": 3,
+            "end": 5
+          },
+          "text": "10 км2",
+          "kind": "area",
+          "unit": "km2",
+          "score": 2
+        }
+      ]
+    },
+    "coerce": {
+      "ok": {
+        "kind": "length",
+        "canonical": "10000",
+        "unit": "km"
+      }
+    }
+  },
+  "1 кг + 500 г": {
+    "evaluate": {
+      "ok": {
+        "kind": "mass",
+        "canonical": "1500",
+        "unit": "kg",
+        "formatted": "1,5 кілограма",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 12
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "mass",
+          "canonical": "1500",
+          "formatted": "1,5 кілограма",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "1",
+            "start": 0,
+            "end": 1
+          },
+          {
+            "type": "word",
+            "text": "кг",
+            "start": 2,
+            "end": 4
+          },
+          {
+            "type": "op",
+            "op": "+",
+            "start": 5,
+            "end": 6
+          },
+          {
+            "type": "number",
+            "text": "500",
+            "start": 7,
+            "end": 10
+          },
+          {
+            "type": "word",
+            "text": "г",
+            "start": 11,
+            "end": 12
+          }
+        ],
+        "candidates": [
+          {
+            "kind": "mass",
+            "unit": "kg",
+            "weight": 0,
+            "form": "кг"
+          },
+          {
+            "kind": "mass",
+            "unit": "g",
+            "weight": 0,
+            "form": "г"
+          }
+        ],
+        "assignments": [
+          {
+            "kind": "mass",
+            "score": 30,
+            "confidence": 1,
+            "units": ["kg", "g"],
+            "contributions": [
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "contextBonus",
+                "value": 30,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "г",
+          "span": {
+            "start": 11,
+            "end": 12
+          },
+          "text": "1 кг + 500 грамів",
+          "kind": "mass",
+          "unit": "g",
+          "score": 13
+        },
+        {
+          "alias": "га",
+          "span": {
+            "start": 11,
+            "end": 12
+          },
+          "text": "1 кг + 500 гектарів",
+          "kind": "area",
+          "unit": "hectare",
+          "score": 2
+        },
+        {
+          "alias": "гб",
+          "span": {
+            "start": 11,
+            "end": 12
+          },
+          "text": "1 кг + 500 гігабайтів",
+          "kind": "datasize",
+          "unit": "gb",
+          "score": 2
+        },
+        {
+          "alias": "гіб",
+          "span": {
+            "start": 11,
+            "end": 12
+          },
+          "text": "1 кг + 500 гібібайтів",
+          "kind": "datasize",
+          "unit": "gib",
+          "score": 1
+        },
+        {
+          "alias": "гц",
+          "span": {
+            "start": 11,
+            "end": 12
+          },
+          "text": "1 кг + 500 герців",
+          "kind": "tempo",
+          "unit": "hz",
+          "score": -1
+        },
+        {
+          "alias": "гон",
+          "span": {
+            "start": 11,
+            "end": 12
+          },
+          "text": "1 кг + 500 градів",
+          "kind": "angle",
+          "unit": "grad",
+          "score": -2
+        },
+        {
+          "alias": "год",
+          "span": {
+            "start": 11,
+            "end": 12
+          },
+          "text": "1 кг + 500 годин",
+          "kind": "duration",
+          "unit": "h",
+          "score": -2
+        },
+        {
+          "alias": "гвт",
+          "span": {
+            "start": 11,
+            "end": 12
+          },
+          "text": "1 кг + 500 гігаватів",
+          "kind": "power",
+          "unit": "gw",
+          "score": -2
+        },
+        {
+          "alias": "гал",
+          "span": {
+            "start": 11,
+            "end": 12
+          },
+          "text": "1 кг + 500 галонів",
+          "kind": "volume",
+          "unit": "gal",
+          "score": -2
+        },
+        {
+          "alias": "гбіт",
+          "span": {
+            "start": 11,
+            "end": 12
+          },
+          "text": "1 кг + 500 гбіт",
+          "kind": "datarate",
+          "unit": "gbps",
+          "score": -3
+        }
+      ]
+    },
+    "coerce": {
+      "ok": {
+        "kind": "mass",
+        "canonical": "1500",
+        "unit": "kg"
+      }
+    }
+  },
+  "30 год - 30 хв": {
+    "evaluate": {
+      "ok": {
+        "kind": "duration",
+        "canonical": "106200",
+        "unit": "h",
+        "formatted": "29,5 години",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 14
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "duration",
+          "canonical": "106200",
+          "formatted": "29,5 години",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "30",
+            "start": 0,
+            "end": 2
+          },
+          {
+            "type": "word",
+            "text": "год",
+            "start": 3,
+            "end": 6
+          },
+          {
+            "type": "op",
+            "op": "-",
+            "start": 7,
+            "end": 8
+          },
+          {
+            "type": "number",
+            "text": "30",
+            "start": 9,
+            "end": 11
+          },
+          {
+            "type": "word",
+            "text": "хв",
+            "start": 12,
+            "end": 14
+          }
+        ],
+        "candidates": [
+          {
+            "kind": "duration",
+            "unit": "h",
+            "weight": 0,
+            "form": "год"
+          },
+          {
+            "kind": "duration",
+            "unit": "min",
+            "weight": 0,
+            "form": "хв"
+          }
+        ],
+        "assignments": [
+          {
+            "kind": "duration",
+            "score": 30,
+            "confidence": 1,
+            "units": ["h", "min"],
+            "contributions": [
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "contextBonus",
+                "value": 30,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "хв",
+          "span": {
+            "start": 12,
+            "end": 14
+          },
+          "text": "30 год - 30 хвилин",
+          "kind": "duration",
+          "unit": "min",
+          "score": 13
+        }
+      ]
+    },
+    "coerce": {
+      "ok": {
+        "kind": "duration",
+        "canonical": "106200",
+        "unit": "h"
+      }
+    }
+  },
+  "10 хв + 5 год": {
+    "evaluate": {
+      "ok": {
+        "kind": "duration",
+        "canonical": "18600",
+        "unit": "min",
+        "formatted": "310 хвилин",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 13
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "duration",
+          "canonical": "18600",
+          "formatted": "310 хвилин",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "10",
+            "start": 0,
+            "end": 2
+          },
+          {
+            "type": "word",
+            "text": "хв",
+            "start": 3,
+            "end": 5
+          },
+          {
+            "type": "op",
+            "op": "+",
+            "start": 6,
+            "end": 7
+          },
+          {
+            "type": "number",
+            "text": "5",
+            "start": 8,
+            "end": 9
+          },
+          {
+            "type": "word",
+            "text": "год",
+            "start": 10,
+            "end": 13
+          }
+        ],
+        "candidates": [
+          {
+            "kind": "duration",
+            "unit": "min",
+            "weight": 0,
+            "form": "хв"
+          },
+          {
+            "kind": "duration",
+            "unit": "h",
+            "weight": 0,
+            "form": "год"
+          }
+        ],
+        "assignments": [
+          {
+            "kind": "duration",
+            "score": 30,
+            "confidence": 1,
+            "units": ["min", "h"],
+            "contributions": [
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "contextBonus",
+                "value": 30,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "год",
+          "span": {
+            "start": 10,
+            "end": 13
+          },
+          "text": "10 хв + 5 годин",
+          "kind": "duration",
+          "unit": "h",
+          "score": 13
+        }
+      ]
+    },
+    "coerce": {
+      "ok": {
+        "kind": "duration",
+        "canonical": "18600",
+        "unit": "min"
+      }
+    }
+  },
+  "10 м + 5 км": {
+    "evaluate": {
+      "ok": {
+        "kind": "length",
+        "canonical": "5010",
+        "unit": "m",
+        "formatted": "5 010 метрів",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 11
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "length",
+          "canonical": "5010",
+          "formatted": "5 010 метрів",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "10",
+            "start": 0,
+            "end": 2
+          },
+          {
+            "type": "word",
+            "text": "м",
+            "start": 3,
+            "end": 4
+          },
+          {
+            "type": "op",
+            "op": "+",
+            "start": 5,
+            "end": 6
+          },
+          {
+            "type": "number",
+            "text": "5",
+            "start": 7,
+            "end": 8
+          },
+          {
+            "type": "word",
+            "text": "км",
+            "start": 9,
+            "end": 11
+          }
+        ],
+        "candidates": [
+          {
+            "kind": "length",
+            "unit": "m",
+            "weight": 0,
+            "form": "м"
+          },
+          {
+            "kind": "length",
+            "unit": "km",
+            "weight": 0,
+            "form": "км"
+          }
+        ],
+        "assignments": [
+          {
+            "kind": "length",
+            "score": 30,
+            "confidence": 1,
+            "units": ["m", "km"],
+            "contributions": [
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "contextBonus",
+                "value": 30,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "км",
+          "span": {
+            "start": 9,
+            "end": 11
+          },
+          "text": "10 м + 5 кілометрів",
+          "kind": "length",
+          "unit": "km",
+          "score": 13
+        },
+        {
+          "alias": "км2",
+          "span": {
+            "start": 9,
+            "end": 11
+          },
+          "text": "10 м + 5 км2",
+          "kind": "area",
+          "unit": "km2",
+          "score": 2
+        }
+      ]
+    },
+    "coerce": {
+      "ok": {
+        "kind": "length",
+        "canonical": "5010",
+        "unit": "m"
+      }
+    }
+  },
+  "2 км в м": {
+    "evaluate": {
+      "ok": {
+        "kind": "length",
+        "canonical": "2000",
+        "unit": "m",
+        "formatted": "2 000 метрів",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 8
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "length",
+          "canonical": "2000",
+          "formatted": "2 000 метрів",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "2",
+            "start": 0,
+            "end": 1
+          },
+          {
+            "type": "word",
+            "text": "км",
+            "start": 2,
+            "end": 4
+          },
+          {
+            "type": "keyword",
+            "keyword": "in",
+            "start": 5,
+            "end": 6
+          },
+          {
+            "type": "word",
+            "text": "м",
+            "start": 7,
+            "end": 8
+          }
+        ],
+        "candidates": [
+          {
+            "kind": "length",
+            "unit": "m",
+            "weight": 0,
+            "form": "м"
+          },
+          {
+            "kind": "length",
+            "unit": "km",
+            "weight": 0,
+            "form": "км"
+          }
+        ],
+        "assignments": [
+          {
+            "kind": "length",
+            "score": 0,
+            "confidence": 1,
+            "units": ["m", "km"],
+            "contributions": [
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "contextBonus",
+                "value": 0,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "м",
+          "span": {
+            "start": 7,
+            "end": 8
+          },
+          "text": "2 км в метр",
+          "kind": "length",
+          "unit": "m",
+          "score": 10
+        },
+        {
+          "alias": "м2",
+          "span": {
+            "start": 7,
+            "end": 8
+          },
+          "text": "2 км в м2",
+          "kind": "area",
+          "unit": "m2",
+          "score": -1
+        },
+        {
+          "alias": "мб",
+          "span": {
+            "start": 7,
+            "end": 8
+          },
+          "text": "2 км в мегабайт",
+          "kind": "datasize",
+          "unit": "mb",
+          "score": -1
+        },
+        {
+          "alias": "мс",
+          "span": {
+            "start": 7,
+            "end": 8
+          },
+          "text": "2 км в мілісекунда",
+          "kind": "duration",
+          "unit": "ms",
+          "score": -1
+        },
+        {
+          "alias": "мм",
+          "span": {
+            "start": 7,
+            "end": 8
+          },
+          "text": "2 км в міліметр",
+          "kind": "length",
+          "unit": "mm",
+          "score": -1
+        },
+        {
+          "alias": "мг",
+          "span": {
+            "start": 7,
+            "end": 8
+          },
+          "text": "2 км в міліграм",
+          "kind": "mass",
+          "unit": "mg",
+          "score": -1
+        },
+        {
+          "alias": "м3",
+          "span": {
+            "start": 7,
+            "end": 8
+          },
+          "text": "2 км в м3",
+          "kind": "volume",
+          "unit": "m3",
+          "score": -1
+        },
+        {
+          "alias": "мл",
+          "span": {
+            "start": 7,
+            "end": 8
+          },
+          "text": "2 км в мілілітр",
+          "kind": "volume",
+          "unit": "ml",
+          "score": -1
+        },
+        {
+          "alias": "міб",
+          "span": {
+            "start": 7,
+            "end": 8
+          },
+          "text": "2 км в мебібайт",
+          "kind": "datasize",
+          "unit": "mib",
+          "score": -2
+        },
+        {
+          "alias": "мдж",
+          "span": {
+            "start": 7,
+            "end": 8
+          },
+          "text": "2 км в мегаджоуль",
+          "kind": "energy",
+          "unit": "mj",
+          "score": -2
+        }
+      ]
+    },
+    "coerce": {
+      "ok": {
+        "kind": "length",
+        "canonical": "2000",
+        "unit": "m"
+      }
+    }
+  },
+  "10 км * 3": {
+    "evaluate": {
+      "ok": {
+        "kind": "length",
+        "canonical": "30000",
+        "unit": "km",
+        "formatted": "30 кілометрів",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 9
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "length",
+          "canonical": "30000",
+          "formatted": "30 кілометрів",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "10",
+            "start": 0,
+            "end": 2
+          },
+          {
+            "type": "word",
+            "text": "км",
+            "start": 3,
+            "end": 5
+          },
+          {
+            "type": "op",
+            "op": "*",
+            "start": 6,
+            "end": 7
+          },
+          {
+            "type": "number",
+            "text": "3",
+            "start": 8,
+            "end": 9
+          }
+        ],
+        "candidates": [
+          {
+            "kind": "length",
+            "unit": "km",
+            "weight": 0,
+            "form": "км"
+          }
+        ],
+        "assignments": [
+          {
+            "kind": "length",
+            "score": 0,
+            "confidence": 1,
+            "units": ["km"],
+            "contributions": [
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "contextBonus",
+                "value": 0,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": []
+    },
+    "coerce": {
+      "ok": {
+        "kind": "length",
+        "canonical": "30000",
+        "unit": "km"
+      }
+    }
+  },
+  "(1 + 2) * 3": {
+    "evaluate": {
+      "ok": {
+        "kind": "number",
+        "canonical": "9",
+        "unit": "one",
+        "formatted": "9",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 1,
+            "end": 11
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "number",
+          "canonical": "9",
+          "formatted": "9",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "lparen",
+            "start": 0,
+            "end": 1
+          },
+          {
+            "type": "number",
+            "text": "1",
+            "start": 1,
+            "end": 2
+          },
+          {
+            "type": "op",
+            "op": "+",
+            "start": 3,
+            "end": 4
+          },
+          {
+            "type": "number",
+            "text": "2",
+            "start": 5,
+            "end": 6
+          },
+          {
+            "type": "rparen",
+            "start": 6,
+            "end": 7
+          },
+          {
+            "type": "op",
+            "op": "*",
+            "start": 8,
+            "end": 9
+          },
+          {
+            "type": "number",
+            "text": "3",
+            "start": 10,
+            "end": 11
+          }
+        ],
+        "candidates": [],
+        "assignments": [
+          {
+            "kind": "number",
+            "score": 0,
+            "confidence": 1,
+            "units": [],
+            "contributions": [
+              {
+                "selector": "contextBonus",
+                "value": 0,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": []
+    },
+    "coerce": {
+      "ok": {
+        "kind": "number",
+        "canonical": "9",
+        "unit": "one"
+      }
+    }
+  },
+  "-5 км": {
+    "evaluate": {
+      "ok": {
+        "kind": "length",
+        "canonical": "-5000",
+        "unit": "km",
+        "formatted": "-5 кілометрів",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 5
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "length",
+          "canonical": "-5000",
+          "formatted": "-5 кілометрів",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "op",
+            "op": "-",
+            "start": 0,
+            "end": 1
+          },
+          {
+            "type": "number",
+            "text": "5",
+            "start": 1,
+            "end": 2
+          },
+          {
+            "type": "word",
+            "text": "км",
+            "start": 3,
+            "end": 5
+          }
+        ],
+        "candidates": [
+          {
+            "kind": "length",
+            "unit": "km",
+            "weight": 0,
+            "form": "км"
+          }
+        ],
+        "assignments": [
+          {
+            "kind": "length",
+            "score": 0,
+            "confidence": 1,
+            "units": ["km"],
+            "contributions": [
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "contextBonus",
+                "value": 0,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "км",
+          "span": {
+            "start": 3,
+            "end": 5
+          },
+          "text": "-5 кілометрів",
+          "kind": "length",
+          "unit": "km",
+          "score": 13
+        },
+        {
+          "alias": "км2",
+          "span": {
+            "start": 3,
+            "end": 5
+          },
+          "text": "-5 км2",
+          "kind": "area",
+          "unit": "km2",
+          "score": 2
+        }
+      ]
+    },
+    "coerce": {
+      "ok": {
+        "kind": "length",
+        "canonical": "-5000",
+        "unit": "km"
+      }
+    }
+  },
+  "1 500 г": {
+    "evaluate": {
+      "ok": {
+        "kind": "mass",
+        "canonical": "1500",
+        "unit": "g",
+        "formatted": "1 500 грамів",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 7
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "mass",
+          "canonical": "1500",
+          "formatted": "1 500 грамів",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "1 500",
+            "start": 0,
+            "end": 5
+          },
+          {
+            "type": "word",
+            "text": "г",
+            "start": 6,
+            "end": 7
+          }
+        ],
+        "candidates": [
+          {
+            "kind": "mass",
+            "unit": "g",
+            "weight": 0,
+            "form": "г"
+          }
+        ],
+        "assignments": [
+          {
+            "kind": "mass",
+            "score": 0,
+            "confidence": 1,
+            "units": ["g"],
+            "contributions": [
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "contextBonus",
+                "value": 0,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "г",
+          "span": {
+            "start": 6,
+            "end": 7
+          },
+          "text": "1 500 грамів",
+          "kind": "mass",
+          "unit": "g",
+          "score": 10
+        },
+        {
+          "alias": "га",
+          "span": {
+            "start": 6,
+            "end": 7
+          },
+          "text": "1 500 гектарів",
+          "kind": "area",
+          "unit": "hectare",
+          "score": -1
+        },
+        {
+          "alias": "гб",
+          "span": {
+            "start": 6,
+            "end": 7
+          },
+          "text": "1 500 гігабайтів",
+          "kind": "datasize",
+          "unit": "gb",
+          "score": -1
+        },
+        {
+          "alias": "гц",
+          "span": {
+            "start": 6,
+            "end": 7
+          },
+          "text": "1 500 герців",
+          "kind": "tempo",
+          "unit": "hz",
+          "score": -1
+        },
+        {
+          "alias": "гон",
+          "span": {
+            "start": 6,
+            "end": 7
+          },
+          "text": "1 500 градів",
+          "kind": "angle",
+          "unit": "grad",
+          "score": -2
+        },
+        {
+          "alias": "гіб",
+          "span": {
+            "start": 6,
+            "end": 7
+          },
+          "text": "1 500 гібібайтів",
+          "kind": "datasize",
+          "unit": "gib",
+          "score": -2
+        },
+        {
+          "alias": "год",
+          "span": {
+            "start": 6,
+            "end": 7
+          },
+          "text": "1 500 годин",
+          "kind": "duration",
+          "unit": "h",
+          "score": -2
+        },
+        {
+          "alias": "гвт",
+          "span": {
+            "start": 6,
+            "end": 7
+          },
+          "text": "1 500 гігаватів",
+          "kind": "power",
+          "unit": "gw",
+          "score": -2
+        },
+        {
+          "alias": "гал",
+          "span": {
+            "start": 6,
+            "end": 7
+          },
+          "text": "1 500 галонів",
+          "kind": "volume",
+          "unit": "gal",
+          "score": -2
+        },
+        {
+          "alias": "гбіт",
+          "span": {
+            "start": 6,
+            "end": 7
+          },
+          "text": "1 500 гбіт",
+          "kind": "datarate",
+          "unit": "gbps",
+          "score": -3
+        }
+      ]
+    },
+    "coerce": {
+      "ok": {
+        "kind": "mass",
+        "canonical": "1500",
+        "unit": "g"
+      }
+    }
+  },
+  "12 дюймів": {
+    "evaluate": {
+      "ok": {
+        "kind": "length",
+        "canonical": "0.3048",
+        "unit": "in",
+        "formatted": "12 дюймів",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 9
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "length",
+          "canonical": "0.3048",
+          "formatted": "12 дюймів",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "12",
+            "start": 0,
+            "end": 2
+          },
+          {
+            "type": "word",
+            "text": "дюймів",
+            "start": 3,
+            "end": 9
+          }
+        ],
+        "candidates": [
+          {
+            "kind": "length",
+            "unit": "in",
+            "weight": 0,
+            "form": "дюймів"
+          }
+        ],
+        "assignments": [
+          {
+            "kind": "length",
+            "score": 0,
+            "confidence": 1,
+            "units": ["in"],
+            "contributions": [
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "contextBonus",
+                "value": 0,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "дюймів",
+          "span": {
+            "start": 3,
+            "end": 9
+          },
+          "text": "12 дюймів",
+          "kind": "length",
+          "unit": "in",
+          "score": 13
+        }
+      ]
+    },
+    "coerce": {
+      "ok": {
+        "kind": "length",
+        "canonical": "0.3048",
+        "unit": "in"
+      }
+    }
+  },
+  "3 фунти": {
+    "evaluate": {
+      "ok": {
+        "kind": "mass",
+        "canonical": "1360.77711",
+        "unit": "lb",
+        "formatted": "3 фунти",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 7
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "mass",
+          "canonical": "1360.77711",
+          "formatted": "3 фунти",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "3",
+            "start": 0,
+            "end": 1
+          },
+          {
+            "type": "word",
+            "text": "фунти",
+            "start": 2,
+            "end": 7
+          }
+        ],
+        "candidates": [
+          {
+            "kind": "mass",
+            "unit": "lb",
+            "weight": 0,
+            "form": "фунти"
+          }
+        ],
+        "assignments": [
+          {
+            "kind": "mass",
+            "score": 0,
+            "confidence": 1,
+            "units": ["lb"],
+            "contributions": [
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "contextBonus",
+                "value": 0,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "фунти",
+          "span": {
+            "start": 2,
+            "end": 7
+          },
+          "text": "3 фунти",
+          "kind": "mass",
+          "unit": "lb",
+          "score": 13
+        }
+      ]
+    },
+    "coerce": {
+      "ok": {
+        "kind": "mass",
+        "canonical": "1360.77711",
+        "unit": "lb"
+      }
+    }
+  },
+  "2 тиж": {
+    "evaluate": {
+      "ok": {
+        "kind": "duration",
+        "canonical": "1209600",
+        "unit": "wk",
+        "formatted": "2 тижні",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 5
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "duration",
+          "canonical": "1209600",
+          "formatted": "2 тижні",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "2",
+            "start": 0,
+            "end": 1
+          },
+          {
+            "type": "word",
+            "text": "тиж",
+            "start": 2,
+            "end": 5
+          }
+        ],
+        "candidates": [
+          {
+            "kind": "duration",
+            "unit": "wk",
+            "weight": 0,
+            "form": "тиж"
+          }
+        ],
+        "assignments": [
+          {
+            "kind": "duration",
+            "score": 0,
+            "confidence": 1,
+            "units": ["wk"],
+            "contributions": [
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "contextBonus",
+                "value": 0,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "тиж",
+          "span": {
+            "start": 2,
+            "end": 5
+          },
+          "text": "2 тижні",
+          "kind": "duration",
+          "unit": "wk",
+          "score": 13
+        }
+      ]
+    },
+    "coerce": {
+      "ok": {
+        "kind": "duration",
+        "canonical": "1209600",
+        "unit": "wk"
+      }
+    }
+  },
+  "1,5 кілограма": {
+    "evaluate": {
+      "ok": {
+        "kind": "mass",
+        "canonical": "1500",
+        "unit": "kg",
+        "formatted": "1,5 кілограма",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 13
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "mass",
+          "canonical": "1500",
+          "formatted": "1,5 кілограма",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "1,5",
+            "start": 0,
+            "end": 3
+          },
+          {
+            "type": "word",
+            "text": "кілограма",
+            "start": 4,
+            "end": 13
+          }
+        ],
+        "candidates": [
+          {
+            "kind": "mass",
+            "unit": "kg",
+            "weight": 0,
+            "form": "кілограма"
+          }
+        ],
+        "assignments": [
+          {
+            "kind": "mass",
+            "score": 0,
+            "confidence": 1,
+            "units": ["kg"],
+            "contributions": [
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "contextBonus",
+                "value": 0,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "кілограма",
+          "span": {
+            "start": 4,
+            "end": 13
+          },
+          "text": "1,5 кілограма",
+          "kind": "mass",
+          "unit": "kg",
+          "score": 13
+        }
+      ]
+    },
+    "coerce": {
+      "ok": {
+        "kind": "mass",
+        "canonical": "1500",
+        "unit": "kg"
+      }
+    }
+  },
+  "1,5 кг": {
+    "evaluate": {
+      "ok": {
+        "kind": "mass",
+        "canonical": "1500",
+        "unit": "kg",
+        "formatted": "1,5 кілограма",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 6
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "mass",
+          "canonical": "1500",
+          "formatted": "1,5 кілограма",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "1,5",
+            "start": 0,
+            "end": 3
+          },
+          {
+            "type": "word",
+            "text": "кг",
+            "start": 4,
+            "end": 6
+          }
+        ],
+        "candidates": [
+          {
+            "kind": "mass",
+            "unit": "kg",
+            "weight": 0,
+            "form": "кг"
+          }
+        ],
+        "assignments": [
+          {
+            "kind": "mass",
+            "score": 0,
+            "confidence": 1,
+            "units": ["kg"],
+            "contributions": [
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "contextBonus",
+                "value": 0,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "кг",
+          "span": {
+            "start": 4,
+            "end": 6
+          },
+          "text": "1,5 кілограма",
+          "kind": "mass",
+          "unit": "kg",
+          "score": 13
+        }
+      ]
+    },
+    "coerce": {
+      "ok": {
+        "kind": "mass",
+        "canonical": "1500",
+        "unit": "kg"
+      }
+    }
+  },
+  "1234567890123456789,0625 км": {
+    "evaluate": {
+      "ok": {
+        "kind": "length",
+        "canonical": "1234567890123456789062.5",
+        "unit": "km",
+        "formatted": "1 234 567 890 123 456 789,0625 кілометрів",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 27
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "length",
+          "canonical": "1234567890123456789062.5",
+          "formatted": "1 234 567 890 123 456 789,0625 кілометрів",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "1234567890123456789,0625",
+            "start": 0,
+            "end": 24
+          },
+          {
+            "type": "word",
+            "text": "км",
+            "start": 25,
+            "end": 27
+          }
+        ],
+        "candidates": [
+          {
+            "kind": "length",
+            "unit": "km",
+            "weight": 0,
+            "form": "км"
+          }
+        ],
+        "assignments": [
+          {
+            "kind": "length",
+            "score": 0,
+            "confidence": 1,
+            "units": ["km"],
+            "contributions": [
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "contextBonus",
+                "value": 0,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "км",
+          "span": {
+            "start": 25,
+            "end": 27
+          },
+          "text": "1234567890123456789,0625 кілометрів",
+          "kind": "length",
+          "unit": "km",
+          "score": 10
+        },
+        {
+          "alias": "км2",
+          "span": {
+            "start": 25,
+            "end": 27
+          },
+          "text": "1234567890123456789,0625 км2",
+          "kind": "area",
+          "unit": "km2",
+          "score": -1
+        }
+      ]
+    },
+    "coerce": {
+      "ok": {
+        "kind": "length",
+        "canonical": "1234567890123456789062.5",
+        "unit": "km"
+      }
+    }
+  },
+  "1 234 567 890 123 456 789 г": {
+    "evaluate": {
+      "ok": {
+        "kind": "mass",
+        "canonical": "1234567890123456789",
+        "unit": "g",
+        "formatted": "1 234 567 890 123 456 789 грамів",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 27
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "mass",
+          "canonical": "1234567890123456789",
+          "formatted": "1 234 567 890 123 456 789 грамів",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "1 234 567 890 123 456 789",
+            "start": 0,
+            "end": 25
+          },
+          {
+            "type": "word",
+            "text": "г",
+            "start": 26,
+            "end": 27
+          }
+        ],
+        "candidates": [
+          {
+            "kind": "mass",
+            "unit": "g",
+            "weight": 0,
+            "form": "г"
+          }
+        ],
+        "assignments": [
+          {
+            "kind": "mass",
+            "score": 0,
+            "confidence": 1,
+            "units": ["g"],
+            "contributions": [
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "contextBonus",
+                "value": 0,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "г",
+          "span": {
+            "start": 26,
+            "end": 27
+          },
+          "text": "1 234 567 890 123 456 789 грамів",
+          "kind": "mass",
+          "unit": "g",
+          "score": 10
+        },
+        {
+          "alias": "га",
+          "span": {
+            "start": 26,
+            "end": 27
+          },
+          "text": "1 234 567 890 123 456 789 гектарів",
+          "kind": "area",
+          "unit": "hectare",
+          "score": -1
+        },
+        {
+          "alias": "гб",
+          "span": {
+            "start": 26,
+            "end": 27
+          },
+          "text": "1 234 567 890 123 456 789 гігабайтів",
+          "kind": "datasize",
+          "unit": "gb",
+          "score": -1
+        },
+        {
+          "alias": "гц",
+          "span": {
+            "start": 26,
+            "end": 27
+          },
+          "text": "1 234 567 890 123 456 789 герців",
+          "kind": "tempo",
+          "unit": "hz",
+          "score": -1
+        },
+        {
+          "alias": "гон",
+          "span": {
+            "start": 26,
+            "end": 27
+          },
+          "text": "1 234 567 890 123 456 789 градів",
+          "kind": "angle",
+          "unit": "grad",
+          "score": -2
+        },
+        {
+          "alias": "гіб",
+          "span": {
+            "start": 26,
+            "end": 27
+          },
+          "text": "1 234 567 890 123 456 789 гібібайтів",
+          "kind": "datasize",
+          "unit": "gib",
+          "score": -2
+        },
+        {
+          "alias": "год",
+          "span": {
+            "start": 26,
+            "end": 27
+          },
+          "text": "1 234 567 890 123 456 789 годин",
+          "kind": "duration",
+          "unit": "h",
+          "score": -2
+        },
+        {
+          "alias": "гвт",
+          "span": {
+            "start": 26,
+            "end": 27
+          },
+          "text": "1 234 567 890 123 456 789 гігаватів",
+          "kind": "power",
+          "unit": "gw",
+          "score": -2
+        },
+        {
+          "alias": "гал",
+          "span": {
+            "start": 26,
+            "end": 27
+          },
+          "text": "1 234 567 890 123 456 789 галонів",
+          "kind": "volume",
+          "unit": "gal",
+          "score": -2
+        },
+        {
+          "alias": "гбіт",
+          "span": {
+            "start": 26,
+            "end": 27
+          },
+          "text": "1 234 567 890 123 456 789 гбіт",
+          "kind": "datarate",
+          "unit": "gbps",
+          "score": -3
+        }
+      ]
+    },
+    "coerce": {
+      "ok": {
+        "kind": "mass",
+        "canonical": "1234567890123456789",
+        "unit": "g"
+      }
+    }
+  },
+  "212 F в C": {
+    "evaluate": {
+      "ok": {
+        "kind": "temperature",
+        "canonical": "100",
+        "unit": "c",
+        "formatted": "100°C",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 9
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "temperature",
+          "canonical": "100",
+          "formatted": "100°C",
+          "confidence": 1
+        },
+        {
+          "kind": "tempdelta",
+          "canonical": "117.7777777777777777777777778",
+          "formatted": "117,77777777777777777777778°C",
+          "confidence": 1.8048513878454153e-35
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "212",
+            "start": 0,
+            "end": 3
+          },
+          {
+            "type": "word",
+            "text": "F",
+            "start": 4,
+            "end": 5
+          },
+          {
+            "type": "keyword",
+            "keyword": "in",
+            "start": 6,
+            "end": 7
+          },
+          {
+            "type": "word",
+            "text": "C",
+            "start": 8,
+            "end": 9
+          }
+        ],
+        "candidates": [
+          {
+            "kind": "temperature",
+            "unit": "c",
+            "weight": 0,
+            "form": "C"
+          },
+          {
+            "kind": "temperature",
+            "unit": "f",
+            "weight": 0,
+            "form": "F"
+          },
+          {
+            "kind": "tempdelta",
+            "unit": "c",
+            "weight": -40,
+            "form": "C"
+          },
+          {
+            "kind": "tempdelta",
+            "unit": "f",
+            "weight": -40,
+            "form": "F"
+          }
+        ],
+        "assignments": [
+          {
+            "kind": "temperature",
+            "score": 0,
+            "confidence": 1,
+            "units": ["c", "f"],
+            "contributions": [
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "contextBonus",
+                "value": 0,
+                "layer": 0
+              }
+            ]
+          },
+          {
+            "kind": "tempdelta",
+            "score": -80,
+            "confidence": 1.8048513878454153e-35,
+            "units": ["c", "f"],
+            "contributions": [
+              {
+                "selector": "prior",
+                "value": -40,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "prior",
+                "value": -40,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "contextBonus",
+                "value": 0,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "c",
+          "span": {
+            "start": 8,
+            "end": 9
+          },
+          "text": "212 F в c",
+          "kind": "temperature",
+          "unit": "c",
+          "score": 10
+        },
+        {
+          "alias": "cm",
+          "span": {
+            "start": 8,
+            "end": 9
+          },
+          "text": "212 F в сантиметр",
+          "kind": "length",
+          "unit": "cm",
+          "score": -1
+        },
+        {
+          "alias": "cm2",
+          "span": {
+            "start": 8,
+            "end": 9
+          },
+          "text": "212 F в cm2",
+          "kind": "area",
+          "unit": "cm2",
+          "score": -2
+        },
+        {
+          "alias": "cal",
+          "span": {
+            "start": 8,
+            "end": 9
+          },
+          "text": "212 F в калорія",
+          "kind": "energy",
+          "unit": "cal",
+          "score": -2
+        },
+        {
+          "alias": "c",
+          "span": {
+            "start": 8,
+            "end": 9
+          },
+          "text": "212 F в c",
+          "kind": "tempdelta",
+          "unit": "c",
+          "score": -30
+        }
+      ]
+    },
+    "coerce": {
+      "ok": {
+        "kind": "temperature",
+        "canonical": "100",
+        "unit": "c"
+      }
+    }
+  },
+  "30 C - 20 C": {
+    "evaluate": {
+      "ok": {
+        "kind": "tempdelta",
+        "canonical": "10",
+        "unit": "c",
+        "formatted": "10°C",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 11
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "tempdelta",
+          "canonical": "10",
+          "formatted": "10°C",
+          "confidence": 1
+        },
+        {
+          "kind": "temperature",
+          "canonical": "10",
+          "formatted": "10°C",
+          "confidence": 3.975449735908647e-31
+        },
+        {
+          "kind": "tempdelta",
+          "canonical": "10",
+          "formatted": "10°C",
+          "confidence": 1.8048513878454153e-35
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "30",
+            "start": 0,
+            "end": 2
+          },
+          {
+            "type": "word",
+            "text": "C",
+            "start": 3,
+            "end": 4
+          },
+          {
+            "type": "op",
+            "op": "-",
+            "start": 5,
+            "end": 6
+          },
+          {
+            "type": "number",
+            "text": "20",
+            "start": 7,
+            "end": 9
+          },
+          {
+            "type": "word",
+            "text": "C",
+            "start": 10,
+            "end": 11
+          }
+        ],
+        "candidates": [
+          {
+            "kind": "temperature",
+            "unit": "c",
+            "weight": 0,
+            "form": "C"
+          },
+          {
+            "kind": "tempdelta",
+            "unit": "c",
+            "weight": -40,
+            "form": "C"
+          }
+        ],
+        "assignments": [
+          {
+            "kind": "tempdelta",
+            "score": 30,
+            "confidence": 1,
+            "units": ["c", "c"],
+            "contributions": [
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "contextBonus",
+                "value": 30,
+                "layer": 0
+              }
+            ]
+          },
+          {
+            "kind": "temperature",
+            "score": -40,
+            "confidence": 3.975449735908647e-31,
+            "units": ["c", "c"],
+            "contributions": [
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "prior",
+                "value": -40,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "contextBonus",
+                "value": 0,
+                "layer": 0
+              }
+            ]
+          },
+          {
+            "kind": "tempdelta",
+            "score": -50,
+            "confidence": 1.8048513878454153e-35,
+            "units": ["c", "c"],
+            "contributions": [
+              {
+                "selector": "prior",
+                "value": -40,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "prior",
+                "value": -40,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "contextBonus",
+                "value": 30,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "c",
+          "span": {
+            "start": 10,
+            "end": 11
+          },
+          "text": "30 C - 20 c",
+          "kind": "temperature",
+          "unit": "c",
+          "score": 13
+        },
+        {
+          "alias": "cm",
+          "span": {
+            "start": 10,
+            "end": 11
+          },
+          "text": "30 C - 20 сантиметрів",
+          "kind": "length",
+          "unit": "cm",
+          "score": 2
+        },
+        {
+          "alias": "cm2",
+          "span": {
+            "start": 10,
+            "end": 11
+          },
+          "text": "30 C - 20 cm2",
+          "kind": "area",
+          "unit": "cm2",
+          "score": 1
+        },
+        {
+          "alias": "cal",
+          "span": {
+            "start": 10,
+            "end": 11
+          },
+          "text": "30 C - 20 калорій",
+          "kind": "energy",
+          "unit": "cal",
+          "score": 1
+        },
+        {
+          "alias": "c",
+          "span": {
+            "start": 10,
+            "end": 11
+          },
+          "text": "30 C - 20 c",
+          "kind": "tempdelta",
+          "unit": "c",
+          "score": -27
+        }
+      ]
+    },
+    "coerce": {
+      "ok": {
+        "kind": "tempdelta",
+        "canonical": "10",
+        "unit": "c"
+      }
+    }
+  },
+  "20% від 50": {
+    "evaluate": {
+      "ok": {
+        "kind": "number",
+        "canonical": "10",
+        "unit": "one",
+        "formatted": "10",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 10
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "number",
+          "canonical": "10",
+          "formatted": "10",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "20",
+            "start": 0,
+            "end": 2
+          },
+          {
+            "type": "word",
+            "text": "%",
+            "start": 2,
+            "end": 3
+          },
+          {
+            "type": "keyword",
+            "keyword": "of",
+            "start": 4,
+            "end": 7
+          },
+          {
+            "type": "number",
+            "text": "50",
+            "start": 8,
+            "end": 10
+          }
+        ],
+        "candidates": [
+          {
+            "kind": "percent",
+            "unit": "%",
+            "weight": 0,
+            "form": "%"
+          }
+        ],
+        "assignments": [
+          {
+            "kind": "number",
+            "score": 0,
+            "confidence": 1,
+            "units": ["%"],
+            "contributions": [
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "contextBonus",
+                "value": 0,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": []
+    },
+    "coerce": {
+      "error": "NoCandidateError: Unknown unit \"20% від 50\""
+    }
+  },
+  "50 + 20%": {
+    "evaluate": {
+      "ok": {
+        "kind": "number",
+        "canonical": "60",
+        "unit": "one",
+        "formatted": "60",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 8
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "number",
+          "canonical": "60",
+          "formatted": "60",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "50",
+            "start": 0,
+            "end": 2
+          },
+          {
+            "type": "op",
+            "op": "+",
+            "start": 3,
+            "end": 4
+          },
+          {
+            "type": "number",
+            "text": "20",
+            "start": 5,
+            "end": 7
+          },
+          {
+            "type": "word",
+            "text": "%",
+            "start": 7,
+            "end": 8
+          }
+        ],
+        "candidates": [
+          {
+            "kind": "percent",
+            "unit": "%",
+            "weight": 0,
+            "form": "%"
+          }
+        ],
+        "assignments": [
+          {
+            "kind": "number",
+            "score": 0,
+            "confidence": 1,
+            "units": ["%"],
+            "contributions": [
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "contextBonus",
+                "value": 0,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": []
+    },
+    "coerce": {
+      "error": "NoCandidateError: Unknown unit \"50 + 20%\""
+    }
+  },
+  "90 градусів в радіани": {
+    "evaluate": {
+      "ok": {
+        "kind": "angle",
+        "canonical": "1.570796326794896619231321692",
+        "unit": "rad",
+        "formatted": "1,5707963267948966192313217 радіана",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 21
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "angle",
+          "canonical": "1.570796326794896619231321692",
+          "formatted": "1,5707963267948966192313217 радіана",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "90",
+            "start": 0,
+            "end": 2
+          },
+          {
+            "type": "word",
+            "text": "градусів",
+            "start": 3,
+            "end": 11
+          },
+          {
+            "type": "keyword",
+            "keyword": "in",
+            "start": 12,
+            "end": 13
+          },
+          {
+            "type": "word",
+            "text": "радіани",
+            "start": 14,
+            "end": 21
+          }
+        ],
+        "candidates": [
+          {
+            "kind": "angle",
+            "unit": "rad",
+            "weight": 0,
+            "form": "радіани"
+          },
+          {
+            "kind": "angle",
+            "unit": "deg",
+            "weight": 0,
+            "form": "градусів"
+          }
+        ],
+        "assignments": [
+          {
+            "kind": "angle",
+            "score": 0,
+            "confidence": 1,
+            "units": ["rad", "deg"],
+            "contributions": [
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "contextBonus",
+                "value": 0,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "радіани",
+          "span": {
+            "start": 14,
+            "end": 21
+          },
+          "text": "90 градусів в радіан",
+          "kind": "angle",
+          "unit": "rad",
+          "score": 10
+        }
+      ]
+    },
+    "coerce": {
+      "ok": {
+        "kind": "angle",
+        "canonical": "1.570796326794896619231321692",
+        "unit": "rad"
+      }
+    }
+  },
+  "1 кіб в б": {
+    "evaluate": {
+      "ok": {
+        "kind": "datasize",
+        "canonical": "1024",
+        "unit": "b",
+        "formatted": "1 024 байти",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 9
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "datasize",
+          "canonical": "1024",
+          "formatted": "1 024 байти",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "1",
+            "start": 0,
+            "end": 1
+          },
+          {
+            "type": "word",
+            "text": "кіб",
+            "start": 2,
+            "end": 5
+          },
+          {
+            "type": "keyword",
+            "keyword": "in",
+            "start": 6,
+            "end": 7
+          },
+          {
+            "type": "word",
+            "text": "б",
+            "start": 8,
+            "end": 9
+          }
+        ],
+        "candidates": [
+          {
+            "kind": "datasize",
+            "unit": "b",
+            "weight": 0,
+            "form": "б"
+          },
+          {
+            "kind": "datasize",
+            "unit": "kib",
+            "weight": 0,
+            "form": "кіб"
+          }
+        ],
+        "assignments": [
+          {
+            "kind": "datasize",
+            "score": 0,
+            "confidence": 1,
+            "units": ["b", "kib"],
+            "contributions": [
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "contextBonus",
+                "value": 0,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "б",
+          "span": {
+            "start": 8,
+            "end": 9
+          },
+          "text": "1 кіб в байт",
+          "kind": "datasize",
+          "unit": "b",
+          "score": 10
+        },
+        {
+          "alias": "біт",
+          "span": {
+            "start": 8,
+            "end": 9
+          },
+          "text": "1 кіб в біт",
+          "kind": "datarate",
+          "unit": "bps",
+          "score": -2
+        },
+        {
+          "alias": "бпм",
+          "span": {
+            "start": 8,
+            "end": 9
+          },
+          "text": "1 кіб в бпм",
+          "kind": "tempo",
+          "unit": "bpm",
+          "score": -2
+        }
+      ]
+    },
+    "coerce": {
+      "ok": {
+        "kind": "datasize",
+        "canonical": "1024",
+        "unit": "b"
+      }
+    }
+  },
+  "3 м * 4 м": {
+    "evaluate": {
+      "ok": {
+        "kind": "area",
+        "canonical": "12",
+        "unit": "m2",
+        "formatted": "12м²",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 9
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "area",
+          "canonical": "12",
+          "formatted": "12м²",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "3",
+            "start": 0,
+            "end": 1
+          },
+          {
+            "type": "word",
+            "text": "м",
+            "start": 2,
+            "end": 3
+          },
+          {
+            "type": "op",
+            "op": "*",
+            "start": 4,
+            "end": 5
+          },
+          {
+            "type": "number",
+            "text": "4",
+            "start": 6,
+            "end": 7
+          },
+          {
+            "type": "word",
+            "text": "м",
+            "start": 8,
+            "end": 9
+          }
+        ],
+        "candidates": [
+          {
+            "kind": "length",
+            "unit": "m",
+            "weight": 0,
+            "form": "м"
+          }
+        ],
+        "assignments": [
+          {
+            "kind": "area",
+            "score": 30,
+            "confidence": 1,
+            "units": ["m", "m"],
+            "contributions": [
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "contextBonus",
+                "value": 30,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "м",
+          "span": {
+            "start": 8,
+            "end": 9
+          },
+          "text": "3 м * 4 метри",
+          "kind": "length",
+          "unit": "m",
+          "score": 13
+        },
+        {
+          "alias": "м2",
+          "span": {
+            "start": 8,
+            "end": 9
+          },
+          "text": "3 м * 4 м2",
+          "kind": "area",
+          "unit": "m2",
+          "score": 2
+        },
+        {
+          "alias": "мб",
+          "span": {
+            "start": 8,
+            "end": 9
+          },
+          "text": "3 м * 4 мегабайти",
+          "kind": "datasize",
+          "unit": "mb",
+          "score": 2
+        },
+        {
+          "alias": "мс",
+          "span": {
+            "start": 8,
+            "end": 9
+          },
+          "text": "3 м * 4 мілісекунди",
+          "kind": "duration",
+          "unit": "ms",
+          "score": 2
+        },
+        {
+          "alias": "мм",
+          "span": {
+            "start": 8,
+            "end": 9
+          },
+          "text": "3 м * 4 міліметри",
+          "kind": "length",
+          "unit": "mm",
+          "score": 2
+        },
+        {
+          "alias": "мг",
+          "span": {
+            "start": 8,
+            "end": 9
+          },
+          "text": "3 м * 4 міліграми",
+          "kind": "mass",
+          "unit": "mg",
+          "score": 2
+        },
+        {
+          "alias": "м3",
+          "span": {
+            "start": 8,
+            "end": 9
+          },
+          "text": "3 м * 4 м3",
+          "kind": "volume",
+          "unit": "m3",
+          "score": 2
+        },
+        {
+          "alias": "мл",
+          "span": {
+            "start": 8,
+            "end": 9
+          },
+          "text": "3 м * 4 мілілітри",
+          "kind": "volume",
+          "unit": "ml",
+          "score": 2
+        },
+        {
+          "alias": "міб",
+          "span": {
+            "start": 8,
+            "end": 9
+          },
+          "text": "3 м * 4 мебібайти",
+          "kind": "datasize",
+          "unit": "mib",
+          "score": 1
+        },
+        {
+          "alias": "мдж",
+          "span": {
+            "start": 8,
+            "end": 9
+          },
+          "text": "3 м * 4 мегаджоулі",
+          "kind": "energy",
+          "unit": "mj",
+          "score": 1
+        }
+      ]
+    },
+    "coerce": {
+      "error": "NoCandidateError: Unknown unit \"3 м * 4 м\""
+    }
+  },
+  "100 км / 2 год": {
+    "evaluate": {
+      "ok": {
+        "kind": "speed",
+        "canonical": "13.88888888888888888888888889",
+        "unit": "mps",
+        "formatted": "13,888888888888888888888889м/с",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 14
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "speed",
+          "canonical": "13.88888888888888888888888889",
+          "formatted": "13,888888888888888888888889м/с",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "100",
+            "start": 0,
+            "end": 3
+          },
+          {
+            "type": "word",
+            "text": "км",
+            "start": 4,
+            "end": 6
+          },
+          {
+            "type": "op",
+            "op": "/",
+            "start": 7,
+            "end": 8
+          },
+          {
+            "type": "number",
+            "text": "2",
+            "start": 9,
+            "end": 10
+          },
+          {
+            "type": "word",
+            "text": "год",
+            "start": 11,
+            "end": 14
+          }
+        ],
+        "candidates": [
+          {
+            "kind": "length",
+            "unit": "km",
+            "weight": 0,
+            "form": "км"
+          },
+          {
+            "kind": "duration",
+            "unit": "h",
+            "weight": 0,
+            "form": "год"
+          }
+        ],
+        "assignments": [
+          {
+            "kind": "speed",
+            "score": 0,
+            "confidence": 1,
+            "units": ["km", "h"],
+            "contributions": [
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "contextBonus",
+                "value": 0,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "год",
+          "span": {
+            "start": 11,
+            "end": 14
+          },
+          "text": "100 км / 2 години",
+          "kind": "duration",
+          "unit": "h",
+          "score": 13
+        }
+      ]
+    },
+    "coerce": {
+      "error": "NoCandidateError: Unknown unit \"100 км / 2 год\""
+    }
+  },
+  "5 кВт·год": {
+    "evaluate": {
+      "ok": {
+        "kind": "energy",
+        "canonical": "18000000",
+        "unit": "j",
+        "formatted": "18 000 000 джоулів",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 9
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "energy",
+          "canonical": "18000000",
+          "formatted": "18 000 000 джоулів",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "5",
+            "start": 0,
+            "end": 1
+          },
+          {
+            "type": "word",
+            "text": "кВт",
+            "start": 2,
+            "end": 5
+          },
+          {
+            "type": "op",
+            "op": "*",
+            "start": 5,
+            "end": 6
+          },
+          {
+            "type": "word",
+            "text": "год",
+            "start": 6,
+            "end": 9
+          }
+        ],
+        "candidates": [
+          {
+            "kind": "power",
+            "unit": "kw",
+            "weight": 0,
+            "form": "кВт"
+          },
+          {
+            "kind": "duration",
+            "unit": "h",
+            "weight": 0,
+            "form": "год"
+          }
+        ],
+        "assignments": [
+          {
+            "kind": "energy",
+            "score": 0,
+            "confidence": 1,
+            "units": ["kw", "h"],
+            "contributions": [
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "contextBonus",
+                "value": 0,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "год",
+          "span": {
+            "start": 6,
+            "end": 9
+          },
+          "text": "5 кВт·година",
+          "kind": "duration",
+          "unit": "h",
+          "score": 10
+        }
+      ]
+    },
+    "coerce": {
+      "error": "NoCandidateError: Unknown unit \"5 кВт·год\""
+    }
+  },
+  "один кг": {
+    "evaluate": {
+      "ok": {
+        "kind": "mass",
+        "canonical": "1000",
+        "unit": "kg",
+        "formatted": "1 кілограм",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 7
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "mass",
+          "canonical": "1000",
+          "formatted": "1 кілограм",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "один",
+            "start": 0,
+            "end": 4
+          },
+          {
+            "type": "word",
+            "text": "кг",
+            "start": 5,
+            "end": 7
+          }
+        ],
+        "candidates": [
+          {
+            "kind": "mass",
+            "unit": "kg",
+            "weight": 0,
+            "form": "кг"
+          }
+        ],
+        "assignments": [
+          {
+            "kind": "mass",
+            "score": 0,
+            "confidence": 1,
+            "units": ["kg"],
+            "contributions": [
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "contextBonus",
+                "value": 0,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "кг",
+          "span": {
+            "start": 5,
+            "end": 7
+          },
+          "text": "один кілограм",
+          "kind": "mass",
+          "unit": "kg",
+          "score": 13
+        }
+      ]
+    },
+    "coerce": {
+      "ok": {
+        "kind": "mass",
+        "canonical": "1000",
+        "unit": "kg"
+      }
+    }
+  },
+  "одна тисяча тридцять два": {
+    "evaluate": {
+      "ok": {
+        "kind": "number",
+        "canonical": "1032",
+        "unit": "one",
+        "formatted": "1 032",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 24
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "number",
+          "canonical": "1032",
+          "formatted": "1 032",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "одна тисяча тридцять два",
+            "start": 0,
+            "end": 24
+          }
+        ],
+        "candidates": [],
+        "assignments": [
+          {
+            "kind": "number",
+            "score": 0,
+            "confidence": 1,
+            "units": [],
+            "contributions": [
+              {
+                "selector": "contextBonus",
+                "value": 0,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": []
+    },
+    "coerce": {
+      "ok": {
+        "kind": "number",
+        "canonical": "1032",
+        "unit": "one"
+      }
+    }
+  },
+  "двісті п'ять г": {
+    "evaluate": {
+      "ok": {
+        "kind": "mass",
+        "canonical": "205",
+        "unit": "g",
+        "formatted": "205 грамів",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 14
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "mass",
+          "canonical": "205",
+          "formatted": "205 грамів",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "двісті п'ять",
+            "start": 0,
+            "end": 12
+          },
+          {
+            "type": "word",
+            "text": "г",
+            "start": 13,
+            "end": 14
+          }
+        ],
+        "candidates": [
+          {
+            "kind": "mass",
+            "unit": "g",
+            "weight": 0,
+            "form": "г"
+          }
+        ],
+        "assignments": [
+          {
+            "kind": "mass",
+            "score": 0,
+            "confidence": 1,
+            "units": ["g"],
+            "contributions": [
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "contextBonus",
+                "value": 0,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "г",
+          "span": {
+            "start": 13,
+            "end": 14
+          },
+          "text": "двісті п'ять грамів",
+          "kind": "mass",
+          "unit": "g",
+          "score": 13
+        },
+        {
+          "alias": "га",
+          "span": {
+            "start": 13,
+            "end": 14
+          },
+          "text": "двісті п'ять гектарів",
+          "kind": "area",
+          "unit": "hectare",
+          "score": 2
+        },
+        {
+          "alias": "гб",
+          "span": {
+            "start": 13,
+            "end": 14
+          },
+          "text": "двісті п'ять гігабайтів",
+          "kind": "datasize",
+          "unit": "gb",
+          "score": 2
+        },
+        {
+          "alias": "гон",
+          "span": {
+            "start": 13,
+            "end": 14
+          },
+          "text": "двісті п'ять градів",
+          "kind": "angle",
+          "unit": "grad",
+          "score": 1
+        },
+        {
+          "alias": "гіб",
+          "span": {
+            "start": 13,
+            "end": 14
+          },
+          "text": "двісті п'ять гібібайтів",
+          "kind": "datasize",
+          "unit": "gib",
+          "score": 1
+        },
+        {
+          "alias": "гц",
+          "span": {
+            "start": 13,
+            "end": 14
+          },
+          "text": "двісті п'ять герців",
+          "kind": "tempo",
+          "unit": "hz",
+          "score": -1
+        },
+        {
+          "alias": "градус",
+          "span": {
+            "start": 13,
+            "end": 14
+          },
+          "text": "двісті п'ять градусів",
+          "kind": "angle",
+          "unit": "deg",
+          "score": -2
+        },
+        {
+          "alias": "год",
+          "span": {
+            "start": 13,
+            "end": 14
+          },
+          "text": "двісті п'ять годин",
+          "kind": "duration",
+          "unit": "h",
+          "score": -2
+        },
+        {
+          "alias": "гвт",
+          "span": {
+            "start": 13,
+            "end": 14
+          },
+          "text": "двісті п'ять гігаватів",
+          "kind": "power",
+          "unit": "gw",
+          "score": -2
+        },
+        {
+          "alias": "гал",
+          "span": {
+            "start": 13,
+            "end": 14
+          },
+          "text": "двісті п'ять галонів",
+          "kind": "volume",
+          "unit": "gal",
+          "score": -2
+        }
+      ]
+    },
+    "coerce": {
+      "ok": {
+        "kind": "mass",
+        "canonical": "205",
+        "unit": "g"
+      }
+    }
+  },
+  "двадцять два км": {
+    "evaluate": {
+      "ok": {
+        "kind": "length",
+        "canonical": "22000",
+        "unit": "km",
+        "formatted": "22 кілометри",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 15
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "length",
+          "canonical": "22000",
+          "formatted": "22 кілометри",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "двадцять два",
+            "start": 0,
+            "end": 12
+          },
+          {
+            "type": "word",
+            "text": "км",
+            "start": 13,
+            "end": 15
+          }
+        ],
+        "candidates": [
+          {
+            "kind": "length",
+            "unit": "km",
+            "weight": 0,
+            "form": "км"
+          }
+        ],
+        "assignments": [
+          {
+            "kind": "length",
+            "score": 0,
+            "confidence": 1,
+            "units": ["km"],
+            "contributions": [
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "contextBonus",
+                "value": 0,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "км",
+          "span": {
+            "start": 13,
+            "end": 15
+          },
+          "text": "двадцять два кілометри",
+          "kind": "length",
+          "unit": "km",
+          "score": 13
+        },
+        {
+          "alias": "км2",
+          "span": {
+            "start": 13,
+            "end": 15
+          },
+          "text": "двадцять два км2",
+          "kind": "area",
+          "unit": "km2",
+          "score": 2
+        }
+      ]
+    },
+    "coerce": {
+      "ok": {
+        "kind": "length",
+        "canonical": "22000",
+        "unit": "km"
+      }
+    }
+  },
+  "десять км плюс п'ять км": {
+    "evaluate": {
+      "ok": {
+        "kind": "length",
+        "canonical": "15000",
+        "unit": "km",
+        "formatted": "15 кілометрів",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 23
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "length",
+          "canonical": "15000",
+          "formatted": "15 кілометрів",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "десять",
+            "start": 0,
+            "end": 6
+          },
+          {
+            "type": "word",
+            "text": "км",
+            "start": 7,
+            "end": 9
+          },
+          {
+            "type": "op",
+            "op": "+",
+            "start": 10,
+            "end": 14
+          },
+          {
+            "type": "number",
+            "text": "п'ять",
+            "start": 15,
+            "end": 20
+          },
+          {
+            "type": "word",
+            "text": "км",
+            "start": 21,
+            "end": 23
+          }
+        ],
+        "candidates": [
+          {
+            "kind": "length",
+            "unit": "km",
+            "weight": 0,
+            "form": "км"
+          }
+        ],
+        "assignments": [
+          {
+            "kind": "length",
+            "score": 30,
+            "confidence": 1,
+            "units": ["km", "km"],
+            "contributions": [
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "contextBonus",
+                "value": 30,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "км",
+          "span": {
+            "start": 21,
+            "end": 23
+          },
+          "text": "десять км плюс п'ять кілометрів",
+          "kind": "length",
+          "unit": "km",
+          "score": 13
+        },
+        {
+          "alias": "км2",
+          "span": {
+            "start": 21,
+            "end": 23
+          },
+          "text": "десять км плюс п'ять км2",
+          "kind": "area",
+          "unit": "km2",
+          "score": 2
+        }
+      ]
+    },
+    "coerce": {
+      "ok": {
+        "kind": "length",
+        "canonical": "15000",
+        "unit": "km"
+      }
+    }
+  },
+  "двадцять поділити на чотири": {
+    "evaluate": {
+      "ok": {
+        "kind": "number",
+        "canonical": "5",
+        "unit": "one",
+        "formatted": "5",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 27
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "number",
+          "canonical": "5",
+          "formatted": "5",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "двадцять",
+            "start": 0,
+            "end": 8
+          },
+          {
+            "type": "op",
+            "op": "/",
+            "start": 9,
+            "end": 20
+          },
+          {
+            "type": "number",
+            "text": "чотири",
+            "start": 21,
+            "end": 27
+          }
+        ],
+        "candidates": [],
+        "assignments": [
+          {
+            "kind": "number",
+            "score": 0,
+            "confidence": 1,
+            "units": [],
+            "contributions": [
+              {
+                "selector": "contextBonus",
+                "value": 0,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": []
+    },
+    "coerce": {
+      "ok": {
+        "kind": "number",
+        "canonical": "5",
+        "unit": "one"
+      }
+    }
+  },
+  "мінус п'ять кг": {
+    "evaluate": {
+      "ok": {
+        "kind": "mass",
+        "canonical": "-5000",
+        "unit": "kg",
+        "formatted": "-5 кілограмів",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 14
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "mass",
+          "canonical": "-5000",
+          "formatted": "-5 кілограмів",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "op",
+            "op": "-",
+            "start": 0,
+            "end": 5
+          },
+          {
+            "type": "number",
+            "text": "п'ять",
+            "start": 6,
+            "end": 11
+          },
+          {
+            "type": "word",
+            "text": "кг",
+            "start": 12,
+            "end": 14
+          }
+        ],
+        "candidates": [
+          {
+            "kind": "mass",
+            "unit": "kg",
+            "weight": 0,
+            "form": "кг"
+          }
+        ],
+        "assignments": [
+          {
+            "kind": "mass",
+            "score": 0,
+            "confidence": 1,
+            "units": ["kg"],
+            "contributions": [
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "contextBonus",
+                "value": 0,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "кг",
+          "span": {
+            "start": 12,
+            "end": 14
+          },
+          "text": "мінус п'ять кілограмів",
+          "kind": "mass",
+          "unit": "kg",
+          "score": 13
+        }
+      ]
+    },
+    "coerce": {
+      "ok": {
+        "kind": "mass",
+        "canonical": "-5000",
+        "unit": "kg"
+      }
+    }
+  },
+  "1,5 мільйона км": {
+    "evaluate": {
+      "ok": {
+        "kind": "length",
+        "canonical": "1500000000",
+        "unit": "km",
+        "formatted": "1 500 000 кілометрів",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 15
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "length",
+          "canonical": "1500000000",
+          "formatted": "1 500 000 кілометрів",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "1,5 мільйона",
+            "start": 0,
+            "end": 12
+          },
+          {
+            "type": "word",
+            "text": "км",
+            "start": 13,
+            "end": 15
+          }
+        ],
+        "candidates": [
+          {
+            "kind": "length",
+            "unit": "km",
+            "weight": 0,
+            "form": "км"
+          }
+        ],
+        "assignments": [
+          {
+            "kind": "length",
+            "score": 0,
+            "confidence": 1,
+            "units": ["km"],
+            "contributions": [
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "contextBonus",
+                "value": 0,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "км",
+          "span": {
+            "start": 13,
+            "end": 15
+          },
+          "text": "1,5 мільйона кілометрів",
+          "kind": "length",
+          "unit": "km",
+          "score": 10
+        },
+        {
+          "alias": "км2",
+          "span": {
+            "start": 13,
+            "end": 15
+          },
+          "text": "1,5 мільйона км2",
+          "kind": "area",
+          "unit": "km2",
+          "score": -1
+        }
+      ]
+    },
+    "coerce": {
+      "ok": {
+        "kind": "length",
+        "canonical": "1500000000",
+        "unit": "km"
+      }
+    }
+  },
+  "двадцять - два": {
+    "evaluate": {
+      "ok": {
+        "kind": "number",
+        "canonical": "18",
+        "unit": "one",
+        "formatted": "18",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 14
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "number",
+          "canonical": "18",
+          "formatted": "18",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "двадцять",
+            "start": 0,
+            "end": 8
+          },
+          {
+            "type": "op",
+            "op": "-",
+            "start": 9,
+            "end": 10
+          },
+          {
+            "type": "number",
+            "text": "два",
+            "start": 11,
+            "end": 14
+          }
+        ],
+        "candidates": [],
+        "assignments": [
+          {
+            "kind": "number",
+            "score": 0,
+            "confidence": 1,
+            "units": [],
+            "contributions": [
+              {
+                "selector": "contextBonus",
+                "value": 0,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": []
+    },
+    "coerce": {
+      "ok": {
+        "kind": "number",
+        "canonical": "18",
+        "unit": "one"
+      }
+    }
+  },
+  "десять плюс два помножити на три": {
+    "evaluate": {
+      "ok": {
+        "kind": "number",
+        "canonical": "16",
+        "unit": "one",
+        "formatted": "16",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 32
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "number",
+          "canonical": "16",
+          "formatted": "16",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "десять",
+            "start": 0,
+            "end": 6
+          },
+          {
+            "type": "op",
+            "op": "+",
+            "start": 7,
+            "end": 11
+          },
+          {
+            "type": "number",
+            "text": "два",
+            "start": 12,
+            "end": 15
+          },
+          {
+            "type": "op",
+            "op": "*",
+            "start": 16,
+            "end": 28
+          },
+          {
+            "type": "number",
+            "text": "три",
+            "start": 29,
+            "end": 32
+          }
+        ],
+        "candidates": [],
+        "assignments": [
+          {
+            "kind": "number",
+            "score": 0,
+            "confidence": 1,
+            "units": [],
+            "contributions": [
+              {
+                "selector": "contextBonus",
+                "value": 0,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": []
+    },
+    "coerce": {
+      "ok": {
+        "kind": "number",
+        "canonical": "16",
+        "unit": "one"
+      }
+    }
+  },
+  "десять мінус два помножити на три": {
+    "evaluate": {
+      "ok": {
+        "kind": "number",
+        "canonical": "4",
+        "unit": "one",
+        "formatted": "4",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 33
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "number",
+          "canonical": "4",
+          "formatted": "4",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "десять",
+            "start": 0,
+            "end": 6
+          },
+          {
+            "type": "op",
+            "op": "-",
+            "start": 7,
+            "end": 12
+          },
+          {
+            "type": "number",
+            "text": "два",
+            "start": 13,
+            "end": 16
+          },
+          {
+            "type": "op",
+            "op": "*",
+            "start": 17,
+            "end": 29
+          },
+          {
+            "type": "number",
+            "text": "три",
+            "start": 30,
+            "end": 33
+          }
+        ],
+        "candidates": [],
+        "assignments": [
+          {
+            "kind": "number",
+            "score": 0,
+            "confidence": 1,
+            "units": [],
+            "contributions": [
+              {
+                "selector": "contextBonus",
+                "value": 0,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": []
+    },
+    "coerce": {
+      "ok": {
+        "kind": "number",
+        "canonical": "4",
+        "unit": "one"
+      }
+    }
+  },
+  "(десять плюс два) помножити на три": {
+    "evaluate": {
+      "ok": {
+        "kind": "number",
+        "canonical": "36",
+        "unit": "one",
+        "formatted": "36",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 1,
+            "end": 34
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "number",
+          "canonical": "36",
+          "formatted": "36",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "lparen",
+            "start": 0,
+            "end": 1
+          },
+          {
+            "type": "number",
+            "text": "десять",
+            "start": 1,
+            "end": 7
+          },
+          {
+            "type": "op",
+            "op": "+",
+            "start": 8,
+            "end": 12
+          },
+          {
+            "type": "number",
+            "text": "два",
+            "start": 13,
+            "end": 16
+          },
+          {
+            "type": "rparen",
+            "start": 16,
+            "end": 17
+          },
+          {
+            "type": "op",
+            "op": "*",
+            "start": 18,
+            "end": 30
+          },
+          {
+            "type": "number",
+            "text": "три",
+            "start": 31,
+            "end": 34
+          }
+        ],
+        "candidates": [],
+        "assignments": [
+          {
+            "kind": "number",
+            "score": 0,
+            "confidence": 1,
+            "units": [],
+            "contributions": [
+              {
+                "selector": "contextBonus",
+                "value": 0,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": []
+    },
+    "coerce": {
+      "ok": {
+        "kind": "number",
+        "canonical": "36",
+        "unit": "one"
+      }
+    }
+  },
+  "1 кілограм": {
+    "evaluate": {
+      "ok": {
+        "kind": "mass",
+        "canonical": "1000",
+        "unit": "kg",
+        "formatted": "1 кілограм",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 10
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "mass",
+          "canonical": "1000",
+          "formatted": "1 кілограм",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "1",
+            "start": 0,
+            "end": 1
+          },
+          {
+            "type": "word",
+            "text": "кілограм",
+            "start": 2,
+            "end": 10
+          }
+        ],
+        "candidates": [
+          {
+            "kind": "mass",
+            "unit": "kg",
+            "weight": 0,
+            "form": "кілограм"
+          }
+        ],
+        "assignments": [
+          {
+            "kind": "mass",
+            "score": 0,
+            "confidence": 1,
+            "units": ["kg"],
+            "contributions": [
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "contextBonus",
+                "value": 0,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "кілограм",
+          "span": {
+            "start": 2,
+            "end": 10
+          },
+          "text": "1 кілограм",
+          "kind": "mass",
+          "unit": "kg",
+          "score": 13
+        }
+      ]
+    },
+    "coerce": {
+      "ok": {
+        "kind": "mass",
+        "canonical": "1000",
+        "unit": "kg"
+      }
+    }
+  },
+  "2 кг": {
+    "evaluate": {
+      "ok": {
+        "kind": "mass",
+        "canonical": "2000",
+        "unit": "kg",
+        "formatted": "2 кілограми",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 4
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "mass",
+          "canonical": "2000",
+          "formatted": "2 кілограми",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "2",
+            "start": 0,
+            "end": 1
+          },
+          {
+            "type": "word",
+            "text": "кг",
+            "start": 2,
+            "end": 4
+          }
+        ],
+        "candidates": [
+          {
+            "kind": "mass",
+            "unit": "kg",
+            "weight": 0,
+            "form": "кг"
+          }
+        ],
+        "assignments": [
+          {
+            "kind": "mass",
+            "score": 0,
+            "confidence": 1,
+            "units": ["kg"],
+            "contributions": [
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "contextBonus",
+                "value": 0,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "кг",
+          "span": {
+            "start": 2,
+            "end": 4
+          },
+          "text": "2 кілограми",
+          "kind": "mass",
+          "unit": "kg",
+          "score": 13
+        }
+      ]
+    },
+    "coerce": {
+      "ok": {
+        "kind": "mass",
+        "canonical": "2000",
+        "unit": "kg"
+      }
+    }
+  },
+  "5 кг": {
+    "evaluate": {
+      "ok": {
+        "kind": "mass",
+        "canonical": "5000",
+        "unit": "kg",
+        "formatted": "5 кілограмів",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 4
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "mass",
+          "canonical": "5000",
+          "formatted": "5 кілограмів",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "5",
+            "start": 0,
+            "end": 1
+          },
+          {
+            "type": "word",
+            "text": "кг",
+            "start": 2,
+            "end": 4
+          }
+        ],
+        "candidates": [
+          {
+            "kind": "mass",
+            "unit": "kg",
+            "weight": 0,
+            "form": "кг"
+          }
+        ],
+        "assignments": [
+          {
+            "kind": "mass",
+            "score": 0,
+            "confidence": 1,
+            "units": ["kg"],
+            "contributions": [
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "contextBonus",
+                "value": 0,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "кг",
+          "span": {
+            "start": 2,
+            "end": 4
+          },
+          "text": "5 кілограмів",
+          "kind": "mass",
+          "unit": "kg",
+          "score": 13
+        }
+      ]
+    },
+    "coerce": {
+      "ok": {
+        "kind": "mass",
+        "canonical": "5000",
+        "unit": "kg"
+      }
+    }
+  },
+  "21 кг": {
+    "evaluate": {
+      "ok": {
+        "kind": "mass",
+        "canonical": "21000",
+        "unit": "kg",
+        "formatted": "21 кілограм",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 5
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "mass",
+          "canonical": "21000",
+          "formatted": "21 кілограм",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "21",
+            "start": 0,
+            "end": 2
+          },
+          {
+            "type": "word",
+            "text": "кг",
+            "start": 3,
+            "end": 5
+          }
+        ],
+        "candidates": [
+          {
+            "kind": "mass",
+            "unit": "kg",
+            "weight": 0,
+            "form": "кг"
+          }
+        ],
+        "assignments": [
+          {
+            "kind": "mass",
+            "score": 0,
+            "confidence": 1,
+            "units": ["kg"],
+            "contributions": [
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "contextBonus",
+                "value": 0,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "кг",
+          "span": {
+            "start": 3,
+            "end": 5
+          },
+          "text": "21 кілограм",
+          "kind": "mass",
+          "unit": "kg",
+          "score": 13
+        }
+      ]
+    },
+    "coerce": {
+      "ok": {
+        "kind": "mass",
+        "canonical": "21000",
+        "unit": "kg"
+      }
+    }
+  },
+  "11 кг": {
+    "evaluate": {
+      "ok": {
+        "kind": "mass",
+        "canonical": "11000",
+        "unit": "kg",
+        "formatted": "11 кілограмів",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 5
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "mass",
+          "canonical": "11000",
+          "formatted": "11 кілограмів",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "11",
+            "start": 0,
+            "end": 2
+          },
+          {
+            "type": "word",
+            "text": "кг",
+            "start": 3,
+            "end": 5
+          }
+        ],
+        "candidates": [
+          {
+            "kind": "mass",
+            "unit": "kg",
+            "weight": 0,
+            "form": "кг"
+          }
+        ],
+        "assignments": [
+          {
+            "kind": "mass",
+            "score": 0,
+            "confidence": 1,
+            "units": ["kg"],
+            "contributions": [
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "contextBonus",
+                "value": 0,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "кг",
+          "span": {
+            "start": 3,
+            "end": 5
+          },
+          "text": "11 кілограмів",
+          "kind": "mass",
+          "unit": "kg",
+          "score": 13
+        }
+      ]
+    },
+    "coerce": {
+      "ok": {
+        "kind": "mass",
+        "canonical": "11000",
+        "unit": "kg"
+      }
+    }
+  },
+  "0 кг": {
+    "evaluate": {
+      "ok": {
+        "kind": "mass",
+        "canonical": "0",
+        "unit": "kg",
+        "formatted": "0 кілограмів",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 4
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "mass",
+          "canonical": "0",
+          "formatted": "0 кілограмів",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "0",
+            "start": 0,
+            "end": 1
+          },
+          {
+            "type": "word",
+            "text": "кг",
+            "start": 2,
+            "end": 4
+          }
+        ],
+        "candidates": [
+          {
+            "kind": "mass",
+            "unit": "kg",
+            "weight": 0,
+            "form": "кг"
+          }
+        ],
+        "assignments": [
+          {
+            "kind": "mass",
+            "score": 0,
+            "confidence": 1,
+            "units": ["kg"],
+            "contributions": [
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "contextBonus",
+                "value": 0,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "кг",
+          "span": {
+            "start": 2,
+            "end": 4
+          },
+          "text": "0 кілограмів",
+          "kind": "mass",
+          "unit": "kg",
+          "score": 10
+        }
+      ]
+    },
+    "coerce": {
+      "ok": {
+        "kind": "mass",
+        "canonical": "0",
+        "unit": "kg"
+      }
+    }
+  },
+  "2 кг в грамах": {
+    "evaluate": {
+      "ok": {
+        "kind": "mass",
+        "canonical": "2000",
+        "unit": "g",
+        "formatted": "2 000 грамів",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 13
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "mass",
+          "canonical": "2000",
+          "formatted": "2 000 грамів",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "2",
+            "start": 0,
+            "end": 1
+          },
+          {
+            "type": "word",
+            "text": "кг",
+            "start": 2,
+            "end": 4
+          },
+          {
+            "type": "keyword",
+            "keyword": "in",
+            "start": 5,
+            "end": 6
+          },
+          {
+            "type": "word",
+            "text": "грамах",
+            "start": 7,
+            "end": 13
+          }
+        ],
+        "candidates": [
+          {
+            "kind": "mass",
+            "unit": "g",
+            "weight": 0,
+            "form": "грамах"
+          },
+          {
+            "kind": "mass",
+            "unit": "kg",
+            "weight": 0,
+            "form": "кг"
+          }
+        ],
+        "assignments": [
+          {
+            "kind": "mass",
+            "score": 0,
+            "confidence": 1,
+            "units": ["g", "kg"],
+            "contributions": [
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "contextBonus",
+                "value": 0,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "грамах",
+          "span": {
+            "start": 7,
+            "end": 13
+          },
+          "text": "2 кг в грам",
+          "kind": "mass",
+          "unit": "g",
+          "score": 10
+        }
+      ]
+    },
+    "coerce": {
+      "ok": {
+        "kind": "mass",
+        "canonical": "2000",
+        "unit": "g"
+      }
+    }
+  },
+  "2,5 год в хв": {
+    "evaluate": {
+      "ok": {
+        "kind": "duration",
+        "canonical": "9000",
+        "unit": "min",
+        "formatted": "150 хвилин",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 12
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "duration",
+          "canonical": "9000",
+          "formatted": "150 хвилин",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "2,5",
+            "start": 0,
+            "end": 3
+          },
+          {
+            "type": "word",
+            "text": "год",
+            "start": 4,
+            "end": 7
+          },
+          {
+            "type": "keyword",
+            "keyword": "in",
+            "start": 8,
+            "end": 9
+          },
+          {
+            "type": "word",
+            "text": "хв",
+            "start": 10,
+            "end": 12
+          }
+        ],
+        "candidates": [
+          {
+            "kind": "duration",
+            "unit": "min",
+            "weight": 0,
+            "form": "хв"
+          },
+          {
+            "kind": "duration",
+            "unit": "h",
+            "weight": 0,
+            "form": "год"
+          }
+        ],
+        "assignments": [
+          {
+            "kind": "duration",
+            "score": 0,
+            "confidence": 1,
+            "units": ["min", "h"],
+            "contributions": [
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "contextBonus",
+                "value": 0,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "хв",
+          "span": {
+            "start": 10,
+            "end": 12
+          },
+          "text": "2,5 год в хвилина",
+          "kind": "duration",
+          "unit": "min",
+          "score": 10
+        }
+      ]
+    },
+    "coerce": {
+      "ok": {
+        "kind": "duration",
+        "canonical": "9000",
+        "unit": "min"
+      }
+    }
+  },
+  "30 год": {
+    "evaluate": {
+      "ok": {
+        "kind": "duration",
+        "canonical": "108000",
+        "unit": "h",
+        "formatted": "30 годин",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 6
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "duration",
+          "canonical": "108000",
+          "formatted": "30 годин",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "30",
+            "start": 0,
+            "end": 2
+          },
+          {
+            "type": "word",
+            "text": "год",
+            "start": 3,
+            "end": 6
+          }
+        ],
+        "candidates": [
+          {
+            "kind": "duration",
+            "unit": "h",
+            "weight": 0,
+            "form": "год"
+          }
+        ],
+        "assignments": [
+          {
+            "kind": "duration",
+            "score": 0,
+            "confidence": 1,
+            "units": ["h"],
+            "contributions": [
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "contextBonus",
+                "value": 0,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "год",
+          "span": {
+            "start": 3,
+            "end": 6
+          },
+          "text": "30 годин",
+          "kind": "duration",
+          "unit": "h",
+          "score": 13
+        }
+      ]
+    },
+    "coerce": {
+      "ok": {
+        "kind": "duration",
+        "canonical": "108000",
+        "unit": "h"
+      }
+    }
+  },
+  "1 год": {
+    "evaluate": {
+      "ok": {
+        "kind": "duration",
+        "canonical": "3600",
+        "unit": "h",
+        "formatted": "1 година",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 5
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "duration",
+          "canonical": "3600",
+          "formatted": "1 година",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "1",
+            "start": 0,
+            "end": 1
+          },
+          {
+            "type": "word",
+            "text": "год",
+            "start": 2,
+            "end": 5
+          }
+        ],
+        "candidates": [
+          {
+            "kind": "duration",
+            "unit": "h",
+            "weight": 0,
+            "form": "год"
+          }
+        ],
+        "assignments": [
+          {
+            "kind": "duration",
+            "score": 0,
+            "confidence": 1,
+            "units": ["h"],
+            "contributions": [
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "contextBonus",
+                "value": 0,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "год",
+          "span": {
+            "start": 2,
+            "end": 5
+          },
+          "text": "1 година",
+          "kind": "duration",
+          "unit": "h",
+          "score": 13
+        }
+      ]
+    },
+    "coerce": {
+      "ok": {
+        "kind": "duration",
+        "canonical": "3600",
+        "unit": "h"
+      }
+    }
+  },
+  "0,5 год": {
+    "evaluate": {
+      "ok": {
+        "kind": "duration",
+        "canonical": "1800",
+        "unit": "h",
+        "formatted": "0,5 години",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 7
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "duration",
+          "canonical": "1800",
+          "formatted": "0,5 години",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "0,5",
+            "start": 0,
+            "end": 3
+          },
+          {
+            "type": "word",
+            "text": "год",
+            "start": 4,
+            "end": 7
+          }
+        ],
+        "candidates": [
+          {
+            "kind": "duration",
+            "unit": "h",
+            "weight": 0,
+            "form": "год"
+          }
+        ],
+        "assignments": [
+          {
+            "kind": "duration",
+            "score": 0,
+            "confidence": 1,
+            "units": ["h"],
+            "contributions": [
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "contextBonus",
+                "value": 0,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "год",
+          "span": {
+            "start": 4,
+            "end": 7
+          },
+          "text": "0,5 години",
+          "kind": "duration",
+          "unit": "h",
+          "score": 10
+        }
+      ]
+    },
+    "coerce": {
+      "ok": {
+        "kind": "duration",
+        "canonical": "1800",
+        "unit": "h"
+      }
+    }
+  },
+  "45 сек": {
+    "evaluate": {
+      "ok": {
+        "kind": "duration",
+        "canonical": "45",
+        "unit": "s",
+        "formatted": "45 секунд",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 6
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "duration",
+          "canonical": "45",
+          "formatted": "45 секунд",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "45",
+            "start": 0,
+            "end": 2
+          },
+          {
+            "type": "word",
+            "text": "сек",
+            "start": 3,
+            "end": 6
+          }
+        ],
+        "candidates": [
+          {
+            "kind": "duration",
+            "unit": "s",
+            "weight": 0,
+            "form": "сек"
+          }
+        ],
+        "assignments": [
+          {
+            "kind": "duration",
+            "score": 0,
+            "confidence": 1,
+            "units": ["s"],
+            "contributions": [
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "contextBonus",
+                "value": 0,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "сек",
+          "span": {
+            "start": 3,
+            "end": 6
+          },
+          "text": "45 секунд",
+          "kind": "duration",
+          "unit": "s",
+          "score": 13
+        }
+      ]
+    },
+    "coerce": {
+      "ok": {
+        "kind": "duration",
+        "canonical": "45",
+        "unit": "s"
+      }
+    }
+  },
+  "90 хвил": {
+    "evaluate": {
+      "error": "NoCandidateError: Unknown unit \"хвил\". Did you mean: хвилин, хв?"
+    },
+    "suggest": {
+      "ok": []
+    },
+    "explain": {
+      "error": "NoCandidateError: Unknown unit \"хвил\". Did you mean: хвилин, хв?"
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "хвилин",
+          "span": {
+            "start": 3,
+            "end": 7
+          },
+          "text": "90 хвилин",
+          "kind": "duration",
+          "unit": "min",
+          "score": 1
+        }
+      ]
+    },
+    "coerce": {
+      "error": "NoCandidateError: Unknown unit \"хвил\". Did you mean: хвилин, хв?"
+    }
+  },
+  "250 мілісек": {
+    "evaluate": {
+      "error": "NoCandidateError: Unknown unit \"мілісек\""
+    },
+    "suggest": {
+      "ok": []
+    },
+    "explain": {
+      "error": "NoCandidateError: Unknown unit \"мілісек\""
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "мілісекунд",
+          "span": {
+            "start": 4,
+            "end": 11
+          },
+          "text": "250 мілісекунд",
+          "kind": "duration",
+          "unit": "ms",
+          "score": 0
+        }
+      ]
+    },
+    "coerce": {
+      "error": "NoCandidateError: Unknown unit \"мілісек\""
+    }
+  },
+  "3 дн": {
+    "evaluate": {
+      "ok": {
+        "kind": "duration",
+        "canonical": "259200",
+        "unit": "d",
+        "formatted": "3 дні",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 4
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "duration",
+          "canonical": "259200",
+          "formatted": "3 дні",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "3",
+            "start": 0,
+            "end": 1
+          },
+          {
+            "type": "word",
+            "text": "дн",
+            "start": 2,
+            "end": 4
+          }
+        ],
+        "candidates": [
+          {
+            "kind": "duration",
+            "unit": "d",
+            "weight": 0,
+            "form": "дн"
+          }
+        ],
+        "assignments": [
+          {
+            "kind": "duration",
+            "score": 0,
+            "confidence": 1,
+            "units": ["d"],
+            "contributions": [
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "contextBonus",
+                "value": 0,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "дн",
+          "span": {
+            "start": 2,
+            "end": 4
+          },
+          "text": "3 дні",
+          "kind": "duration",
+          "unit": "d",
+          "score": 13
+        }
+      ]
+    },
+    "coerce": {
+      "ok": {
+        "kind": "duration",
+        "canonical": "259200",
+        "unit": "d"
+      }
+    }
+  },
+  "10 мил": {
+    "evaluate": {
+      "error": "NoCandidateError: Unknown unit \"мил\". Did you mean: милі, миль, милю?"
+    },
+    "suggest": {
+      "ok": []
+    },
+    "explain": {
+      "error": "NoCandidateError: Unknown unit \"мил\". Did you mean: милі, миль, милю?"
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "миль",
+          "span": {
+            "start": 3,
+            "end": 6
+          },
+          "text": "10 миль",
+          "kind": "length",
+          "unit": "mi",
+          "score": 2
+        }
+      ]
+    },
+    "coerce": {
+      "error": "NoCandidateError: Unknown unit \"мил\". Did you mean: милі, миль, милю?"
+    }
+  },
+  "1 мил": {
+    "evaluate": {
+      "error": "NoCandidateError: Unknown unit \"мил\". Did you mean: милі, миль, милю?"
+    },
+    "suggest": {
+      "ok": []
+    },
+    "explain": {
+      "error": "NoCandidateError: Unknown unit \"мил\". Did you mean: милі, миль, милю?"
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "миль",
+          "span": {
+            "start": 2,
+            "end": 5
+          },
+          "text": "1 миля",
+          "kind": "length",
+          "unit": "mi",
+          "score": 2
+        }
+      ]
+    },
+    "coerce": {
+      "error": "NoCandidateError: Unknown unit \"мил\". Did you mean: милі, миль, милю?"
+    }
+  },
+  "12 дюй": {
+    "evaluate": {
+      "error": "NoCandidateError: Unknown unit \"дюй\". Did you mean: дюйм, дюйма, дюйми?"
+    },
+    "suggest": {
+      "ok": []
+    },
+    "explain": {
+      "error": "NoCandidateError: Unknown unit \"дюй\". Did you mean: дюйм, дюйма, дюйми?"
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "дюйм",
+          "span": {
+            "start": 3,
+            "end": 6
+          },
+          "text": "12 дюймів",
+          "kind": "length",
+          "unit": "in",
+          "score": 2
+        }
+      ]
+    },
+    "coerce": {
+      "error": "NoCandidateError: Unknown unit \"дюй\". Did you mean: дюйм, дюйма, дюйми?"
+    }
+  },
+  "1 дюй": {
+    "evaluate": {
+      "error": "NoCandidateError: Unknown unit \"дюй\". Did you mean: дюйм, дюйма, дюйми?"
+    },
+    "suggest": {
+      "ok": []
+    },
+    "explain": {
+      "error": "NoCandidateError: Unknown unit \"дюй\". Did you mean: дюйм, дюйма, дюйми?"
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "дюйм",
+          "span": {
+            "start": 2,
+            "end": 5
+          },
+          "text": "1 дюйм",
+          "kind": "length",
+          "unit": "in",
+          "score": 2
+        }
+      ]
+    },
+    "coerce": {
+      "error": "NoCandidateError: Unknown unit \"дюй\". Did you mean: дюйм, дюйма, дюйми?"
+    }
+  },
+  "6 фут": {
+    "evaluate": {
+      "ok": {
+        "kind": "length",
+        "canonical": "1.8288",
+        "unit": "ft",
+        "formatted": "6 футів",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 5
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "length",
+          "canonical": "1.8288",
+          "formatted": "6 футів",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "6",
+            "start": 0,
+            "end": 1
+          },
+          {
+            "type": "word",
+            "text": "фут",
+            "start": 2,
+            "end": 5
+          }
+        ],
+        "candidates": [
+          {
+            "kind": "length",
+            "unit": "ft",
+            "weight": 0,
+            "form": "фут"
+          }
+        ],
+        "assignments": [
+          {
+            "kind": "length",
+            "score": 0,
+            "confidence": 1,
+            "units": ["ft"],
+            "contributions": [
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "contextBonus",
+                "value": 0,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "фут",
+          "span": {
+            "start": 2,
+            "end": 5
+          },
+          "text": "6 футів",
+          "kind": "length",
+          "unit": "ft",
+          "score": 13
+        }
+      ]
+    },
+    "coerce": {
+      "ok": {
+        "kind": "length",
+        "canonical": "1.8288",
+        "unit": "ft"
+      }
+    }
+  },
+  "1 фут": {
+    "evaluate": {
+      "ok": {
+        "kind": "length",
+        "canonical": "0.3048",
+        "unit": "ft",
+        "formatted": "1 фут",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 5
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "length",
+          "canonical": "0.3048",
+          "formatted": "1 фут",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "1",
+            "start": 0,
+            "end": 1
+          },
+          {
+            "type": "word",
+            "text": "фут",
+            "start": 2,
+            "end": 5
+          }
+        ],
+        "candidates": [
+          {
+            "kind": "length",
+            "unit": "ft",
+            "weight": 0,
+            "form": "фут"
+          }
+        ],
+        "assignments": [
+          {
+            "kind": "length",
+            "score": 0,
+            "confidence": 1,
+            "units": ["ft"],
+            "contributions": [
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "contextBonus",
+                "value": 0,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "фут",
+          "span": {
+            "start": 2,
+            "end": 5
+          },
+          "text": "1 фут",
+          "kind": "length",
+          "unit": "ft",
+          "score": 13
+        }
+      ]
+    },
+    "coerce": {
+      "ok": {
+        "kind": "length",
+        "canonical": "0.3048",
+        "unit": "ft"
+      }
+    }
+  },
+  "10 кіломе": {
+    "evaluate": {
+      "error": "NoCandidateError: Unknown unit \"кіломе\". Did you mean: кілометр, кіло?"
+    },
+    "suggest": {
+      "ok": []
+    },
+    "explain": {
+      "error": "NoCandidateError: Unknown unit \"кіломе\". Did you mean: кілометр, кіло?"
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "кілометр",
+          "span": {
+            "start": 3,
+            "end": 9
+          },
+          "text": "10 кілометрів",
+          "kind": "length",
+          "unit": "km",
+          "score": 1
+        }
+      ]
+    },
+    "coerce": {
+      "error": "NoCandidateError: Unknown unit \"кіломе\". Did you mean: кілометр, кіло?"
+    }
+  },
+  "250 міліме": {
+    "evaluate": {
+      "error": "NoCandidateError: Unknown unit \"міліме\". Did you mean: міліметр?"
+    },
+    "suggest": {
+      "ok": []
+    },
+    "explain": {
+      "error": "NoCandidateError: Unknown unit \"міліме\". Did you mean: міліметр?"
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "міліметр",
+          "span": {
+            "start": 4,
+            "end": 10
+          },
+          "text": "250 міліметрів",
+          "kind": "length",
+          "unit": "mm",
+          "score": 1
+        }
+      ]
+    },
+    "coerce": {
+      "error": "NoCandidateError: Unknown unit \"міліме\". Did you mean: міліметр?"
+    }
+  },
+  "50 санти": {
+    "evaluate": {
+      "error": "NoCandidateError: Unknown unit \"санти\". Did you mean: вати, байти, пінти?"
+    },
+    "suggest": {
+      "ok": []
+    },
+    "explain": {
+      "error": "NoCandidateError: Unknown unit \"санти\". Did you mean: вати, байти, пінти?"
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "сантиметр",
+          "span": {
+            "start": 3,
+            "end": 8
+          },
+          "text": "50 сантиметрів",
+          "kind": "length",
+          "unit": "cm",
+          "score": -1
+        }
+      ]
+    },
+    "coerce": {
+      "error": "NoCandidateError: Unknown unit \"санти\". Did you mean: вати, байти, пінти?"
+    }
+  },
+  "12 ярд": {
+    "evaluate": {
+      "ok": {
+        "kind": "length",
+        "canonical": "10.9728",
+        "unit": "yd",
+        "formatted": "12 ярдів",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 6
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "length",
+          "canonical": "10.9728",
+          "formatted": "12 ярдів",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "12",
+            "start": 0,
+            "end": 2
+          },
+          {
+            "type": "word",
+            "text": "ярд",
+            "start": 3,
+            "end": 6
+          }
+        ],
+        "candidates": [
+          {
+            "kind": "length",
+            "unit": "yd",
+            "weight": 0,
+            "form": "ярд"
+          }
+        ],
+        "assignments": [
+          {
+            "kind": "length",
+            "score": 0,
+            "confidence": 1,
+            "units": ["yd"],
+            "contributions": [
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "contextBonus",
+                "value": 0,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "ярд",
+          "span": {
+            "start": 3,
+            "end": 6
+          },
+          "text": "12 ярдів",
+          "kind": "length",
+          "unit": "yd",
+          "score": 13
+        }
+      ]
+    },
+    "coerce": {
+      "ok": {
+        "kind": "length",
+        "canonical": "10.9728",
+        "unit": "yd"
+      }
+    }
+  },
+  "5 кілогра": {
+    "evaluate": {
+      "ok": {
+        "kind": "mass",
+        "canonical": "5000",
+        "unit": "kg",
+        "formatted": "5 кілограмів",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 9
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "mass",
+          "canonical": "5000",
+          "formatted": "5 кілограмів",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "5",
+            "start": 0,
+            "end": 1
+          },
+          {
+            "type": "word",
+            "text": "кілогра",
+            "start": 2,
+            "end": 9
+          }
+        ],
+        "candidates": [
+          {
+            "kind": "mass",
+            "unit": "kg",
+            "weight": -15,
+            "form": "кілограм"
+          }
+        ],
+        "assignments": [
+          {
+            "kind": "mass",
+            "score": -15,
+            "confidence": 1,
+            "units": ["kg"],
+            "contributions": [
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "fuzzy:кілограм",
+                "value": -15,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "contextBonus",
+                "value": 0,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "кілограм",
+          "span": {
+            "start": 2,
+            "end": 9
+          },
+          "text": "5 кілограмів",
+          "kind": "mass",
+          "unit": "kg",
+          "score": 2
+        }
+      ]
+    },
+    "coerce": {
+      "ok": {
+        "kind": "mass",
+        "canonical": "5000",
+        "unit": "kg"
+      }
+    }
+  },
+  "1 кілогра": {
+    "evaluate": {
+      "ok": {
+        "kind": "mass",
+        "canonical": "1000",
+        "unit": "kg",
+        "formatted": "1 кілограм",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 9
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "mass",
+          "canonical": "1000",
+          "formatted": "1 кілограм",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "1",
+            "start": 0,
+            "end": 1
+          },
+          {
+            "type": "word",
+            "text": "кілогра",
+            "start": 2,
+            "end": 9
+          }
+        ],
+        "candidates": [
+          {
+            "kind": "mass",
+            "unit": "kg",
+            "weight": -15,
+            "form": "кілограм"
+          }
+        ],
+        "assignments": [
+          {
+            "kind": "mass",
+            "score": -15,
+            "confidence": 1,
+            "units": ["kg"],
+            "contributions": [
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "fuzzy:кілограм",
+                "value": -15,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "contextBonus",
+                "value": 0,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "кілограм",
+          "span": {
+            "start": 2,
+            "end": 9
+          },
+          "text": "1 кілограм",
+          "kind": "mass",
+          "unit": "kg",
+          "score": 2
+        }
+      ]
+    },
+    "coerce": {
+      "ok": {
+        "kind": "mass",
+        "canonical": "1000",
+        "unit": "kg"
+      }
+    }
+  },
+  "3 фунт": {
+    "evaluate": {
+      "ok": {
+        "kind": "mass",
+        "canonical": "1360.77711",
+        "unit": "lb",
+        "formatted": "3 фунти",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 6
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "mass",
+          "canonical": "1360.77711",
+          "formatted": "3 фунти",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "3",
+            "start": 0,
+            "end": 1
+          },
+          {
+            "type": "word",
+            "text": "фунт",
+            "start": 2,
+            "end": 6
+          }
+        ],
+        "candidates": [
+          {
+            "kind": "mass",
+            "unit": "lb",
+            "weight": 0,
+            "form": "фунт"
+          }
+        ],
+        "assignments": [
+          {
+            "kind": "mass",
+            "score": 0,
+            "confidence": 1,
+            "units": ["lb"],
+            "contributions": [
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "contextBonus",
+                "value": 0,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "фунт",
+          "span": {
+            "start": 2,
+            "end": 6
+          },
+          "text": "3 фунти",
+          "kind": "mass",
+          "unit": "lb",
+          "score": 13
+        }
+      ]
+    },
+    "coerce": {
+      "ok": {
+        "kind": "mass",
+        "canonical": "1360.77711",
+        "unit": "lb"
+      }
+    }
+  },
+  "2 тон": {
+    "evaluate": {
+      "error": "NoCandidateError: Unknown unit \"тон\". Did you mean: тонн, гон, тонна?"
+    },
+    "suggest": {
+      "ok": []
+    },
+    "explain": {
+      "error": "NoCandidateError: Unknown unit \"тон\". Did you mean: тонн, гон, тонна?"
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "тонн",
+          "span": {
+            "start": 2,
+            "end": 5
+          },
+          "text": "2 тонни",
+          "kind": "mass",
+          "unit": "t",
+          "score": 2
+        }
+      ]
+    },
+    "coerce": {
+      "error": "NoCandidateError: Unknown unit \"тон\". Did you mean: тонн, гон, тонна?"
+    }
+  },
+  "3 унц": {
+    "evaluate": {
+      "error": "NoCandidateError: Unknown unit \"унц\". Did you mean: унції, унцій, унцію?"
+    },
+    "suggest": {
+      "ok": []
+    },
+    "explain": {
+      "error": "NoCandidateError: Unknown unit \"унц\". Did you mean: унції, унцій, унцію?"
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "унцій",
+          "span": {
+            "start": 2,
+            "end": 5
+          },
+          "text": "3 унції",
+          "kind": "mass",
+          "unit": "oz",
+          "score": 1
+        }
+      ]
+    },
+    "coerce": {
+      "error": "NoCandidateError: Unknown unit \"унц\". Did you mean: унції, унцій, унцію?"
+    }
+  },
+  "250 мілігра": {
+    "evaluate": {
+      "ok": {
+        "kind": "mass",
+        "canonical": "0.25",
+        "unit": "mg",
+        "formatted": "250 міліграмів",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 11
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "mass",
+          "canonical": "0.25",
+          "formatted": "250 міліграмів",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "250",
+            "start": 0,
+            "end": 3
+          },
+          {
+            "type": "word",
+            "text": "мілігра",
+            "start": 4,
+            "end": 11
+          }
+        ],
+        "candidates": [
+          {
+            "kind": "mass",
+            "unit": "mg",
+            "weight": -15,
+            "form": "міліграм"
+          }
+        ],
+        "assignments": [
+          {
+            "kind": "mass",
+            "score": -15,
+            "confidence": 1,
+            "units": ["mg"],
+            "contributions": [
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "fuzzy:міліграм",
+                "value": -15,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "contextBonus",
+                "value": 0,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "міліграм",
+          "span": {
+            "start": 4,
+            "end": 11
+          },
+          "text": "250 міліграмів",
+          "kind": "mass",
+          "unit": "mg",
+          "score": 2
+        }
+      ]
+    },
+    "coerce": {
+      "ok": {
+        "kind": "mass",
+        "canonical": "0.25",
+        "unit": "mg"
+      }
+    }
+  },
+  "1 500 грам": {
+    "evaluate": {
+      "ok": {
+        "kind": "mass",
+        "canonical": "1500",
+        "unit": "g",
+        "formatted": "1 500 грамів",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 10
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "mass",
+          "canonical": "1500",
+          "formatted": "1 500 грамів",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "1 500",
+            "start": 0,
+            "end": 5
+          },
+          {
+            "type": "word",
+            "text": "грам",
+            "start": 6,
+            "end": 10
+          }
+        ],
+        "candidates": [
+          {
+            "kind": "mass",
+            "unit": "g",
+            "weight": 0,
+            "form": "грам"
+          }
+        ],
+        "assignments": [
+          {
+            "kind": "mass",
+            "score": 0,
+            "confidence": 1,
+            "units": ["g"],
+            "contributions": [
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "contextBonus",
+                "value": 0,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "грам",
+          "span": {
+            "start": 6,
+            "end": 10
+          },
+          "text": "1 500 грамів",
+          "kind": "mass",
+          "unit": "g",
+          "score": 10
+        }
+      ]
+    },
+    "coerce": {
+      "ok": {
+        "kind": "mass",
+        "canonical": "1500",
+        "unit": "g"
+      }
+    }
+  },
+  "512 бай": {
+    "evaluate": {
+      "error": "NoCandidateError: Unknown unit \"бай\". Did you mean: байт, байта, байти?"
+    },
+    "suggest": {
+      "ok": []
+    },
+    "explain": {
+      "error": "NoCandidateError: Unknown unit \"бай\". Did you mean: байт, байта, байти?"
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "байт",
+          "span": {
+            "start": 4,
+            "end": 7
+          },
+          "text": "512 байтів",
+          "kind": "datasize",
+          "unit": "b",
+          "score": 2
+        }
+      ]
+    },
+    "coerce": {
+      "error": "NoCandidateError: Unknown unit \"бай\". Did you mean: байт, байта, байти?"
+    }
+  },
+  "2 кілобай": {
+    "evaluate": {
+      "ok": {
+        "kind": "datasize",
+        "canonical": "2000",
+        "unit": "kb",
+        "formatted": "2 кілобайти",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 9
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "datasize",
+          "canonical": "2000",
+          "formatted": "2 кілобайти",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "2",
+            "start": 0,
+            "end": 1
+          },
+          {
+            "type": "word",
+            "text": "кілобай",
+            "start": 2,
+            "end": 9
+          }
+        ],
+        "candidates": [
+          {
+            "kind": "datasize",
+            "unit": "kb",
+            "weight": -15,
+            "form": "кілобайт"
+          }
+        ],
+        "assignments": [
+          {
+            "kind": "datasize",
+            "score": -15,
+            "confidence": 1,
+            "units": ["kb"],
+            "contributions": [
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "fuzzy:кілобайт",
+                "value": -15,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "contextBonus",
+                "value": 0,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "кілобайт",
+          "span": {
+            "start": 2,
+            "end": 9
+          },
+          "text": "2 кілобайти",
+          "kind": "datasize",
+          "unit": "kb",
+          "score": 2
+        }
+      ]
+    },
+    "coerce": {
+      "ok": {
+        "kind": "datasize",
+        "canonical": "2000",
+        "unit": "kb"
+      }
+    }
+  },
+  "5 мегабай": {
+    "evaluate": {
+      "ok": {
+        "kind": "datasize",
+        "canonical": "5000000",
+        "unit": "mb",
+        "formatted": "5 мегабайтів",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 9
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "datasize",
+          "canonical": "5000000",
+          "formatted": "5 мегабайтів",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "5",
+            "start": 0,
+            "end": 1
+          },
+          {
+            "type": "word",
+            "text": "мегабай",
+            "start": 2,
+            "end": 9
+          }
+        ],
+        "candidates": [
+          {
+            "kind": "datasize",
+            "unit": "mb",
+            "weight": -15,
+            "form": "мегабайт"
+          }
+        ],
+        "assignments": [
+          {
+            "kind": "datasize",
+            "score": -15,
+            "confidence": 1,
+            "units": ["mb"],
+            "contributions": [
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "fuzzy:мегабайт",
+                "value": -15,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "contextBonus",
+                "value": 0,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "мегабайт",
+          "span": {
+            "start": 2,
+            "end": 9
+          },
+          "text": "5 мегабайтів",
+          "kind": "datasize",
+          "unit": "mb",
+          "score": 2
+        }
+      ]
+    },
+    "coerce": {
+      "ok": {
+        "kind": "datasize",
+        "canonical": "5000000",
+        "unit": "mb"
+      }
+    }
+  },
+  "1 гігабай": {
+    "evaluate": {
+      "ok": {
+        "kind": "datasize",
+        "canonical": "1000000000",
+        "unit": "gb",
+        "formatted": "1 гігабайт",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 9
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "datasize",
+          "canonical": "1000000000",
+          "formatted": "1 гігабайт",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "1",
+            "start": 0,
+            "end": 1
+          },
+          {
+            "type": "word",
+            "text": "гігабай",
+            "start": 2,
+            "end": 9
+          }
+        ],
+        "candidates": [
+          {
+            "kind": "datasize",
+            "unit": "gb",
+            "weight": -15,
+            "form": "гігабайт"
+          }
+        ],
+        "assignments": [
+          {
+            "kind": "datasize",
+            "score": -15,
+            "confidence": 1,
+            "units": ["gb"],
+            "contributions": [
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "fuzzy:гігабайт",
+                "value": -15,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "contextBonus",
+                "value": 0,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "гігабайт",
+          "span": {
+            "start": 2,
+            "end": 9
+          },
+          "text": "1 гігабайт",
+          "kind": "datasize",
+          "unit": "gb",
+          "score": 2
+        }
+      ]
+    },
+    "coerce": {
+      "ok": {
+        "kind": "datasize",
+        "canonical": "1000000000",
+        "unit": "gb"
+      }
+    }
+  },
+  "2 кіб": {
+    "evaluate": {
+      "ok": {
+        "kind": "datasize",
+        "canonical": "2048",
+        "unit": "kib",
+        "formatted": "2 кібібайти",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 5
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "datasize",
+          "canonical": "2048",
+          "formatted": "2 кібібайти",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "2",
+            "start": 0,
+            "end": 1
+          },
+          {
+            "type": "word",
+            "text": "кіб",
+            "start": 2,
+            "end": 5
+          }
+        ],
+        "candidates": [
+          {
+            "kind": "datasize",
+            "unit": "kib",
+            "weight": 0,
+            "form": "кіб"
+          }
+        ],
+        "assignments": [
+          {
+            "kind": "datasize",
+            "score": 0,
+            "confidence": 1,
+            "units": ["kib"],
+            "contributions": [
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "contextBonus",
+                "value": 0,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "кіб",
+          "span": {
+            "start": 2,
+            "end": 5
+          },
+          "text": "2 кібібайти",
+          "kind": "datasize",
+          "unit": "kib",
+          "score": 13
+        }
+      ]
+    },
+    "coerce": {
+      "ok": {
+        "kind": "datasize",
+        "canonical": "2048",
+        "unit": "kib"
+      }
+    }
+  },
+  "90 градус": {
+    "evaluate": {
+      "ok": {
+        "kind": "angle",
+        "canonical": "1.570796326794896619231321692",
+        "unit": "deg",
+        "formatted": "90 градусів",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 9
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "angle",
+          "canonical": "1.570796326794896619231321692",
+          "formatted": "90 градусів",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "90",
+            "start": 0,
+            "end": 2
+          },
+          {
+            "type": "word",
+            "text": "градус",
+            "start": 3,
+            "end": 9
+          }
+        ],
+        "candidates": [
+          {
+            "kind": "angle",
+            "unit": "deg",
+            "weight": 0,
+            "form": "градус"
+          }
+        ],
+        "assignments": [
+          {
+            "kind": "angle",
+            "score": 0,
+            "confidence": 1,
+            "units": ["deg"],
+            "contributions": [
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "contextBonus",
+                "value": 0,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "градус",
+          "span": {
+            "start": 3,
+            "end": 9
+          },
+          "text": "90 градусів",
+          "kind": "angle",
+          "unit": "deg",
+          "score": 13
+        }
+      ]
+    },
+    "coerce": {
+      "ok": {
+        "kind": "angle",
+        "canonical": "1.570796326794896619231321692",
+        "unit": "deg"
+      }
+    }
+  },
+  "1 радіан": {
+    "evaluate": {
+      "ok": {
+        "kind": "angle",
+        "canonical": "1",
+        "unit": "rad",
+        "formatted": "1 радіан",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 8
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "angle",
+          "canonical": "1",
+          "formatted": "1 радіан",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "1",
+            "start": 0,
+            "end": 1
+          },
+          {
+            "type": "word",
+            "text": "радіан",
+            "start": 2,
+            "end": 8
+          }
+        ],
+        "candidates": [
+          {
+            "kind": "angle",
+            "unit": "rad",
+            "weight": 0,
+            "form": "радіан"
+          }
+        ],
+        "assignments": [
+          {
+            "kind": "angle",
+            "score": 0,
+            "confidence": 1,
+            "units": ["rad"],
+            "contributions": [
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "contextBonus",
+                "value": 0,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "радіан",
+          "span": {
+            "start": 2,
+            "end": 8
+          },
+          "text": "1 радіан",
+          "kind": "angle",
+          "unit": "rad",
+          "score": 13
+        }
+      ]
+    },
+    "coerce": {
+      "ok": {
+        "kind": "angle",
+        "canonical": "1",
+        "unit": "rad"
+      }
+    }
+  },
+  "2 оберт": {
+    "evaluate": {
+      "ok": {
+        "kind": "angle",
+        "canonical": "12.56637061435917295385057353",
+        "unit": "turn",
+        "formatted": "2 оберти",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 7
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "angle",
+          "canonical": "12.56637061435917295385057353",
+          "formatted": "2 оберти",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "2",
+            "start": 0,
+            "end": 1
+          },
+          {
+            "type": "word",
+            "text": "оберт",
+            "start": 2,
+            "end": 7
+          }
+        ],
+        "candidates": [
+          {
+            "kind": "angle",
+            "unit": "turn",
+            "weight": 0,
+            "form": "оберт"
+          }
+        ],
+        "assignments": [
+          {
+            "kind": "angle",
+            "score": 0,
+            "confidence": 1,
+            "units": ["turn"],
+            "contributions": [
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "contextBonus",
+                "value": 0,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "оберт",
+          "span": {
+            "start": 2,
+            "end": 7
+          },
+          "text": "2 оберти",
+          "kind": "angle",
+          "unit": "turn",
+          "score": 13
+        }
+      ]
+    },
+    "coerce": {
+      "ok": {
+        "kind": "angle",
+        "canonical": "12.56637061435917295385057353",
+        "unit": "turn"
+      }
+    }
+  },
+  "100 град": {
+    "evaluate": {
+      "ok": {
+        "kind": "angle",
+        "canonical": "1.570796326794896619231321692",
+        "unit": "grad",
+        "formatted": "100 градів",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 8
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "angle",
+          "canonical": "1.570796326794896619231321692",
+          "formatted": "100 градів",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "100",
+            "start": 0,
+            "end": 3
+          },
+          {
+            "type": "word",
+            "text": "град",
+            "start": 4,
+            "end": 8
+          }
+        ],
+        "candidates": [
+          {
+            "kind": "angle",
+            "unit": "grad",
+            "weight": 0,
+            "form": "град"
+          }
+        ],
+        "assignments": [
+          {
+            "kind": "angle",
+            "score": 0,
+            "confidence": 1,
+            "units": ["grad"],
+            "contributions": [
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "contextBonus",
+                "value": 0,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "град",
+          "span": {
+            "start": 4,
+            "end": 8
+          },
+          "text": "100 градів",
+          "kind": "angle",
+          "unit": "grad",
+          "score": 13
+        },
+        {
+          "alias": "градус",
+          "span": {
+            "start": 4,
+            "end": 8
+          },
+          "text": "100 градусів",
+          "kind": "angle",
+          "unit": "deg",
+          "score": 1
+        }
+      ]
+    },
+    "coerce": {
+      "ok": {
+        "kind": "angle",
+        "canonical": "1.570796326794896619231321692",
+        "unit": "grad"
+      }
+    }
+  },
+  "5 літ": {
+    "evaluate": {
+      "error": "NoCandidateError: Unknown unit \"літ\". Did you mean: літр, біт, літра?"
+    },
+    "suggest": {
+      "ok": []
+    },
+    "explain": {
+      "error": "NoCandidateError: Unknown unit \"літ\". Did you mean: літр, біт, літра?"
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "літр",
+          "span": {
+            "start": 2,
+            "end": 5
+          },
+          "text": "5 літрів",
+          "kind": "volume",
+          "unit": "l",
+          "score": 2
+        }
+      ]
+    },
+    "coerce": {
+      "error": "NoCandidateError: Unknown unit \"літ\". Did you mean: літр, біт, літра?"
+    }
+  },
+  "500 мілілі": {
+    "evaluate": {
+      "error": "NoCandidateError: Unknown unit \"мілілі\". Did you mean: мілілітр?"
+    },
+    "suggest": {
+      "ok": []
+    },
+    "explain": {
+      "error": "NoCandidateError: Unknown unit \"мілілі\". Did you mean: мілілітр?"
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "мілілітр",
+          "span": {
+            "start": 4,
+            "end": 10
+          },
+          "text": "500 мілілітрів",
+          "kind": "volume",
+          "unit": "ml",
+          "score": 1
+        }
+      ]
+    },
+    "coerce": {
+      "error": "NoCandidateError: Unknown unit \"мілілі\". Did you mean: мілілітр?"
+    }
+  },
+  "2 гало": {
+    "evaluate": {
+      "error": "NoCandidateError: Unknown unit \"гало\". Did you mean: галон, гал, галона?"
+    },
+    "suggest": {
+      "ok": []
+    },
+    "explain": {
+      "error": "NoCandidateError: Unknown unit \"гало\". Did you mean: галон, гал, галона?"
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "галон",
+          "span": {
+            "start": 2,
+            "end": 6
+          },
+          "text": "2 галони",
+          "kind": "volume",
+          "unit": "gal",
+          "score": 2
+        }
+      ]
+    },
+    "coerce": {
+      "error": "NoCandidateError: Unknown unit \"гало\". Did you mean: галон, гал, галона?"
+    }
+  },
+  "1 пінт": {
+    "evaluate": {
+      "ok": {
+        "kind": "volume",
+        "canonical": "0.473176473",
+        "unit": "pint",
+        "formatted": "1 пінта",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 6
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "volume",
+          "canonical": "0.473176473",
+          "formatted": "1 пінта",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "1",
+            "start": 0,
+            "end": 1
+          },
+          {
+            "type": "word",
+            "text": "пінт",
+            "start": 2,
+            "end": 6
+          }
+        ],
+        "candidates": [
+          {
+            "kind": "volume",
+            "unit": "pint",
+            "weight": 0,
+            "form": "пінт"
+          }
+        ],
+        "assignments": [
+          {
+            "kind": "volume",
+            "score": 0,
+            "confidence": 1,
+            "units": ["pint"],
+            "contributions": [
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "contextBonus",
+                "value": 0,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "пінт",
+          "span": {
+            "start": 2,
+            "end": 6
+          },
+          "text": "1 пінта",
+          "kind": "volume",
+          "unit": "pint",
+          "score": 13
+        }
+      ]
+    },
+    "coerce": {
+      "ok": {
+        "kind": "volume",
+        "canonical": "0.473176473",
+        "unit": "pint"
+      }
+    }
+  },
+  "3 гект": {
+    "evaluate": {
+      "error": "NoCandidateError: Unknown unit \"гект\". Did you mean: гектар, гвт, сек?"
+    },
+    "suggest": {
+      "ok": []
+    },
+    "explain": {
+      "error": "NoCandidateError: Unknown unit \"гект\". Did you mean: гектар, гвт, сек?"
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "гектар",
+          "span": {
+            "start": 2,
+            "end": 6
+          },
+          "text": "3 гектари",
+          "kind": "area",
+          "unit": "hectare",
+          "score": 1
+        }
+      ]
+    },
+    "coerce": {
+      "error": "NoCandidateError: Unknown unit \"гект\". Did you mean: гектар, гвт, сек?"
+    }
+  },
+  "2 акр": {
+    "evaluate": {
+      "ok": {
+        "kind": "area",
+        "canonical": "8093.7128448",
+        "unit": "acre",
+        "formatted": "2 акри",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 5
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "area",
+          "canonical": "8093.7128448",
+          "formatted": "2 акри",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "2",
+            "start": 0,
+            "end": 1
+          },
+          {
+            "type": "word",
+            "text": "акр",
+            "start": 2,
+            "end": 5
+          }
+        ],
+        "candidates": [
+          {
+            "kind": "area",
+            "unit": "acre",
+            "weight": 0,
+            "form": "акр"
+          }
+        ],
+        "assignments": [
+          {
+            "kind": "area",
+            "score": 0,
+            "confidence": 1,
+            "units": ["acre"],
+            "contributions": [
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "contextBonus",
+                "value": 0,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "акр",
+          "span": {
+            "start": 2,
+            "end": 5
+          },
+          "text": "2 акри",
+          "kind": "area",
+          "unit": "acre",
+          "score": 13
+        }
+      ]
+    },
+    "coerce": {
+      "ok": {
+        "kind": "area",
+        "canonical": "8093.7128448",
+        "unit": "acre"
+      }
+    }
+  },
+  "10 вуз": {
+    "evaluate": {
+      "ok": {
+        "kind": "speed",
+        "canonical": "5.144444444444444444444444444",
+        "unit": "knot",
+        "formatted": "10 вузлів",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 6
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "speed",
+          "canonical": "5.144444444444444444444444444",
+          "formatted": "10 вузлів",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "10",
+            "start": 0,
+            "end": 2
+          },
+          {
+            "type": "word",
+            "text": "вуз",
+            "start": 3,
+            "end": 6
+          }
+        ],
+        "candidates": [
+          {
+            "kind": "speed",
+            "unit": "knot",
+            "weight": 0,
+            "form": "вуз"
+          }
+        ],
+        "assignments": [
+          {
+            "kind": "speed",
+            "score": 0,
+            "confidence": 1,
+            "units": ["knot"],
+            "contributions": [
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "contextBonus",
+                "value": 0,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "вуз",
+          "span": {
+            "start": 3,
+            "end": 6
+          },
+          "text": "10 вузлів",
+          "kind": "speed",
+          "unit": "knot",
+          "score": 13
+        }
+      ]
+    },
+    "coerce": {
+      "ok": {
+        "kind": "speed",
+        "canonical": "5.144444444444444444444444444",
+        "unit": "knot"
+      }
+    }
+  },
+  "20 цельс": {
+    "evaluate": {
+      "error": "NoCandidateError: Unknown unit \"цельс\". Did you mean: цельсії, цельсій, цельсію?"
+    },
+    "suggest": {
+      "ok": []
+    },
+    "explain": {
+      "error": "NoCandidateError: Unknown unit \"цельс\". Did you mean: цельсії, цельсій, цельсію?"
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "цельсій",
+          "span": {
+            "start": 3,
+            "end": 8
+          },
+          "text": "20 цельсій",
+          "kind": "temperature",
+          "unit": "c",
+          "score": 1
+        },
+        {
+          "alias": "цельсій",
+          "span": {
+            "start": 3,
+            "end": 8
+          },
+          "text": "20 цельсій",
+          "kind": "tempdelta",
+          "unit": "c",
+          "score": -39
+        }
+      ]
+    },
+    "coerce": {
+      "error": "NoCandidateError: Unknown unit \"цельс\". Did you mean: цельсії, цельсій, цельсію?"
+    }
+  },
+  "300 кельв": {
+    "evaluate": {
+      "error": "NoCandidateError: Unknown unit \"кельв\". Did you mean: кельвін?"
+    },
+    "suggest": {
+      "ok": []
+    },
+    "explain": {
+      "error": "NoCandidateError: Unknown unit \"кельв\". Did you mean: кельвін?"
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "кельвін",
+          "span": {
+            "start": 4,
+            "end": 9
+          },
+          "text": "300 кельвін",
+          "kind": "temperature",
+          "unit": "k",
+          "score": 1
+        },
+        {
+          "alias": "кельвін",
+          "span": {
+            "start": 4,
+            "end": 9
+          },
+          "text": "300 кельвін",
+          "kind": "tempdelta",
+          "unit": "k",
+          "score": -42
+        }
+      ]
+    },
+    "coerce": {
+      "error": "NoCandidateError: Unknown unit \"кельв\". Did you mean: кельвін?"
+    }
+  },
+  "10 кг + 5 грам": {
+    "evaluate": {
+      "ok": {
+        "kind": "mass",
+        "canonical": "10005",
+        "unit": "kg",
+        "formatted": "10,005 кілограма",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 14
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "mass",
+          "canonical": "10005",
+          "formatted": "10,005 кілограма",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "10",
+            "start": 0,
+            "end": 2
+          },
+          {
+            "type": "word",
+            "text": "кг",
+            "start": 3,
+            "end": 5
+          },
+          {
+            "type": "op",
+            "op": "+",
+            "start": 6,
+            "end": 7
+          },
+          {
+            "type": "number",
+            "text": "5",
+            "start": 8,
+            "end": 9
+          },
+          {
+            "type": "word",
+            "text": "грам",
+            "start": 10,
+            "end": 14
+          }
+        ],
+        "candidates": [
+          {
+            "kind": "mass",
+            "unit": "kg",
+            "weight": 0,
+            "form": "кг"
+          },
+          {
+            "kind": "mass",
+            "unit": "g",
+            "weight": 0,
+            "form": "грам"
+          }
+        ],
+        "assignments": [
+          {
+            "kind": "mass",
+            "score": 30,
+            "confidence": 1,
+            "units": ["kg", "g"],
+            "contributions": [
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "contextBonus",
+                "value": 30,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "грам",
+          "span": {
+            "start": 10,
+            "end": 14
+          },
+          "text": "10 кг + 5 грамів",
+          "kind": "mass",
+          "unit": "g",
+          "score": 13
+        }
+      ]
+    },
+    "coerce": {
+      "ok": {
+        "kind": "mass",
+        "canonical": "10005",
+        "unit": "kg"
+      }
+    }
+  },
+  "10 мм + 5 санти": {
+    "evaluate": {
+      "error": "NoCandidateError: Unknown unit \"санти\". Did you mean: вати, байти, пінти?"
+    },
+    "suggest": {
+      "ok": []
+    },
+    "explain": {
+      "error": "NoCandidateError: Unknown unit \"санти\". Did you mean: вати, байти, пінти?"
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "сантиметр",
+          "span": {
+            "start": 10,
+            "end": 15
+          },
+          "text": "10 мм + 5 сантиметрів",
+          "kind": "length",
+          "unit": "cm",
+          "score": -1
+        }
+      ]
+    },
+    "coerce": {
+      "error": "NoCandidateError: Unknown unit \"санти\". Did you mean: вати, байти, пінти?"
+    }
+  },
+  "2 км в мил": {
+    "evaluate": {
+      "error": "NoCandidateError: Unknown unit \"мил\". Did you mean: милі, миль, милю?"
+    },
+    "suggest": {
+      "ok": []
+    },
+    "explain": {
+      "error": "NoCandidateError: Unknown unit \"мил\". Did you mean: милі, миль, милю?"
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "миль",
+          "span": {
+            "start": 7,
+            "end": 10
+          },
+          "text": "2 км в миля",
+          "kind": "length",
+          "unit": "mi",
+          "score": -1
+        }
+      ]
+    },
+    "coerce": {
+      "error": "NoCandidateError: Unknown unit \"мил\". Did you mean: милі, миль, милю?"
+    }
+  }
+}

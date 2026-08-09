@@ -1,24 +1,32 @@
 import { describe, expect, test } from "bun:test";
 import { ANGLE_UNITS } from "@smartput/angle/units";
 import { AREA_UNITS } from "@smartput/area/units";
-import type { Kind, UnitLexeme } from "@smartput/core";
-import en from "@smartput/core/locale/en";
+import type { Kind, Vocabulary } from "@smartput/core";
+import { BOOLEAN_KIND, BOOLEAN_UNIT, composeLocale } from "@smartput/core";
+import { english as en } from "@smartput/core/locale/en";
+import { assertLocaleContract } from "@smartput/core/testing";
+import { DATARATE_UNITS } from "@smartput/datarate/units";
 import { DATASIZE_UNITS } from "@smartput/datasize/units";
 import { DURATION_UNITS } from "@smartput/duration/units";
+import { ENERGY_UNITS } from "@smartput/energy/units";
 import { LENGTH_UNITS } from "@smartput/length/units";
 import { MASS_UNITS } from "@smartput/mass/units";
+import measureEn from "@smartput/measure/locale/en";
 import { MEASURE_UNITS } from "@smartput/measure/units";
 import { NUMBER_UNITS } from "@smartput/number/units";
 import { PERCENT_UNITS } from "@smartput/percent/units";
+import { POWER_UNITS } from "@smartput/power/units";
 import { SPEED_UNITS } from "@smartput/speed/units";
 import { TEMPDELTA_UNITS, TEMPERATURE_UNITS } from "@smartput/temperature/units";
+import { TEMPO_UNITS } from "@smartput/tempo/units";
 import { VOLUME_UNITS } from "@smartput/volume/units";
-
 import {
   Angle,
   Area,
+  Datarate,
   Datasize,
   Duration,
+  Energy,
   Length,
   Mass,
   Measure,
@@ -26,39 +34,51 @@ import {
   // alias is local to this file; nothing here wants the builtin.
   Number as Num,
   Percent,
+  Power,
   Speed,
   TempDelta,
   Temperature,
+  Tempo,
   Volume,
 } from "./class";
 import {
   angle,
   area,
+  BUILTIN_KINDS,
+  datarate,
   datasize,
   duration,
+  energy,
   length,
   mass,
   measure,
   number,
   percent,
+  power,
   speed,
   tempdelta,
   temperature,
+  tempo,
   volume,
 } from "./index";
+import BUILTIN_EN from "./locale/en";
 import {
   parseAngle,
   parseArea,
+  parseDatarate,
   parseDatasize,
   parseDuration,
+  parseEnergy,
   parseLength,
   parseMass,
   parseMeasure,
   parseNumber,
   parsePercent,
+  parsePower,
   parseSpeed,
   parseTempDelta,
   parseTemperature,
+  parseTempo,
   parseVolume,
   toMeasure,
 } from "./validate";
@@ -75,7 +95,7 @@ import {
  */
 /**
  * Just enough of `UnitTable` for the assertions below. Spelled structurally
- * rather than imported from `@smartput/validate`, because every real
+ * rather than imported from `@smartput/shared`, because every real
  * `UnitTable` satisfies it and importing the type would make the aggregator
  * depend on a package it does not otherwise use — a dependency added for a
  * test is still a dependency in the manifest `check-deps` reads.
@@ -88,7 +108,7 @@ type TableLike = {
   readonly alias: Readonly<Record<string, string>>;
 };
 
-/** What a parsed result looks like from outside `@smartput/validate`. */
+/** What a parsed result looks like from outside `@smartput/shared`. */
 type ParsedLike =
   | { readonly ok: true; readonly value: number; readonly unit: string }
   | { readonly ok: false; readonly code: string };
@@ -152,6 +172,14 @@ const ROWS: Row[] = [
   },
   { id: "area", pkg: "area", table: AREA_UNITS, kind: area, cls: Area, free: parseArea },
   {
+    id: "datarate",
+    pkg: "datarate",
+    table: DATARATE_UNITS,
+    kind: datarate,
+    cls: Datarate,
+    free: parseDatarate,
+  },
+  {
     id: "datasize",
     pkg: "datasize",
     table: DATASIZE_UNITS,
@@ -166,6 +194,14 @@ const ROWS: Row[] = [
     kind: duration,
     cls: Duration,
     free: parseDuration,
+  },
+  {
+    id: "energy",
+    pkg: "energy",
+    table: ENERGY_UNITS,
+    kind: energy,
+    cls: Energy,
+    free: parseEnergy,
   },
   {
     id: "length",
@@ -201,6 +237,14 @@ const ROWS: Row[] = [
     free: parsePercent,
   },
   {
+    id: "power",
+    pkg: "power",
+    table: POWER_UNITS,
+    kind: power,
+    cls: Power,
+    free: parsePower,
+  },
+  {
     id: "speed",
     pkg: "speed",
     table: SPEED_UNITS,
@@ -225,6 +269,14 @@ const ROWS: Row[] = [
     free: parseTemperature,
   },
   {
+    id: "tempo",
+    pkg: "tempo",
+    table: TEMPO_UNITS,
+    kind: tempo,
+    cls: Tempo,
+    free: parseTempo,
+  },
+  {
     id: "volume",
     pkg: "volume",
     table: VOLUME_UNITS,
@@ -234,13 +286,27 @@ const ROWS: Row[] = [
   },
 ];
 
-/** The twelve packages that ship a ratio kind, deduplicated from the rows. */
+/** The sixteen packages that ship a ratio kind, deduplicated from the rows. */
 const PACKAGES = [...new Set(ROWS.map((r) => r.pkg))].sort();
 
 const SUBPATHS = ["./units", "./validate", "./class"] as const;
 
-const aliasesOf = (lexeme: UnitLexeme | string[]): string[] =>
-  Array.isArray(lexeme) ? lexeme : lexeme.aliases;
+/**
+ * Every row's English vocabulary, keyed by kind id — the words that used to
+ * sit on the descriptor as `lexicon`. `measure` is added by hand because it is
+ * outside `BUILTIN_EN` for exactly the reason it is outside `BUILTIN_KINDS`.
+ */
+const WORDS = new Map<string, Vocabulary>(
+  [...BUILTIN_EN, measureEn].map((v) => [v.kind, v]),
+);
+
+const wordsOf = (row: Row): Vocabulary => {
+  const words = WORDS.get(row.id);
+  // Not a soft skip: a row with no vocabulary would make the three contracts
+  // below vacuously true, which is how a kind loses its words unnoticed.
+  if (words === undefined) throw new Error(`no en vocabulary for kind ${row.id}`);
+  return words;
+};
 
 const ratioUnits = (kind: Kind): string[] => {
   if (kind.value.mode !== "ratio") throw new Error(`${kind.id} is not a ratio kind`);
@@ -253,16 +319,20 @@ test("the roster covers every ratio kind exported by the package root", () => {
   expect(ROWS.map((r) => r.id).sort()).toEqual([
     "angle",
     "area",
+    "datarate",
     "datasize",
     "duration",
+    "energy",
     "length",
     "mass",
     "measure",
     "number",
     "percent",
+    "power",
     "speed",
     "tempdelta",
     "temperature",
+    "tempo",
     "volume",
   ]);
 });
@@ -304,10 +374,9 @@ describe("units.ts and the descriptor agree", () => {
       expect(Object.keys(row.table.ratio)).toContain(row.table.canonical);
     });
 
-    test(`${row.id}: every lexicon unit is a table unit`, () => {
-      const lexicon = row.kind.lexicon ?? {};
+    test(`${row.id}: every vocabulary unit is a table unit`, () => {
       const units = new Set(Object.keys(row.table.ratio));
-      for (const unit of Object.keys(lexicon)) {
+      for (const unit of Object.keys(wordsOf(row).units)) {
         expect({ unit, known: units.has(unit) }).toEqual({ unit, known: true });
       }
     });
@@ -335,14 +404,13 @@ describe("the alias map is well formed", () => {
       }
     });
 
-    test(`${row.id}: every lexicon alias appears in the table`, () => {
-      // The derivation direction that matters: the descriptor is built from the
-      // table, so a lexicon alias with no table entry means someone hand-edited
-      // the descriptor and the micro path can no longer parse what the engine
+    test(`${row.id}: every vocabulary alias appears in the table`, () => {
+      // The derivation direction that matters: the vocabulary is built from the
+      // table, so an alias with no table entry means someone hand-edited
+      // `locale/en` and the micro path can no longer parse what the engine
       // accepts.
-      const lexicon = row.kind.lexicon ?? {};
-      for (const [unit, lexeme] of Object.entries(lexicon)) {
-        for (const alias of aliasesOf(lexeme)) {
+      for (const [unit, words] of Object.entries(wordsOf(row).units)) {
+        for (const alias of words.aliases) {
           expect({ alias, unit: row.table.alias[alias] }).toEqual({ alias, unit });
         }
       }
@@ -351,7 +419,7 @@ describe("the alias map is well formed", () => {
 });
 
 /**
- * The regression that shipped once: deriving the lexicon from the table made
+ * The regression that shipped once: deriving the vocabulary from the table made
  * every unit key its own alias, which put `in` — core's conversion keyword —
  * into `registry.aliasIndex`. `lex` never emits it as a word, so the entry was
  * unreachable, but `MatchCtx.isUnitAlias` reads the index directly and
@@ -359,9 +427,9 @@ describe("the alias map is well formed", () => {
  * all unit aliases. "in 3 days" stopped being a date.
  *
  * The reserved set is read off the locale rather than hardcoded, so adding a
- * keyword to `locale/en` re-checks all thirteen tables for free.
+ * keyword to `locale/en` re-checks all seventeen tables for free.
  */
-describe("no lexicon alias collides with a locale keyword", () => {
+describe("no vocabulary alias collides with a locale keyword", () => {
   const reserved = new Set(Object.values(en.keywords ?? {}).flat());
 
   test("the locale still defines keywords to check against", () => {
@@ -371,9 +439,8 @@ describe("no lexicon alias collides with a locale keyword", () => {
 
   for (const row of ROWS) {
     test(row.id, () => {
-      const lexicon = row.kind.lexicon ?? {};
-      for (const lexeme of Object.values(lexicon)) {
-        for (const alias of aliasesOf(lexeme)) {
+      for (const words of Object.values(wordsOf(row).units)) {
+        for (const alias of words.aliases) {
           expect({ alias, reserved: reserved.has(alias) }).toEqual({
             alias,
             reserved: false,
@@ -384,9 +451,46 @@ describe("no lexicon alias collides with a locale keyword", () => {
   }
 
   test("length still keeps `in` on the micro path", () => {
-    // The exclusion is lexicon-only. Dropping it from the table too would break
+    // The exclusion is vocabulary-only. Dropping it from the table too would break
     // the strict round-trip of `formatLength(v, "in")`.
     expect(LENGTH_UNITS.alias.in).toBe("in");
+  });
+});
+
+/**
+ * The whole roster against the whole English language, in one call — spec §9's
+ * four checks, run over the pair a consumer actually wires up. The three
+ * describes above check each vocabulary against its own `units.ts`; this checks
+ * them against `english`, which is the half a table cannot see: whether every
+ * grammatical key `selectForm` will ask for at runtime exists in the `forms`
+ * table it will index.
+ *
+ * It is a single test rather than one per kind because that is how the
+ * assertion reports: it collects every problem across every unit and names them
+ * all in one message, so a gap in the sixteenth vocabulary is visible on the
+ * first run rather than on the sixteenth.
+ */
+test("the en vocabularies satisfy the locale contract", () => {
+  assertLocaleContract(composeLocale(en, BUILTIN_EN), BUILTIN_KINDS, {
+    // `boolean`'s single unit is a sentinel with no word in any language, and
+    // that is the design rather than an omission: every value of the kind
+    // prints through its `format` hook ("true"/"false"), the unit id never
+    // reaches a user, and `@smartput/boolean` ships no vocabulary at all. This
+    // is I10's degradation being taken deliberately — the one case `skip`
+    // exists for.
+    skip: [`${BOOLEAN_KIND}:${BOOLEAN_UNIT}`],
+    // The one printed string in either language that its own engine cannot
+    // read, and the describe above is the reason: "in" is the conversion
+    // keyword, so `lex` emits a keyword token and the alias index deliberately
+    // has no entry for it. That deliberate gap stops at `aliases` — `symbol`
+    // is still "in", so a `symbols: true` print emits "5in" and the engine
+    // rejects it. It stays because English has no other symbol for the inch:
+    // the double-prime does not lex either, "inch" is a word rather than a
+    // symbol, and "in" is what the micro path's `formatLength` already writes
+    // and `parseLength` already reads (no keyword grammar there). `skipPrintable`
+    // rather than `skip`: inch keeps every other assertion, including that
+    // "inch"/"inches" resolve and that both plural keys exist.
+    skipPrintable: ["length:in"],
   });
 });
 
@@ -397,7 +501,7 @@ describe("no lexicon alias collides with a locale keyword", () => {
  * test at all — which is how `Number.parse("30")` shipped throwing
  * `missing-unit` on the one input spec §7.1 says the kind exists for, while
  * `parseNumber("30")` returned 30. Every assertion below runs against all
- * thirteen rows, so a kind cannot be added without being covered.
+ * seventeen rows, so a kind cannot be added without being covered.
  *
  * Sample inputs are derived from each table rather than listed per kind: a unit
  * is its own alias (asserted above), so `1<canonical>` parses for every kind,

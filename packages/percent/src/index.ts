@@ -1,17 +1,14 @@
 import {
-  aliasesFor,
   Decimal,
   decimalRatios,
   defineKind,
   deriveValue,
   NUMBER_KIND,
 } from "@smartput/core";
-import { PERCENT_UNITS, type PercentUnit } from "./units";
+import { PERCENT_UNITS } from "./units";
 
 export type { PercentUnit } from "./units";
 export { PERCENT_UNITS } from "./units";
-
-const alias = (unit: PercentUnit) => aliasesFor(PERCENT_UNITS, unit);
 
 /**
  * Canonical is the plain ratio, so "20%" is 0.2 and needs no special case to
@@ -45,17 +42,10 @@ export const percent = defineKind({
     canonical: PERCENT_UNITS.canonical,
     units: decimalRatios(PERCENT_UNITS),
   },
-  // No `display`: the written form of this unit is the symbol. "20 percent"
-  // does parse, but rendering it that way would make every percentage in every
-  // result read as a word, and completion falling back to the bare alias "%"
-  // is already the form a user wants to type.
-  lexicon: {
-    "%": {
-      aliases: alias("%"),
-      symbol: "%",
-      typical: [1, 100],
-    },
-  },
+  // Magnitude band, not language (spec §4): the range people type a percentage
+  // in, read only by completion's `scaleFit`. The words that used to sit beside
+  // it live in `./locale/en`.
+  typical: { "%": [1, 100] },
   ops: [
     {
       op: "of",
@@ -63,6 +53,18 @@ export const percent = defineKind({
       right: NUMBER_KIND,
       result: NUMBER_KIND,
       apply: (l, r) => deriveValue(r, r.canonical.times(l.canonical)),
+    },
+    // `off` is here for exactly the reason `of` above it is: generateRatioOps
+    // emits it for every ratio kind except `number`, and the arithmetic is
+    // copied from the generated case rather than shared, so the two cannot
+    // drift apart in what they do to `meta`.
+    {
+      op: "off",
+      left: "percent",
+      right: NUMBER_KIND,
+      result: NUMBER_KIND,
+      apply: (l, r) =>
+        deriveValue(r, r.canonical.times(new Decimal(1).minus(l.canonical))),
     },
     {
       op: "+",
@@ -78,6 +80,36 @@ export const percent = defineKind({
       result: NUMBER_KIND,
       apply: (l, r) =>
         deriveValue(l, l.canonical.times(new Decimal(1).minus(r.canonical))),
+    },
+    // Conversion between a number and a percentage, which generateRatioOps
+    // does not reach for the same reason as the three above: it emits `in`
+    // only for a kind against itself, so number owns `in|number|number` and
+    // percent `in|percent|percent`, and neither of these two keys is claimed
+    // by anyone. Because canonical storage on both sides is the same plain
+    // 0-1 ratio, there is no arithmetic to do — 0.1 stays 0.1 and only the
+    // kind changes, which is what makes "5 / 50 in %" answer 10%.
+    //
+    // `deriveValue`'s source is the RIGHT operand in both directions: the
+    // right is the conversion target, so its kind, unit and meta are what the
+    // result must carry. Sourcing from the left would hand back a value
+    // labelled with the kind being converted away from.
+    {
+      op: "in",
+      left: NUMBER_KIND,
+      right: "percent",
+      result: "percent",
+      apply: (l, r) => deriveValue(r, l.canonical),
+    },
+    // The reverse direction has no surface spelling today — number's only
+    // unit word is "one", which foldNumerals eats as the numeral before the
+    // resolver sees it — but the signature is what makes the pair total, and
+    // it costs one entry rather than a rule about which way conversions run.
+    {
+      op: "in",
+      left: "percent",
+      right: NUMBER_KIND,
+      result: NUMBER_KIND,
+      apply: (l, r) => deriveValue(r, l.canonical),
     },
   ],
 });

@@ -5,8 +5,13 @@
   "sideEffects": [
     "./src/decimal.ts",
     "./dist/index.js",
-    "./dist/locale/en.js",
-    "./dist/testing/index.js"
+    "./dist/testing/index.js",
+    "./dist/tokenize.js",
+    "./dist/parse.js",
+    "./dist/solve.js",
+    "./dist/eval.js",
+    "./dist/print.js",
+    "./dist/registry.js"
   ],
   "exports": {
     ".": {
@@ -14,22 +19,64 @@
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
+    "./testing": {
+      "bun": "./src/testing/index.ts",
+      "types": "./dist/testing/index.d.ts",
+      "default": "./dist/testing/index.js"
+    },
+    "./normalize": {
+      "bun": "./src/normalize.ts",
+      "types": "./dist/normalize.d.ts",
+      "default": "./dist/normalize.js"
+    },
+    "./tokenize": {
+      "bun": "./src/tokenize.ts",
+      "types": "./dist/tokenize.d.ts",
+      "default": "./dist/tokenize.js"
+    },
+    "./parse": {
+      "bun": "./src/parse.ts",
+      "types": "./dist/parse.d.ts",
+      "default": "./dist/parse.js"
+    },
+    "./solve": {
+      "bun": "./src/solve.ts",
+      "types": "./dist/solve.d.ts",
+      "default": "./dist/solve.js"
+    },
+    "./eval": {
+      "bun": "./src/eval.ts",
+      "types": "./dist/eval.d.ts",
+      "default": "./dist/eval.js"
+    },
+    "./print": {
+      "bun": "./src/print.ts",
+      "types": "./dist/print.d.ts",
+      "default": "./dist/print.js"
+    },
+    "./registry": {
+      "bun": "./src/registry.ts",
+      "types": "./dist/registry.d.ts",
+      "default": "./dist/registry.js"
+    },
     "./locale/en": {
       "bun": "./src/locale/en.ts",
       "types": "./dist/locale/en.d.ts",
       "default": "./dist/locale/en.js"
     },
-    "./testing": {
-      "bun": "./src/testing/index.ts",
-      "types": "./dist/testing/index.d.ts",
-      "default": "./dist/testing/index.js"
+    "./locale/uk": {
+      "bun": "./src/locale/uk.ts",
+      "types": "./dist/locale/uk.d.ts",
+      "default": "./dist/locale/uk.js"
     }
   },
   "dependencies": {
     "decimal.js": "^10.6.0"
   },
   "devDependencies": {
+    "@smartput/core": "workspace:*",
     "@smartput/kinds": "workspace:*",
-    "@smartput/validate": "workspace:*"
+    "@smartput/measure": "workspace:*",
+    "@smartput/shared": "workspace:*"
   }
 }

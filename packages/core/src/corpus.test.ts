@@ -1,9 +1,14 @@
 import { expect, test } from "bun:test";
+import { english as en } from "@smartput/core/locale/en";
 import { BUILTIN_KINDS } from "@smartput/kinds";
+import BUILTIN_EN from "@smartput/kinds/locale/en";
 import { createEngine } from "./engine";
-import en from "./locale/en";
+import { composeLocale } from "./locale/compose";
 
-const engine = createEngine({ locales: [en], kinds: BUILTIN_KINDS });
+const engine = createEngine({
+  locales: [composeLocale(en, BUILTIN_EN)],
+  kinds: BUILTIN_KINDS,
+});
 const raw = await Bun.file(new URL("../corpus/en.tsv", import.meta.url)).text();
 
 const rows = raw

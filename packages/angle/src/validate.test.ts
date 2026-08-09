@@ -1,7 +1,8 @@
 import { expect, test } from "bun:test";
-import { createEngine } from "@smartput/core";
-import en from "@smartput/core/locale/en";
+import { composeLocale, createEngine } from "@smartput/core";
+import { english as en } from "@smartput/core/locale/en";
 import { angle } from "./index";
+import angleEn from "./locale/en";
 import { ANGLE_UNITS, type AngleUnit } from "./units";
 import {
   addAngle,
@@ -61,7 +62,10 @@ test("a same-unit conversion is exact, not merely close", () => {
 });
 
 test("cross-path agreement: the micro path matches the engine's canonical value", () => {
-  const engine = createEngine({ locales: [en], kinds: [angle] });
+  const engine = createEngine({
+    locales: [composeLocale(en, [angleEn])],
+    kinds: [angle],
+  });
   for (const unit of units) {
     for (const n of ["1", "30.5", "0.25"]) {
       const parsed = parseAngle(`${n}${unit}`);
@@ -78,7 +82,10 @@ test("cross-path agreement: every alias resolves to the same unit on both paths"
   // The whole point of deriving the lexicon. An alias the engine knows and the
   // table does not — or the reverse — is exactly the drift this catches, and it
   // is invisible to any test that only exercises the unit keys.
-  const engine = createEngine({ locales: [en], kinds: [angle] });
+  const engine = createEngine({
+    locales: [composeLocale(en, [angleEn])],
+    kinds: [angle],
+  });
   for (const [word, unit] of Object.entries(ANGLE_UNITS.alias)) {
     const parsed = parseAngle(`1${word}`);
     expect(parsed.ok, word).toBe(true);
@@ -89,7 +96,10 @@ test("cross-path agreement: every alias resolves to the same unit on both paths"
 });
 
 test("cross-path agreement: a conversion the engine states in words", () => {
-  const engine = createEngine({ locales: [en], kinds: [angle] });
+  const engine = createEngine({
+    locales: [composeLocale(en, [angleEn])],
+    kinds: [angle],
+  });
   expect(engine.evaluate("200 grad in deg").formatted).toBe("180 degrees");
   expect(toAngle("200grad", "deg")).toBeCloseTo(180, 9);
   expect(toAngle("0.25turn", "deg")).toBeCloseTo(90, 9);
@@ -113,20 +123,21 @@ test("the emitted pattern agrees with isAngle", () => {
   }
 });
 
-test("contract: units.ts and the descriptor agree on every key and alias", () => {
+test("contract: units.ts, the descriptor and the vocabulary agree", () => {
   const declared = Object.keys((angle.value as { units: object }).units).sort();
   expect(declared).toEqual(Object.keys(ANGLE_UNITS.ratio).sort());
 
-  const lexicon = angle.lexicon ?? {};
+  // The aliases the engine indexes are the aliases the micro path inverts.
+  // They used to be checked against the kind's `lexicon`; that table now lives
+  // in `./locale/en`, and it is the same claim asked of its new home.
   const seen = new Set<string>();
-  for (const [unit, lexeme] of Object.entries(lexicon)) {
-    const aliases = Array.isArray(lexeme) ? lexeme : lexeme.aliases;
-    for (const a of aliases) {
+  for (const [unit, words] of Object.entries(angleEn.units)) {
+    for (const a of words.aliases) {
       expect(ANGLE_UNITS.alias[a], `${a} must be in units.ts`).toBe(unit as AngleUnit);
       seen.add(a);
     }
   }
-  // And the other direction: an alias added to units.ts that the descriptor
+  // And the other direction: an alias added to units.ts that the vocabulary
   // never derived would mean the engine cannot read what the micro path can.
   expect([...seen].sort()).toEqual(Object.keys(ANGLE_UNITS.alias).sort());
 });

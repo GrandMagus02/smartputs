@@ -1,0 +1,26 @@
+2026-01-15T12:00:00Z	UTC	start of week	-	2026-01-12T00:00:00+00:00[UTC]
+2026-01-15T12:00:00Z	UTC	end of week	-	2026-01-19T00:00:00+00:00[UTC]
+2026-01-15T12:00:00Z	UTC	start of month	-	2026-01-01T00:00:00+00:00[UTC]
+2026-01-15T12:00:00Z	UTC	end of month	-	2026-02-01T00:00:00+00:00[UTC]
+2026-01-15T12:00:00Z	UTC	start of year	-	2026-01-01T00:00:00+00:00[UTC]
+2026-01-15T12:00:00Z	UTC	end of year	-	2027-01-01T00:00:00+00:00[UTC]
+2026-01-18T09:00:00Z	UTC	start of week	-	2026-01-12T00:00:00+00:00[UTC]
+2026-01-18T09:00:00Z	UTC	start of week	7	2026-01-18T00:00:00+00:00[UTC]
+2026-01-18T09:00:00Z	UTC	end of week	7	2026-01-25T00:00:00+00:00[UTC]
+2026-01-19T00:30:00Z	UTC	start of week	-	2026-01-19T00:00:00+00:00[UTC]
+2026-01-19T00:30:00Z	UTC	start of week	7	2026-01-18T00:00:00+00:00[UTC]
+2026-02-10T12:00:00Z	UTC	end of month	-	2026-03-01T00:00:00+00:00[UTC]
+2028-02-10T12:00:00Z	UTC	end of month	-	2028-03-01T00:00:00+00:00[UTC]
+2026-01-15T12:00:00Z	Europe/Kyiv	start of month	-	2026-01-01T00:00:00+02:00[Europe/Kyiv]
+2026-01-15T12:00:00Z	Asia/Tokyo	start of week	-	2026-01-12T00:00:00+09:00[Asia/Tokyo]
+2026-01-15T12:00:00Z	America/Los_Angeles	start of week	-	2026-01-12T00:00:00-08:00[America/Los_Angeles]
+2026-09-06T15:00:00Z	America/Santiago	start of month	-	2026-09-01T00:00:00-04:00[America/Santiago]
+2026-09-06T15:00:00Z	America/Santiago	start of week	-	2026-08-31T00:00:00-04:00[America/Santiago]
+2026-09-06T15:00:00Z	America/Santiago	start of week	7	2026-09-06T01:00:00-03:00[America/Santiago]
+2026-12-31T23:00:00Z	UTC	start of year	-	2026-01-01T00:00:00+00:00[UTC]
+2026-12-31T23:00:00Z	UTC	end of year	-	2027-01-01T00:00:00+00:00[UTC]
+morning	-	window	-	6/12 open
+afternoon	-	window	-	12/18 open
+evening	-	window	-	18/22 open
+night	-	window	-	22/6 wraps
+day	-	window	-	6/22 open

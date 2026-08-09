@@ -1,0 +1,48 @@
+{
+  "name": "@smartput/tempo",
+  "version": "0.0.0",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "bun": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./units": {
+      "bun": "./src/units.ts",
+      "types": "./dist/units.d.ts",
+      "default": "./dist/units.js"
+    },
+    "./validate": {
+      "bun": "./src/validate.ts",
+      "types": "./dist/validate.d.ts",
+      "default": "./dist/validate.js"
+    },
+    "./class": {
+      "bun": "./src/class.ts",
+      "types": "./dist/class.d.ts",
+      "default": "./dist/class.js"
+    },
+    "./locale/en": {
+      "bun": "./src/locale/en.ts",
+      "types": "./dist/locale/en.d.ts",
+      "default": "./dist/locale/en.js"
+    },
+    "./locale/uk": {
+      "bun": "./src/locale/uk.ts",
+      "types": "./dist/locale/uk.d.ts",
+      "default": "./dist/locale/uk.js"
+    }
+  },
+  "dependencies": {
+    "@smartput/core": "workspace:*",
+    "@smartput/shared": "workspace:*"
+  },
+  "devDependencies": {
+    "@smartput/core": "workspace:*",
+    "@smartput/duration": "workspace:*",
+    "@smartput/kinds": "workspace:*",
+    "@smartput/number": "workspace:*"
+  }
+}

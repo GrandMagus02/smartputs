@@ -1,6 +1,7 @@
 import { mkdir } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { english as en } from "../../packages/core/src/locale/en";
 // The five imports below are reached by relative path rather than by package
 // name on purpose. This script is not a workspace member, so it has no
 // node_modules of its own and no package.json to declare them in; a relative
@@ -8,15 +9,16 @@ import { join } from "node:path";
 // reaches the published packages, which still ship the two dependencies spec
 // §11 allows them. `chrono-node` has to be reached through the one package that
 // does declare it, which is why that path goes through datetime's node_modules.
-import en from "../../packages/core/src/locale/en";
-import type { Kind, Lexicon, Locale } from "../../packages/core/src/types";
+import type { Kind, Language, Lexicon, Vocabulary } from "../../packages/core/src/types";
+import { MIN_NAME_LENGTH } from "../../packages/country/src/matcher";
 import * as chrono from "../../packages/datetime/node_modules/chrono-node";
-import { MIN_NAME_LENGTH } from "../../packages/geo/src/matcher";
 import { BUILTIN_KINDS } from "../../packages/kinds/src/index";
+import BUILTIN_EN from "../../packages/kinds/src/locale/en";
 import { NUMBER_WORDS } from "../../packages/number/src/words";
 
 /**
- * Builds `packages/geo/src/data/{countries,cities,admin1,reserved}.ts` from the
+ * Builds the four vendored tables — `country/src/data/{countries,reserved}.ts`
+ * and `city/src/data/{cities,admin1}.ts` — from the
  * GeoNames dump and from the engine's own vocabulary.
  *
  * Run deliberately — `bun run scripts/geo/build.ts` — and commit the diff. The
@@ -351,9 +353,9 @@ export interface ReservedSource {
 /** Only whole lowercase words. A symbol like "°C" is not a word a city can be. */
 const RESERVABLE = /^[a-z][a-z']*$/;
 
-/** The locale's keyword surface forms: in, to, as, of, plus, minus, times, by. */
-export function keywordWords(locale: Locale): string[] {
-  return Object.values(locale.keywords).flatMap((forms) => forms ?? []);
+/** The language's keyword surface forms: in, to, as, of, plus, minus, times, by. */
+export function keywordWords(language: Language): string[] {
+  return Object.values(language.keywords).flatMap((forms) => forms ?? []);
 }
 
 /**
@@ -411,8 +413,17 @@ export function chronoWords(): string[] {
  * without building an engine, and the table has to be right before any engine
  * exists to ask. Display forms are included because they are what a formatter
  * prints — "kilometres" comes back as input often enough to matter.
+ *
+ * Words come from two places for the length of the i18n migration. A kind that
+ * has moved its English into `src/locale/en.ts` contributes through
+ * `vocabularies` — the ids stay on the descriptor, the words do not — and one
+ * that still declares `lexicon` contributes through it. Pass both; when the
+ * last `lexicon` is gone the second half of this function goes with it.
  */
-export function unitWords(kinds: readonly Kind[]): string[] {
+export function unitWords(
+  kinds: readonly Kind[],
+  vocabularies: readonly Vocabulary[] = [],
+): string[] {
   const out: string[] = [];
   const take = (lexicon: Lexicon | undefined) => {
     for (const [unit, entry] of Object.entries(lexicon ?? {})) {
@@ -429,6 +440,13 @@ export function unitWords(kinds: readonly Kind[]): string[] {
   for (const kind of kinds) {
     take(kind.lexicon);
     if (kind.value.mode === "ratio") out.push(...Object.keys(kind.value.units));
+  }
+  for (const vocabulary of vocabularies) {
+    for (const [unit, words] of Object.entries(vocabulary.units)) {
+      out.push(unit, ...words.aliases);
+      if (words.symbol !== undefined) out.push(words.symbol);
+      out.push(...Object.values(words.forms ?? {}));
+    }
   }
   return out;
 }
@@ -1138,8 +1156,24 @@ async function countryFeature(
  * bytes are the same ones biome would produce — otherwise the next `biome check`
  * run reformats the file and breaks its own hash.
  */
+/**
+ * Which package each table is committed into. M6 split `@smartput/geo` four ways
+ * and the tables went with the halves that read them: countries and the reserved
+ * list are the T0 package's, cities and divisions are the T1 package's. The map
+ * is exhaustive and `write` throws on a name it does not hold, so a fifth table
+ * has to say where it goes rather than landing wherever the last one did.
+ */
+const PACKAGE_OF: Record<string, string> = {
+  "countries.ts": "country",
+  "reserved.ts": "country",
+  "cities.ts": "city",
+  "admin1.ts": "city",
+};
+
 async function write(name: string, source: string): Promise<number> {
-  const out = new URL(`../../packages/geo/src/data/${name}`, import.meta.url).pathname;
+  const pkg = PACKAGE_OF[name];
+  if (pkg === undefined) throw new Error(`no package declared for ${name}`);
+  const out = new URL(`../../packages/${pkg}/src/data/${name}`, import.meta.url).pathname;
   await mkdir(join(out, ".."), { recursive: true });
   await Bun.write(out, source);
 
@@ -1297,7 +1331,7 @@ async function main(): Promise<void> {
     { id: "number NUMBER_WORDS", words: NUMBER_WORDS },
     { id: "Intl months and weekdays", words: calendarWords() },
     { id: "chrono en.casual patterns", words: chronoWords() },
-    { id: "kinds BUILTIN_KINDS aliases", words: unitWords(BUILTIN_KINDS) },
+    { id: "kinds BUILTIN_KINDS aliases", words: unitWords(BUILTIN_KINDS, BUILTIN_EN) },
     { id: "geo COUNTRIES short codes", words: shortPlaceCodes(rows) },
   ]);
   for (const word of reserved.redundant) {

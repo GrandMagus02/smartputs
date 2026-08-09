@@ -3,7 +3,9 @@ import { Decimal } from "../decimal";
 import { NoCandidateError, UnitParseError } from "../errors";
 import { defineKind } from "../kind/define";
 import { buildRegistry } from "../kind/registry";
-import { defineLocale } from "../locale/define";
+import { composeLocale } from "../locale/compose";
+import { defineLanguage } from "../locale/define";
+import { defineVocabulary } from "../locale/vocabulary";
 import type { Candidate } from "../types";
 import { createResolver } from "./candidates";
 import { lex } from "./lex";
@@ -18,13 +20,16 @@ const length = defineKind({
   id: "length",
   value: { mode: "ratio", canonical: "m", units: { m: 1, km: 1000 } },
 });
-const en = defineLocale({
-  id: "en",
-  numberFormat: "intl",
-  keywords: { in: ["in", "to", "as"], of: ["of"] },
-});
+const en = composeLocale(
+  defineLanguage({
+    id: "en",
+    numberFormat: "intl",
+    keywords: { in: ["in", "to", "as"], of: ["of"], off: ["off"] },
+    selectForm: () => "other",
+  }),
+);
 const registry = buildRegistry([number, length]);
-const resolver = createResolver({ registry, locale: en, packs: [], layers: [] });
+const resolver = createResolver({ registry, locales: [en], format: en, layers: [] });
 
 const ast = (input: string) => parse(lex(input, en), resolver, input);
 
@@ -37,6 +42,26 @@ test("a number followed by a unit parses to a quantity node", () => {
   expect(node).toMatchObject({ type: "quantity" });
   if (node.type !== "quantity") throw new Error("unreachable");
   expect(node.candidates.map((c) => c.unit)).toEqual(["km"]);
+});
+
+test("a bare unit word is a quantity of one", () => {
+  const node = ast("km");
+  expect(node).toMatchObject({ type: "quantity" });
+  if (node.type !== "quantity") throw new Error("unreachable");
+  expect(node.value.toString()).toBe("1");
+  expect(node.candidates.map((c) => c.unit)).toEqual(["km"]);
+});
+
+test("an implied one is an operand like any other", () => {
+  const node = ast("km + 3 km");
+  expect(node).toMatchObject({ type: "binary", op: "+" });
+  if (node.type !== "binary") throw new Error("unreachable");
+  expect(node.left).toMatchObject({ type: "quantity" });
+  expect(node.right).toMatchObject({ type: "quantity" });
+});
+
+test("a word that names no unit is still not an atom", () => {
+  expect(() => ast("furlong")).toThrow(UnitParseError);
 });
 
 test("addition is left-associative", () => {
@@ -105,10 +130,25 @@ test("a quantity node preserves every candidate for an ambiguous unit", () => {
   const duration = defineKind({
     id: "duration",
     value: { mode: "ratio", canonical: "s", units: { min: 60 } },
-    lexicon: { min: ["min", "m"] },
   });
-  const ambiguous = buildRegistry([number, length, duration]);
-  const r = createResolver({ registry: ambiguous, locale: en, packs: [], layers: [] });
+  const ambiguous = buildRegistry(
+    [number, length, duration],
+    [
+      composeLocale(en.language, [
+        defineVocabulary({
+          locale: "en",
+          kind: "duration",
+          units: { min: { aliases: ["min", "m"] } },
+        }),
+      ]),
+    ],
+  );
+  const r = createResolver({
+    registry: ambiguous,
+    locales: [en],
+    format: en,
+    layers: [],
+  });
 
   const node = parse(lex("10 m", en), r, "10 m");
   if (node.type !== "quantity") throw new Error("unreachable");
@@ -129,6 +169,29 @@ test("the of keyword produces a binary node", () => {
   expect(node).toMatchObject({ type: "binary", op: "of" });
 });
 
+test("the off keyword produces a binary node", () => {
+  const node = ast("2 off 3");
+  expect(node).toMatchObject({ type: "binary", op: "off" });
+});
+
+// `off` shares `of`'s binding, so "10 + 2 off 3" is 10 + (2 off 3). The
+// grouping is the whole reason it needs a binding rather than being folded
+// into an existing operator.
+test("off binds tighter than addition", () => {
+  const node = ast("10 + 2 off 3");
+  if (node.type !== "binary") throw new Error("unreachable");
+  expect(node.op).toBe("+");
+  expect(node.right).toMatchObject({ type: "binary", op: "off" });
+});
+
+test("a trailing off is left unconsumed and fails", () => {
+  expect(() => ast("2 off")).toThrow(UnitParseError);
+});
+
+test("an off with nothing on its left is not an atom", () => {
+  expect(() => ast("off 50")).toThrow(UnitParseError);
+});
+
 // ---------------------------------------------------------------------------
 // M6.3 — a literal token carries readings, and the parser narrows none of them
 // ---------------------------------------------------------------------------
@@ -141,7 +204,7 @@ test("the of keyword produces a binary node", () => {
  */
 const marks = defineKind({
   id: "mark",
-  value: { mode: "opaque", units: { a: ["mark"], b: ["bee"] } },
+  value: { mode: "opaque", units: ["a", "b"] },
   literals: [
     (input, offset) => {
       if (input.startsWith("mark", offset)) {
@@ -164,11 +227,18 @@ const marks = defineKind({
   ],
 });
 
-const claimed = buildRegistry([number, length, marks]);
+const marksEn = composeLocale(en.language, [
+  defineVocabulary({
+    locale: "en",
+    kind: "mark",
+    units: { a: { aliases: ["mark"] }, b: { aliases: ["bee"] } },
+  }),
+]);
+const claimed = buildRegistry([number, length, marks], [marksEn]);
 const claimedResolver = createResolver({
   registry: claimed,
-  locale: en,
-  packs: [],
+  locales: [en],
+  format: en,
   layers: [],
 });
 
@@ -241,7 +311,7 @@ test("a claimed word is still a unit after a number, when the word is one", () =
  */
 const zones = defineKind({
   id: "zone",
-  value: { mode: "opaque", units: { z: ["zed"] } },
+  value: { mode: "opaque", units: ["z"] },
   literals: [
     (input, offset) =>
       input.startsWith("zed", offset)
@@ -255,7 +325,14 @@ const zones = defineKind({
         : null,
   ],
 });
-const zoned = buildRegistry([number, length, zones]);
+const zonesEn = composeLocale(en.language, [
+  defineVocabulary({
+    locale: "en",
+    kind: "zone",
+    units: { z: { aliases: ["zed"] } },
+  }),
+]);
+const zoned = buildRegistry([number, length, zones], [zonesEn]);
 const zonedAst = (input: string) =>
   parse(
     foldLiterals(lex(input, en), input, zoned, {
@@ -264,7 +341,7 @@ const zonedAst = (input: string) =>
       timeZone: "UTC",
       isUnitAlias: () => false,
     }),
-    createResolver({ registry: zoned, locale: en, packs: [], layers: [] }),
+    createResolver({ registry: zoned, locales: [en], format: en, layers: [] }),
     input,
   );
 

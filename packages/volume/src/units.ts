@@ -1,4 +1,4 @@
-import type { UnitTable } from "@smartput/validate";
+import type { UnitTable } from "@smartput/shared";
 
 export type VolumeUnit = "l" | "ml" | "m3" | "gal" | "pint";
 

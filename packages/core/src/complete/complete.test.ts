@@ -1,17 +1,29 @@
 import { expect, test } from "bun:test";
+import { english } from "@smartput/core/locale/en";
 import { BUILTIN_KINDS } from "@smartput/kinds";
+import BUILTIN_EN from "@smartput/kinds/locale/en";
 import { defineKind } from "../kind/define";
 import { buildRegistry } from "../kind/registry";
-import en from "../locale/en";
-import type { CompleteCtx, Completer, Kind, KindCompletion, Weights } from "../types";
+import { composeLocale } from "../locale/compose";
+import { defineVocabulary } from "../locale/vocabulary";
+import type {
+  CompleteCtx,
+  Completer,
+  Kind,
+  KindCompletion,
+  Vocabulary,
+  Weights,
+} from "../types";
 import { complete } from "./complete";
-import { SCALE_BONUS } from "./score";
+import { EXACT_BONUS, LENGTH_PENALTY, SCALE_BONUS, TYPO_PENALTY } from "./score";
 
-const registry = buildRegistry(BUILTIN_KINDS, [], "en");
+const en = composeLocale(english, BUILTIN_EN);
+
+const registry = buildRegistry(BUILTIN_KINDS, [en]);
 const run = (
   input: string,
   opts?: Parameters<typeof complete>[0]["opts"],
-  layers: (Weights | undefined)[] = [en.weights],
+  layers: (Weights | undefined)[] = [english.weights],
 ) =>
   complete({
     registry,
@@ -105,7 +117,7 @@ test("opts.kinds filters candidates by kind", () => {
 });
 
 test("weight layers reorder the results", () => {
-  const boosted = run("1 mi", undefined, [en.weights, { duration: 20 }]);
+  const boosted = run("1 mi", undefined, [english.weights, { duration: 20 }]);
   expect(boosted[0]?.kind).toBe("duration");
 });
 
@@ -113,7 +125,11 @@ test("a per-call weight layer applies", () => {
   // complete() does not read opts.weights itself. The engine composes layer 4
   // out of CompleteOptions.weights and hands it in through `layers`, exactly
   // as the evaluate path does; reading it here as well would double-count it.
-  const boosted = run("1 mi", undefined, [en.weights, undefined, { "duration:min": 20 }]);
+  const boosted = run("1 mi", undefined, [
+    english.weights,
+    undefined,
+    { "duration:min": 20 },
+  ]);
   expect(boosted[0]?.unit).toBe("min");
 });
 
@@ -179,51 +195,94 @@ const gazetteer: Completer = (ctx) => {
 const places = (completions: Completer) =>
   defineKind({
     id: "place",
-    value: {
-      mode: "opaque",
-      units: { ua: ["ukraine"], jp: ["japan"], jm: ["jamaica"], us: ["usa"] },
-    },
+    value: { mode: "opaque", units: ["ua", "jp", "jm", "us"] },
     completions,
     format: (v) => v.unit,
   });
+
+/**
+ * The words for the fixture kinds, which no longer live on the kinds. Keyed by
+ * kind id so `probeRun` can install exactly the ones the caller registered —
+ * a vocabulary for a kind that is not registered is a wiring error.
+ */
+const FIXTURE_WORDS: Readonly<Record<string, Vocabulary>> = {
+  place: defineVocabulary({
+    locale: "en",
+    kind: "place",
+    units: {
+      ua: { aliases: ["ukraine"] },
+      jp: { aliases: ["japan"] },
+      jm: { aliases: ["jamaica"] },
+      us: { aliases: ["usa"] },
+    },
+  }),
+  banded: defineVocabulary({
+    locale: "en",
+    kind: "banded",
+    units: { b: { aliases: ["bandit"] } },
+  }),
+};
 
 const probeRun = (
   kinds: Kind[],
   input: string,
   opts?: Parameters<typeof complete>[0]["opts"],
-  layers: (Weights | undefined)[] = [en.weights],
-) =>
-  complete({
-    registry: buildRegistry([...BUILTIN_KINDS, ...kinds], [], "en"),
-    locale: en,
+  layers: (Weights | undefined)[] = [english.weights],
+) => {
+  const extra = kinds
+    .map((k) => FIXTURE_WORDS[k.id])
+    .filter((v): v is Vocabulary => v !== undefined);
+  const locale =
+    extra.length === 0 ? en : composeLocale(english, [...BUILTIN_EN, ...extra]);
+  return complete({
+    registry: buildRegistry([...BUILTIN_KINDS, ...kinds], [locale]),
+    locale,
     layers,
     input,
     ...(opts ? { opts } : {}),
   });
+};
 
 const gaz = (input: string, opts?: Parameters<typeof complete>[0]["opts"]) =>
   probeRun([places(gazetteer)], input, opts);
 
 /**
- * The nine rows "10 k" returned before the seam existed, in order. Pinned as a
- * literal rather than compared against a second run, because the point is that
- * the ratio path did not move — and a self-comparison would hold just as well
- * if both sides broke together.
+ * Every ratio row "10 k" returns, in order. Pinned as a literal rather than
+ * compared against a second run, because the point is that the ratio path did
+ * not move — and a self-comparison would hold just as well if both sides broke
+ * together.
+ *
+ * It was nine rows and fit inside the default limit, so one constant served
+ * both tests below. datarate, power, energy and tempo brought five more `k`
+ * units, and the unlimited list now overflows that limit — so the list stays
+ * one literal and the default-limit run is asserted against its head. Splitting
+ * it into two hand-written literals would let the two drift, which is the
+ * comparison the second test exists to make.
  */
 const TEN_K = [
   "temperature:k",
   "datasize:kb",
+  "energy:kj",
   "length:km",
   "mass:kg",
+  "power:kw",
   "speed:knot",
   "area:km2",
   "datasize:kib",
+  "energy:kwh",
   "speed:kph",
+  "datarate:kbps",
+  "energy:kcal",
   "tempdelta:k",
 ];
 
+/** How many rows `complete` returns when the caller asks for no limit. */
+const DEFAULT_LIMIT = 10;
+
 test("the ratio path is exactly what it was", () => {
-  expect(run("10 k").map((r) => `${r.kind}:${r.unit}`)).toEqual(TEN_K);
+  expect(run("10 k").map((r) => `${r.kind}:${r.unit}`)).toEqual(
+    TEN_K.slice(0, DEFAULT_LIMIT),
+  );
 });
 
 test("registering a completer does not disturb the ratio rows", () => {
@@ -280,7 +339,7 @@ test("a row's weight is summed in like a weight layer", () => {
 
 test("weight layers reach completer rows through the same selectors", () => {
   const boosted = probeRun([places(gazetteer)], "k", undefined, [
-    en.weights,
+    english.weights,
     { "place:ua": 5 },
   ]);
   expect(boosted.find((r) => r.unit === "ua")?.score).toBe(2 - 3 + 5);
@@ -297,7 +356,7 @@ test("scaleFit is not applied to a completer row", () => {
   const banded = defineKind({
     id: "banded",
     value: { mode: "ratio", canonical: "b", units: { b: 1 } },
-    lexicon: { b: { aliases: ["bandit"], typical: [1, 100] } },
+    typical: { b: [1, 100] },
     completions: () => [{ text: "bandit", alias: "bandit", unit: "b", key: "own" }],
   });
 
@@ -440,4 +499,56 @@ test("a start outside the input is dropped rather than spliced", () => {
   expect(probeRun([places(bad(4))], "san fran").map((r) => r.text)).toEqual([
     "san Nowhere",
   ]);
+});
+
+// ---------------------------------------------------------------------------
+// Completing through a typo.
+// ---------------------------------------------------------------------------
+
+test("a fragment nothing prefixes is completed through its nearest alias", () => {
+  const [top] = run("1 klogram");
+  expect(top?.text).toBe("1 kilogram");
+  expect(top?.kind).toBe("mass");
+  expect(top?.unit).toBe("kg");
+  // The span still addresses the fragment the user typed, not the word offered.
+  expect(top?.span).toEqual({ start: 2, end: 9 });
+});
+
+test("a corrected offer scores below the prefix it would have been", () => {
+  const corrected = run("1 klogram")[0];
+  const prefix = run("1 kilogr").find((r) => r.unit === "kg");
+  expect(corrected?.text).toBe("1 kilogram");
+  // Two characters of "kilogram" still to type, and 1 kg is inside mass's band.
+  expect(prefix?.score).toBe(-2 * LENGTH_PENALTY + SCALE_BONUS);
+  expect(corrected?.score).toBeLessThan(prefix?.score as number);
+});
+
+test("the correction is one term of the ordinary sum", () => {
+  // Everything the exact offer earns except `prefixQuality`, which counts
+  // characters still untyped and has nothing to count here, less one edit.
+  const exact = run("1 kilogram").find((r) => r.unit === "kg")?.score ?? 0;
+  expect(run("1 klogram")[0]?.score).toBe(exact - EXACT_BONUS - TYPO_PENALTY);
+});
+
+test("a well-spelled fragment is untouched by the correction", () => {
+  expect(run("1 kilogram")[0]?.text).toBe("1 kilogram");
+  expect(run("1 kilogram")[0]?.score).toBe(EXACT_BONUS + SCALE_BONUS);
+  expect(JSON.stringify(run("1 mi"))).toBe(JSON.stringify(run("1 mi")));
+});
+
+/**
+ * The perf gate, asserted rather than commented. `nearestWord` walks its whole
+ * vocabulary, which is affordable once over the 214 aliases in the global index
+ * and not affordable over the 6,247 names @smartput/city hangs off one kind —
+ * on every keystroke, for a fragment that by definition matched nothing. So the
+ * correction is offered the alias index and nothing else, and a completer is
+ * asked about the fragment the user typed exactly once, however that fragment
+ * is later read.
+ */
+test("the fuzzy pass never reaches a kind's own completions", () => {
+  seen = [];
+  const rows = gaz("1 klogram");
+  expect(rows[0]?.text).toBe("1 kilogram");
+  expect(seen).toHaveLength(1);
+  expect(seen[0]?.fragment).toBe("klogram");
 });

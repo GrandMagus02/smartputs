@@ -50,7 +50,7 @@ export function accepts(text: string, isUnitAlias: (s: string) => boolean): bool
 }
 
 /**
- * Where the expression stops being a date and starts being arithmetic.
+ * Where the expression stops being a date and starts being an operator.
  *
  * chrono reads "today + 5 h" as one relative date-and-time and reports the whole
  * string as its match — which would fold the operator and its right operand into
@@ -59,15 +59,56 @@ export function accepts(text: string, isUnitAlias: (s: string) => boolean): bool
  *
  * `-` and `/` only count when whitespace-delimited, because both appear inside
  * dates chrono reads: the hyphens of "2026-03-01" and the slashes of "1/15/2026".
- * `+` and `*` appear in no date syntax, so they cut wherever they stand — which
- * is what makes "today+3d" work. Unspaced "today-1d" is the residue of that
- * asymmetry and is recorded in m4-followups.md. Parentheses cut anywhere.
+ * `*` appears in no date syntax, so it cuts wherever it stands. `+` cuts the
+ * same way — which is what makes "today+3d" work — everywhere except inside a
+ * written UTC offset, the one date syntax that contains one. Unspaced
+ * "today-1d" is the residue of that asymmetry and is recorded in
+ * m4-followups.md. Parentheses cut anywhere.
+ *
+ * `to`, `as` and `in` are here for exactly the same reason, and they matter for
+ * exactly the same reason the ranges design (§5.1) needs them to: core's
+ * `keywordFor` maps all three onto the `in` keyword, so they are operators in
+ * this grammar even though they are spelled with letters. chrono does not know
+ * that. It reads "10:00 to 20:00" and "today to friday" as *its own* notion of
+ * a range — one result, `end` populated, the whole run claimed — and this
+ * bridge only ever returns the start, so without the cut the literal swallowed
+ * the keyword and the right endpoint and reported "10:00". `in | time | time`
+ * and `in | date | date` never saw two operands because there was only ever
+ * one token.
+ *
+ * They are whitespace-delimited on both sides, which is what keeps "in 3 days"
+ * — where chrono's match *starts* with the word — intact, and what stops the
+ * "in" of "into" from cutting. Spelling them in English here mirrors what
+ * `PLURAL_SUFFIXES` above already does: `MatchCtx` carries a locale name and a
+ * unit-alias predicate, not the locale's keyword table, so a bridge that wants
+ * to know where an operator is has to know the words. Widening `MatchCtx` is
+ * the real fix and is bigger than this milestone.
  */
-const ARITHMETIC_TAIL = /[()+*]|\s[-/]\s/;
+const OPERATOR_TAIL = /[()+*]|\s[-/]\s|\s(?:to|as|in)\s/g;
 
-function beforeArithmetic(rest: string): string {
-  const cut = ARITHMETIC_TAIL.exec(rest);
-  return cut === null ? rest : rest.slice(0, cut.index);
+/**
+ * Runs where a `+` is part of a zone, not an operator: "3pm gmt+3", "3pm
+ * utc+0530", "3pm +03:00". Without this the cut above would hand chrono "3pm
+ * gmt" and leave "+3" to the solver, which reads it as adding a bare number to
+ * a datetime — a dimension mismatch on input that names an ordinary zone.
+ *
+ * The bare `±HH:MM` form is protected only with its colon. `±HHMM` is left out
+ * on purpose: "1000 +2000" is arithmetic a user might really type, and a colon
+ * is not something any number in this grammar contains.
+ */
+const OFFSET_SPAN =
+  /(?:gmt|utc)\s*[+-]\s*\d{1,2}(?:\s*:\s*\d{2}|\d{2})?|[+-]\d{2}:\d{2}/giu;
+
+function beforeOperator(rest: string): string {
+  const zones = [...rest.matchAll(OFFSET_SPAN)].map(
+    (m) => [m.index, m.index + m[0].length] as const,
+  );
+
+  for (const cut of rest.matchAll(OPERATOR_TAIL)) {
+    if (zones.some(([start, end]) => cut.index >= start && cut.index < end)) continue;
+    return rest.slice(0, cut.index);
+  }
+  return rest;
 }
 
 /**
@@ -133,6 +174,25 @@ function weekdaySnap(
 export interface BridgeMatch {
   zdt: Temporal.ZonedDateTime;
   length: number;
+  /**
+   * Which components the user actually typed, as chrono certainty rather than
+   * as a guess from the resolved value. `@smartput/date` claims a match with
+   * `hasDate && !hasTime`, `@smartput/time` one with `hasTime && !hasDate`, and
+   * neither package re-runs chrono to find out.
+   *
+   * `hasDate` is `isCertain("day")` OR `isCertain("weekday")` OR a weekday
+   * snap. All three are ways of naming a calendar day and none of them implies
+   * the others: "2026-03-01" is certain of `day` alone, "next friday" of
+   * `weekday` alone — chrono resolves the day from the weekday, so its `day`
+   * flag stays false — and "next week monday" of neither, because the day the
+   * user named is recovered by `weekdaySnap` below rather than by chrono.
+   *
+   * Reading `weekday` matters in both directions: without it "friday" gets no
+   * `date` reading and cannot stand on the right of `to`, and "friday 3pm"
+   * gets a `time` reading, which would claim a phrase that names a day.
+   */
+  hasDate: boolean;
+  hasTime: boolean;
 }
 
 /**
@@ -148,7 +208,7 @@ export function parseDateTime(
   offset: number,
   ctx: MatchCtx,
 ): BridgeMatch | null {
-  const rest = beforeArithmetic(input.slice(offset));
+  const rest = beforeOperator(input.slice(offset));
   if (rest.length === 0) return null;
 
   const results = chrono
@@ -174,6 +234,8 @@ export function parseDateTime(
     // formatted result that silently carried the reference's own clock time
     // would make "today" depend on when the test ran.
     const certainTime = result.start.isCertain("hour");
+    const certainDate =
+      result.start.isCertain("day") || result.start.isCertain("weekday");
     let plain = new Temporal.PlainDateTime(
       year,
       month,
@@ -205,7 +267,7 @@ export function parseDateTime(
             .add({ minutes: -offsetMinutes })
             .withTimeZone(ctx.timeZone);
 
-    return { zdt, length };
+    return { zdt, length, hasDate: certainDate || snap !== null, hasTime: certainTime };
   }
 
   return null;

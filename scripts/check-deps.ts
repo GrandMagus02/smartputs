@@ -10,67 +10,270 @@ import { Glob } from "bun";
  */
 const ALLOWED: Record<string, string[]> = {
   // Spec §4 and §13: core ships exactly one runtime dependency and does not
-  // depend on @smartput/validate — the dependency runs the other way. It was
+  // depend on @smartput/shared — the dependency runs the other way. It was
   // listed here for a while so that `from-table.ts` could `import type
   // { UnitTable }`; that type is now declared structurally in core as
   // `RatioTable`, so nothing in core names the package outside a dev-only test.
   "packages/core/package.json": ["decimal.js"],
+  // The zone tables and the written-offset parser, with no runtime dependency
+  // at all — a table of zone names needs no engine to be a table, and a form
+  // field offering a zone picker should not install chrono and Temporal to get
+  // one. It is underneath datetime for the same reason `@smartput/city` is
+  // underneath country: the edge runs from the consumer inwards.
+  "packages/timezone/package.json": [],
+  // The datetime kind, the chrono bridge and the Temporal ops. `@smartput/
+  // holiday` is a dependency of the *package* but not of its root entry: one
+  // file imports it, `src/holiday.ts`, and that file is reachable only through
+  // the `./holiday` subpath. This map cannot tell the difference — it reads a
+  // manifest — so the claim is enforced next door instead, by the `datetime root
+  // (no holiday data)` row in check-size.ts, which fails by a megabyte the
+  // moment the import reaches the root graph.
+  //
+  // A devDependency was the other way to keep it off the root, and it is the
+  // wrong one for the same reason `@smartput/country` lists `@smartput/city`
+  // here: the emitted `holiday.d.ts` names the package, and a published
+  // declaration naming a package absent from the manifest is a dependency a
+  // consumer discovers on install.
   "packages/datetime/package.json": [
     "@smartput/core",
+    "@smartput/holiday",
+    "@smartput/timezone",
     "chrono-node",
     "decimal.js",
     "temporal-polyfill",
   ],
-  "packages/rates/package.json": ["decimal.js", "@smartput/core"],
+  // Which holiday a phrase names and when it falls: the `date-holidays` rule
+  // table, a tokenising scorer over the names, and nothing else. No `@smartput`
+  // edge at all — it knows nothing about kinds, values, `Decimal` or the engine
+  // — which is what lets the package above reach it from a subpath rather than
+  // from its root. Precedent: `@smartput/city` and `@smartput/timezone` ship
+  // with none either.
+  //
+  // Size is why this is a package and not a file inside `datetime`.
+  // `date-holidays@3.34.1` ships a 768 KB `holidays.json`, is CommonJS, and
+  // pulls `date-holidays-parser`, `js-yaml`, `lodash` and `prepin` behind it;
+  // bundled it is ~1.5 MB, six times the T0 gazetteer that the `country root`
+  // row in check-size.ts exists to keep out of a bundle. As a plain dependency
+  // of `datetime` it would charge every consumer of `today + 3 d` a megabyte for
+  // a feature they did not ask for — the trade this repo has already refused
+  // twice, for T1 inside `country` and for chrono and Temporal inside `core`.
+  //
+  // Its own edit-distance scorer is a copy of core's, not an import of it, and
+  // that is deliberate: importing would cost this package the `@smartput` edge
+  // its whole shape depends on, and core's `nearestWord` refuses a tie, which is
+  // exactly wrong for something that has to return a ranked list.
+  "packages/holiday/package.json": ["date-holidays"],
+  // The rate half of money: snapshots, the ECB provider, the live-engine
+  // facade, and the `money` kind whose unit ratios read an injected table. It
+  // depends on `@smartput/currency` for the other half — the symbol, the minor
+  // units, the aliases and the parser — because none of those change when a
+  // rate does, and a form field that only wants to read "30 usd" should not
+  // have to link a provider to do it.
+  "packages/rate/package.json": ["decimal.js", "@smartput/core", "@smartput/currency"],
+  // What a currency *is*, with nothing about what it is worth: the table, the
+  // vocabulary, the parser and the formatter. Core is here for `Decimal` — the
+  // repo forbids importing decimal.js directly, because core's module-load
+  // `Decimal.set({ precision: 28 })` is what keeps every package at one
+  // precision — and for the `Lexicon` type, which compiles away.
+  "packages/currency/package.json": ["decimal.js", "@smartput/core"],
   // The number package is here for its word vocabulary, not its kind: reading
   // "one hundred and five" and spelling 105 back are what `latexFromWords` and
-  // `describe` share with it.
+  // `describe` share with it. The cardinals briefly lived in a language package
+  // of their own; they are back beside the kind whose unit is one, so this is
+  // one edge rather than two.
   "packages/math/package.json": [
     "@cortex-js/compute-engine",
     "@smartput/core",
     "@smartput/number",
   ],
-  // No data package. GeoNames is vendored as generated TypeScript under
-  // src/data, committed and reviewable in a diff, so geo carries no npm data
-  // dependency and no upstream maintenance risk — an npm gazetteer would have
-  // been a second supply chain for a table that changes a few times a year.
-  "packages/geo/package.json": ["@smartput/core", "decimal.js"],
+  // The four halves of what M6 shipped as `@smartput/geo`, layered so the graph
+  // has one direction: zip, city and distance are underneath and country is the
+  // package that assembles a kind out of them.
+  //
+  // No data package anywhere in the four. GeoNames is vendored as generated
+  // TypeScript under src/data, committed and reviewable in a diff, so none of
+  // them carries an npm data dependency or the upstream maintenance risk that
+  // comes with one — an npm gazetteer would have been a second supply chain for
+  // a table that changes a few times a year.
+  //
+  // `@smartput/city` has no runtime dependency at all: it is the T1 tables and
+  // their two row types, and a table needs no engine to be a table.
+  "packages/city/package.json": [],
+  // Postal codes: a literal matcher and a validator over rows the caller brings.
+  // It names no gazetteer, which is what lets `country` name it.
+  "packages/zip/package.json": ["@smartput/core", "decimal.js"],
+  // The great-circle op. The edge to zip is one constant — the id a postal code
+  // carries when nothing has positioned it, which is the case `between` refuses.
+  "packages/distance/package.json": ["@smartput/core", "@smartput/zip", "decimal.js"],
+  // T0 and the place kind. `@smartput/city` is here for `CityRow` alone: the
+  // import is `import type` from the `/types` subpath and compiles away, and the
+  // check-size row below is what proves the gazetteer stays out of the bundle.
+  // It is a dependency rather than a devDependency because the emitted `.d.ts`
+  // names it, and a published declaration naming a package absent from the
+  // manifest is a dependency a consumer discovers on install.
+  "packages/country/package.json": [
+    "@smartput/city",
+    "@smartput/core",
+    "@smartput/distance",
+    "@smartput/zip",
+    "decimal.js",
+  ],
 
   // The micro-validation path. Zero runtime dependencies, enforced here: a
   // first one would mean decimal.js or core leaked into a 600-byte budget.
-  "packages/validate/package.json": [],
+  "packages/shared/package.json": [],
+
+  // One package per language (spec §10). It is the words-free half — analyzers,
+  // cardinals, keywords, plural selection, render defaults — so it names no kind
+  // package at all: a vocabulary reaches its language through `composeLocale`,
+  // at the integrator's own wiring, never through an import here. That is what
+  // lets a Ukrainian package ship without the ratio tables, and it is why this
+  // list is core and decimal.js and will stay that length for every language
+  // after it.
+  //
 
   // Extracted built-in kinds. Each is a leaf: it defines one kind against the
   // machinery in core and depends on nothing else, which is what keeps the
   // aggregator below the only package that has to know the full set.
-  "packages/angle/package.json": ["@smartput/core", "@smartput/validate"],
-  "packages/area/package.json": ["@smartput/core", "@smartput/validate"],
-  "packages/datasize/package.json": ["@smartput/core", "@smartput/validate"],
-  "packages/duration/package.json": ["@smartput/core", "@smartput/validate"],
-  "packages/length/package.json": ["@smartput/core", "@smartput/validate"],
-  "packages/mass/package.json": ["@smartput/core", "@smartput/validate"],
-  "packages/measure/package.json": ["@smartput/core", "@smartput/validate"],
-  "packages/number/package.json": ["@smartput/core", "@smartput/validate"],
-  "packages/percent/package.json": ["@smartput/core", "@smartput/validate"],
-  "packages/speed/package.json": ["@smartput/core", "@smartput/validate"],
-  "packages/temperature/package.json": ["@smartput/core", "@smartput/validate"],
-  "packages/volume/package.json": ["@smartput/core", "@smartput/validate"],
+  "packages/angle/package.json": ["@smartput/core", "@smartput/shared"],
+  // What a comparison returns. The odd one out of the leaf kinds: it names no
+  // `@smartput/shared`, because the micro path is for *ratio* kinds — a
+  // `parseBoolean` over units that do not exist would be a subpath with nothing
+  // behind it — and it defines no operation at all. The six signatures that
+  // produce a boolean are generated by core, per kind, beside the arithmetic
+  // ones, so this package is a kind, a formatter and two ways to read a result.
+  "packages/boolean/package.json": ["@smartput/core"],
+  "packages/area/package.json": ["@smartput/core", "@smartput/shared"],
+  "packages/datasize/package.json": ["@smartput/core", "@smartput/shared"],
+  "packages/duration/package.json": ["@smartput/core", "@smartput/shared"],
+  "packages/length/package.json": ["@smartput/core", "@smartput/shared"],
+  "packages/mass/package.json": ["@smartput/core", "@smartput/shared"],
+  "packages/measure/package.json": ["@smartput/core", "@smartput/shared"],
+  // A leaf again, and the shortest way to say why: this package is a ratio of
+  // one and a unit id. It carried a *language* edge for as long as `words.ts`
+  // lived here — English cardinals, read through `@smartput/core/locale/en` — and
+  // that file has moved to the language it was always written in, taking the
+  // edge with it. A kind that named one language would have been a kind no
+  // other language could ship without.
+  "packages/number/package.json": ["@smartput/core", "@smartput/shared"],
+  "packages/percent/package.json": ["@smartput/core", "@smartput/shared"],
+  "packages/speed/package.json": ["@smartput/core", "@smartput/shared"],
+  "packages/temperature/package.json": ["@smartput/core", "@smartput/shared"],
+  "packages/volume/package.json": ["@smartput/core", "@smartput/shared"],
+
+  // The four kinds that bridge two other kinds rather than standing alone. They
+  // are leaves too, and that is the point worth stating: an op signature names
+  // its operand kinds by *string*, so `datarate` can answer "500 mb / 20 s"
+  // without depending on `@smartput/datasize` or `@smartput/duration`, and
+  // `energy` can own the whole power x duration bridge without depending on
+  // `@smartput/power`. A dependency here would mean someone reached for an
+  // import where an id would do, and would drag two more tables into a bundle
+  // that asked for one.
+  "packages/datarate/package.json": ["@smartput/core", "@smartput/shared"],
+  "packages/energy/package.json": ["@smartput/core", "@smartput/shared"],
+  "packages/power/package.json": ["@smartput/core", "@smartput/shared"],
+  // Reciprocal rather than linear — 120 bpm is a half-second beat — so its
+  // bridge to `duration` is an `in` signature instead of a ratio row. Same
+  // string-named operands, same empty edge list.
+  "packages/tempo/package.json": ["@smartput/core", "@smartput/shared"],
+
+  // The calendar-day half of datetime's recognition. It depends on datetime
+  // rather than on chrono because it re-reads the match datetime already made
+  // — `hasDate && !hasTime` — instead of parsing the string a second time. That
+  // is also why `@smartput/timezone` is absent even though the design's summary
+  // table lists it: the zone arrives inside the bridge match, so nothing here
+  // names the zone package itself.
+  "packages/date/package.json": ["@smartput/core", "@smartput/datetime"],
+  // The clock-time half, on the same terms as `date`.
+  "packages/time/package.json": ["@smartput/core", "@smartput/datetime"],
+  // The interval algebra the three range kinds share: the meta shape, boundary
+  // snapping, the window table, the endpoint seam and `InvertedRangeError`.
+  // Depends on datetime for `Temporal` rather than importing temporal-polyfill
+  // a second time — that package has one import site by design, and every
+  // consumer of this one already pays for datetime.
+  "packages/range-core/package.json": ["@smartput/core", "@smartput/datetime"],
+  // The three range kinds. Each names only the endpoint kind it actually reads,
+  // so a consumer who wants `10:00 - 20:00` does not link the calendar half.
+  //
+  // `@smartput/datetime` is here for the same two names `range-core` takes it
+  // for — `Temporal`, because the polyfill has one import site in the repo by
+  // design, and `addDuration`, because "whole week + 1 wk" has to walk the
+  // calendar rather than add 604800 seconds. It costs a consumer nothing: this
+  // package already reaches datetime through `@smartput/date`, which re-reads
+  // datetime's chrono match instead of parsing again.
+  "packages/date-range/package.json": [
+    "@smartput/core",
+    "@smartput/date",
+    "@smartput/datetime",
+    "@smartput/range-core",
+  ],
+  "packages/time-range/package.json": [
+    "@smartput/core",
+    "@smartput/range-core",
+    "@smartput/time",
+  ],
+  // `@smartput/holiday` is a dependency of the package but not of its root
+  // entry: one file imports it, `src/holiday.ts`, reachable only through the
+  // `./holiday` subpath. This map cannot tell the difference — it reads a
+  // manifest — so the claim is enforced next door by check-size.ts's
+  // `datetime-range root (no holiday data)` row, exactly as datetime's is.
+  //
+  // It is a dependency rather than a devDependency for the reason stated above
+  // for datetime: the emitted `holiday.d.ts` names the package, and a published
+  // declaration naming a package absent from the manifest is a dependency a
+  // consumer discovers on install.
+  "packages/datetime-range/package.json": [
+    "@smartput/core",
+    "@smartput/date",
+    "@smartput/datetime",
+    "@smartput/holiday",
+    "@smartput/range-core",
+    "@smartput/time",
+  ],
+  // The selection range — "first three", "from 6 to 9", "4-5" — and the odd one
+  // out of the four range packages: it names neither `@smartput/range-core` nor
+  // `@smartput/datetime`, because a position in a list has no calendar in it and
+  // the interval algebra over there is entirely about instants. `@smartput/
+  // number` is here for `numberFromWords` alone, so that a spelled count reads
+  // the same as a spelled quantity rather than through a second table of
+  // cardinals.
+  "packages/range/package.json": ["@smartput/core", "@smartput/number"],
+
+  // The clause grammar over a declared schema, and the two dialects it emits.
+  // Core is the only edge, and it is not the usual one: this package registers
+  // no kind and defines no unit — it *drives* an engine the consumer built, so
+  // every value it can read is a value that engine's kinds could read. That is
+  // what keeps `€500`, `2 kg`, `last quarter` and `kyiv` working here without a
+  // dependency on `@smartput/rate`, `@smartput/mass`, `@smartput/date-range` or
+  // `@smartput/country`; all four are devDependencies, because the corpus has
+  // to build the engine a real consumer would.
+  //
+  // The range and place shapes it reads off `Value.meta` are matched
+  // structurally, on the precedent core's own `PlaceMeta` sets: the shape is
+  // the contract, and importing the packages that produce it would drag
+  // Temporal and a gazetteer into a bundle whose job is to emit a WHERE clause.
+  "packages/query/package.json": ["@smartput/core"],
 
   // The aggregator: re-exports every kind above and owns BUILTIN_KINDS, so it
   // is the one package legitimately allowed to depend on all of them.
   "packages/kinds/package.json": [
     "@smartput/core",
     "@smartput/angle",
+    "@smartput/boolean",
     "@smartput/area",
+    "@smartput/datarate",
     "@smartput/datasize",
     "@smartput/duration",
+    "@smartput/energy",
     "@smartput/length",
     "@smartput/mass",
     "@smartput/measure",
     "@smartput/number",
     "@smartput/percent",
+    "@smartput/power",
     "@smartput/speed",
     "@smartput/temperature",
+    "@smartput/tempo",
     "@smartput/volume",
   ],
 };
@@ -101,7 +304,7 @@ const CONDITION_ORDER = ["bun", "types", "default"];
  * path by name.
  */
 const SUBPATH_EXEMPT: Record<string, { subpaths: string[] | null; why: string }> = {
-  // Re-exports all thirteen kinds, so the detection below sees a kind package.
+  // Re-exports all seventeen kinds, so the detection below sees a kind package.
   // It owes the `./validate` and `./class` barrels, which it has, but no
   // `./units`: it publishes no table of its own.
   "packages/kinds/package.json": {
@@ -113,7 +316,12 @@ const SUBPATH_EXEMPT: Record<string, { subpaths: string[] | null; why: string }>
   // strings cannot express. Spec §3 excludes it: a micro path with no engine
   // has nowhere to inject rates, and a hard-coded FX table would be worse than
   // no feature.
-  "packages/rates/package.json": {
+  //
+  // The exemption is about *conversion* and always was. Everything else the
+  // micro path offers — which currency a word names, how much "30 usd" is, how
+  // to write it back — needs no rate, and ships as `@smartput/currency/validate`.
+  // That package exports no kind, so this map never sees it.
+  "packages/rate/package.json": {
     subpaths: null,
     why: "spec §3: money's ratios are live rates, not constants",
   },
@@ -144,7 +352,7 @@ async function exportsRatioKind(dir: string): Promise<boolean> {
  *
  * This is the check that runs in the direction the manifest cannot: a manifest
  * says what a package *may* depend on, and this says what it actually does.
- * Core listing `@smartput/validate` as a runtime dependency passed the manifest
+ * Core listing `@smartput/shared` as a runtime dependency passed the manifest
  * check for a milestone because someone widened the allowlist; what nothing
  * asked was whether core's source imports it at all. It does not, and §4 says
  * it must not — so the two halves together are the invariant, and either alone
@@ -173,7 +381,14 @@ async function workspaceImportsOf(dir: string): Promise<Set<string>> {
   const out = new Set<string>();
   const glob = new Glob(`${dir}/src/**/*.ts`);
   for (const file of glob.scanSync(root.pathname)) {
-    if (file.endsWith(".test.ts")) continue;
+    // `.test.ts` is obvious; `.fixture.ts` is the same claim for a file that
+    // holds shared test *setup* rather than assertions. `@smartput/query`'s
+    // worked schema needs six kind packages to stand up an engine, and it is
+    // imported by three test files — inlining it in each would triple the
+    // maintenance and put the same devDependency imports in all three anyway.
+    // Neither suffix may appear in an `exports` map, so nothing here can reach
+    // a consumer; `build.ts` only builds what `exports` names.
+    if (file.endsWith(".test.ts") || file.endsWith(".fixture.ts")) continue;
     const text = await Bun.file(new URL(file, root)).text();
     for (const pattern of [IMPORT_FROM, IMPORT_BARE]) {
       for (const m of text.matchAll(pattern)) {

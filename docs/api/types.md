@@ -14,7 +14,7 @@ this codebase, so import them with `import type`.
 type KindId = string;
 type OpSymbol = "+" | "-" | "*" | "/" | "in" | "of";
 type Keyword = "in" | "of" | "plus" | "minus" | "times" | "over" | "by";
-type Selector = string;              // "token:m" | "duration:min" | "duration"
+type Selector = string;  // "token:m" | "duration:min" | "duration" | "locale:uk"
 type Weights = Record<Selector, number>;
 ```
 
@@ -153,7 +153,7 @@ other Athens, the other Springfield, the four countries whose postal format is
 characters mean.
 
 Returning the single object is still legal and still means what it always did.
-A matcher with one hit should return it bare; `@smartput/geo` does, so every
+A matcher with one hit should return it bare; `@smartput/country` does, so every
 unambiguous name comes back the same shape it did before the widening.
 
 What the fold does with what it gets:
@@ -174,7 +174,7 @@ What the fold does with what it gets:
 Because the readings reach the solver, they are also compared by
 `ambiguityEpsilon`. Readings that a matcher has already ranked need a real gap
 between their weights or a decided input becomes an `AmbiguityError`;
-`@smartput/geo` spaces its readings 0.5 apart for this reason, clamping
+`@smartput/zip` spaces its readings 0.5 apart for this reason, clamping
 downwards so the winner keeps the weight it would have carried alone.
 
 ### The token under a claim
@@ -306,7 +306,7 @@ which, for money, would mean reaching the rate table from inside the formatter.
 
 ```ts
 /**
- * The shape the engine needs from a rate table. `@smartput/rates`'s
+ * The shape the engine needs from a rate table. `@smartput/rate`'s
  * RateSnapshot satisfies it structurally; core imports nothing.
  */
 interface RateLookup {
@@ -331,7 +331,10 @@ different kind might fall back.
 
 ```ts
 interface EngineOptions {
+  /** Every language the engine reads. */
   locales: Locale[];
+  /** The one language it writes. Default `locales[0].id`; must be installed. */
+  format?: string;
   kinds?: Kind[];
   packs?: LocalePack[];
   weights?: Weights;
@@ -350,8 +353,13 @@ interface EngineOptions {
 
 interface EvalOptions {
   kinds?: KindId[];
+  /** Locale ids a reading's `Candidate.locale` must be one of. */
+  locales?: string[];
   weights?: Weights;
+  /** Per-call output language. Output only — see `EvalOptions` in /api/engine. */
+  format?: string;
   timeZone?: string;
+  comparePrecision?: number | "exact";
 }
 
 interface Result {
@@ -374,7 +382,7 @@ interface Engine {
 
 ## Snapshot cache
 
-The caching half of the provider path, lifted out of `@smartput/rates` so that
+The caching half of the provider path, lifted out of `@smartput/rate` so that
 more than one package can fetch a snapshot and rebuild an engine from it.
 
 ```ts
@@ -411,7 +419,7 @@ Concurrent callers on a cold cache share one in-flight load, and a rejection
 clears the slot so the next call retries rather than awaiting a settled
 rejection. `current`, `engine` and `snapshot` are `undefined` until a load
 succeeds; a consumer that owes its callers a named error throws it from its own
-getter — `@smartput/rates` raises `RatesNotReadyError` there.
+getter — `@smartput/rate` raises `RatesNotReadyError` there.
 
 `createCachedEngine` caches the snapshot and the engine built from it as one
 pair, so a rebuild happens inside the shared load rather than once per waiting
@@ -448,7 +456,7 @@ See [`complete()`](/api/complete).
 `Completion` above is what a caller receives. These three are what a **kind
 supplies**, through [`Kind.completions`](/api/define-kind#completions), and they
 exist because the global alias index cannot hold every vocabulary that wants
-completing — `@smartput/geo` registers no name shorter than four characters and
+completing — `@smartput/country` registers no name shorter than four characters and
 no city at all, so without this seam a place could not be offered at any price.
 
 ```ts

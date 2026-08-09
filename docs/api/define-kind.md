@@ -117,7 +117,7 @@ An opaque kind generates **no** ops — there are no ratios to generate them fro
 `complete()`'s **alias-index path** skips it too, and for a third reason: that
 path inserts `<count> <plural display form>`, and a time zone is not a quantity
 of anything. What an opaque kind can do since M6.4 is answer for itself, through
-[`completions`](#completions) — which is how `@smartput/geo`, an opaque kind,
+[`completions`](#completions) — which is how `@smartput/country`, an opaque kind,
 completes `kyi` to `Kyiv`.
 
 ### extendsKind
@@ -196,13 +196,16 @@ The shortest matcher that works, and the kind that registers it:
 
 ```ts
 import {
-  BUILTIN_KINDS,
+  composeLocale,
   createEngine,
   Decimal,
   defineKind,
+  defineVocabulary,
   type LiteralMatcher,
 } from "@smartput/core";
-import en from "@smartput/core/locale/en";
+import { english } from "@smartput/core/locale/en";
+import { BUILTIN_KINDS } from "@smartput/kinds";
+import BUILTIN_EN from "@smartput/kinds/locale/en";
 
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}/;
 
@@ -220,13 +223,21 @@ const isoDate: LiteralMatcher = (input, offset) => {
 
 const day = defineKind({
   id: "day",
-  value: { mode: "opaque", units: { UTC: ["utc", "z"] } },
+  value: { mode: "opaque", units: ["UTC"] },   // ids; the words are a Vocabulary
   literals: [isoDate],
   format: (v) => String(v.meta?.iso),
 });
 
-createEngine({ locales: [en], kinds: [...BUILTIN_KINDS, day] })
-  .evaluate("2026-03-01").formatted; // "2026-03-01"
+const dayEn = defineVocabulary({
+  locale: "en",
+  kind: "day",
+  units: { UTC: { aliases: ["utc", "z"] } },
+});
+
+createEngine({
+  locales: [composeLocale(english, [...BUILTIN_EN, dayEn])],
+  kinds: [...BUILTIN_KINDS, day],
+}).evaluate("2026-03-01").formatted; // "2026-03-01"
 ```
 
 `2026-03-01` lexes as number-op-number-op-number, which is why offsets exist:
@@ -286,14 +297,14 @@ Use `lexicon` unless one of these is true of your vocabulary:
 
 | Reach for `completions` when | Because |
 | --- | --- |
-| The names cannot go in the global alias index | It is one map for every kind at once. `km` as Comoros makes `10 km` ambiguous, so `@smartput/geo` indexes no name shorter than four characters and no city at all |
+| The names cannot go in the global alias index | It is one map for every kind at once. `km` as Comoros makes `10 km` ambiguous, so `@smartput/country` indexes no name shorter than four characters and no city at all |
 | There are thousands of them | The index is built once per engine and lives for its lifetime. Geo's 45,000-node trie is built on the first keystroke and shared between engines |
 | The kind is opaque | The alias path takes ratio kinds only, since it inserts `<count> <plural display form>` |
 | The inserted text is not `<count> <unit>` | `Kyiv` is not a quantity of anything |
 
 None of that is about ranking — a unit alias completes perfectly well. It is
 about vocabularies the index would break if they entered it, which is the
-position `@smartput/geo` is in and the reason the seam exists at all.
+position `@smartput/country` is in and the reason the seam exists at all.
 
 #### What core does with the rows
 
@@ -360,7 +371,7 @@ spread underneath. See
 [a place among the units](/guide/places#a-place-is-not-a-quantity).
 
 ```ts
-// The whole of what @smartput/geo registers:
+// The whole of what @smartput/country registers:
 completions: new PlaceCompleter(COUNTRIES, opts.cities).completions,
 ```
 

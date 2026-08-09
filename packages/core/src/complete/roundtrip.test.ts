@@ -1,16 +1,28 @@
 import { expect, test } from "bun:test";
+import { english } from "@smartput/core/locale/en";
 import { BUILTIN_KINDS, measure } from "@smartput/kinds";
+import BUILTIN_EN from "@smartput/kinds/locale/en";
+import measureEn from "@smartput/measure/locale/en";
 import { createEngine } from "../engine";
-import en from "../locale/en";
+import { composeLocale } from "../locale/compose";
 import { lex } from "../parse/lex";
 import { normalize } from "../parse/normalize";
+
+const en = composeLocale(english, BUILTIN_EN);
 
 const engine = createEngine({ locales: [en], kinds: BUILTIN_KINDS });
 
 // `measure` is deliberately outside BUILTIN_KINDS -- its mm/cm aliases collide
 // with length's -- so its units get their own engine rather than being folded
 // into the corpus, which would change what every length row completes to.
-const measures = createEngine({ locales: [en], kinds: [measure] });
+//
+// Its locale takes measure's own vocabulary and only that one, rather than
+// BUILTIN_EN: a vocabulary is installed against a registered kind, and
+// `buildRegistry` refuses one naming a kind this engine does not have.
+const measures = createEngine({
+  locales: [composeLocale(english, [measureEn])],
+  kinds: [measure],
+});
 
 const raw = await Bun.file(
   new URL("../../corpus/en-complete.tsv", import.meta.url),
@@ -47,6 +59,14 @@ const FRAGMENTS = [
   "deg degre rad radi grad gon tur rev",
   "sq sqm m2 m3 ha hect acr l lit ml millil gal pin",
   "kno kt kph kmh mph mps % perc pct",
+  // The four kinds that bridge two others. Their symbol-only units are the
+  // reason each family is spelled out rather than left to the single letters
+  // above: "w" alone reaches power:w, but nothing typed on the way to "mwh"
+  // passes through a fragment any other group names.
+  "w wat kw kilow mw megaw gw gigaw hp hors",
+  "j jou kj kiloj mj megaj wh kwh mwh cal calo kcal kilocal btu",
+  "bps kbps mbps gbps tbps",
+  "bpm hz her",
 ].flatMap((group) => group.split(" "));
 
 // measure's own prefixes, run against the measure-only engine.
@@ -117,7 +137,7 @@ test("every completion inside an expression at least lexes", () => {
   ];
   for (const input of inputs) {
     for (const c of engine.complete(input, { limit: 50 })) {
-      expect(() => lex(normalize(c.text), en)).not.toThrow();
+      expect(() => lex(normalize(c.text).text, en)).not.toThrow();
     }
   }
 });

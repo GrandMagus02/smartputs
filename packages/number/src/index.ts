@@ -1,16 +1,19 @@
-import { aliasesFor, decimalRatios, defineKind } from "@smartput/core";
-import { NUMBER_UNITS, type NumberUnit } from "./units";
+import { decimalRatios, defineKind } from "@smartput/core";
+import { NUMBER_UNITS } from "./units";
 
 export type { NumberUnit } from "./units";
 export { NUMBER_UNITS } from "./units";
-// Numbers as they are said, in both directions. The kind below is what a
-// number *is*; these are what it is called — kept together because reading
-// "one hundred and five" and spelling 105 are one vocabulary.
+// Numbers as they are said, in both directions. They sit beside the kind whose
+// unit is one rather than in a package of their own: `spellNumber` reads the
+// English cardinal table, and the one consumer that needs a *language* — the
+// `Language.spell` a Printer calls — is served by `cardinalSpeller` in core
+// from the same tables, so nothing here is the language's only copy.
 export type { NumberWords } from "./words";
 export { NUMBER_WORDS, numberFromWords, spellNumber } from "./words";
 
-const alias = (unit: NumberUnit) => aliasesFor(NUMBER_UNITS, unit);
-
+// The whole kind: a ratio of 1 and an id. The words for its one unit — such
+// as they are — live in `src/locale/en.ts`, and no unit here has a `typical`
+// band because completion has nothing to fit a bare number against.
 export const number = defineKind({
   id: "number",
   value: {
@@ -18,12 +21,4 @@ export const number = defineKind({
     canonical: NUMBER_UNITS.canonical,
     units: decimalRatios(NUMBER_UNITS),
   },
-  // `alias("one")` derives to `["one"]` — the table's mandatory self-alias,
-  // not a spelling anyone types. The engine still needs a lexicon entry (a
-  // bare numeral is matched by `cardinalNumerals`, not by this word), so an
-  // empty `symbol` and the derived one-element aliases array reproduce the
-  // original hand-written `{ aliases: [], symbol: "" }` in every way that
-  // matters — nothing in the corpus or the analyzer ever typed "one" as a
-  // unit word for this kind, so the added self-alias is inert there.
-  lexicon: { one: { aliases: alias("one"), symbol: "" } },
 });

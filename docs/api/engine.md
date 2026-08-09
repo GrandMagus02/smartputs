@@ -138,11 +138,11 @@ Rows come from **two sources**, ranked into one list:
   splices `<count> <plural display form>` — this is where `30 hours` comes from;
 - every kind that declares a [`completions`](/api/define-kind#completions)
   hook, which answers for itself and supplies the replacement text whole. This
-  is how an opaque kind completes at all, and how `@smartput/geo` offers a city
+  is how an opaque kind completes at all, and how `@smartput/country` offers a city
   that is in nobody's alias index.
 
 ```ts
-// with @smartput/geo registered
+// with @smartput/country registered
 engine.complete("kyi").map((c) => c.text); // [ "Kyiv", "Kyivskyi", "Kyivskyi" ]
 ```
 
@@ -159,9 +159,12 @@ parseable: [`complete()`](/api/complete). Writing a completer:
 
 ```ts
 interface EvalOptions {
-  kinds?: KindId[];   // hard filter — candidates outside this set are dropped
-  weights?: Weights;  // per-call layer 4
-  timeZone?: string;  // per-call override of EngineOptions.timeZone
+  kinds?: KindId[];      // hard filter — candidates outside this set are dropped
+  locales?: string[];    // hard filter — by the language that listed the spelling
+  weights?: Weights;     // per-call layer 4
+  format?: string;       // per-call output language; must be installed
+  timeZone?: string;     // per-call override of EngineOptions.timeZone
+  comparePrecision?: number | "exact";  // per-call override
 }
 ```
 
@@ -171,6 +174,27 @@ scoring, which is a different operation from being ranked last:
 ```ts
 engine.evaluate("10 m", { kinds: ["length"] });        // duration cannot win
 engine.evaluate("10 m", { weights: { length: 99 } });  // duration could still win
+```
+
+`locales` is the same kind of filter, applied to the language that listed the
+spelling — see [`locale:` selectors](/guide/weights#selectors) for why that is
+narrower than "the languages I read". Filtering every reading of a slot away
+raises `DimensionMismatchError`, the same as `kinds` does; `NoCandidateError`
+means no reading existed in the first place.
+
+```ts
+engine.evaluate("5 кг", { locales: ["uk"] }); // 5 kilograms
+engine.evaluate("5 кг", { locales: ["en"] }); // throws DimensionMismatchError
+```
+
+`format` overrides the output language for one call. It is **output only**: it
+rebuilds the printer and evaluator, not the tokenizer, so number grammar and
+segmentation stay the engine's own. Move the whole engine with
+`EngineOptions.format` when the input grammar has to move too.
+
+```ts
+engine.evaluate("5 kg", { format: "uk" }).formatted; // "5 кілограмів"
+engine.evaluate("5 kg").formatted;                   // "5 kilograms"
 ```
 
 `timeZone` reaches every [literal matcher](/api/define-kind#literals) as
@@ -205,7 +229,9 @@ interface Assumption {
 ```
 
 `spans` exist so a caller can underline the tokens a result came from without
-re-parsing.
+re-parsing. `Result.spans`, `AmbiguityError.spans` and `NoCandidateError.spans`
+index the string the caller passed in; spans on the remaining
+`SmartputError` subtypes are relative to the normalized text.
 
 `meta.assumptions` records anything the engine inferred rather than read. Two
 kinds populate it today:
@@ -214,6 +240,13 @@ kinds populate it today:
 | --- | --- | --- |
 | `cross-rate` | `money` | the FX rate was derived through the snapshot's base currency, not quoted directly |
 | `temperature-delta` | `temperature` | `20 C + 5 C` read the right operand as a difference, because the alternative is meaningless |
+
+Each entry is frozen — mutating a returned `Assumption` throws — though the
+`assumptions` array itself, and `meta`, and `Result`, are plain, unfrozen
+objects; only the values a caller is likely to hold onto and pass around
+individually carry the freeze. (`Result.value` is frozen too, but that
+predates this restructuring — every `Completion` `complete()` returns is the
+other value newly frozen alongside `Assumption`.)
 
 `meta.ratesAsOf` is the date of the rate table the result was computed against —
 absent on an engine with no `rates`. A converted amount without one is a number

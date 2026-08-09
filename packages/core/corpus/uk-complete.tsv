@@ -1,0 +1,62 @@
+# input	kind	unit	text
+30 год	duration	h	30 годин
+1 год	duration	h	1 година
+0,5 год	duration	h	0,5 години
+45 сек	duration	s	45 секунд
+90 хвил	duration	min	90 хвилин
+250 мілісек	duration	ms	250 мілісекунд
+2 тиж	duration	wk	2 тижні
+3 дн	duration	d	3 дні
+10 мил	length	mi	10 миль
+1 мил	length	mi	1 миля
+12 дюй	length	in	12 дюймів
+1 дюй	length	in	1 дюйм
+6 фут	length	ft	6 футів
+1 фут	length	ft	1 фут
+10 кіломе	length	km	10 кілометрів
+250 міліме	length	mm	250 міліметрів
+50 санти	length	cm	50 сантиметрів
+12 ярд	length	yd	12 ярдів
+5 кілогра	mass	kg	5 кілограмів
+1 кілогра	mass	kg	1 кілограм
+3 фунт	mass	lb	3 фунти
+2 тон	mass	t	2 тонни
+3 унц	mass	oz	3 унції
+250 мілігра	mass	mg	250 міліграмів
+1 500 грам	mass	g	1 500 грамів
+512 бай	datasize	b	512 байтів
+2 кілобай	datasize	kb	2 кілобайти
+5 мегабай	datasize	mb	5 мегабайтів
+1 гігабай	datasize	gb	1 гігабайт
+2 кіб	datasize	kib	2 кібібайти
+90 градус	angle	deg	90 градусів
+1 радіан	angle	rad	1 радіан
+2 оберт	angle	turn	2 оберти
+100 град	angle	grad	100 градів
+5 літ	volume	l	5 літрів
+500 мілілі	volume	ml	500 мілілітрів
+2 гало	volume	gal	2 галони
+1 пінт	volume	pint	1 пінта
+3 гект	area	hectare	3 гектари
+2 акр	area	acre	2 акри
+10 вуз	speed	knot	10 вузлів
+# temperature declares no forms in any language on purpose -- see
+# temperature/src/locale/uk.ts -- so completion falls back to the alias, which
+# is already what a user types.
+20 цельс	temperature	c	20 цельсій
+300 кельв	temperature	k	300 кельвін
+# An expression completes only its trailing token. The count that drives the
+# plural category is the one next to the fragment, not the one at the front —
+# and Ukrainian has four categories where English has two, so "5 грамів"
+# (genitive plural) is the row that would read as "5 грам" if the category
+# were picked from the leading 10.
+10 кг + 5 грам	mass	g	10 кг + 5 грамів
+10 мм + 5 санти	length	cm	10 мм + 5 сантиметрів
+# KNOWN WRONG, recorded rather than hidden: after "в" Ukrainian takes the
+# locative, so this should offer "2 км в милях". `complete()` never tells
+# `selectForm` that the fragment is a conversion target, so the slot arrives
+# as the default and an implied count of 1 selects "nom-one" — the nominative
+# singular. English cannot see it: its inch and its mile are the same word in
+# both positions, so "2 km in mile" is correct there for the wrong reason.
+# `evaluate("2 кг в грамах")` is unaffected; this is the completion path only.
+2 км в мил	length	mi	2 км в миля

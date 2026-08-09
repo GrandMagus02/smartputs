@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test";
 import { resolveWeight, weightBreakdown } from "./weights";
 
-const base = { kind: "duration", unit: "min", surface: "m", prior: 0 };
+const base = { kind: "duration", unit: "min", surface: "m", locale: "en", prior: 0 };
 
 test("with no layers the weight is the kind prior", () => {
   expect(resolveWeight({ ...base, prior: 7, layers: [] })).toBe(7);
@@ -43,6 +43,30 @@ test("undefined layers are skipped", () => {
   expect(
     resolveWeight({ ...base, layers: [undefined, { duration: 3 }, undefined] }),
   ).toBe(3);
+});
+
+test("locale: is a weight selector like kind and unit", () => {
+  expect(
+    resolveWeight({
+      kind: "mass",
+      unit: "kg",
+      locale: "uk",
+      surface: "кг",
+      prior: 0,
+      layers: [{ "locale:uk": 5 }],
+    }),
+  ).toBe(5);
+});
+
+test("a locale: selector does not match a reading of another language", () => {
+  expect(resolveWeight({ ...base, locale: "uk", layers: [{ "locale:en": 5 }] })).toBe(0);
+});
+
+test('the "*" tag is never matched by a locale: selector', () => {
+  // R6: `"*"` is the language-neutral unit-key floor, not a language, so
+  // there is no selector that could name it and no row it could produce.
+  const b = weightBreakdown({ ...base, locale: "*", layers: [{ "locale:*": 5 }] });
+  expect(b).toEqual([{ selector: "prior", value: 0, layer: 0 }]);
 });
 
 test("the breakdown lists every contribution in layer order", () => {

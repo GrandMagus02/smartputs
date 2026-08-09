@@ -1,0 +1,21 @@
+{
+  "name": "@smartput/time",
+  "version": "0.0.0",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "bun": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "dependencies": {
+    "@smartput/core": "workspace:*",
+    "@smartput/datetime": "workspace:*"
+  },
+  "devDependencies": {
+    "@smartput/core": "workspace:*",
+    "@smartput/kinds": "workspace:*"
+  }
+}

@@ -3,7 +3,7 @@ import { KindConflictError, UnitParseError } from "../errors";
 import { fromCanonical, toCanonical } from "../eval/convert";
 import { formatValue } from "../format/format";
 import type { NormalizedKind } from "../kind/define";
-import type { Registry } from "../kind/registry";
+import { type Registry, wordsFor } from "../kind/registry";
 import { createAnalyzerChain } from "../locale/analyze";
 import { numberSymbols, parseNumber } from "../locale/number";
 import type { EvalCtx, KindId, Locale, RateLookup, Value } from "../types";
@@ -94,7 +94,7 @@ export function createFacade(args: {
 
   /**
    * One vocabulary, not two. `parse` used to match a regex against raw unit
-   * *keys*, ignoring the lexicon sitting right here in the closure — so
+   * *keys*, ignoring the vocabulary sitting right here in the closure — so
    * `X.parse(x.toString())` threw for mass, length, area, speed and volume:
    * the facade's own output was not valid input to its own parser.
    *
@@ -114,16 +114,16 @@ export function createFacade(args: {
   for (const [alias, entries] of registry.aliasIndex) {
     for (const entry of entries) if (entry.kind === kind.id) claim(alias, entry.unit);
   }
-  for (const [name, unit] of kind.units) {
+  for (const [name] of kind.units) {
+    const words = wordsFor(registry, locale.id, kind.id, name);
     claim(name, name);
-    claim(unit.lexeme.symbol, name);
-    for (const form of Object.values(unit.lexeme.display ?? {})) claim(form, name);
+    claim(words?.symbol, name);
+    for (const form of Object.values(words?.forms ?? {})) claim(form, name);
   }
 
   // The locale's own analyzers, the same chain the engine's resolver runs, so
-  // "5 kilometres" resolves here exactly as it does in `evaluate`. Locale
-  // packs are not in scope for a facade, hence the empty list.
-  const analyze = createAnalyzerChain(locale, []);
+  // "5 kilometres" resolves here exactly as it does in `evaluate`.
+  const analyze = createAnalyzerChain(locale.language);
 
   const resolveUnit = (token: string): string | undefined => {
     const direct = unitFor.get(fold(token));
@@ -138,7 +138,7 @@ export function createFacade(args: {
   // Splitting the magnitude off the unit has to know the locale's group and
   // decimal symbols, or "1,234.5 kilograms" — which `toString` produces —
   // cannot be read back.
-  const { group, decimal } = numberSymbols(locale);
+  const { group, decimal } = numberSymbols(locale.language);
   // NBSP and narrow NBSP as escapes, not literals: French ICU groups with
   // U+202F and both are invisible in source -- the same reasoning parseNumber
   // records. A plain space is included too, so "1.5 kilograms" splits.
@@ -221,7 +221,7 @@ export function createFacade(args: {
       // A bare number is not a quantity — the caller has to say which unit.
       if (token === "") throw new UnitParseError(text, kind.id);
 
-      const value = parseNumber(digits, locale);
+      const value = parseNumber(digits, locale.language);
       if (value === null) throw new UnitParseError(text, kind.id);
 
       const unit = resolveUnit(token);

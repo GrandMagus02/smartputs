@@ -1,0 +1,16 @@
+# input	kind	canonical	formatted
+2 wk	duration	1209600	2 weeks
+30 h - 30 min	duration	106200	29.5 hours
+90 min in h	duration	5400	1.5 hours
+1 d in h	duration	86400	24 hours
+1 wk in d	duration	604800	7 days
+500 ms + 500 ms	duration	1	1,000 milliseconds
+2 h * 3	duration	21600	6 hours
+1 d / 4	duration	21600	0.25 days
+-2 h	duration	-7200	-2 hours
+1 h in s	duration	3600	3,600 seconds
+one hour	duration	3600	1 hour
+3600 s in h	duration	3600	1 hour
+45 minutes	duration	2700	45 minutes
+1.5 h in min	duration	5400	90 minutes
+2 days + 12 hours	duration	216000	2.5 days

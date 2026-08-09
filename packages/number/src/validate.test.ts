@@ -1,8 +1,9 @@
 import { expect, test } from "bun:test";
-import { createEngine } from "@smartput/core";
-import en from "@smartput/core/locale/en";
-import { toCanonical } from "@smartput/validate";
+import { composeLocale, createEngine } from "@smartput/core";
+import { english as en } from "@smartput/core/locale/en";
+import { toCanonical } from "@smartput/shared";
 import { number } from "./index";
+import numberEn from "./locale/en";
 import { NUMBER_UNITS, type NumberUnit } from "./units";
 import {
   addNumber,
@@ -32,6 +33,53 @@ test("valid and invalid input", () => {
   expect(parseNumber("")).toMatchObject({ ok: false, code: "empty" });
 });
 
+test("native mode reads the leading number and ignores what follows it", () => {
+  // The case this mode exists for: a number that arrives already formatted,
+  // from a form field, a CSV cell or an API that spells its own unit.
+  expect(parseNumber("20%", { mode: "native" })).toMatchObject({
+    ok: true,
+    value: 20,
+    unit: "one",
+  });
+  // Another kind's unit word is not an error here — it is trailing text, the
+  // same as any other. This is exactly the contract loose mode refuses.
+  expect(parseNumber("30kg", { mode: "native" })).toMatchObject({
+    ok: true,
+    value: 30,
+  });
+  expect(parseNumber("  1.5e3 apples ", { mode: "native" })).toMatchObject({
+    ok: true,
+    value: 1500,
+  });
+});
+
+test("native mode is native, not clever", () => {
+  // `parseFloat("1,234")` is 1, and so is this. A thousands separator needs
+  // the locale's numberFormat, which is the engine's job — the same line
+  // `parse`'s NUMBER regex already draws.
+  expect(parseNumber("1,234", { mode: "native" })).toMatchObject({
+    ok: true,
+    value: 1,
+  });
+  // Nothing numeric to read is still the error it always was, named the same
+  // way: native mode widens what counts as a number, not what counts as one.
+  expect(parseNumber("kg", { mode: "native" })).toMatchObject({
+    ok: false,
+    code: "nan",
+  });
+  expect(parseNumber("", { mode: "native" })).toMatchObject({
+    ok: false,
+    code: "empty",
+  });
+});
+
+test("native mode is opt-in: the default modes are untouched", () => {
+  expect(parseNumber("20%")).toMatchObject({ ok: false, code: "unknown-unit" });
+  expect(parseNumber("30kg")).toMatchObject({ ok: false, code: "unknown-unit" });
+  expect(isNumber("20%")).toBe(false);
+  expect(isNumber("20%", { mode: "native" })).toBe(true);
+});
+
 test("defaultUnit composes with caller opts: forced, not erasable, mode still overrides", () => {
   // Loose (the default) needs no unit at all.
   expect(parseNumber("30")).toMatchObject({ ok: true, unit: "one" });
@@ -42,7 +90,7 @@ test("defaultUnit composes with caller opts: forced, not erasable, mode still ov
   });
   // ...but a bare number in strict mode is `missing-unit`, defaultUnit or
   // not: `parse`'s strict mode has no bare-number fallback regardless of
-  // what `defaultUnit` names (packages/validate/src/parse.ts's
+  // what `defaultUnit` names (packages/shared/src/parse.ts's
   // `word.length === 0` branch forces `fallback` to `undefined` whenever
   // `strict` is true). Hardcoding `defaultUnit: "one"` cannot and does not
   // change that — only loose mode gets the free pass, and loose is what a
@@ -78,7 +126,7 @@ test("conversion identity: the one unit converts to itself, exactly", () => {
 });
 
 test("cross-path agreement: the micro path matches the engine's canonical value", () => {
-  const engine = createEngine({ locales: [en], kinds: [number] });
+  const engine = createEngine({ locales: [composeLocale(en)], kinds: [number] });
   for (const n of ["1", "30.5", "0.25", "7"]) {
     const parsed = parseNumber(n);
     expect(parsed.ok, n).toBe(true);
@@ -100,7 +148,7 @@ test("cross-path agreement: the micro path matches the engine's canonical value"
 // going to see it, with or without it in the table.
 test("the self-alias is inert on the engine path, by design", () => {
   expect(parseNumber("1one")).toMatchObject({ ok: true, unit: "one" });
-  const engine = createEngine({ locales: [en], kinds: [number] });
+  const engine = createEngine({ locales: [composeLocale(en)], kinds: [number] });
   expect(() => engine.evaluate("1one")).toThrow();
 });
 
@@ -133,15 +181,16 @@ test("the emitted pattern requires a unit; isNumber accepts a bare number via de
   expect(isNumber("30")).toBe(true);
 });
 
-test("contract: units.ts and the descriptor agree on every key and alias", () => {
+test("contract: units.ts, the descriptor and the vocabulary agree", () => {
   const declared = Object.keys((number.value as { units: object }).units).sort();
   expect(declared).toEqual(Object.keys(NUMBER_UNITS.ratio).sort());
 
-  const lexicon = number.lexicon ?? {};
+  // The alias the engine indexes is the alias the micro path inverts. This
+  // used to be asked of the kind's `lexicon`; that table now lives in
+  // `./locale/en`, and it is the same claim asked of its new home.
   const seen = new Set<string>();
-  for (const [unit, lexeme] of Object.entries(lexicon)) {
-    const aliases = Array.isArray(lexeme) ? lexeme : lexeme.aliases;
-    for (const a of aliases) {
+  for (const [unit, words] of Object.entries(numberEn.units)) {
+    for (const a of words.aliases) {
       expect(NUMBER_UNITS.alias[a], `${a} must be in units.ts`).toBe(unit as NumberUnit);
       seen.add(a);
     }

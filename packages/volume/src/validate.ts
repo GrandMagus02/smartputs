@@ -14,7 +14,7 @@ import {
   patternFor,
   scale,
   sub,
-} from "@smartput/validate";
+} from "@smartput/shared";
 import { VOLUME_UNITS, type VolumeUnit } from "./units";
 
 export type { VolumeUnit } from "./units";

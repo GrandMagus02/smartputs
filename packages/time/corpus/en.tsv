@@ -1,0 +1,35 @@
+# input	kind	canonical	formatted
+#
+# The clock is 2026-01-15T12:00:00Z — a Thursday — and the engine zone is UTC.
+# `canonical` is nanoseconds since local midnight, so every row here is a number
+# in [0, 86400e9) and the calendar day chrono resolved never shows.
+#
+# Rows are evaluated with `kinds: ["time", "duration"]`. Without the filter the
+# bare clock times would all read as `datetime`, which is the point of the -5
+# weight on this kind and is asserted in `time.test.ts` instead.
+
+# recognition
+3pm	time	54000000000000	15:00
+3:00pm	time	54000000000000	15:00
+7:45am	time	27900000000000	07:45
+9:30	time	34200000000000	09:30
+10:00	time	36000000000000	10:00
+15:00	time	54000000000000	15:00
+23:30	time	84600000000000	23:30
+00:30	time	1800000000000	00:30
+
+# Words chrono reads as a clock and not as a day. "midnight" resolves to the
+# *next* midnight — 2026-01-16T00:00 — which is exactly why the canonical is a
+# nanosecond-of-day count: the day chrono picked is not part of the answer.
+noon	time	43200000000000	12:00
+midday	time	43200000000000	12:00
+midnight	time	0	00:00
+
+# Arithmetic. The instant moves through Temporal and the wall clock is re-read,
+# so a sum that crosses midnight comes back inside the day rather than as 25:00.
+10:00 + 90 min	time	41400000000000	11:30
+90 min + 10:00	time	41400000000000	11:30
+3pm + 2 h	time	61200000000000	17:00
+10:00 - 90 min	time	30600000000000	08:30
+23:30 + 90 min	time	3600000000000	01:00
+00:15 - 30 min	time	85500000000000	23:45

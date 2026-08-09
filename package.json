@@ -17,6 +17,7 @@
     "typecheck": "bun run scripts/typecheck.ts",
     "check-deps": "bun run scripts/check-deps.ts",
     "check-size": "bun run scripts/check-size.ts",
+    "parity:record": "bun run scripts/parity-record.ts",
     "check": "bun run lint && bun run typecheck && bun run check-deps && bun test && bun run build && bun run check-size"
   },
   "devDependencies": {

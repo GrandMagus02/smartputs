@@ -1,7 +1,8 @@
 import { expect, test } from "bun:test";
-import { createEngine } from "@smartput/core";
-import en from "@smartput/core/locale/en";
+import { composeLocale, createEngine } from "@smartput/core";
+import { english as en } from "@smartput/core/locale/en";
 import { volume } from "./index";
+import volumeEn from "./locale/en";
 import { VOLUME_UNITS, type VolumeUnit } from "./units";
 import { addVolume, formatVolume, parseVolume, toVolume } from "./validate";
 
@@ -12,7 +13,10 @@ test("valid and invalid input", () => {
   expect(parseVolume("3 litres")).toMatchObject({ ok: true, value: 3, unit: "l" });
   expect(parseVolume("2milliliters")).toMatchObject({ ok: true, value: 2, unit: "ml" });
   expect(parseVolume("1.5smth")).toMatchObject({ ok: false, code: "unknown-unit" });
-  expect(parseVolume("gal")).toMatchObject({ ok: false, code: "nan" });
+  // A unit with no count is one of it. A word that names no unit is still
+  // `nan`: with no number in the string, nothing said a unit was expected.
+  expect(parseVolume("gal")).toMatchObject({ ok: true, value: 1 });
+  expect(parseVolume("smth")).toMatchObject({ ok: false, code: "nan" });
 });
 
 test("the m³ symbol form parses", () => {
@@ -50,7 +54,7 @@ test("conversion identity over every unit pair", () => {
 });
 
 test("cross-path agreement with the engine", () => {
-  const engine = createEngine({ locales: [en], kinds: [volume] });
+  const engine = createEngine({ locales: [composeLocale(en)], kinds: [volume] });
   for (const unit of units) {
     const parsed = parseVolume(`7${unit}`);
     expect(parsed.ok).toBe(true);
@@ -62,12 +66,17 @@ test("cross-path agreement with the engine", () => {
   }
 });
 
-test("contract: the table and the descriptor agree", () => {
+test("contract: the table, the descriptor and the vocabulary agree", () => {
   expect(Object.keys((volume.value as { units: object }).units).sort()).toEqual(
     Object.keys(VOLUME_UNITS.ratio).sort(),
   );
-  for (const [unit, lexeme] of Object.entries(volume.lexicon ?? {})) {
-    const aliases = Array.isArray(lexeme) ? lexeme : lexeme.aliases;
-    for (const a of aliases) expect(VOLUME_UNITS.alias[a], a).toBe(unit as VolumeUnit);
+  // The aliases the engine indexes are the aliases the micro path inverts.
+  // They used to be checked against the kind's `lexicon`; that table now lives
+  // in `./locale/en`, and it is the same claim asked of its new home — an
+  // English word only reaches the engine if `VOLUME_UNITS.alias` maps it to the
+  // very unit the vocabulary filed it under.
+  for (const [unit, words] of Object.entries(volumeEn.units)) {
+    for (const a of words.aliases)
+      expect(VOLUME_UNITS.alias[a], a).toBe(unit as VolumeUnit);
   }
 });

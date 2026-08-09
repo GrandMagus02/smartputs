@@ -27,57 +27,20 @@ test("a five-line ratio kind needs only id, canonical and units", () => {
   ).toBe("1024");
 });
 
-test("aliases default to the unit key", () => {
-  const n = normalizeKind(
-    defineKind({
-      id: "datasize",
-      value: { mode: "ratio", canonical: "b", units: { kb: 1e3 } },
-    }),
-  );
-  expect(n.units.get("kb")?.lexeme.aliases).toEqual(["kb"]);
-});
-
-test("an explicit lexicon replaces the default aliases and keeps display forms", () => {
+test("Kind.typical reaches the normalized unit", () => {
+  // The one thing that stayed on the descriptor when the words left for a
+  // vocabulary: a magnitude band is physics, not language (ruling R3).
   const n = normalizeKind(
     defineKind({
       id: "mass",
-      value: { mode: "ratio", canonical: "g", units: { kg: 1000 } },
-      lexicon: {
-        // symbol deliberately differs from aliases[0]: with them equal the
-        // assertion below holds whether or not the precedence rule exists.
-        kg: {
-          aliases: ["kilogramme", "kilo"],
-          symbol: "kg",
-          display: { one: "kilogram" },
-        },
-      },
+      value: { mode: "ratio", canonical: "g", units: { kg: 1000, g: 1 } },
+      typical: { kg: [2, 200] },
     }),
   );
-  expect(n.units.get("kg")?.lexeme.aliases).toEqual(["kilogramme", "kilo"]);
-  expect(n.units.get("kg")?.lexeme.display?.one).toBe("kilogram");
-  expect(n.units.get("kg")?.lexeme.symbol).toBe("kg");
-});
-
-test("symbol falls back to the first alias when none is given", () => {
-  const n = normalizeKind(
-    defineKind({
-      id: "mass",
-      value: { mode: "ratio", canonical: "g", units: { kg: 1000 } },
-      lexicon: { kg: { aliases: ["kilogramme", "kilo"] } },
-    }),
-  );
-  expect(n.units.get("kg")?.lexeme.symbol).toBe("kilogramme");
-});
-
-test("a string array is lexicon shorthand for aliases", () => {
-  const n = normalizeKind(
-    defineKind({
-      id: "mass",
-      value: { mode: "ratio", canonical: "g", units: { kg: 1000 } },
-      lexicon: { kg: ["kg", "kilo"] },
-    }),
-  );
-  expect(n.units.get("kg")?.lexeme.aliases).toEqual(["kg", "kilo"]);
+  expect(n.units.get("kg")?.typical).toEqual([2, 200]);
+  // A unit with no band declared carries none, and scores 0 rather than being
+  // penalised for it.
+  expect(n.units.get("g")?.typical).toBeUndefined();
 });
 
 test("a function ratio receives the value's own meta", () => {
@@ -171,13 +134,13 @@ test("defineKind deep-freezes its descriptor", () => {
   const k = defineKind({
     id: "x",
     value: { mode: "ratio", canonical: "a", units: { a: 1 } },
-    lexicon: { a: ["a", "alpha"] },
+    typical: { a: [1, 10] },
   });
   expect(Object.isFrozen(k)).toBe(true);
   expect(Object.isFrozen(k.value)).toBe(true);
   expect(Object.isFrozen((k.value as RatioSpec).units)).toBe(true);
-  expect(Object.isFrozen(k.lexicon)).toBe(true);
-  expect(Object.isFrozen(k.lexicon?.a)).toBe(true);
+  expect(Object.isFrozen(k.typical)).toBe(true);
+  expect(Object.isFrozen(k.typical?.a)).toBe(true);
 });
 
 test("normalizeKind copies ops rather than aliasing the frozen array", () => {

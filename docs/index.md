@@ -40,7 +40,7 @@ features:
   - icon: '<span class="i-lucide-banknote"></span>'
     title: Money with the rates you supply
     details: >-
-      @smartput/rates adds a currency kind whose ratios come from an injected,
+      @smartput/rate adds a currency kind whose ratios come from an injected,
       dated table. A rate derived through the base currency is disclosed, never
       implied.
   - icon: '<span class="i-lucide-sigma"></span>'
@@ -114,10 +114,12 @@ bun add @smartput/core
 ```
 
 ```ts
-import { createEngine } from "@smartput/core";
-import en from "@smartput/core/locale/en";
+import { composeLocale, createEngine } from "@smartput/core";
+import { english } from "@smartput/core/locale/en";
 import { BUILTIN_KINDS } from "@smartput/kinds";
+import BUILTIN_EN from "@smartput/kinds/locale/en";
 
+const en = composeLocale(english, BUILTIN_EN);
 const engine = createEngine({ locales: [en], kinds: BUILTIN_KINDS });
 
 engine.evaluate("1 kg + 500 g").formatted; // "1.5 kilograms"
@@ -130,14 +132,15 @@ Currencies live next door, because their unit ratios come from a table you
 supply rather than from a constant:
 
 ```sh
-bun add @smartput/rates
+bun add @smartput/rate
 ```
 
 ```ts
-import { money, snapshot } from "@smartput/rates";
+import { money, snapshot } from "@smartput/rate";
+import moneyEn from "@smartput/rate/locale/en";
 
 const engine = createEngine({
-  locales: [en],
+  locales: [composeLocale(english, [...BUILTIN_EN, moneyEn])],
   kinds: [...BUILTIN_KINDS, money],
   rates: snapshot("EUR", "2026-08-04", { USD: 1.1, GBP: 0.8412 }),
 });

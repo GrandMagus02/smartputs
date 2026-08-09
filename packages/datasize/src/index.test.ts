@@ -1,9 +1,13 @@
 import { expect, test } from "bun:test";
-import { createEngine } from "@smartput/core";
-import en from "@smartput/core/locale/en";
+import { composeLocale, createEngine } from "@smartput/core";
+import { english as en } from "@smartput/core/locale/en";
 import { BUILTIN_KINDS } from "@smartput/kinds";
+import BUILTIN_EN from "@smartput/kinds/locale/en";
 
-const engine = createEngine({ locales: [en], kinds: BUILTIN_KINDS });
+const engine = createEngine({
+  locales: [composeLocale(en, BUILTIN_EN)],
+  kinds: BUILTIN_KINDS,
+});
 
 test("decimal and binary prefixes are distinct", () => {
   expect(engine.evaluate("1 kb in b").value.canonical.toString()).toBe("1000");

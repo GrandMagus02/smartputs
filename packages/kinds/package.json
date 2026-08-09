@@ -18,21 +18,39 @@
       "bun": "./src/class.ts",
       "types": "./dist/class.d.ts",
       "default": "./dist/class.js"
+    },
+    "./locale/en": {
+      "bun": "./src/locale/en.ts",
+      "types": "./dist/locale/en.d.ts",
+      "default": "./dist/locale/en.js"
+    },
+    "./locale/uk": {
+      "bun": "./src/locale/uk.ts",
+      "types": "./dist/locale/uk.d.ts",
+      "default": "./dist/locale/uk.js"
     }
   },
   "dependencies": {
     "@smartput/angle": "workspace:*",
     "@smartput/area": "workspace:*",
+    "@smartput/boolean": "workspace:*",
     "@smartput/core": "workspace:*",
+    "@smartput/datarate": "workspace:*",
     "@smartput/datasize": "workspace:*",
     "@smartput/duration": "workspace:*",
+    "@smartput/energy": "workspace:*",
     "@smartput/length": "workspace:*",
     "@smartput/mass": "workspace:*",
     "@smartput/measure": "workspace:*",
     "@smartput/number": "workspace:*",
     "@smartput/percent": "workspace:*",
+    "@smartput/power": "workspace:*",
     "@smartput/speed": "workspace:*",
     "@smartput/temperature": "workspace:*",
+    "@smartput/tempo": "workspace:*",
     "@smartput/volume": "workspace:*"
+  },
+  "devDependencies": {
+    "@smartput/core": "workspace:*"
   }
 }

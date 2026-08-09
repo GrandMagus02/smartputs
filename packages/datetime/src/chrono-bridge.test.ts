@@ -144,3 +144,86 @@ test("a weekday after a week phrase picks the day inside that week", () => {
   // 2026-01-15 is a Thursday, so last week runs 2026-01-05..11.
   expect(iso("last week friday")).toBe("2026-01-09T00:00:00+00:00[UTC]");
 });
+
+test("a written UTC offset survives the arithmetic cut", () => {
+  // The `+` of "gmt+3" is not an operator, so the bridge may not stop the
+  // literal there — the offset is what tells the instant apart from 3pm UTC.
+  expect(iso("3pm gmt+3")).toBe("2026-01-15T12:00:00+00:00[UTC]");
+  expect(iso("3pm GMT+3")).toBe("2026-01-15T12:00:00+00:00[UTC]");
+  expect(iso("3pm utc+05:30")).toBe("2026-01-15T09:30:00+00:00[UTC]");
+  expect(iso("3pm +03:00")).toBe("2026-01-15T12:00:00+00:00[UTC]");
+  // A negative offset already worked, because `-` only cuts when spaced.
+  expect(iso("3pm gmt-3")).toBe("2026-01-15T18:00:00+00:00[UTC]");
+});
+
+test("the offset is claimed, not left behind for the parser", () => {
+  expect(parseDateTime("3pm gmt+3", 0, ctx)?.length).toBe(9);
+});
+
+test("an operator after an offset still cuts", () => {
+  expect(parseDateTime("3pm gmt+3 + 2 h", 0, ctx)?.length).toBe(9);
+});
+
+test("a bare date reports hasDate and not hasTime", () => {
+  const m = parseDateTime("today", 0, ctx);
+  expect(m?.hasDate).toBe(true);
+  expect(m?.hasTime).toBe(false);
+});
+
+test("a bare clock time reports hasTime and not hasDate", () => {
+  const m = parseDateTime("3pm", 0, ctx);
+  expect(m?.hasDate).toBe(false);
+  expect(m?.hasTime).toBe(true);
+});
+
+test("an ISO date-time reports both", () => {
+  const m = parseDateTime("2026-03-01 08:00", 0, ctx);
+  expect(m?.hasDate).toBe(true);
+  expect(m?.hasTime).toBe(true);
+});
+
+test("a weekday-snapped week phrase reports a date", () => {
+  // chrono's own `isCertain("day")` is false for "next week" — it derived the
+  // day from the reference rather than reading one — but the trailing "monday"
+  // is a day the user named, and `weekdaySnap` is what resolved it. The flag
+  // has to see that, or "next week monday" would never read as a `date`.
+  const m = parseDateTime("next week monday", 0, ctx);
+  expect(m?.hasDate).toBe(true);
+  expect(m?.hasTime).toBe(false);
+});
+
+test("a bare weekday reports a date", () => {
+  // chrono is certain of the weekday and not of the day: it resolved the day
+  // *from* the weekday. Both are the user naming a calendar day, so both set
+  // `hasDate` — otherwise "friday" has no `date` reading at all and cannot
+  // stand on the right of `to` in "today to friday".
+  const m = parseDateTime("next friday", 0, ctx);
+  expect(m?.hasDate).toBe(true);
+  expect(m?.hasTime).toBe(false);
+});
+
+test("a weekday with a clock time reports both", () => {
+  const m = parseDateTime("friday 3pm", 0, ctx);
+  expect(m?.hasDate).toBe(true);
+  expect(m?.hasTime).toBe(true);
+});
+
+test("a conversion keyword ends the date, because chrono reads it as a range", () => {
+  // chrono has its own notion of a range and claims the whole run: "10:00 to
+  // 20:00" is one result with `end` populated, and this bridge returns only the
+  // start. Without the cut the literal reported "10:00" and swallowed both the
+  // keyword and the right endpoint, so `in | time | time` and `in | date |
+  // date` — the two signatures the ranges design hangs the `to` form on — never
+  // saw two operands to match against.
+  expect(parseDateTime("10:00 to 20:00", 0, ctx)?.length).toBe(5);
+  expect(parseDateTime("today to friday", 0, ctx)?.length).toBe(5);
+  expect(parseDateTime("10:00 as 20:00", 0, ctx)?.length).toBe(5);
+  expect(parseDateTime("3pm in tokyo", 0, ctx)?.length).toBe(3);
+});
+
+test("a keyword needs whitespace on both sides to cut", () => {
+  // "in 3 days" is a date whose match *starts* with the keyword, and "into" is
+  // not a keyword at all. Requiring a space on each side separates both from an
+  // operator without the bridge having to tokenize.
+  expect(iso("in 3 days")).toBe("2026-01-18T00:00:00+00:00[UTC]");
+});

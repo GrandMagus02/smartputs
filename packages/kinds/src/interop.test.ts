@@ -1,11 +1,13 @@
 import { expect, test } from "bun:test";
 import { Angle } from "@smartput/angle/class";
 import type { QuantitySnapshot } from "@smartput/core";
-import { createFacades } from "@smartput/core";
-import en from "@smartput/core/locale/en";
+import { composeLocale, createFacades } from "@smartput/core";
+import { english } from "@smartput/core/locale/en";
 import { Length } from "@smartput/length/class";
-
 import { BUILTIN_KINDS } from "./index";
+import BUILTIN_EN from "./locale/en";
+
+const en = composeLocale(english, BUILTIN_EN);
 
 const facades = createFacades({ kinds: BUILTIN_KINDS, locale: en });
 

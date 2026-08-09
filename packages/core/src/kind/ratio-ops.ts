@@ -1,6 +1,6 @@
 import { Decimal } from "../decimal";
 import { DimensionMismatchError } from "../errors";
-import type { KindId, OpSignature, Value } from "../types";
+import type { ComparisonOp, EvalCtx, KindId, OpSignature, Value } from "../types";
 import type { NormalizedKind } from "./define";
 
 /**
@@ -27,6 +27,84 @@ export function deriveValue(
 
 export const NUMBER_KIND = "number";
 export const PERCENT_KIND = "percent";
+export const BOOLEAN_KIND = "boolean";
+/** The boolean kind's one unit. Named here so core and `@smartput/boolean`
+ * cannot drift about what a comparison's result is labelled. */
+export const BOOLEAN_UNIT = "bool";
+
+/**
+ * Significant digits a comparison rounds to when nothing said otherwise —
+ * ruling C4, and deliberately the same 26 `EngineOptions.formatPrecision`
+ * defaults to.
+ *
+ * Core computes at 28 and displays at 26, so the last two digits are guard
+ * digits that exist to absorb the drift of a non-terminating ratio. Comparing
+ * at 28 would surface exactly that drift: `1 m / 3 * 3 = 1 m` is false at full
+ * precision, true of the arithmetic, and useless to the person who typed it.
+ * Comparing at 26 makes the rule statable — two values that *print* the same
+ * *are* the same — which is the only tolerance a user can predict without
+ * knowing the implementation.
+ */
+export const COMPARE_PRECISION = 26;
+
+/**
+ * The six, in the order they are generated. Exported because a consumer that
+ * builds an operator picker, or a query layer mapping its own words onto these,
+ * should not have to restate the list and risk missing one.
+ */
+export const COMPARISON_OPS: readonly ComparisonOp[] = ["<", "<=", ">", ">=", "=", "!="];
+
+/**
+ * `-1`, `0` or `1`, at the precision the context asked for.
+ *
+ * The rounding governs `<` and `>` as much as `=` (ruling C6). Tolerating only
+ * equality would let `a = b` and `a > b` and `a < b` all be false for two
+ * values a digit apart, and a caller branching on three outcomes would find a
+ * fourth.
+ */
+function compareAt(l: Decimal, r: Decimal, ctx: EvalCtx): number {
+  const precision = ctx.comparePrecision ?? COMPARE_PRECISION;
+  if (precision === "exact") return l.comparedTo(r);
+  return l.toSignificantDigits(precision).comparedTo(r.toSignificantDigits(precision));
+}
+
+const truth = (value: boolean): Value =>
+  Object.freeze({
+    kind: BOOLEAN_KIND,
+    canonical: new Decimal(value ? 1 : 0),
+    unit: BOOLEAN_UNIT,
+  });
+
+/**
+ * The six comparison signatures for one kind, over its own kind.
+ *
+ * Same-kind only. A cross-kind comparison is exactly as meaningless as a
+ * cross-kind sum — `10 m > 5 h` has no answer — and leaving the signature
+ * absent is how this engine has always said so. What makes `1000 mb = 1 gb`
+ * work is not a cross-kind rule but the solver: both operands unify to
+ * `datasize` and the comparison is over canonical bytes, which is the same
+ * mechanism that makes `1 kg + 500 g` a kilogram and a half.
+ */
+export function generateComparisonOps(kind: NormalizedKind): OpSignature[] {
+  const ordered = kind.spec.mode === "ratio" ? true : kind.spec.ordered === true;
+  if (!ordered) return [];
+  const id = kind.id;
+  const of = (op: ComparisonOp, test: (c: number) => boolean): OpSignature => ({
+    op,
+    left: id,
+    right: id,
+    result: BOOLEAN_KIND,
+    apply: (l, r, ctx) => truth(test(compareAt(l.canonical, r.canonical, ctx))),
+  });
+  return [
+    of("<", (c) => c < 0),
+    of("<=", (c) => c <= 0),
+    of(">", (c) => c > 0),
+    of(">=", (c) => c >= 0),
+    of("=", (c) => c === 0),
+    of("!=", (c) => c !== 0),
+  ];
+}
 
 /**
  * Everything a non-affine ratio kind generates beyond `in`. Split out from
@@ -134,6 +212,20 @@ function ordinaryOps(id: KindId): OpSignature[] {
       right: id,
       result: id,
       apply: (l, r) => deriveValue(r, r.canonical.times(l.canonical)),
+    },
+    // The discount reading, and deliberately not an alias for `-|K|percent`
+    // above: that one takes the base on the left, this one takes it on the
+    // right, so they are two signatures over the same pair of kinds rather
+    // than one signature with two spellings. Same operand order as `of`, and
+    // the same source operand for `deriveValue` — the result is the base with
+    // a bite taken out of it, so it carries the base's unit and meta.
+    {
+      op: "off",
+      left: PERCENT_KIND,
+      right: id,
+      result: id,
+      apply: (l, r) =>
+        deriveValue(r, r.canonical.times(new Decimal(1).minus(l.canonical))),
     },
   );
 

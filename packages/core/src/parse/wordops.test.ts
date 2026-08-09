@@ -1,11 +1,14 @@
 import { expect, test } from "bun:test";
-import en from "../locale/en";
+import { english } from "@smartput/core/locale/en";
+import { composeLocale } from "../locale/compose";
 import { lex } from "./lex";
 import { normalize } from "./normalize";
 import { foldWordOps } from "./wordops";
 
+const en = composeLocale(english);
+
 const shape = (input: string) =>
-  foldWordOps(lex(normalize(input), en)).map((t) => [
+  foldWordOps(lex(normalize(input).text, en)).map((t) => [
     t.type,
     t.type === "op" ? t.op : t.type === "keyword" ? t.keyword : "",
     t.start,
@@ -49,6 +52,15 @@ test("a stray by is left for the parser to reject", () => {
 test("conversion and percentage keywords are untouched", () => {
   expect(shape("2 km in m")[2]).toEqual(["keyword", "in", 5, 7]);
   expect(shape("20 % of 50")[2]).toEqual(["keyword", "of", 5, 7]);
+});
+
+// `off` has no arithmetic op token to be rewritten into — it is its own
+// operator, consumed by the parser's own branch — so this fold must leave it
+// alone. A stray one therefore reaches the parser and is rejected there, the
+// same way a stray "as" is, rather than being silently turned into a "-".
+test("off reaches the parser as a keyword", () => {
+  expect(shape("20 % off 50")[2]).toEqual(["keyword", "off", 5, 8]);
+  expect(shape("50 off")[1]).toEqual(["keyword", "off", 3, 6]);
 });
 
 test("symbolic operators pass through", () => {

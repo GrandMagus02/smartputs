@@ -11,12 +11,11 @@ too, which is what makes the extension seam real rather than aspirational.
 ## A minimal kind is five lines
 
 ```ts
-import { createEngine, defineKind } from "@smartput/core";
-import en from "@smartput/core/locale/en";
-import { BUILTIN_KINDS } from "@smartput/kinds";
+import { composeLocale, createEngine, defineKind } from "@smartput/core";
+import { english } from "@smartput/core/locale/en";
 
 const dataSize = defineKind({
-  id: "datasize",
+  id: "data-size",
   value: {
     mode: "ratio",
     canonical: "b",
@@ -24,17 +23,23 @@ const dataSize = defineKind({
   },
 });
 
-const engine = createEngine({ locales: [en], kinds: [...BUILTIN_KINDS, dataSize] });
-engine.evaluate("2 mib + 500 kb in kb"); // 2597.152 kb
+// A language with no vocabulary at all — the second bullet below, run.
+const engine = createEngine({ locales: [composeLocale(english, [])], kinds: [dataSize] });
+engine.evaluate("2 mib + 500 kb in kb"); // 2,597.152 kb
 ```
+
+`data-size` and not `datasize`: [`datasize` is a built-in](/guide/kinds), and two
+kinds claiming one id is a `KindConflictError` at `createEngine()` whichever of
+them is the plugin.
 
 Everything else has a working default:
 
-- **Aliases** fall back to the unit keys, so `mib` is recognised without a lexicon.
+- **Aliases** fall back to the unit keys, so `mib` is recognised with no
+  vocabulary installed at all.
 - **`+ - * /` and `in`** are generated for any ratio kind.
 - **Formatting** defaults to `${value}${unit}`.
 
-You reach for `lexicon`, `ops` or `format` only when a default is actually
+You reach for a vocabulary, `ops` or `format` only when a default is actually
 wrong. This is the acceptance test for the whole design: if adding a kind ever
 needs more than `id`, `canonical` and `units`, a default is missing.
 
@@ -54,9 +59,9 @@ interface Kind {
   value: RatioSpec | OpaqueSpec;   // required
 
   // everything below is optional and has a working default
-  extendsKind?: KindId;        // patch a built-in; merges lexicon/units/ops
+  extendsKind?: KindId;        // patch a built-in; merges units/literals/ops
   prior?: number;              // base solver weight, default 0
-  lexicon?: Lexicon;           // default (en) aliases; defaults to the unit keys
+  typical?: Record<string, [number, number]>;  // magnitude bands, for completion
   ops?: OpSignature[];         // ratio kinds get + - * / and `in` for free
   format?: (v: Value, ctx: FormatCtx) => string;
 }
@@ -91,17 +96,38 @@ There is no per-kind "context" mechanism. `Value.meta` already exists on every
 value; dpi rides along in it. One generic escape hatch, used by the one kind
 that needs it.
 
-### Vocabulary
+### Words are not on the kind
 
-`lexicon` is the kind's own default (`en`) layer. Other languages arrive as
-[locale packs](/guide/locales#translation-packs), so the vocabulary can never
-drift from the kind it describes.
+A descriptor carries **no natural-language string** — not an alias, not a
+symbol, not a plural form. Words live in a [`Vocabulary`](/guide/locales), one
+per (kind, language), shipped from the kind's own package as a `./locale/<id>`
+subpath and composed into a locale by the caller:
 
 ```ts
-lexicon: {
-  kib: { aliases: ["kib", "kibibyte"], symbol: "KiB",
-         display: { one: "kibibyte", other: "kibibytes" } },
-}
+// packages/data-size/src/locale/en.ts
+export default defineVocabulary({
+  locale: "en",
+  kind: "data-size",   // by id string; a vocabulary never imports its kind
+  units: {
+    kib: { aliases: ["kib", "kibibyte"], symbol: "KiB",
+           forms: { one: "kibibyte", other: "kibibytes" } },
+  },
+});
+```
+
+That is what lets someone who is not the kind's author publish
+`@acme/data-size-uk`, and it is why the kind and its translations cannot drift:
+there is no second copy to keep in step.
+
+### `typical` — the one thing that stayed
+
+A magnitude band is physics, not language, so it is kind-level and language-free.
+Completion's `scaleFit` reads it to prefer the unit people actually type a number
+that size in; a unit with no entry scores 0, so declaring a band is never a
+penalty.
+
+```ts
+typical: { b: [1, 1024], kb: [1, 1000], mib: [1, 1024] },
 ```
 
 ### Cross-kind operations
@@ -128,7 +154,17 @@ const imperialMass = defineKind({
   id: "mass-imperial-extra",
   extendsKind: "mass",
   value: { mode: "ratio", canonical: "g", units: { st: 6350.29318 } },
-  lexicon: { st: { aliases: ["st", "stone"], symbol: "st" } },
+});
+```
+
+Its words go where every kind's words go — into a vocabulary naming the **base**
+kind, because `mass` is the id the registry ends up holding:
+
+```ts
+const stoneEn = defineVocabulary({
+  locale: "en",
+  kind: "mass",
+  units: { st: { aliases: ["st", "stone", "stones"], symbol: "st" } },
 });
 ```
 
@@ -150,9 +186,21 @@ It asserts that the kind registers, that its canonical unit is in its own unit
 table, that every unit has at least one typeable alias, and that no ratio is
 zero — a zero ratio makes a unit unconvertible in both directions.
 
-::: info Status
-`assertLocaleContract` — every lexeme's inflected forms reach their lemma, every
-plural category named by `Intl.PluralRules` has a `display` entry or a `symbol`
-fallback, and the analyzer chain is idempotent on already-lemmatized input —
-lands with the Ukrainian locale in M5.
-:::
+`@smartput/core/testing` also exports `assertLocaleContract`, which shipped with
+the Ukrainian locale in M5. It is the other half of the pair — `assertKindContract`
+asks whether a *kind* is well formed, this asks whether a *(locale, kinds)* pair
+is:
+
+```ts
+import { assertLocaleContract } from "@smartput/core/testing";
+
+assertLocaleContract(composeLocale(english, BUILTIN_EN), BUILTIN_KINDS);
+```
+
+Every unit has words, every word reads back to its own unit through the analyzer
+chain, every grammatical key `selectForm` can ask for exists in the table it
+will index, and — the check four Ukrainian kinds shipped broken without —
+**every string the printer can emit reads back as what it printed**. All the
+checks run before any of them throws, so a half-translated vocabulary reports
+its gaps in one go. See
+[What `assertLocaleContract` demands](/guide/locales#what-assertlocalecontract-demands).
