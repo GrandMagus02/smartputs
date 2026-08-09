@@ -6,9 +6,23 @@ import {
   SmartputError,
   type Value,
 } from "@smartput/core";
-import { NO_GEONAME_ID } from "@smartput/zip";
 
 const PLACE_KIND = "place";
+
+/**
+ * The `geonameId` a place carries when nothing has positioned it — a postal code
+ * reached without a provider.
+ *
+ * Declared here rather than imported, which is a change: it used to come from
+ * `@smartput/zip`, and that package's postal machinery now lives inside
+ * `@smartput/geo`. Importing it from there would close a cycle, because the
+ * place kind `@smartput/geo` defines names `PlaceDistance`. So the constant is
+ * restated in the package that *branches* on it, for the reason core restates
+ * `RatioTable` structurally: the dependency has to run one way, and `0` written
+ * twice cannot drift — it is not a tuning number, it is "not a GeoNames id",
+ * and GeoNames will not start issuing zero.
+ */
+const NO_GEONAME_ID = 0;
 
 /**
  * A place that names somewhere real but carries no coordinates — today, a postal

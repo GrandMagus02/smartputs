@@ -1,4 +1,4 @@
-import type { Admin1Row, CityRow } from "@smartput/city/types";
+
 import {
   Decimal,
   type LiteralMatch,
@@ -6,8 +6,8 @@ import {
   type MatchCtx,
   type PlaceMeta,
 } from "@smartput/core";
-import { RESERVED_WORDS } from "./data/reserved";
-import type { CountryRow } from "./types";
+import { RESERVED_WORDS } from "./reserved";
+import type { Admin1Row, CityRow, CountryRow } from "./types";
 
 const PLACE_KIND = "place";
 

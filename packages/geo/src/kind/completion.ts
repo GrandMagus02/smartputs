@@ -1,4 +1,4 @@
-import type { CityRow } from "@smartput/city/types";
+
 import {
   type CompleteCtx,
   type Completer,
@@ -7,7 +7,7 @@ import {
   LENGTH_PENALTY,
 } from "@smartput/core";
 import { MIN_NAME_LENGTH } from "./matcher";
-import type { CountryRow } from "./types";
+import type { CityRow, CountryRow } from "./types";
 
 /**
  * Prefix completion for places (spec §10, M6.4).

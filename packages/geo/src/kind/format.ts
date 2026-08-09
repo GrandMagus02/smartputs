@@ -1,8 +1,5 @@
 import { Decimal, type FormatCtx, type PlaceMeta, type Value } from "@smartput/core";
-import { COUNTRIES } from "./data/countries";
 import type { CountryRow } from "./types";
-
-const BY_A2 = new Map<string, CountryRow>(COUNTRIES.map((row) => [row.a2, row]));
 
 const SCALES: ReadonlyArray<readonly [number, string]> = [
   [1e9, "B"],
@@ -49,9 +46,26 @@ function callingCode(phone: string): string {
  * A country is told apart from a city by its id rather than by a flag: §4.2
  * makes the canonical the GeoNames id, and a country's row carries the
  * country's own. Nothing new has to be stored to answer the question.
+ *
+ * A factory over the table, where it used to be a module constant closing over
+ * the vendored one. The index is rebuilt per `definePlace()` rather than shared,
+ * for the reason the distance op is: a build handed a different country table
+ * must not render its places out of this one's, and with the table arriving from
+ * a provider there is no longer any "this one" to fall back to.
  */
-export function formatPlace(value: Value, ctx: FormatCtx): string {
-  const row = BY_A2.get(value.unit);
+export function createPlaceFormatter(
+  countries: readonly CountryRow[],
+): (value: Value, ctx: FormatCtx) => string {
+  const byA2 = new Map<string, CountryRow>(countries.map((row) => [row.a2, row]));
+  return (value, ctx) => formatPlace(byA2, value, ctx);
+}
+
+function formatPlace(
+  byA2: ReadonlyMap<string, CountryRow>,
+  value: Value,
+  ctx: FormatCtx,
+): string {
+  const row = byA2.get(value.unit);
   if (row === undefined) return value.unit;
 
   const meta = value.meta as Partial<PlaceMeta> | undefined;

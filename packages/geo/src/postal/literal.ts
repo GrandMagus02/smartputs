@@ -6,7 +6,7 @@ import {
   NUMBER_FALLBACK_WEIGHT,
   type PlaceMeta,
 } from "@smartput/core";
-import type { PostalCountry } from "./types";
+import type { PostalCountry } from "../kind/types";
 
 const PLACE_KIND = "place";
 

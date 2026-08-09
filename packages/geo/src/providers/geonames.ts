@@ -78,6 +78,10 @@ interface SearchRow {
   readonly fclName?: string;
   readonly fcodeName?: string;
   readonly timezone?: { readonly timeZoneId?: string };
+  readonly alternateNames?: readonly {
+    readonly lang?: string;
+    readonly name?: string;
+  }[];
   readonly bbox?: {
     readonly west?: number;
     readonly south?: number;
@@ -162,6 +166,20 @@ export interface GeoNode {
   readonly featureCode: string;
   /** GeoNames' rendering of that code — "independent political entity". */
   readonly featureName: string;
+  /**
+   * Every name this feature answers to, with its language tag.
+   *
+   * On `Place` there is one name and it is the one the query matched, because a
+   * Value's meta has no room for two hundred. Here they survive, because this is
+   * the shape `countryTable()` reads: the aliases a matcher's trie is built from
+   * are exactly these, and they are the reason no alias table is vendored.
+   *
+   * GeoNames' pseudo-languages come through unchanged — `abbr` for "UK", `iso`
+   * and `fips` for the code systems, `link` for URLs, and "" for an unattributed
+   * spelling. Filtering them is the caller's, since which of them is a usable
+   * name depends on what the caller is going to do with it.
+   */
+  readonly alternateNames: readonly { readonly lang: string; readonly name: string }[];
 }
 
 /** The timezone `timezoneJSON` puts a coordinate in. */
@@ -484,6 +502,9 @@ export class GeoNames implements GeoProvider {
           kind: kindOf(row.fcl ?? "", row.fcode ?? ""),
           featureCode: row.fcode ?? "",
           featureName: row.fcodeName ?? "",
+          alternateNames: (row.alternateNames ?? [])
+            .filter((n) => n.name !== undefined && n.name !== "")
+            .map((n) => ({ lang: n.lang ?? "", name: n.name as string })),
         };
       },
     );

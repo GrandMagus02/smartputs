@@ -1,6 +1,6 @@
 import type { MatchCtx } from "@smartput/core";
 import { createPostalLiteral } from "./literal";
-import type { PostalCountry } from "./types";
+import type { PostalCountry } from "../kind/types";
 
 /**
  * Spec §10, M6.4: postal format validation and normalization — the question
