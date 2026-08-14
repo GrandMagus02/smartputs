@@ -546,7 +546,9 @@ for (const path of found) {
       );
       failed = true;
     } else if (Object.keys(pkg.devDependencies ?? {}).includes(PEER)) {
-      console.log(`${pkg.name} peer OK: ${PEER} (optional, devDependency for the workspace)`);
+      console.log(
+        `${pkg.name} peer OK: ${PEER} (optional, devDependency for the workspace)`,
+      );
     } else {
       console.error(
         `${pkg.name} declares ${PEER} as an optional peer but does not list it in devDependencies. Its own "." entry, locale files and tests import core, and a peer edge alone leaves that resolution to a hoist no lockfile promises.`,
