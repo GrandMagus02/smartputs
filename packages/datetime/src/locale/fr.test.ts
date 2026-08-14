@@ -1,0 +1,331 @@
+import { describe, expect, test } from "bun:test";
+import { composeLocale, createEngine, Decimal } from "@smartput/core";
+import { french } from "@smartput/core/locale/fr";
+import { assertLocaleContract } from "@smartput/core/testing";
+import { OFFSET_ZONES, ZONES } from "@smartput/timezone";
+import { datetime } from "../datetime";
+import { TEST_NOW, TEST_ZONE } from "../temporal";
+import datetimeFr from "./fr";
+
+const locale = composeLocale(french, [datetimeFr]);
+const engine = createEngine({
+  locales: [locale],
+  kinds: [datetime],
+  now: () => TEST_NOW,
+  timeZone: TEST_ZONE,
+});
+
+/** The unit ids the kind declares, in R1's shape: bare strings. */
+const declared = Array.isArray(datetime.value.units) ? [...datetime.value.units] : [];
+
+/** Anything only French would write — the accented vowels and the cedilla. */
+const FRENCH = /[àâçéèêëîïôùûüÿœ]/i;
+
+/**
+ * Every word this vocabulary adds on top of the generated table, by zone.
+ *
+ * French shares its script with the table it layers over, so — unlike the
+ * Ukrainian file, which can find its own additions with a Cyrillic regex — the
+ * additions have to be found by subtraction: what is in the composed alias list
+ * and not in `ZONES`.
+ */
+const added: Array<[string, string]> = Object.entries(datetimeFr.units).flatMap(
+  ([zone, words]) => {
+    const generated = new Set(ZONES[zone]?.aliases ?? []);
+    return words.aliases
+      .filter((a) => !generated.has(a))
+      .map((a): [string, string] => [zone, a]);
+  },
+);
+
+/**
+ * The zones whose printed symbol this vocabulary knowingly cannot read back, and
+ * the one option `assertLocaleContract` is given beyond the offset zones.
+ *
+ * Every one of them is an English or international abbreviation the shipped
+ * table chose — "ET", "CT", "MT", "PT", "IST", "NZ" — plus Shanghai's "CST",
+ * which is an alias of `America/Chicago` and therefore reads back as the wrong
+ * zone rather than as nothing. None of this is French's doing: `en` prints the
+ * identical seven strings and cannot read them either, which is why its own test
+ * file does not run the contract at all. Running it *with* the list named is the
+ * stronger position — the other eleven zones are checked, and the day a symbol
+ * moves into the alias table this list is what has to shrink.
+ */
+const UNREADABLE_SYMBOLS = [
+  "America/New_York",
+  "America/Chicago",
+  "America/Denver",
+  "America/Los_Angeles",
+  "Asia/Kolkata",
+  "Asia/Shanghai",
+  "Pacific/Auckland",
+];
+
+/**
+ * Offset zones are skipped whole. They carry no aliases in any language, on
+ * purpose — "gmt+3" lexes as three tokens, so no alias lookup could ever reach
+ * one and `parseOffsetZone` is their only door — and a unit with no alias is
+ * exactly what the contract's first check reports.
+ */
+const contractOptions = {
+  skip: Object.keys(OFFSET_ZONES).map((zone) => `datetime:${zone}`),
+  skipPrintable: UNREADABLE_SYMBOLS.map((zone) => `datetime:${zone}`),
+};
+
+describe("datetime fr vocabulary", () => {
+  test("it targets French and names its kind by id", () => {
+    expect(datetimeFr.locale).toBe("fr");
+    expect(datetimeFr.kind).toBe("datetime");
+  });
+
+  test("covers every unit the kind declares", () => {
+    expect(Object.keys(datetimeFr.units).sort()).toEqual(declared.sort());
+  });
+
+  test("every unit has a symbol, and every named zone has aliases (R8)", () => {
+    for (const [unit, words] of Object.entries(datetimeFr.units)) {
+      expect(words.symbol, `${unit} has no symbol`).toBeDefined();
+      if (unit in OFFSET_ZONES) continue;
+      expect(words.aliases.length, `${unit} has no aliases`).toBeGreaterThan(0);
+    }
+  });
+
+  // The mirror of `en.test.ts`'s "the kind itself carries no English word": a
+  // kind is unit ids and signatures, so nothing a language wrote may reach it.
+  // French shares the Latin script with the zone ids themselves, so the grep is
+  // for what only French writes — the accents — plus the exonyms this file adds.
+  test("the kind itself carries no French word", () => {
+    const source = JSON.stringify(datetime);
+    expect(source).not.toMatch(FRENCH);
+    expect(source).not.toMatch(/londres|moscou|pekin|japon|allemagne|singapour/i);
+  });
+
+  test("the generated half stays generated", () => {
+    // The zone table's own words and symbol come through untouched, exactly as in
+    // `en`, `uk`, `es` and `it`: this file adds a layer, it does not replace one.
+    // A French engine still reads "15:00 en tokyo", because recognition is
+    // many-to-one and generation is one (design decision I6).
+    expect(datetimeFr.units["Asia/Tokyo"]?.aliases).toContain("tokyo");
+    expect(datetimeFr.units["Asia/Tokyo"]?.aliases).toContain("jst");
+    for (const [zone, def] of Object.entries({ ...ZONES, ...OFFSET_ZONES })) {
+      expect(datetimeFr.units[zone]?.symbol, zone).toBe(def.symbol);
+      for (const alias of def.aliases) {
+        expect(datetimeFr.units[zone]?.aliases, zone).toContain(alias);
+      }
+    }
+  });
+
+  test("the French words come through beside them, deduped", () => {
+    expect(datetimeFr.units["Europe/London"]?.aliases).toContain("londres");
+    expect(datetimeFr.units["Asia/Tokyo"]?.aliases).toContain("japon");
+    for (const [zone, words] of Object.entries(datetimeFr.units)) {
+      expect(words.aliases.length, zone).toBe(new Set(words.aliases).size);
+    }
+  });
+
+  // Where `uk` had to name every zone — nothing in the shipped table is typeable
+  // on a Ukrainian layout — French shares the keyboard, so a zone French spells
+  // the way the table already does needs nothing. What it must not miss is the
+  // zone whose French name is a *different string*: an exonym, which no analyzer
+  // can recover from the English form, since `fr.ts`'s chain is `identity` plus a
+  // stripper that takes off a final -s or -x and "londres" minus its -s is
+  // "londre".
+  test("every zone French spells differently got its own word", () => {
+    const frenchNames: Record<string, string> = {
+      "Europe/London": "londres",
+      "Europe/Moscow": "moscou",
+      "Asia/Kolkata": "calcutta",
+      "Asia/Shanghai": "pékin",
+      "Asia/Singapore": "singapour",
+      "America/Sao_Paulo": "brésil",
+    };
+    for (const [zone, word] of Object.entries(frenchNames)) {
+      expect(datetimeFr.units[zone]?.aliases, zone).toContain(word);
+    }
+    // Chicago, Denver and Berlin are spelled as the table spells them and their
+    // countries are already reachable or unnamed, so nothing was added for the
+    // *spelling* of any of them — Berlin's row holds a country and no exonym.
+    expect(added.filter(([zone]) => zone === "America/Chicago")).toEqual([]);
+    expect(added.filter(([zone]) => zone === "America/Denver")).toEqual([]);
+    expect(added.filter(([zone]) => zone === "Europe/Berlin")).toEqual([
+      ["Europe/Berlin", "allemagne"],
+    ]);
+  });
+
+  // The half the Italian file next door does not need and the Spanish one is
+  // made of. `normalize()`'s NFKC pass leaves a precomposed é as é rather than
+  // stripping it, so a keyboard without accents produces a different string to
+  // the alias index — which is why every accented word here ships with its
+  // bare-vowel twin, the same concession `fr-cardinals.ts` makes for
+  // "zéro"/"zero".
+  test("every accented word it adds has an accent-free twin beside it", () => {
+    const strip = (word: string) => word.normalize("NFD").replace(/\p{M}/gu, "");
+    for (const [zone, alias] of added) {
+      if (!FRENCH.test(alias)) continue;
+      expect(
+        datetimeFr.units[zone]?.aliases,
+        `${zone} adds ${alias} with no accent-free spelling`,
+      ).toContain(strip(alias));
+    }
+    // And the twins are real rather than incidental: five words carry an accent
+    // in this file, and every one of them has its bare-vowel spelling reachable.
+    // "dubaï" is the row where that spelling comes from the *generated* table
+    // rather than from this file — `ZONES` already lists "dubai" — which is why
+    // the check above looks at the composed alias list and not at `added`.
+    expect(added.filter(([, alias]) => FRENCH.test(alias)).map(([, a]) => a)).toEqual([
+      "brésil",
+      "dubaï",
+      "émirats",
+      "pékin",
+      "zélande",
+    ]);
+  });
+
+  test("no French word is claimed by two zones", () => {
+    const owner = new Map<string, string>();
+    for (const [zone, alias] of added) {
+      expect(owner.get(alias), `${alias} is claimed by two zones`).toBeUndefined();
+      owner.set(alias, zone);
+    }
+  });
+
+  test("every word it adds resolves back to its own zone", () => {
+    // Through the engine rather than against the table, because that is the route
+    // a user takes: "en" is the French `in` keyword, the zone is the right operand
+    // of a conversion, and a word that only reaches its unit via the language's
+    // penalised suffix stripper still counts — a penalised reading is a reading,
+    // and the solver ranks it against the alternatives.
+    for (const [zone, alias] of added) {
+      expect(engine.evaluate(`15:00 en ${alias}`).value?.unit, alias).toBe(zone);
+    }
+  });
+
+  test("satisfies the locale contract", () => {
+    expect(() => assertLocaleContract(locale, [datetime], contractOptions)).not.toThrow();
+    // The default counts are all integers, so the fractional row is never reached
+    // at all — and in French that row is the *singular* one, unlike English's. A
+    // fractional count is added for the same reason every other `fr` vocabulary
+    // adds one — except that a zone is never counted, so here it can only confirm
+    // that no unit has a `forms` table for the sweep to index. That is the honest
+    // shape of this kind's coverage.
+    expect(() =>
+      assertLocaleContract(locale, [datetime], {
+        ...contractOptions,
+        counts: [0, 1, 2, 5, 11, 21, 100, 1000, 1.5],
+      }),
+    ).not.toThrow();
+  });
+
+  test("no unit declares forms, and selectForm still answers", () => {
+    for (const [zone, words] of Object.entries(datetimeFr.units)) {
+      expect(words.forms, `${zone} declares forms`).toBeUndefined();
+    }
+    // A `forms` table exists so a *count* can pick a word, and there is no such
+    // thing as deux Tokyo. `french.selectForm` knows nothing about which units
+    // have tables, so it keeps answering — which is what makes the absence above a
+    // decision about this kind rather than a property of the language.
+    const key = (count: number | undefined) =>
+      french.selectForm({
+        ...(count !== undefined ? { count: new Decimal(count) } : {}),
+        kind: "datetime",
+        unit: "Asia/Tokyo",
+        slot: "conversion-target",
+      });
+    expect(key(1)).toBe("one");
+    // The French boundary, and the row an English table would call plural: a
+    // fraction under two is singular here.
+    expect(key(1.5)).toBe("one");
+    expect(key(2)).toBe("other");
+    expect(key(undefined)).toBe("other");
+  });
+
+  test("an engine built from it reads French zone words", () => {
+    // The clock is written 24-hour because "3pm" is an English spelling of a time
+    // and this engine has no English in it at all.
+    expect(engine.evaluate("15:00 en japon").formatted).toBe("2026-01-16 00:00 JST");
+    expect(engine.evaluate("15:00 en Greenwich").formatted).toBe("2026-01-15 15:00 UTC");
+    expect(engine.evaluate("15:00 en Londres").formatted).toBe("2026-01-15 15:00 London");
+    // The country, which is how a person names a zone they do not live in.
+    expect(engine.evaluate("15:00 en Allemagne").value?.unit).toBe("Europe/Berlin");
+    expect(engine.evaluate("15:00 en Ukraine").value?.unit).toBe("Europe/Kyiv");
+    expect(engine.evaluate("15:00 en France").formatted).toBe("2026-01-15 16:00 CET");
+    // The exonym for a city whose English name no analyzer can reach from.
+    expect(engine.evaluate("15:00 en Moscou").value?.unit).toBe("Europe/Moscow");
+    expect(engine.evaluate("15:00 en Pékin").value?.unit).toBe("Asia/Shanghai");
+    // And its accent-free twin, which is a different string to the alias index.
+    expect(engine.evaluate("15:00 en pekin").value?.unit).toBe("Asia/Shanghai");
+    // The one word of a multi-token name that can be looked up at all: "Nouvelle-
+    // Zélande" and "Los Angeles" are two tokens — and the first is hyphenated,
+    // which is worse, since `normalize()` maps every dash to "-" and the lexer
+    // emits it as an operator.
+    expect(engine.evaluate("15:00 en zélande").value?.unit).toBe("Pacific/Auckland");
+    expect(engine.evaluate("15:00 en angeles").value?.unit).toBe("America/Los_Angeles");
+  });
+
+  test("the Latin aliases still read in a French engine", () => {
+    // Recognition is many-to-one and generation is one (design decision I6): the
+    // format locale decides what comes back, never what may be typed.
+    expect(engine.evaluate("15:00 en tokyo").formatted).toBe("2026-01-16 00:00 JST");
+    expect(engine.evaluate("15:00 en utc").formatted).toBe("2026-01-15 15:00 UTC");
+  });
+
+  // Italian's second `in` keyword is lost on this kind — `chrono-bridge.ts` cuts
+  // the string it offers chrono at the first operator and its `OPERATOR_TAIL`
+  // names the English `to`/`as`/`in`, so Italian's "in" is cut while its "a"
+  // reaches chrono, whose English time parser reads a trailing letter after a
+  // clock time as the meridiem marker of "a.m." and drops the whole match.
+  // Neither French keyword hits either trap: "en" and "vers" are two- and
+  // four-letter words that are not English operators and are not the letter "a",
+  // so both survive the bridge intact. Pinned as an assertion rather than assumed,
+  // because it is the one place a vocabulary's reachability depends on a module
+  // upstream of every vocabulary.
+  test("both `in` keywords survive the chrono bridge", () => {
+    expect(engine.evaluate("15:00 en londres").value?.unit).toBe("Europe/London");
+    expect(engine.evaluate("15:00 vers londres").value?.unit).toBe("Europe/London");
+    // After a date as well as after a clock time, which is the other shape the
+    // bridge treats differently.
+    expect(engine.evaluate("2026-03-01 en londres").formatted).toBe(
+      "2026-03-01 00:00 London",
+    );
+    expect(engine.evaluate("2026-03-01 vers londres").formatted).toBe(
+      "2026-03-01 00:00 London",
+    );
+  });
+
+  test("offset zones stay reachable only through their own parser", () => {
+    // Unchanged by translation, and the assertion is here to keep it that way: an
+    // offset is not a word, so there is nothing to translate.
+    expect(datetimeFr.units["+03:00"]?.aliases).toEqual([]);
+    expect(engine.evaluate("15:00 en gmt+3").formatted).toBe(
+      "2026-01-15 18:00 UTC+03:00",
+    );
+  });
+
+  // This kind has no count, so there is no "sum that lands on a fraction" to
+  // assert and no plural boundary for the output to move across — the end-to-end
+  // shape it has instead is a conversion, which the blocks above cover twice
+  // over. What it does have, and what every other `fr` vocabulary can close, is a
+  // round trip; this one cannot, in French or in English.
+  test("round-trips the words it adds, and records that its output cannot", () => {
+    for (const word of ["japon", "Londres", "moscou", "calcutta", "pékin"]) {
+      const first = engine.evaluate(`15:00 en ${word}`);
+      const again = engine.evaluate(`15:00 vers ${word}`);
+      expect(again.value?.canonical.toString(), word).toBe(
+        first.value?.canonical.toString(),
+      );
+      expect(again.value?.unit, word).toBe(first.value?.unit);
+    }
+    // The formatted string is a date, a clock and `zoneSymbol(zone)` with no
+    // keyword between them, and the grammar has no production for that — the
+    // `skipPrintable` list above names the seven zones whose symbol is not even an
+    // alias, but even "JST", which is one, cannot be read at the end of a date.
+    // `en` throws on its own output identically, so this is the kind's shape and
+    // not a gap in this translation.
+    const printed = engine.evaluate("15:00 en japon").formatted;
+    expect(printed).toBe("2026-01-16 00:00 JST");
+    expect(() => engine.evaluate(printed)).toThrow();
+    // The half that does read back is the instant without the zone label, which
+    // is the string `datetime`'s own literal matcher claims.
+    expect(engine.evaluate("2026-01-16 00:00").formatted).toBe("2026-01-16 00:00 UTC");
+  });
+});

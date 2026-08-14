@@ -64,6 +64,81 @@
       "types": "./dist/locale/en.d.ts",
       "default": "./dist/locale/en.js"
     },
+    "./locale/de": {
+      "bun": "./src/locale/de.ts",
+      "types": "./dist/locale/de.d.ts",
+      "default": "./dist/locale/de.js"
+    },
+    "./locale/fr": {
+      "bun": "./src/locale/fr.ts",
+      "types": "./dist/locale/fr.d.ts",
+      "default": "./dist/locale/fr.js"
+    },
+    "./locale/es": {
+      "bun": "./src/locale/es.ts",
+      "types": "./dist/locale/es.d.ts",
+      "default": "./dist/locale/es.js"
+    },
+    "./locale/pt": {
+      "bun": "./src/locale/pt.ts",
+      "types": "./dist/locale/pt.d.ts",
+      "default": "./dist/locale/pt.js"
+    },
+    "./locale/it": {
+      "bun": "./src/locale/it.ts",
+      "types": "./dist/locale/it.d.ts",
+      "default": "./dist/locale/it.js"
+    },
+    "./locale/nl": {
+      "bun": "./src/locale/nl.ts",
+      "types": "./dist/locale/nl.d.ts",
+      "default": "./dist/locale/nl.js"
+    },
+    "./locale/zh": {
+      "bun": "./src/locale/zh.ts",
+      "types": "./dist/locale/zh.d.ts",
+      "default": "./dist/locale/zh.js"
+    },
+    "./locale/ja": {
+      "bun": "./src/locale/ja.ts",
+      "types": "./dist/locale/ja.d.ts",
+      "default": "./dist/locale/ja.js"
+    },
+    "./locale/ar": {
+      "bun": "./src/locale/ar.ts",
+      "types": "./dist/locale/ar.d.ts",
+      "default": "./dist/locale/ar.js"
+    },
+    "./locale/ru": {
+      "bun": "./src/locale/ru.ts",
+      "types": "./dist/locale/ru.d.ts",
+      "default": "./dist/locale/ru.js"
+    },
+    "./locale/pl": {
+      "bun": "./src/locale/pl.ts",
+      "types": "./dist/locale/pl.d.ts",
+      "default": "./dist/locale/pl.js"
+    },
+    "./locale/tr": {
+      "bun": "./src/locale/tr.ts",
+      "types": "./dist/locale/tr.d.ts",
+      "default": "./dist/locale/tr.js"
+    },
+    "./locale/hi": {
+      "bun": "./src/locale/hi.ts",
+      "types": "./dist/locale/hi.d.ts",
+      "default": "./dist/locale/hi.js"
+    },
+    "./locale/ko": {
+      "bun": "./src/locale/ko.ts",
+      "types": "./dist/locale/ko.d.ts",
+      "default": "./dist/locale/ko.js"
+    },
+    "./locale/id": {
+      "bun": "./src/locale/id.ts",
+      "types": "./dist/locale/id.d.ts",
+      "default": "./dist/locale/id.js"
+    },
     "./locale/uk": {
       "bun": "./src/locale/uk.ts",
       "types": "./dist/locale/uk.d.ts",

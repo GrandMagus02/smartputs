@@ -282,6 +282,9 @@
       },
       "devDependencies": {
         "@smartput/core": "workspace:*",
+        "@smartput/datetime": "workspace:*",
+        "@smartput/measure": "workspace:*",
+        "@smartput/rate": "workspace:*",
       },
     },
     "packages/length": {
