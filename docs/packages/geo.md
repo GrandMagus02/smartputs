@@ -40,7 +40,7 @@ npm add @smartput/geo
 
 Type-only exports are erased and do not appear here.
 
-`GEO_KINDS` · `Geo` · `GeoError` · `PlaceProviderError` · `QueryCache` · `RateLimiter` · `WEIGHTS` · `cacheKey` · `dedupe` · `featureClasses` · `haversine` · `identity` · `inBbox` · `kindOf` · `normalizeName` · `placeSnapshot` · `rank` · `score` · `similarity` · `wantsPostal` · `wantsToponyms`
+`GEONAMES_ATTRIBUTION` · `GEO_KINDS` · `Geo` · `GeoError` · `MAX_CODE_LENGTH` · `MIN_ALIAS_LENGTH` · `MIN_NAME_LENGTH` · `NO_GEONAME_ID` · `PlaceCompleter` · `PlaceProviderError` · `PostalFormat` · `PostalFormats` · `QueryCache` · `RANK_STEP` · `RESERVED_WORDS` · `RateLimiter` · `WEIGHTS` · `cacheKey` · `completePlaces` · `countryTable` · `createLivePlace` · `createPlaceFormatter` · `createPlaceIndex` · `createPlaceLiteral` · `createPostalLiteral` · `dedupe` · `definePlace` · `featureClasses` · `haversine` · `identity` · `inBbox` · `isBacktrackRisk` · `joinCountries` · `kindOf` · `normalizeName` · `normalizePostal` · `placeSnapshot` · `placeVocabulary` · `postalAccepts` · `postalShape` · `rank` · `regexFromMask` · `score` · `similarity` · `wantsPostal` · `wantsToponyms`
 
 ## What it costs
 
