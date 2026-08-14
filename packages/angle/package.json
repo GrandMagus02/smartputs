@@ -111,8 +111,15 @@
     }
   },
   "dependencies": {
-    "@smartput/core": "workspace:*",
     "@smartput/shared": "workspace:*"
+  },
+  "peerDependencies": {
+    "@smartput/core": "workspace:*"
+  },
+  "peerDependenciesMeta": {
+    "@smartput/core": {
+      "optional": true
+    }
   },
   "devDependencies": {
     "@smartput/core": "workspace:*",
