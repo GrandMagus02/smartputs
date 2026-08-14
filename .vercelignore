@@ -1,0 +1,11 @@
+.git
+node_modules
+**/dist
+**/node_modules
+.size-tmp
+.superpowers
+.claude
+.zed
+graphify-out
+docs/.vitepress/cache
+docs/.vitepress/dist

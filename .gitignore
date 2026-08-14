@@ -9,3 +9,4 @@ docs/.vitepress/dist/
 docs/.vitepress/cache/
 .claude/worktrees/
 graphify-out/
+.vercel
