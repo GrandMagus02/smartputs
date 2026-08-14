@@ -45,7 +45,6 @@
       "name": "@smartput/angle",
       "version": "0.0.0",
       "dependencies": {
-        "@smartput/core": "workspace:*",
         "@smartput/shared": "workspace:*",
       },
       "devDependencies": {
@@ -53,12 +52,17 @@
         "@smartput/kinds": "workspace:*",
         "@smartput/number": "workspace:*",
       },
+      "peerDependencies": {
+        "@smartput/core": "workspace:*",
+      },
+      "optionalPeers": [
+        "@smartput/core",
+      ],
     },
     "packages/area": {
       "name": "@smartput/area",
       "version": "0.0.0",
       "dependencies": {
-        "@smartput/core": "workspace:*",
         "@smartput/shared": "workspace:*",
       },
       "devDependencies": {
@@ -67,6 +71,12 @@
         "@smartput/length": "workspace:*",
         "@smartput/number": "workspace:*",
       },
+      "peerDependencies": {
+        "@smartput/core": "workspace:*",
+      },
+      "optionalPeers": [
+        "@smartput/core",
+      ],
     },
     "packages/boolean": {
       "name": "@smartput/boolean",
@@ -108,7 +118,6 @@
       "name": "@smartput/datarate",
       "version": "0.0.0",
       "dependencies": {
-        "@smartput/core": "workspace:*",
         "@smartput/shared": "workspace:*",
       },
       "devDependencies": {
@@ -118,12 +127,17 @@
         "@smartput/kinds": "workspace:*",
         "@smartput/number": "workspace:*",
       },
+      "peerDependencies": {
+        "@smartput/core": "workspace:*",
+      },
+      "optionalPeers": [
+        "@smartput/core",
+      ],
     },
     "packages/datasize": {
       "name": "@smartput/datasize",
       "version": "0.0.0",
       "dependencies": {
-        "@smartput/core": "workspace:*",
         "@smartput/shared": "workspace:*",
       },
       "devDependencies": {
@@ -131,6 +145,12 @@
         "@smartput/kinds": "workspace:*",
         "@smartput/number": "workspace:*",
       },
+      "peerDependencies": {
+        "@smartput/core": "workspace:*",
+      },
+      "optionalPeers": [
+        "@smartput/core",
+      ],
     },
     "packages/date": {
       "name": "@smartput/date",
@@ -203,19 +223,23 @@
       "name": "@smartput/duration",
       "version": "0.0.0",
       "dependencies": {
-        "@smartput/core": "workspace:*",
         "@smartput/shared": "workspace:*",
       },
       "devDependencies": {
         "@smartput/core": "workspace:*",
         "@smartput/number": "workspace:*",
       },
+      "peerDependencies": {
+        "@smartput/core": "workspace:*",
+      },
+      "optionalPeers": [
+        "@smartput/core",
+      ],
     },
     "packages/energy": {
       "name": "@smartput/energy",
       "version": "0.0.0",
       "dependencies": {
-        "@smartput/core": "workspace:*",
         "@smartput/shared": "workspace:*",
       },
       "devDependencies": {
@@ -225,6 +249,12 @@
         "@smartput/number": "workspace:*",
         "@smartput/power": "workspace:*",
       },
+      "peerDependencies": {
+        "@smartput/core": "workspace:*",
+      },
+      "optionalPeers": [
+        "@smartput/core",
+      ],
     },
     "packages/geo": {
       "name": "@smartput/geo",
@@ -291,25 +321,35 @@
       "name": "@smartput/length",
       "version": "0.0.0",
       "dependencies": {
-        "@smartput/core": "workspace:*",
         "@smartput/shared": "workspace:*",
       },
       "devDependencies": {
         "@smartput/core": "workspace:*",
         "@smartput/number": "workspace:*",
       },
+      "peerDependencies": {
+        "@smartput/core": "workspace:*",
+      },
+      "optionalPeers": [
+        "@smartput/core",
+      ],
     },
     "packages/mass": {
       "name": "@smartput/mass",
       "version": "0.0.0",
       "dependencies": {
-        "@smartput/core": "workspace:*",
         "@smartput/shared": "workspace:*",
       },
       "devDependencies": {
         "@smartput/core": "workspace:*",
         "@smartput/number": "workspace:*",
       },
+      "peerDependencies": {
+        "@smartput/core": "workspace:*",
+      },
+      "optionalPeers": [
+        "@smartput/core",
+      ],
     },
     "packages/math": {
       "name": "@smartput/math",
@@ -324,7 +364,6 @@
       "name": "@smartput/measure",
       "version": "0.0.0",
       "dependencies": {
-        "@smartput/core": "workspace:*",
         "@smartput/shared": "workspace:*",
       },
       "devDependencies": {
@@ -332,20 +371,33 @@
         "@smartput/kinds": "workspace:*",
         "@smartput/number": "workspace:*",
       },
+      "peerDependencies": {
+        "@smartput/core": "workspace:*",
+      },
+      "optionalPeers": [
+        "@smartput/core",
+      ],
     },
     "packages/number": {
       "name": "@smartput/number",
       "version": "0.0.0",
       "dependencies": {
-        "@smartput/core": "workspace:*",
         "@smartput/shared": "workspace:*",
       },
+      "devDependencies": {
+        "@smartput/core": "workspace:*",
+      },
+      "peerDependencies": {
+        "@smartput/core": "workspace:*",
+      },
+      "optionalPeers": [
+        "@smartput/core",
+      ],
     },
     "packages/percent": {
       "name": "@smartput/percent",
       "version": "0.0.0",
       "dependencies": {
-        "@smartput/core": "workspace:*",
         "@smartput/shared": "workspace:*",
       },
       "devDependencies": {
@@ -353,12 +405,17 @@
         "@smartput/kinds": "workspace:*",
         "@smartput/number": "workspace:*",
       },
+      "peerDependencies": {
+        "@smartput/core": "workspace:*",
+      },
+      "optionalPeers": [
+        "@smartput/core",
+      ],
     },
     "packages/power": {
       "name": "@smartput/power",
       "version": "0.0.0",
       "dependencies": {
-        "@smartput/core": "workspace:*",
         "@smartput/shared": "workspace:*",
       },
       "devDependencies": {
@@ -366,6 +423,12 @@
         "@smartput/kinds": "workspace:*",
         "@smartput/number": "workspace:*",
       },
+      "peerDependencies": {
+        "@smartput/core": "workspace:*",
+      },
+      "optionalPeers": [
+        "@smartput/core",
+      ],
     },
     "packages/query": {
       "name": "@smartput/query",
@@ -427,7 +490,6 @@
       "name": "@smartput/speed",
       "version": "0.0.0",
       "dependencies": {
-        "@smartput/core": "workspace:*",
         "@smartput/shared": "workspace:*",
       },
       "devDependencies": {
@@ -437,12 +499,17 @@
         "@smartput/length": "workspace:*",
         "@smartput/number": "workspace:*",
       },
+      "peerDependencies": {
+        "@smartput/core": "workspace:*",
+      },
+      "optionalPeers": [
+        "@smartput/core",
+      ],
     },
     "packages/temperature": {
       "name": "@smartput/temperature",
       "version": "0.0.0",
       "dependencies": {
-        "@smartput/core": "workspace:*",
         "@smartput/shared": "workspace:*",
       },
       "devDependencies": {
@@ -450,12 +517,17 @@
         "@smartput/kinds": "workspace:*",
         "@smartput/number": "workspace:*",
       },
+      "peerDependencies": {
+        "@smartput/core": "workspace:*",
+      },
+      "optionalPeers": [
+        "@smartput/core",
+      ],
     },
     "packages/tempo": {
       "name": "@smartput/tempo",
       "version": "0.0.0",
       "dependencies": {
-        "@smartput/core": "workspace:*",
         "@smartput/shared": "workspace:*",
       },
       "devDependencies": {
@@ -464,6 +536,12 @@
         "@smartput/kinds": "workspace:*",
         "@smartput/number": "workspace:*",
       },
+      "peerDependencies": {
+        "@smartput/core": "workspace:*",
+      },
+      "optionalPeers": [
+        "@smartput/core",
+      ],
     },
     "packages/time": {
       "name": "@smartput/time",
@@ -499,7 +577,6 @@
       "name": "@smartput/volume",
       "version": "0.0.0",
       "dependencies": {
-        "@smartput/core": "workspace:*",
         "@smartput/shared": "workspace:*",
       },
       "devDependencies": {
@@ -507,6 +584,12 @@
         "@smartput/kinds": "workspace:*",
         "@smartput/number": "workspace:*",
       },
+      "peerDependencies": {
+        "@smartput/core": "workspace:*",
+      },
+      "optionalPeers": [
+        "@smartput/core",
+      ],
     },
   },
   "packages": {

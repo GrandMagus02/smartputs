@@ -41,6 +41,21 @@ npm add @smartput/angle
 | `@smartput/angle/validate` | Free functions over JS numbers. `Ok \| Err`, never a throw. |
 | `@smartput/angle/class` | The immutable value class. |
 | `@smartput/angle/locale/en` | English vocabulary for this package's kinds (default export). |
+| `@smartput/angle/locale/de` | See the source for what this subpath carries. |
+| `@smartput/angle/locale/fr` | See the source for what this subpath carries. |
+| `@smartput/angle/locale/es` | See the source for what this subpath carries. |
+| `@smartput/angle/locale/pt` | See the source for what this subpath carries. |
+| `@smartput/angle/locale/it` | See the source for what this subpath carries. |
+| `@smartput/angle/locale/nl` | See the source for what this subpath carries. |
+| `@smartput/angle/locale/zh` | See the source for what this subpath carries. |
+| `@smartput/angle/locale/ja` | See the source for what this subpath carries. |
+| `@smartput/angle/locale/ar` | See the source for what this subpath carries. |
+| `@smartput/angle/locale/ru` | See the source for what this subpath carries. |
+| `@smartput/angle/locale/pl` | See the source for what this subpath carries. |
+| `@smartput/angle/locale/tr` | See the source for what this subpath carries. |
+| `@smartput/angle/locale/hi` | See the source for what this subpath carries. |
+| `@smartput/angle/locale/ko` | See the source for what this subpath carries. |
+| `@smartput/angle/locale/id` | See the source for what this subpath carries. |
 | `@smartput/angle/locale/uk` | Ukrainian vocabulary for this package's kinds (default export). |
 
 ## Units

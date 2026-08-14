@@ -42,6 +42,21 @@ npm add @smartput/temperature
 | `@smartput/temperature/validate` | Free functions over JS numbers. `Ok \| Err`, never a throw. |
 | `@smartput/temperature/class` | The immutable value class. |
 | `@smartput/temperature/locale/en` | English vocabulary for this package's kinds (default export). |
+| `@smartput/temperature/locale/de` | See the source for what this subpath carries. |
+| `@smartput/temperature/locale/fr` | See the source for what this subpath carries. |
+| `@smartput/temperature/locale/es` | See the source for what this subpath carries. |
+| `@smartput/temperature/locale/pt` | See the source for what this subpath carries. |
+| `@smartput/temperature/locale/it` | See the source for what this subpath carries. |
+| `@smartput/temperature/locale/nl` | See the source for what this subpath carries. |
+| `@smartput/temperature/locale/zh` | See the source for what this subpath carries. |
+| `@smartput/temperature/locale/ja` | See the source for what this subpath carries. |
+| `@smartput/temperature/locale/ar` | See the source for what this subpath carries. |
+| `@smartput/temperature/locale/ru` | See the source for what this subpath carries. |
+| `@smartput/temperature/locale/pl` | See the source for what this subpath carries. |
+| `@smartput/temperature/locale/tr` | See the source for what this subpath carries. |
+| `@smartput/temperature/locale/hi` | See the source for what this subpath carries. |
+| `@smartput/temperature/locale/ko` | See the source for what this subpath carries. |
+| `@smartput/temperature/locale/id` | See the source for what this subpath carries. |
 | `@smartput/temperature/locale/uk` | Ukrainian vocabulary for this package's kinds (default export). |
 
 ## Units

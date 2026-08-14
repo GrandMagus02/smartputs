@@ -12,10 +12,10 @@ import { BUDGETS, type EntrySpec } from "./check-size";
  * time a unit is. Run `bun run docs:packages` after either.
  */
 
-const rootDir = new URL("..", import.meta.url).pathname.replace(/\/$/, "");
+export const rootDir = new URL("..", import.meta.url).pathname.replace(/\/$/, "");
 const outDir = `${rootDir}/docs/packages`;
 
-interface PageMeta {
+export interface PageMeta {
   /** One line. Used as the page description and the index row. */
   summary: string;
   /** The section under which the index lists it. */
@@ -52,7 +52,7 @@ const ratio = (group: string, summary: string, lead: string): PageMeta => ({
   ],
 });
 
-const META: Record<string, PageMeta> = {
+export const META: Record<string, PageMeta> = {
   core: {
     group: "Engine",
     summary: "The engine: normalize, tokenize, parse, solve, eval, print.",
@@ -434,7 +434,7 @@ const ratioDemo = (kind: string, value: string, examples: string[]): string =>
  * entry here, for the same reason it fails on one with no metadata: a package a
  * reader cannot try is a package they have to take on trust.
  */
-const DEMOS: Record<string, string> = {
+export const DEMOS: Record<string, string> = {
   core: [
     '<SpEvaluate model-value="1 kg + 500 g" />',
     "",
@@ -474,7 +474,10 @@ const DEMOS: Record<string, string> = {
   tempo: ratioDemo("tempo", "120 bpm", ["120 bpm in hz", "2 hz in bpm"]),
   temperature: ratioDemo("temperature", "21 °C", ["212 F in C", "0 C in K", "21 C in F"]),
   measure: ratioDemo("measure", "12 pt", ["12 pt in mm", "1 pc in pt", "72 pt in inch"]),
-  number: ratioDemo("number", "42", ["(1 + 2) * 3", "1,500", "2^10"]),
+  // Not `2^10`: there is no exponent operator, so the demo advertised an input
+  // that throws. `gen-readmes.ts` runs every example it prints, which is how a
+  // dud that had been sitting in the live demo turned up at all.
+  number: ratioDemo("number", "42", ["(1 + 2) * 3", "1,500", "twenty two + 5"]),
   percent: ratioDemo("percent", "20%", ["20% of 250", "15% + 5%", "0.2 in %"]),
 
   boolean: [
@@ -554,7 +557,7 @@ const GROUP_ORDER = [
 ];
 
 /** What a subpath contains, when the package has not said something better. */
-const DEFAULT_SUBPATHS: Record<string, string> = {
+export const DEFAULT_SUBPATHS: Record<string, string> = {
   ".": "The package root.",
   "./units": "The `UnitTable`: ratios and aliases, with no engine and no `Decimal`.",
   "./validate": "Free functions over JS numbers. `Ok | Err`, never a throw.",
@@ -567,12 +570,12 @@ const DEFAULT_SUBPATHS: Record<string, string> = {
 };
 
 /** A pipe inside a cell ends the cell. `Ok | Err` is a real description here. */
-const cell = (text: string): string => text.replace(/\|/g, "\\|");
+export const cell = (text: string): string => text.replace(/\|/g, "\\|");
 
-const bytes = (n: number): string =>
+export const bytes = (n: number): string =>
   n >= 1000 ? `${(n / 1000).toFixed(n >= 100_000 ? 0 : 1)} kB` : `${n} B`;
 
-function budgetsFor(pkg: string): EntrySpec[] {
+export function budgetsFor(pkg: string): EntrySpec[] {
   const prefix = `@smartput/${pkg}`;
   return BUDGETS.filter(
     (row) => row.from === prefix || row.from.startsWith(`${prefix}/`),
@@ -622,7 +625,7 @@ function unitTableMarkdown(name: string, table: UnitTable<string>): string {
   return `### ${name}\n\n${head}\n${rows.join("\n")}`;
 }
 
-async function unitTablesFor(pkg: string, subpaths: string[]): Promise<string> {
+export async function unitTablesFor(pkg: string, subpaths: string[]): Promise<string> {
   if (!subpaths.includes("./units")) return "";
   // By path, not by specifier: the workspace root is not a consumer of these
   // packages and has no `@smartput/*` in its own manifest to resolve through.
@@ -643,7 +646,7 @@ strings, which is what lets the engine widen them to \`Decimal\` without a float
 in between.\n\n${body}\n`;
 }
 
-async function runtimeExports(pkg: string): Promise<string[]> {
+export async function runtimeExports(pkg: string): Promise<string[]> {
   try {
     const mod = (await import(`${rootDir}/packages/${pkg}/src/index.ts`)) as Record<
       string,
@@ -662,6 +665,19 @@ async function runtimeExports(pkg: string): Promise<string[]> {
 interface Manifest {
   exports?: Record<string, unknown>;
   dependencies?: Record<string, string>;
+  peerDependencies?: Record<string, string>;
+}
+
+/**
+ * The one line a reader needs about an optional peer: what installs it, and
+ * what does not. Rendering the peer list beside the dependency list rather than
+ * under the same heading is the whole point — a page that showed
+ * `@smartput/length` depending on `@smartput/shared` alone would be true about
+ * `npm add` and a lie about `import { length }`.
+ */
+function peerLine(pkg: string, peer: string): string {
+  const name = peer.slice("@smartput/".length);
+  return `- [\`${peer}\`](/packages/${name}) — needed only by \`@smartput/${pkg}\` and its \`/locale/*\` entries, and \`npm add\` does not fetch it. Anyone reaching those has written \`createEngine\` and installed it already; the \`/validate\`, \`/units\` and \`/class\` entries never touch it.`;
 }
 
 async function page(pkg: string, meta: PageMeta): Promise<string> {
@@ -670,6 +686,7 @@ async function page(pkg: string, meta: PageMeta): Promise<string> {
   ).json()) as Manifest;
   const subpaths = Object.keys(manifest.exports ?? { ".": {} });
   const deps = Object.keys(manifest.dependencies ?? {});
+  const peers = Object.keys(manifest.peerDependencies ?? {});
 
   const entryRows = subpaths
     .map((subpath) => {
@@ -694,17 +711,26 @@ only an upper bound reports a vanished graph as a triumph.\n\n| Import | Minifie
           .map((row) => `| ${row.label} | ≤ ${bytes(row.min)} | ≤ ${bytes(row.gzip)} |`)
           .join("\n")}\n`;
 
+  const peerSection =
+    peers.length === 0
+      ? ""
+      : `\n### Optional peers\n\n${peers.map((peer) => peerLine(pkg, peer)).join("\n")}\n`;
+
   const depSection =
-    deps.length === 0
+    deps.length === 0 && peers.length === 0
       ? `## Dependencies\n\nNone. Not "none for now" — this package is depended on by others precisely
 because it has none.\n`
-      : `## Dependencies\n\n${deps
-          .map((dep) =>
-            dep.startsWith("@smartput/")
-              ? `- [\`${dep}\`](/packages/${dep.slice("@smartput/".length)})`
-              : `- \`${dep}\``,
-          )
-          .join("\n")}\n`;
+      : `## Dependencies\n\n${
+          deps.length === 0
+            ? "None that `npm add` fetches.\n"
+            : `${deps
+                .map((dep) =>
+                  dep.startsWith("@smartput/")
+                    ? `- [\`${dep}\`](/packages/${dep.slice("@smartput/".length)})`
+                    : `- \`${dep}\``,
+                )
+                .join("\n")}\n`
+        }${peerSection}`;
 
   const exported = await runtimeExports(pkg);
   const exportSection =
@@ -786,43 +812,56 @@ ${groups.join("\n")}
 `;
 }
 
-const dirs = (await readdir(`${rootDir}/packages`, { withFileTypes: true }))
-  .filter((entry) => entry.isDirectory())
-  .map((entry) => entry.name)
-  .sort();
-
-const undemoed = dirs.filter((name) => DEMOS[name] === undefined);
-if (undemoed.length > 0) {
-  console.error(`gen-package-pages: no demo for ${undemoed.join(", ")}`);
-  process.exit(1);
-}
-
-const missing = dirs.filter((name) => META[name] === undefined);
-if (missing.length > 0) {
-  // Failing is the point: a package added without a page is a package with no
-  // documentation, and the previous shape of this repo's docs let that happen
-  // silently for a whole milestone.
-  console.error(`gen-package-pages: no metadata for ${missing.join(", ")}`);
-  process.exit(1);
-}
-
 /**
- * The sidebar, emitted rather than hand-maintained in `locales/en.ts`.
- *
- * Forty entries typed out by hand is forty chances to add a package and forget
- * the row — the same drift the tables above exist to prevent, one file over.
+ * Every package directory, sorted. Exported because `gen-readmes.ts` writes one
+ * file per package too and must agree with this one about what the set is — a
+ * second `readdir` would be a second answer waiting to disagree.
  */
-function sidebarModule(names: string[]): string {
-  const groups = GROUP_ORDER.map((group) => {
-    const items = names
-      .filter((name) => META[name]?.group === group)
-      .map((name) => `      { text: "@smartput/${name}", link: "/packages/${name}" },`);
-    return items.length === 0
-      ? ""
-      : `  {\n    text: "${group}",\n    collapsed: false,\n    items: [\n${items.join("\n")}\n    ],\n  },`;
-  }).filter((section) => section !== "");
+export async function packageDirs(): Promise<string[]> {
+  return (await readdir(`${rootDir}/packages`, { withFileTypes: true }))
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => entry.name)
+    .sort();
+}
 
-  return `import type { DefaultTheme } from "vitepress";
+// Everything below runs only when this file is the entry point. `gen-readmes.ts`
+// imports the metadata and the generated-table helpers above, and importing a
+// module should not write to the docs tree as a side effect.
+if (import.meta.main) {
+  const dirs = await packageDirs();
+
+  const undemoed = dirs.filter((name) => DEMOS[name] === undefined);
+  if (undemoed.length > 0) {
+    console.error(`gen-package-pages: no demo for ${undemoed.join(", ")}`);
+    process.exit(1);
+  }
+
+  const missing = dirs.filter((name) => META[name] === undefined);
+  if (missing.length > 0) {
+    // Failing is the point: a package added without a page is a package with no
+    // documentation, and the previous shape of this repo's docs let that happen
+    // silently for a whole milestone.
+    console.error(`gen-package-pages: no metadata for ${missing.join(", ")}`);
+    process.exit(1);
+  }
+
+  /**
+   * The sidebar, emitted rather than hand-maintained in `locales/en.ts`.
+   *
+   * Forty entries typed out by hand is forty chances to add a package and forget
+   * the row — the same drift the tables above exist to prevent, one file over.
+   */
+  function sidebarModule(names: string[]): string {
+    const groups = GROUP_ORDER.map((group) => {
+      const items = names
+        .filter((name) => META[name]?.group === group)
+        .map((name) => `      { text: "@smartput/${name}", link: "/packages/${name}" },`);
+      return items.length === 0
+        ? ""
+        : `  {\n    text: "${group}",\n    collapsed: false,\n    items: [\n${items.join("\n")}\n    ],\n  },`;
+    }).filter((section) => section !== "");
+
+    return `import type { DefaultTheme } from "vitepress";
 
 // Generated by scripts/gen-package-pages.ts. Do not edit — run
 // \`bun run docs:packages\` instead.
@@ -836,20 +875,21 @@ ${groups.join("\n")}
 
 export default packagesSidebar;
 `;
-}
+  }
 
-await mkdir(outDir, { recursive: true });
-for (const name of dirs) {
-  const meta = META[name];
-  if (meta === undefined) continue;
-  await writeFile(`${outDir}/${name}.md`, await page(name, meta));
-}
-await writeFile(`${outDir}/index.md`, indexPage(dirs));
-await writeFile(
-  `${rootDir}/docs/.vitepress/locales/packages-sidebar.ts`,
-  sidebarModule(dirs),
-);
+  await mkdir(outDir, { recursive: true });
+  for (const name of dirs) {
+    const meta = META[name];
+    if (meta === undefined) continue;
+    await writeFile(`${outDir}/${name}.md`, await page(name, meta));
+  }
+  await writeFile(`${outDir}/index.md`, indexPage(dirs));
+  await writeFile(
+    `${rootDir}/docs/.vitepress/locales/packages-sidebar.ts`,
+    sidebarModule(dirs),
+  );
 
-console.log(
-  `gen-package-pages: wrote ${dirs.length + 1} pages to docs/packages, and the sidebar`,
-);
+  console.log(
+    `gen-package-pages: wrote ${dirs.length + 1} pages to docs/packages, and the sidebar`,
+  );
+}

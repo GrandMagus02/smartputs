@@ -38,6 +38,21 @@ npm add @smartput/tempo
 | `@smartput/tempo/validate` | Free functions over JS numbers. `Ok \| Err`, never a throw. |
 | `@smartput/tempo/class` | The immutable value class. |
 | `@smartput/tempo/locale/en` | English vocabulary for this package's kinds (default export). |
+| `@smartput/tempo/locale/de` | See the source for what this subpath carries. |
+| `@smartput/tempo/locale/fr` | See the source for what this subpath carries. |
+| `@smartput/tempo/locale/es` | See the source for what this subpath carries. |
+| `@smartput/tempo/locale/pt` | See the source for what this subpath carries. |
+| `@smartput/tempo/locale/it` | See the source for what this subpath carries. |
+| `@smartput/tempo/locale/nl` | See the source for what this subpath carries. |
+| `@smartput/tempo/locale/zh` | See the source for what this subpath carries. |
+| `@smartput/tempo/locale/ja` | See the source for what this subpath carries. |
+| `@smartput/tempo/locale/ar` | See the source for what this subpath carries. |
+| `@smartput/tempo/locale/ru` | See the source for what this subpath carries. |
+| `@smartput/tempo/locale/pl` | See the source for what this subpath carries. |
+| `@smartput/tempo/locale/tr` | See the source for what this subpath carries. |
+| `@smartput/tempo/locale/hi` | See the source for what this subpath carries. |
+| `@smartput/tempo/locale/ko` | See the source for what this subpath carries. |
+| `@smartput/tempo/locale/id` | See the source for what this subpath carries. |
 | `@smartput/tempo/locale/uk` | Ukrainian vocabulary for this package's kinds (default export). |
 
 ## Units

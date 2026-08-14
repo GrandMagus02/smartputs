@@ -40,6 +40,21 @@ npm add @smartput/speed
 | `@smartput/speed/validate` | Free functions over JS numbers. `Ok \| Err`, never a throw. |
 | `@smartput/speed/class` | The immutable value class. |
 | `@smartput/speed/locale/en` | English vocabulary for this package's kinds (default export). |
+| `@smartput/speed/locale/de` | See the source for what this subpath carries. |
+| `@smartput/speed/locale/fr` | See the source for what this subpath carries. |
+| `@smartput/speed/locale/es` | See the source for what this subpath carries. |
+| `@smartput/speed/locale/pt` | See the source for what this subpath carries. |
+| `@smartput/speed/locale/it` | See the source for what this subpath carries. |
+| `@smartput/speed/locale/nl` | See the source for what this subpath carries. |
+| `@smartput/speed/locale/zh` | See the source for what this subpath carries. |
+| `@smartput/speed/locale/ja` | See the source for what this subpath carries. |
+| `@smartput/speed/locale/ar` | See the source for what this subpath carries. |
+| `@smartput/speed/locale/ru` | See the source for what this subpath carries. |
+| `@smartput/speed/locale/pl` | See the source for what this subpath carries. |
+| `@smartput/speed/locale/tr` | See the source for what this subpath carries. |
+| `@smartput/speed/locale/hi` | See the source for what this subpath carries. |
+| `@smartput/speed/locale/ko` | See the source for what this subpath carries. |
+| `@smartput/speed/locale/id` | See the source for what this subpath carries. |
 | `@smartput/speed/locale/uk` | Ukrainian vocabulary for this package's kinds (default export). |
 
 ## Units

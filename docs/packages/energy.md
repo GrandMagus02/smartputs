@@ -38,6 +38,21 @@ npm add @smartput/energy
 | `@smartput/energy/validate` | Free functions over JS numbers. `Ok \| Err`, never a throw. |
 | `@smartput/energy/class` | The immutable value class. |
 | `@smartput/energy/locale/en` | English vocabulary for this package's kinds (default export). |
+| `@smartput/energy/locale/de` | See the source for what this subpath carries. |
+| `@smartput/energy/locale/fr` | See the source for what this subpath carries. |
+| `@smartput/energy/locale/es` | See the source for what this subpath carries. |
+| `@smartput/energy/locale/pt` | See the source for what this subpath carries. |
+| `@smartput/energy/locale/it` | See the source for what this subpath carries. |
+| `@smartput/energy/locale/nl` | See the source for what this subpath carries. |
+| `@smartput/energy/locale/zh` | See the source for what this subpath carries. |
+| `@smartput/energy/locale/ja` | See the source for what this subpath carries. |
+| `@smartput/energy/locale/ar` | See the source for what this subpath carries. |
+| `@smartput/energy/locale/ru` | See the source for what this subpath carries. |
+| `@smartput/energy/locale/pl` | See the source for what this subpath carries. |
+| `@smartput/energy/locale/tr` | See the source for what this subpath carries. |
+| `@smartput/energy/locale/hi` | See the source for what this subpath carries. |
+| `@smartput/energy/locale/ko` | See the source for what this subpath carries. |
+| `@smartput/energy/locale/id` | See the source for what this subpath carries. |
 | `@smartput/energy/locale/uk` | Ukrainian vocabulary for this package's kinds (default export). |
 
 ## Units

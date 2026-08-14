@@ -38,6 +38,21 @@ npm add @smartput/volume
 | `@smartput/volume/validate` | Free functions over JS numbers. `Ok \| Err`, never a throw. |
 | `@smartput/volume/class` | The immutable value class. |
 | `@smartput/volume/locale/en` | English vocabulary for this package's kinds (default export). |
+| `@smartput/volume/locale/de` | See the source for what this subpath carries. |
+| `@smartput/volume/locale/fr` | See the source for what this subpath carries. |
+| `@smartput/volume/locale/es` | See the source for what this subpath carries. |
+| `@smartput/volume/locale/pt` | See the source for what this subpath carries. |
+| `@smartput/volume/locale/it` | See the source for what this subpath carries. |
+| `@smartput/volume/locale/nl` | See the source for what this subpath carries. |
+| `@smartput/volume/locale/zh` | See the source for what this subpath carries. |
+| `@smartput/volume/locale/ja` | See the source for what this subpath carries. |
+| `@smartput/volume/locale/ar` | See the source for what this subpath carries. |
+| `@smartput/volume/locale/ru` | See the source for what this subpath carries. |
+| `@smartput/volume/locale/pl` | See the source for what this subpath carries. |
+| `@smartput/volume/locale/tr` | See the source for what this subpath carries. |
+| `@smartput/volume/locale/hi` | See the source for what this subpath carries. |
+| `@smartput/volume/locale/ko` | See the source for what this subpath carries. |
+| `@smartput/volume/locale/id` | See the source for what this subpath carries. |
 | `@smartput/volume/locale/uk` | Ukrainian vocabulary for this package's kinds (default export). |
 
 ## Units

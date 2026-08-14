@@ -40,6 +40,21 @@ npm add @smartput/percent
 | `@smartput/percent/validate` | Free functions over JS numbers. `Ok \| Err`, never a throw. |
 | `@smartput/percent/class` | The immutable value class. |
 | `@smartput/percent/locale/en` | English vocabulary for this package's kinds (default export). |
+| `@smartput/percent/locale/de` | See the source for what this subpath carries. |
+| `@smartput/percent/locale/fr` | See the source for what this subpath carries. |
+| `@smartput/percent/locale/es` | See the source for what this subpath carries. |
+| `@smartput/percent/locale/pt` | See the source for what this subpath carries. |
+| `@smartput/percent/locale/it` | See the source for what this subpath carries. |
+| `@smartput/percent/locale/nl` | See the source for what this subpath carries. |
+| `@smartput/percent/locale/zh` | See the source for what this subpath carries. |
+| `@smartput/percent/locale/ja` | See the source for what this subpath carries. |
+| `@smartput/percent/locale/ar` | See the source for what this subpath carries. |
+| `@smartput/percent/locale/ru` | See the source for what this subpath carries. |
+| `@smartput/percent/locale/pl` | See the source for what this subpath carries. |
+| `@smartput/percent/locale/tr` | See the source for what this subpath carries. |
+| `@smartput/percent/locale/hi` | See the source for what this subpath carries. |
+| `@smartput/percent/locale/ko` | See the source for what this subpath carries. |
+| `@smartput/percent/locale/id` | See the source for what this subpath carries. |
 | `@smartput/percent/locale/uk` | Ukrainian vocabulary for this package's kinds (default export). |
 
 ## Units

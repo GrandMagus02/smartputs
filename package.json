@@ -10,6 +10,7 @@
     "test": "bun test",
     "build": "bun run scripts/build.ts",
     "docs:packages": "bun run scripts/gen-package-pages.ts",
+    "docs:readmes": "bun run scripts/gen-readmes.ts",
     "docs:dev": "bun run build && bun run docs:packages && bun run --cwd docs dev",
     "docs:build": "bun run build && bun run docs:packages && bun run --cwd docs build",
     "docs:preview": "bun run --cwd docs preview",

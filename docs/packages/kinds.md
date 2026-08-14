@@ -34,6 +34,21 @@ npm add @smartput/kinds
 | `@smartput/kinds/validate` | Every kind's free functions in one import — see the shake note above. |
 | `@smartput/kinds/class` | Every kind's value class in one import. |
 | `@smartput/kinds/locale/en` | English vocabulary for this package's kinds (default export). |
+| `@smartput/kinds/locale/de` | See the source for what this subpath carries. |
+| `@smartput/kinds/locale/fr` | See the source for what this subpath carries. |
+| `@smartput/kinds/locale/es` | See the source for what this subpath carries. |
+| `@smartput/kinds/locale/pt` | See the source for what this subpath carries. |
+| `@smartput/kinds/locale/it` | See the source for what this subpath carries. |
+| `@smartput/kinds/locale/nl` | See the source for what this subpath carries. |
+| `@smartput/kinds/locale/zh` | See the source for what this subpath carries. |
+| `@smartput/kinds/locale/ja` | See the source for what this subpath carries. |
+| `@smartput/kinds/locale/ar` | See the source for what this subpath carries. |
+| `@smartput/kinds/locale/ru` | See the source for what this subpath carries. |
+| `@smartput/kinds/locale/pl` | See the source for what this subpath carries. |
+| `@smartput/kinds/locale/tr` | See the source for what this subpath carries. |
+| `@smartput/kinds/locale/hi` | See the source for what this subpath carries. |
+| `@smartput/kinds/locale/ko` | See the source for what this subpath carries. |
+| `@smartput/kinds/locale/id` | See the source for what this subpath carries. |
 | `@smartput/kinds/locale/uk` | Ukrainian vocabulary for this package's kinds (default export). |
 
 ## Runtime exports

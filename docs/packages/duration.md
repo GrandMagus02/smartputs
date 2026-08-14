@@ -40,6 +40,21 @@ npm add @smartput/duration
 | `@smartput/duration/validate` | Free functions over JS numbers. `Ok \| Err`, never a throw. |
 | `@smartput/duration/class` | The immutable value class. |
 | `@smartput/duration/locale/en` | English vocabulary for this package's kinds (default export). |
+| `@smartput/duration/locale/de` | See the source for what this subpath carries. |
+| `@smartput/duration/locale/fr` | See the source for what this subpath carries. |
+| `@smartput/duration/locale/es` | See the source for what this subpath carries. |
+| `@smartput/duration/locale/pt` | See the source for what this subpath carries. |
+| `@smartput/duration/locale/it` | See the source for what this subpath carries. |
+| `@smartput/duration/locale/nl` | See the source for what this subpath carries. |
+| `@smartput/duration/locale/zh` | See the source for what this subpath carries. |
+| `@smartput/duration/locale/ja` | See the source for what this subpath carries. |
+| `@smartput/duration/locale/ar` | See the source for what this subpath carries. |
+| `@smartput/duration/locale/ru` | See the source for what this subpath carries. |
+| `@smartput/duration/locale/pl` | See the source for what this subpath carries. |
+| `@smartput/duration/locale/tr` | See the source for what this subpath carries. |
+| `@smartput/duration/locale/hi` | See the source for what this subpath carries. |
+| `@smartput/duration/locale/ko` | See the source for what this subpath carries. |
+| `@smartput/duration/locale/id` | See the source for what this subpath carries. |
 | `@smartput/duration/locale/uk` | Ukrainian vocabulary for this package's kinds (default export). |
 
 ## Units

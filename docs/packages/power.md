@@ -38,6 +38,21 @@ npm add @smartput/power
 | `@smartput/power/validate` | Free functions over JS numbers. `Ok \| Err`, never a throw. |
 | `@smartput/power/class` | The immutable value class. |
 | `@smartput/power/locale/en` | English vocabulary for this package's kinds (default export). |
+| `@smartput/power/locale/de` | See the source for what this subpath carries. |
+| `@smartput/power/locale/fr` | See the source for what this subpath carries. |
+| `@smartput/power/locale/es` | See the source for what this subpath carries. |
+| `@smartput/power/locale/pt` | See the source for what this subpath carries. |
+| `@smartput/power/locale/it` | See the source for what this subpath carries. |
+| `@smartput/power/locale/nl` | See the source for what this subpath carries. |
+| `@smartput/power/locale/zh` | See the source for what this subpath carries. |
+| `@smartput/power/locale/ja` | See the source for what this subpath carries. |
+| `@smartput/power/locale/ar` | See the source for what this subpath carries. |
+| `@smartput/power/locale/ru` | See the source for what this subpath carries. |
+| `@smartput/power/locale/pl` | See the source for what this subpath carries. |
+| `@smartput/power/locale/tr` | See the source for what this subpath carries. |
+| `@smartput/power/locale/hi` | See the source for what this subpath carries. |
+| `@smartput/power/locale/ko` | See the source for what this subpath carries. |
+| `@smartput/power/locale/id` | See the source for what this subpath carries. |
 | `@smartput/power/locale/uk` | Ukrainian vocabulary for this package's kinds (default export). |
 
 ## Units

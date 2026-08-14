@@ -38,6 +38,21 @@ npm add @smartput/area
 | `@smartput/area/validate` | Free functions over JS numbers. `Ok \| Err`, never a throw. |
 | `@smartput/area/class` | The immutable value class. |
 | `@smartput/area/locale/en` | English vocabulary for this package's kinds (default export). |
+| `@smartput/area/locale/de` | See the source for what this subpath carries. |
+| `@smartput/area/locale/fr` | See the source for what this subpath carries. |
+| `@smartput/area/locale/es` | See the source for what this subpath carries. |
+| `@smartput/area/locale/pt` | See the source for what this subpath carries. |
+| `@smartput/area/locale/it` | See the source for what this subpath carries. |
+| `@smartput/area/locale/nl` | See the source for what this subpath carries. |
+| `@smartput/area/locale/zh` | See the source for what this subpath carries. |
+| `@smartput/area/locale/ja` | See the source for what this subpath carries. |
+| `@smartput/area/locale/ar` | See the source for what this subpath carries. |
+| `@smartput/area/locale/ru` | See the source for what this subpath carries. |
+| `@smartput/area/locale/pl` | See the source for what this subpath carries. |
+| `@smartput/area/locale/tr` | See the source for what this subpath carries. |
+| `@smartput/area/locale/hi` | See the source for what this subpath carries. |
+| `@smartput/area/locale/ko` | See the source for what this subpath carries. |
+| `@smartput/area/locale/id` | See the source for what this subpath carries. |
 | `@smartput/area/locale/uk` | Ukrainian vocabulary for this package's kinds (default export). |
 
 ## Units

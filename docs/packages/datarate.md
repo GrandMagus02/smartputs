@@ -40,6 +40,21 @@ npm add @smartput/datarate
 | `@smartput/datarate/validate` | Free functions over JS numbers. `Ok \| Err`, never a throw. |
 | `@smartput/datarate/class` | The immutable value class. |
 | `@smartput/datarate/locale/en` | English vocabulary for this package's kinds (default export). |
+| `@smartput/datarate/locale/de` | See the source for what this subpath carries. |
+| `@smartput/datarate/locale/fr` | See the source for what this subpath carries. |
+| `@smartput/datarate/locale/es` | See the source for what this subpath carries. |
+| `@smartput/datarate/locale/pt` | See the source for what this subpath carries. |
+| `@smartput/datarate/locale/it` | See the source for what this subpath carries. |
+| `@smartput/datarate/locale/nl` | See the source for what this subpath carries. |
+| `@smartput/datarate/locale/zh` | See the source for what this subpath carries. |
+| `@smartput/datarate/locale/ja` | See the source for what this subpath carries. |
+| `@smartput/datarate/locale/ar` | See the source for what this subpath carries. |
+| `@smartput/datarate/locale/ru` | See the source for what this subpath carries. |
+| `@smartput/datarate/locale/pl` | See the source for what this subpath carries. |
+| `@smartput/datarate/locale/tr` | See the source for what this subpath carries. |
+| `@smartput/datarate/locale/hi` | See the source for what this subpath carries. |
+| `@smartput/datarate/locale/ko` | See the source for what this subpath carries. |
+| `@smartput/datarate/locale/id` | See the source for what this subpath carries. |
 | `@smartput/datarate/locale/uk` | Ukrainian vocabulary for this package's kinds (default export). |
 
 ## Units

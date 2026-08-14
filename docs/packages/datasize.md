@@ -40,6 +40,21 @@ npm add @smartput/datasize
 | `@smartput/datasize/validate` | Free functions over JS numbers. `Ok \| Err`, never a throw. |
 | `@smartput/datasize/class` | The immutable value class. |
 | `@smartput/datasize/locale/en` | English vocabulary for this package's kinds (default export). |
+| `@smartput/datasize/locale/de` | See the source for what this subpath carries. |
+| `@smartput/datasize/locale/fr` | See the source for what this subpath carries. |
+| `@smartput/datasize/locale/es` | See the source for what this subpath carries. |
+| `@smartput/datasize/locale/pt` | See the source for what this subpath carries. |
+| `@smartput/datasize/locale/it` | See the source for what this subpath carries. |
+| `@smartput/datasize/locale/nl` | See the source for what this subpath carries. |
+| `@smartput/datasize/locale/zh` | See the source for what this subpath carries. |
+| `@smartput/datasize/locale/ja` | See the source for what this subpath carries. |
+| `@smartput/datasize/locale/ar` | See the source for what this subpath carries. |
+| `@smartput/datasize/locale/ru` | See the source for what this subpath carries. |
+| `@smartput/datasize/locale/pl` | See the source for what this subpath carries. |
+| `@smartput/datasize/locale/tr` | See the source for what this subpath carries. |
+| `@smartput/datasize/locale/hi` | See the source for what this subpath carries. |
+| `@smartput/datasize/locale/ko` | See the source for what this subpath carries. |
+| `@smartput/datasize/locale/id` | See the source for what this subpath carries. |
 | `@smartput/datasize/locale/uk` | Ukrainian vocabulary for this package's kinds (default export). |
 
 ## Units

@@ -547,6 +547,22 @@ npm add @smartput/datetime
 | `@smartput/datetime` | The package root. |
 | `@smartput/datetime/holiday` | `datetimeWithHolidays` — opt in, and pay ~288 KB gzipped for it. |
 | `@smartput/datetime/locale/en` | English vocabulary for this package's kinds (default export). |
+| `@smartput/datetime/locale/uk` | Ukrainian vocabulary for this package's kinds (default export). |
+| `@smartput/datetime/locale/de` | See the source for what this subpath carries. |
+| `@smartput/datetime/locale/fr` | See the source for what this subpath carries. |
+| `@smartput/datetime/locale/es` | See the source for what this subpath carries. |
+| `@smartput/datetime/locale/pt` | See the source for what this subpath carries. |
+| `@smartput/datetime/locale/it` | See the source for what this subpath carries. |
+| `@smartput/datetime/locale/nl` | See the source for what this subpath carries. |
+| `@smartput/datetime/locale/zh` | See the source for what this subpath carries. |
+| `@smartput/datetime/locale/ja` | See the source for what this subpath carries. |
+| `@smartput/datetime/locale/ar` | See the source for what this subpath carries. |
+| `@smartput/datetime/locale/ru` | See the source for what this subpath carries. |
+| `@smartput/datetime/locale/pl` | See the source for what this subpath carries. |
+| `@smartput/datetime/locale/tr` | See the source for what this subpath carries. |
+| `@smartput/datetime/locale/hi` | See the source for what this subpath carries. |
+| `@smartput/datetime/locale/ko` | See the source for what this subpath carries. |
+| `@smartput/datetime/locale/id` | See the source for what this subpath carries. |
 
 ## Runtime exports
 

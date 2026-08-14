@@ -233,6 +233,22 @@ npm add @smartput/rate
 | --- | --- |
 | `@smartput/rate` | The package root. |
 | `@smartput/rate/locale/en` | English vocabulary for this package's kinds (default export). |
+| `@smartput/rate/locale/uk` | Ukrainian vocabulary for this package's kinds (default export). |
+| `@smartput/rate/locale/de` | See the source for what this subpath carries. |
+| `@smartput/rate/locale/fr` | See the source for what this subpath carries. |
+| `@smartput/rate/locale/es` | See the source for what this subpath carries. |
+| `@smartput/rate/locale/pt` | See the source for what this subpath carries. |
+| `@smartput/rate/locale/it` | See the source for what this subpath carries. |
+| `@smartput/rate/locale/nl` | See the source for what this subpath carries. |
+| `@smartput/rate/locale/zh` | See the source for what this subpath carries. |
+| `@smartput/rate/locale/ja` | See the source for what this subpath carries. |
+| `@smartput/rate/locale/ar` | See the source for what this subpath carries. |
+| `@smartput/rate/locale/ru` | See the source for what this subpath carries. |
+| `@smartput/rate/locale/pl` | See the source for what this subpath carries. |
+| `@smartput/rate/locale/tr` | See the source for what this subpath carries. |
+| `@smartput/rate/locale/hi` | See the source for what this subpath carries. |
+| `@smartput/rate/locale/ko` | See the source for what this subpath carries. |
+| `@smartput/rate/locale/id` | See the source for what this subpath carries. |
 
 ## Runtime exports
 
