@@ -32,7 +32,7 @@ export default defineConfig({
   themeConfig: {
     logo: "/favicon.svg",
     siteTitle: "Smartputs",
-    socialLinks: [{ icon: "github", link: "https://github.com/GrandMagus/smartputs" }],
+    socialLinks: [{ icon: "github", link: "https://github.com/GrandMagus02/smartputs" }],
     search: { provider: "local" },
   },
 

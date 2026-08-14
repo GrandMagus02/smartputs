@@ -43,7 +43,7 @@ Every stage is reachable on its own, which is what makes each of the following
 true: you can tokenize without solving, inspect a parse without evaluating,
 reuse a `Parser` across a thousand keystrokes, or hand-build a pipeline from
 five public imports and no `createEngine` at all —
-[`stages.test.ts`](https://github.com/GrandMagus/smartputs/blob/main/packages/core/src/stages.test.ts)
+[`stages.test.ts`](https://github.com/GrandMagus02/smartputs/blob/main/packages/core/src/stages.test.ts)
 does exactly that, and [Stages](/api/stages) walks through it.
 
 ## Watch it run

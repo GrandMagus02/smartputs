@@ -107,7 +107,7 @@ export const en: LocaleSpecificConfig<DefaultTheme.Config> & {
     lastUpdated: { text: "Last updated" },
 
     editLink: {
-      pattern: "https://github.com/GrandMagus/smartputs/edit/main/docs/:path",
+      pattern: "https://github.com/GrandMagus02/smartputs/edit/main/docs/:path",
       text: "Edit this page on GitHub",
     },
 

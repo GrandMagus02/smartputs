@@ -20,7 +20,7 @@ hero:
       link: /packages/
     - theme: alt
       text: GitHub
-      link: https://github.com/GrandMagus/smartputs
+      link: https://github.com/GrandMagus02/smartputs
 
 features:
   - icon: '<span class="i-lucide-calculator"></span>'
