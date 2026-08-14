@@ -277,6 +277,31 @@ export function lex(
 
   const isDigit = (c: string) => c >= "0" && c <= "9";
   const isLetter = (c: string) => /\p{L}/u.test(c);
+  /**
+   * A combining mark: `Mn`, `Mc` or `Me`. Continues a letter run, never starts
+   * one.
+   *
+   * An abugida writes its vowels as marks hung on a consonant, and Unicode
+   * classes those marks as `M` rather than `L`. So a Devanagari word is a
+   * *mixture* of the two categories — किलोग्राम is क + ि + ल + ो + ग + ् + र +
+   * ा + म, five letters and four marks interleaved — and a run built out of
+   * `\p{L}` alone stops at the first vowel. Hindi did not lex as words; it lexed
+   * as bare consonants, and `1 किलोग्राम` reported `Unknown unit "क"`. Every
+   * Indic, Thai, Khmer and Ethiopic script has the same shape.
+   *
+   * Continuation only, and that is what makes this strictly additive: a run
+   * still has to *begin* on a letter, so a stray mark with no letter in front of
+   * it keeps falling through to the unrecognized-character path exactly as it
+   * did before. The only inputs whose lexing changes are the ones where a mark
+   * followed a letter — which, for the languages already here, either cannot
+   * happen (`normalize()` runs NFKC first, and every Latin and Cyrillic
+   * diacritic in use composes onto its base letter) or was the bug above.
+   *
+   * The marks are not handed to `Intl.Segmenter` as a separate concern: they are
+   * part of the run string, and ICU already breaks a Devanagari run into words
+   * correctly once it is given the whole run rather than one consonant.
+   */
+  const isMark = (c: string) => /\p{M}/u.test(c);
 
   /**
    * An apostrophe *between two letters* is part of the word, not a boundary.
@@ -400,7 +425,12 @@ export function lex(
 
     if (isLetter(ch)) {
       const start = i;
-      while (i < input.length && (isLetter(input[i] as string) || isInnerApostrophe(i))) {
+      while (
+        i < input.length &&
+        (isLetter(input[i] as string) ||
+          isMark(input[i] as string) ||
+          isInnerApostrophe(i))
+      ) {
         i += 1;
       }
       const letterEnd = i;
