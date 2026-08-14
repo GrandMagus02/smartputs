@@ -65,7 +65,7 @@ const geo = definePlace({ countries: COUNTRIES, cities: CITIES, admin1: ADMIN1 }
  * entirely on what else is loaded — see "tokyo" below.
  */
 const places = createEngine({
-  // `lengthEn` because this engine replays `packages/country/corpus/en.tsv`,
+  // `lengthEn` because this engine replays `packages/geo/corpus/kind/en.tsv`,
   // whose distance rows record spelled answers ("878.399 kilometres"), and
   // length's words are a vocabulary now rather than a field on the kind.
   // `placeVocabulary(COUNTRIES)` because a country's names are one too — and because a `place` no
@@ -544,7 +544,7 @@ const SUITES: readonly Suite[] = [
       rates,
     }),
   },
-  { file: "packages/country/corpus/en.tsv", engine: places },
+  { file: "packages/geo/corpus/kind/en.tsv", engine: places },
   // The range milestone's five. `date` and `time` carry their owning corpus
   // test's narrowing; the three range kinds win outright and take none.
   { file: "packages/date/corpus/en.tsv", engine: ranges, kinds: ["date", "duration"] },
@@ -625,14 +625,19 @@ const UNREPLAYED: Readonly<Record<string, string>> = {
   "packages/range-core/corpus/en.tsv":
     "instants, zones and boundaries — the interval algebra below every range kind, one layer under anything with a vocabulary",
   "packages/distance/corpus/en.tsv":
-    "two alpha-2 codes and a distance in metres; the op is handed finished Values, and the sentence half is `packages/country/corpus/en.tsv` above",
+    "two alpha-2 codes and a distance in metres; the op is handed finished Values, and the sentence half is `packages/geo/corpus/kind/en.tsv` above",
   "packages/geo/corpus/en.tsv":
     "a search query and the hit that must rank first, replayed through a `Geo` over a pinned gazetteer; the package registers no kind, so there is no engine here for a city name to be claimed by and nothing for this net to re-read",
   "packages/geo/corpus/uk.tsv":
     "the same, in Cyrillic — and the reason it is a second file rather than a translation is that a place's words are the provider's, not this repository's",
+  "packages/geo/corpus/gazetteer/en.tsv":
+    "not a corpus of inputs at all: it is the pinned table the two files above are searched against, rows of gazetteer data rather than sentences, and there is nothing in it for an engine to read",
+  "packages/geo/corpus/gazetteer/uk.tsv":
+    "the same table in Cyrillic, and excluded for the same reason",
 };
 
-const ROOT = new URL("../../../", import.meta.url);
+/** The repository root: this file is `packages/geo/src/kind/`, so four up. */
+const ROOT = new URL("../../../../", import.meta.url);
 
 async function corpusRows(file: string): Promise<string[][]> {
   const raw = await Bun.file(new URL(file, ROOT)).text();
@@ -647,7 +652,7 @@ test("every corpus in the repo is replayed", () => {
   // Discovered from the filesystem rather than listed, for the reason
   // check-deps.ts discovers packages: a corpus added in a later milestone would
   // otherwise be absent from this net and nobody would notice until it broke.
-  const found = [...new Glob("packages/*/corpus/*.tsv").scanSync(ROOT.pathname)]
+  const found = [...new Glob("packages/*/corpus/**/*.tsv").scanSync(ROOT.pathname)]
     .map((p) => p.replaceAll("\\", "/"))
     .sort();
   expect(found).toEqual(
@@ -661,7 +666,7 @@ test("every corpus in the repo is replayed", () => {
  */
 test("every excluded corpus is a real file", () => {
   const found = new Set(
-    [...new Glob("packages/*/corpus/*.tsv").scanSync(ROOT.pathname)].map((p) =>
+    [...new Glob("packages/*/corpus/**/*.tsv").scanSync(ROOT.pathname)].map((p) =>
       p.replaceAll("\\", "/"),
     ),
   );
@@ -859,7 +864,13 @@ test("a place does not take the first completion row from a unit", () => {
     );
   }
 
-  expect(led.sort()).toEqual([...PLACE_LED]);
+  // A subset rather than an equality, because the list is a census of the
+  // shipped gazetteer and this suite runs on a fixture: 6,247 cities put a place
+  // first at fourteen of these prefixes, and forty-odd put one first at a
+  // handful. What has to hold either way is that every prefix where a place
+  // leads is one the census already knew about — a *new* entry means geo has
+  // started taking a row it did not take before, which is the regression.
+  expect(PLACE_LED).toEqual(expect.arrayContaining(led));
 });
 
 test("and pushes at most one unit off the end of the ten", () => {

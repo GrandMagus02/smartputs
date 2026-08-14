@@ -251,19 +251,21 @@ test("no place alias below MIN_NAME_LENGTH reaches the global index, in either b
 
 const placeSource = await Bun.file(new URL("./place.ts", import.meta.url)).text();
 
-test("the entry point never pulls the city table into a bundle", () => {
-  // The factory only saves a consumer the ~180 KB of T1 if `place.ts` reaches it
-  // through the caller's argument. One static import re-links the table into
-  // every build of "@smartput/country" and the seam is worth nothing, so it is
-  // asserted on the source rather than trusted to review.
+test("the entry point never pulls a place table into a bundle", () => {
+  // The factory only saves a consumer the weight of a gazetteer if `place.ts`
+  // reaches every table through the caller's argument. One static import
+  // re-links a table into every build of "@smartput/geo" and the seam is worth
+  // nothing, so it is asserted on the source rather than trusted to review.
   //
-  // The split moved the tables to `@smartput/city`, which makes the import that
-  // would do it a package name rather than a path — and `import type` from
-  // `@smartput/city/types` is the one form that is fine, because it compiles
-  // away. So the pattern below refuses a value import of that package and lets
-  // the type one through.
-  expect(placeSource).not.toMatch(/^import\s+(?!type\b)[^;]*"@smartput\/city/m);
-  expect(placeSource).toMatch(/^import type .*"@smartput\/city\/types"/m);
+  // The claim used to name `@smartput/city`, the package the tables lived in.
+  // There is no such package now and no table in this one either, which makes
+  // the rule both simpler and stricter: the only rows of place data in
+  // "@smartput/geo" are the fixture next door, and nothing shipped may reach
+  // them. `import type` stays legal because it compiles away.
+  expect(placeSource).not.toMatch(/^import\s+(?!type\b)[^;]*places\.fixture/m);
+  // The tables arrive as arguments, which is the positive half of the same
+  // claim: `PlaceOptions` is how a consumer hands them over.
+  expect(placeSource).toMatch(/readonly countries: readonly CountryRow\[\]/);
 });
 
 test("and neither does anything the entry point re-exports", async () => {
@@ -297,16 +299,21 @@ test("and neither does anything the entry point re-exports", async () => {
     }
   };
 
-  await walk(new URL("./index.ts", import.meta.url));
+  // `../index.ts`: the entry point is the package's, one level up from this
+  // directory, and walking `./index.ts` would walk a file that does not exist.
+  await walk(new URL("../index.ts", import.meta.url));
 
-  expect(reached).toContain("src/place.ts");
-  expect(reached).toContain("src/completion.ts");
-  expect(reached).toContain("src/postal-formats.ts");
-  // Nothing the entry point re-exports may name the gazetteer as a value. The
-  // relative walk above cannot see across a package boundary, so the check that
-  // holds T1 out is this one: a bare `@smartput/city` anywhere in the graph is
-  // the whole table, and only the erased `import type` form is allowed.
+  expect(reached).toContain("kind/place.ts");
+  expect(reached).toContain("kind/completion.ts");
+  expect(reached).toContain("postal/literal.ts");
+  // Nothing the entry point re-exports may name a place table as a value. The
+  // walk above is relative, so it reaches every shipped module in the package —
+  // and the fixture is the only place data left to reach, now that the split
+  // packages and their vendored tables are gone.
   for (const source of sources) {
-    expect(source).not.toMatch(/^import\s+(?!type\b)[^;]*"@smartput\/city/m);
+    expect(source).not.toMatch(/^import\s+(?!type\b)[^;]*places\.fixture/m);
   }
+  // And the fixture is not on the graph at all, which is the whole of what
+  // `.fixture.ts` is supposed to buy.
+  expect(reached).not.toContain("kind/places.fixture.ts");
 });

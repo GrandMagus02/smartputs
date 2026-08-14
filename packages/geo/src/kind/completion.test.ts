@@ -19,6 +19,7 @@ import {
 import { MIN_NAME_LENGTH } from "./matcher";
 import { definePlace } from "./place";
 import { CITIES, COUNTRIES } from "./places.fixture";
+import type { CityRow } from "./types";
 
 /**
  * The two builds spec §3 tiers, side by side in every test that has an opinion
@@ -297,20 +298,50 @@ test("the class is the door and the function is what is behind it", () => {
 });
 
 test("a prefix walk, not a scan: the worst fragment stays inside one keystroke", () => {
+  // At gazetteer scale, which the fixture is deliberately not. The claim here is
+  // about the shape of the structure and not about any real place, so the rows
+  // are generated: 6,000 cities is what `cities15000` actually comes to, and the
+  // ratio only means anything against a table that size. Reading the fixture's
+  // sixty names is faster than any tree could be, and a test that compared the
+  // two would be measuring the fixture rather than the walk.
+  //
+  // Names are built from the same letters the fragments below probe, so the
+  // subtree under "s" is genuinely large rather than incidentally empty.
+  const SYLLABLES = ["san", "new", "par", "kyi", "san", "mar", "bel", "cor", "zel"];
+  const TAILS = ["ton", "ville", "burg", "field", "port", "ford", "dale", "grad"];
+  const bulk: CityRow[] = [];
+  for (let i = 0; i < 6_000; i += 1) {
+    const name = `${SYLLABLES[i % SYLLABLES.length]}${TAILS[i % TAILS.length]}${i}`;
+    bulk.push({
+      geonameId: 900_000 + i,
+      name,
+      aliases: [name],
+      country: "us",
+      admin1: "",
+      lat: 0,
+      lon: 0,
+      zone: "UTC",
+      population: 15_000 + (i % 900_000),
+      capital: false,
+    });
+  }
+  const bulky = new PlaceCompleter(COUNTRIES, [...CITIES, ...bulk]);
+
   // The control, on this machine, in this run. A completer is called once per
   // keystroke for every kind, so the number that matters is not how long the
-  // walk takes but how it compares with reading every alias — 8,227 of them,
-  // which is what any structure that is not a prefix tree has to do.
+  // walk takes but how it compares with reading every alias — which is what any
+  // structure that is not a prefix tree has to do.
   const aliases: { alias: string; weight: number }[] = [];
   for (const country of COUNTRIES) {
     for (const alias of country.aliases) {
       if (alias.length >= MIN_NAME_LENGTH) aliases.push({ alias, weight: 3 });
     }
   }
-  for (const city of CITIES) {
+  for (const city of [...CITIES, ...bulk]) {
     for (const alias of city.aliases)
       aliases.push({ alias, weight: city.capital ? 2 : 1 });
   }
+  expect(aliases.length).toBeGreaterThan(6_000);
   const scan = (fragment: string) =>
     aliases
       .filter((a) => a.alias.startsWith(fragment))
@@ -331,7 +362,7 @@ test("a prefix walk, not a scan: the worst fragment stays inside one keystroke",
     return best;
   };
 
-  const walk = time((fragment) => rows(withCities, fragment), 200);
+  const walk = time((fragment) => bulky.completions(ctx(fragment)), 200);
   const linear = time(scan, 20);
 
   // Measured at 1.5 µs against the scan's 142 µs. The absolute bound is what a

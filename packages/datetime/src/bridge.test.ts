@@ -20,7 +20,7 @@ import { TEST_NOW, TEST_ZONE } from "./temporal";
  * The countries this file's assertions name, and nothing else.
  *
  * `@smartput/geo` ships no gazetteer — `definePlace` takes its table as an
- * argument — so a bridge test brings the three rows it needs rather than
+ * argument — so a bridge test brings the rows it needs rather than
  * importing a table that no longer exists anywhere. That is the shape the geo
  * package is built around, and a bridge test is exactly the consumer it was
  * built for.
@@ -73,6 +73,26 @@ const COUNTRIES = [
     zone: "America/New_York",
     geonameId: 6_252_001,
     postalRegex: "^\\d{5}(-\\d{4})?$",
+  },
+  // The fourth row, and the one whose zone datetime does not register as a unit
+  // of its own: "America/Argentina/Buenos_Aires" is what makes "15:00 in
+  // argentina" a target reached through the bridge rather than through a zone
+  // name the user could have typed.
+  {
+    a2: "ar",
+    a3: "arg",
+    name: "Argentina",
+    aliases: ["argentina", "arg", "ar"],
+    capital: "Buenos Aires",
+    currency: "ARS",
+    phone: "54",
+    population: 44_494_502,
+    area: 2_766_890,
+    lat: -34.61315,
+    lon: -58.37723,
+    zone: "America/Argentina/Buenos_Aires",
+    geonameId: 3_865_483,
+    postalRegex: "^[A-Z]?\\d{4}[A-Z]{0,3}$",
   },
 ];
 
@@ -206,8 +226,8 @@ test("datetime declares the bridge without depending on geo", async () => {
   // as well as in check-deps: a stray `import type` would satisfy every test
   // above and quietly reverse it.
   const source = await Bun.file(new URL("./datetime.ts", import.meta.url)).text();
-  expect(source).not.toContain("@smartput/country");
+  expect(source).not.toContain("@smartput/geo");
   const pkg = await Bun.file(new URL("../package.json", import.meta.url)).json();
-  expect(pkg.dependencies["@smartput/country"]).toBeUndefined();
-  expect(pkg.devDependencies["@smartput/country"]).toBe("workspace:*");
+  expect(pkg.dependencies["@smartput/geo"]).toBeUndefined();
+  expect(pkg.devDependencies["@smartput/geo"]).toBe("workspace:*");
 });

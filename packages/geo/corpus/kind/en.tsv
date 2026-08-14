@@ -31,7 +31,7 @@ japan to japan	length	0	0 kilometres
 # city's own: its name, its zone, its population, and the GeoNames id that is its
 # canonical. Currency and calling code are the country's, because they are the
 # country's.
-kyiv	place	703448	Kyiv, UA — UAH, +380, Europe/Kyiv, 3M
+kyiv	place	703448	Kyiv, UA — UAH, +380, Europe/Kyiv, 2.8M
 warsaw	place	756135	Warsaw, PL — PLN, +48, Europe/Warsaw, 1.7M
 paris	place	2988507	Paris, FR — EUR, +33, Europe/Paris, 2.1M
 kyiv to warsaw	length	688971	688.971 kilometres

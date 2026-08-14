@@ -703,16 +703,25 @@ test("a city alias claims itself whole exactly when the scanner can produce it",
   // from opposite ends: the left is what the trie failed to read back, the
   // right is what the scanner says it could never have offered. Anything that
   // falls out of the trie for some *other* reason lands here as a failure.
-  const untokenizable = CITIES.flatMap((c) => c.aliases).filter(
-    (a) => !TOKENIZABLE.test(a),
+  //
+  // Two reasons, not one. An alias the scanner could never offer is the first;
+  // the length floor is the second, and it is deliberate — the trie refuses
+  // anything under `MIN_NAME_LENGTH` so that a three-letter city cannot outrank
+  // the unit whose alias the user was halfway through typing. "ufa" is the
+  // fixture's example, reachable as a scoped claim and never on its own.
+  const aliases = CITIES.flatMap((c) => c.aliases);
+  const untokenizable = aliases.filter((a) => !TOKENIZABLE.test(a));
+  const belowFloor = aliases.filter(
+    (a) => TOKENIZABLE.test(a) && a.length < MIN_NAME_LENGTH,
   );
-  expect(unread.sort()).toEqual(untokenizable.sort());
-  // 18 of them, all transliterations carrying an apostrophe at the edge of a
-  // word — "kazan'", "samarra'", "al 'ashir min ramadan" — plus one written
-  // with a spaced hyphen. Dead rows, and five of the cities have no other alias
-  // and so are unreachable outright. The fix belongs in the generator, which is
-  // where a transliteration is normalized; widening the scanner to take an edge
-  // apostrophe would widen it for every kind's input, to spell five names.
-  expect(untokenizable.length).toBeLessThan(20);
+  expect(unread.sort()).toEqual([...untokenizable, ...belowFloor].sort());
+  // Every untokenizable alias is one for the same reason it was in the shipped
+  // gazetteer: a transliteration carrying an apostrophe or a hyphen at the edge
+  // of a word — "kazan'", "samarra'", "al 'ashir min ramadan". Widening the
+  // scanner to take an edge apostrophe would widen it for every kind's input, to
+  // spell a handful of names, so the fix belongs in the generator.
   for (const alias of untokenizable) expect(alias).toMatch(/['-]/);
+  // And the floor catches only what it is meant to: a short alias, never a long
+  // one that fell out of the trie for a reason nobody named.
+  for (const alias of belowFloor) expect(alias.length).toBeLessThan(MIN_NAME_LENGTH);
 });

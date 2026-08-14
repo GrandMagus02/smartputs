@@ -18,7 +18,7 @@ import { snapshot } from "./snapshot";
  * The countries this file's assertions name, and nothing else.
  *
  * `@smartput/geo` ships no gazetteer — `definePlace` takes its table as an
- * argument — so a bridge test brings the three rows it needs rather than
+ * argument — so a bridge test brings the rows it needs rather than
  * importing a table that no longer exists anywhere. That is the shape the geo
  * package is built around, and a bridge test is exactly the consumer it was
  * built for.
@@ -71,6 +71,42 @@ const COUNTRIES = [
     zone: "America/New_York",
     geonameId: 6_252_001,
     postalRegex: "^\\d{5}(-\\d{4})?$",
+  },
+  // The two rows the currency side needs and the zone side does not: France is
+  // on the euro, so `100 eur in france` has to come back an identity rather than
+  // a conversion; Vietnam's dong is outside ECB's daily file, so it is the
+  // country whose currency the snapshot cannot quote.
+  {
+    a2: "fr",
+    a3: "fra",
+    name: "France",
+    aliases: ["france", "fra", "fr"],
+    capital: "Paris",
+    currency: "EUR",
+    phone: "33",
+    population: 66_987_244,
+    area: 547_030,
+    lat: 48.85341,
+    lon: 2.3488,
+    zone: "Europe/Paris",
+    geonameId: 3_017_382,
+    postalRegex: "^\\d{5}$",
+  },
+  {
+    a2: "vn",
+    a3: "vnm",
+    name: "Vietnam",
+    aliases: ["vietnam", "vnm", "vn"],
+    capital: "Hanoi",
+    currency: "VND",
+    phone: "84",
+    population: 95_540_395,
+    area: 329_560,
+    lat: 21.0245,
+    lon: 105.84117,
+    zone: "Asia/Ho_Chi_Minh",
+    geonameId: 1_562_822,
+    postalRegex: "^\\d{6}$",
   },
 ];
 
@@ -160,8 +196,8 @@ test("a quotable currency missing from this snapshot raises MissingRateError", (
 });
 
 test("a place carrying no currency says so, rather than converting by NaN", () => {
-  // Reached directly: every place `@smartput/country` ships carries a currency, so
-  // the only way to see this is a Value from a provider (M6.3) that does not.
+  // Reached directly: every row a `countryTable()` build carries has a currency,
+  // so the only way to see this is a Value from a provider (M6.3) that does not.
   const sig = money.ops?.find((o) => o.op === "in" && o.right === "place");
   if (sig === undefined) throw new Error("missing money|place signature");
   const amount: Value = { kind: "money", canonical: new Decimal(1), unit: "usd" };

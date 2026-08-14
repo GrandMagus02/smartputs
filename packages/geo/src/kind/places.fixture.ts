@@ -42,7 +42,12 @@ function country(
     a2,
     a3,
     name,
-    aliases: [...new Set([...aliases, name.toLowerCase(), a3, a2])],
+    // Display name, then the two codes, then whatever else the row was given —
+    // the order `countryTable()` emits. It matters at every tie: "ukraine" and
+    // "ukraina" are both seven characters and both begin "ukrai", so nothing but
+    // insertion order decides which one a completion is labelled with, and the
+    // one upstream puts first is the name.
+    aliases: [...new Set([name.toLowerCase(), a3, a2, ...aliases])],
     capital: "",
     currency: "",
     phone: "",
@@ -92,19 +97,23 @@ export const COUNTRIES: readonly CountryRow[] = [
     capital: "Tokyo",
     currency: "JPY",
     phone: "81",
-    population: 127_185_332,
+    population: 126_529_100,
     area: 377_835,
-    lat: 35.68536,
-    lon: 139.75309,
+    lat: 35.6895,
+    lon: 139.69171,
     zone: "Asia/Tokyo",
     geonameId: 1_861_060,
     postalRegex: "^\\d{3}-\\d{4}$",
   }),
-  country("ua", "ukr", "Ukraine", ["ukraina"], {
+  // The historical alias is the long one upstream carries, not a near-spelling
+  // of the name: an alias that ties the display name on both weight and length
+  // would be separated by nothing but alphabetical order, and would label a
+  // completion of "ukrai" with a word the user did not mean.
+  country("ua", "ukr", "Ukraine", ["ukrainian soviet socialist republic"], {
     capital: "Kyiv",
     currency: "UAH",
     phone: "380",
-    population: 44_622_516,
+    population: 40_000_000,
     area: 603_700,
     lat: 50.45466,
     lon: 30.5238,
@@ -126,8 +135,16 @@ export const COUNTRIES: readonly CountryRow[] = [
     lon: -0.12574,
     zone: "Europe/London",
     geonameId: 2_635_167,
+    // GeoNames' own column 14, and the row the anchoring rule exists for: it is
+    // written `^A|B$`, which read verbatim means "starts with A, or ends with B"
+    // and claims "GIR0AAX". Reanchoring is what makes it a whole-string test.
+    //
+    // Not the widely copied variant with an `[A-Z]{2} ?\d{2}` branch in it. That
+    // branch accepts two letters and two digits, so it claims "OF 50" out of
+    // "20% of 50" and takes the subtraction underneath it — which is exactly
+    // what the UNTOUCHED suite below is watching for.
     postalRegex:
-      "^(([A-Z]{1,2}\\d[A-Z\\d]?|ASCN|STHL|TDCU|BBND|[BFS]IQQ|PCRN|TKCA) ?\\d[A-Z]{2}|BFPO ?\\d{1,4}|(KY\\d|MSR|VG|AI)[ -]?\\d{4}|[A-Z]{2} ?\\d{2}|GE ?CX|GIR ?0A{2}|SIQQ ?1ZZ)$",
+      "^([Gg][Ii][Rr]\\s?0[Aa]{2})|((([A-Za-z][0-9]{1,2})|(([A-Za-z][A-Ha-hJ-Yj-y][0-9]{1,2})|(([A-Za-z][0-9][A-Za-z])|([A-Za-z][A-Ha-hJ-Yj-y][0-9]?[A-Za-z]))))\\s?[0-9][A-Za-z]{2})$",
   }),
   country("fr", "fra", "France", ["republique francaise"], {
     capital: "Paris",
@@ -139,6 +156,22 @@ export const COUNTRIES: readonly CountryRow[] = [
     lon: 2.3488,
     zone: "Europe/Paris",
     geonameId: 3_017_382,
+    postalRegex: "^\\d{5}$",
+  }),
+  // France's neighbour, and the second half of the distance rows: `france to
+  // germany` and `paris to berlin` are the same 878 km because a country's
+  // coordinates are its capital's, which is the convention every full row above
+  // follows and the one that makes the two queries agree.
+  country("de", "deu", "Germany", ["deutschland"], {
+    capital: "Berlin",
+    currency: "EUR",
+    phone: "49",
+    population: 82_927_922,
+    area: 357_021,
+    lat: 52.52437,
+    lon: 13.41053,
+    zone: "Europe/Berlin",
+    geonameId: 2_921_044,
     postalRegex: "^\\d{5}$",
   }),
   country("us", "usa", "United States", ["america", "usa", "united states of america"], {
@@ -244,7 +277,10 @@ export const COUNTRIES: readonly CountryRow[] = [
     geonameId: 2_186_224,
     postalRegex: "^\\d{4}$",
   }),
-  country("ae", "are", "United Arab Emirates", ["emirates"], {
+  // The four-word alias, and the only row that can state the walk's bound: the
+  // trie is offered at most four words, so this claims whole and a five-word
+  // alias would be dead data.
+  country("ae", "are", "United Arab Emirates", ["emirates", "federation of arab emirates"], {
     capital: "Abu Dhabi",
     currency: "AED",
     phone: "971",
@@ -289,7 +325,7 @@ export const COUNTRIES: readonly CountryRow[] = [
     lon: 23.72784,
     zone: "Europe/Athens",
     geonameId: 390_903,
-    postalRegex: "^\\d{3} ?\\d{2}$",
+    postalRegex: "^(\\d{5})$",
   }),
   country("au", "aus", "Australia", [], {
     capital: "Canberra",
@@ -348,9 +384,11 @@ export const COUNTRIES: readonly CountryRow[] = [
     geonameId: 3_277_605,
     postalRegex: "^\\d{5}$",
   }),
-  // The four whose names contain a word the engine owns — "and", "guinea" three
+  // The five whose names contain a word the engine owns — "and", "guinea" four
   // times over, "new" — which is what makes a scan-based matcher wrong and a
-  // trie walk right.
+  // trie walk right. Guinea-Bissau is the hyphenated one, and it is the row that
+  // says a claim's length lands on a word boundary when the boundary is a
+  // hyphen rather than a space.
   country("gn", "gin", "Guinea", [], {
     currency: "GNF",
     zone: "Africa/Conakry",
@@ -360,6 +398,11 @@ export const COUNTRIES: readonly CountryRow[] = [
     currency: "XAF",
     zone: "Africa/Malabo",
     geonameId: 2_309_096,
+  }),
+  country("gw", "gnb", "Guinea-Bissau", [], {
+    currency: "XOF",
+    zone: "Africa/Bissau",
+    geonameId: 2_372_248,
   }),
   country("pg", "png", "Papua New Guinea", [], {
     currency: "PGK",
@@ -371,6 +414,21 @@ export const COUNTRIES: readonly CountryRow[] = [
     zone: "America/El_Salvador",
     geonameId: 3_585_968,
     postalRegex: "^\\d{4}$",
+  }),
+  // Here for its capital rather than for itself: San José is the capital that
+  // has to outrank the larger San Jose in California, which is §6.1's
+  // capital-over-population rule stated on a name two countries share.
+  country("cr", "cri", "Costa Rica", [], {
+    capital: "San José",
+    currency: "CRC",
+    phone: "506",
+    population: 4_999_441,
+    area: 51_100,
+    lat: 9.93333,
+    lon: -84.08333,
+    zone: "America/Costa_Rica",
+    geonameId: 3_624_060,
+    postalRegex: "^\\d{5}$",
   }),
   // Two-letter alpha-2s that are English words in their own right: "as", "in"
   // and "to" are American Samoa, India and Tonga, and every one of them is a
@@ -391,19 +449,39 @@ export const COUNTRIES: readonly CountryRow[] = [
     geonameId: 1_269_750,
     postalRegex: "^\\d{6}$",
   }),
+  // Carries its facts as well as its name, because it is the corpus row that
+  // takes the population abbreviation past a billion.
   country("cn", "chn", "China", [], {
+    capital: "Beijing",
     currency: "CNY",
+    phone: "86",
+    population: 1_411_778_724,
+    area: 9_596_960,
+    lat: 39.9075,
+    lon: 116.39723,
     zone: "Asia/Shanghai",
     geonameId: 1_814_991,
     postalRegex: "^\\d{6}$",
   }),
   // Two countries whose common English name is a *prefix phrase* of another
   // country's official one, which is where a longest-match walk earns its keep.
-  country("kr", "kor", "South Korea", ["korea", "republic of korea"], {
+  //
+  // Neither Korea carries the bare "korea", and that is upstream's shape rather
+  // than an omission here: GeoNames aliases each by its official name, so the
+  // commonest English word for either is unclaimable and `3pm in korea` has no
+  // reading. Curating one in would put country data in the fixture and hide the
+  // gap the matcher test records.
+  country("kr", "kor", "South Korea", ["republic of korea"], {
     currency: "KRW",
     zone: "Asia/Seoul",
     geonameId: 1_835_841,
     postalRegex: "^\\d{5}$",
+  }),
+  country("kp", "prk", "North Korea", ["democratic peoples republic of korea"], {
+    currency: "KPW",
+    zone: "Asia/Pyongyang",
+    geonameId: 1_873_107,
+    postalRegex: "^\\d{6}$",
   }),
   country("tw", "twn", "Taiwan", ["republic of china"], {
     currency: "TWD",
@@ -429,12 +507,6 @@ export const COUNTRIES: readonly CountryRow[] = [
   // letters, Ireland's is the one row upstream leaves without a closing anchor,
   // Malta's is letters-then-digits, and Canada's alternates the two. A country
   // here with nothing else about it is a country that had nothing else to say.
-  country("de", "deu", "Germany", ["deutschland"], {
-    currency: "EUR",
-    zone: "Europe/Berlin",
-    geonameId: 2_921_044,
-    postalRegex: "^\\d{5}$",
-  }),
   country("ad", "and", "Andorra", ["principality of andorra"], {
     currency: "EUR",
     zone: "Europe/Andorra",
@@ -470,11 +542,152 @@ export const COUNTRIES: readonly CountryRow[] = [
     geonameId: 3_077_311,
     postalRegex: "^\\d{3}\\s?\\d{2}$",
   }),
-  country("br", "bra", "Brazil", ["brasil"], {
+  // Czechia's format to the character, and the third country that accepts it
+  // alongside Sweden's. A shape three countries share is what makes "123 45" a
+  // claim with three readings rather than an answer.
+  country("sk", "svk", "Slovakia", ["slovak republic"], {
+    currency: "EUR",
+    zone: "Europe/Bratislava",
+    geonameId: 3_057_568,
+    postalRegex: "^\\d{3}\\s?\\d{2}$",
+  }),
+  // The three Crown dependencies, which accept the British format and are the
+  // reason a shared shape has to arrive ranked: emitted at one weight each they
+  // would tie with the United Kingdom and turn an unambiguous code into an
+  // AmbiguityError naming Jersey. Populations are what separate them.
+  country("je", "jey", "Jersey", [], {
+    currency: "GBP",
+    population: 90_812,
+    zone: "Europe/Jersey",
+    geonameId: 3_042_142,
+    postalRegex:
+      "^((?:(?:[A-PR-UWYZ][A-HK-Y]\\d[ABEHMNPRV-Y0-9]|[A-PR-UWYZ]\\d[A-HJKPS-UW0-9])\\s\\d[ABD-HJLNP-UW-Z]{2})|GIR\\s?0AA)$",
+  }),
+  country("im", "imn", "Isle of Man", [], {
+    currency: "GBP",
+    population: 84_077,
+    zone: "Europe/Isle_of_Man",
+    geonameId: 3_042_225,
+    postalRegex:
+      "^((?:(?:[A-PR-UWYZ][A-HK-Y]\\d[ABEHMNPRV-Y0-9]|[A-PR-UWYZ]\\d[A-HJKPS-UW0-9])\\s\\d[ABD-HJLNP-UW-Z]{2})|GIR\\s?0AA)$",
+  }),
+  country("gg", "ggy", "Guernsey", [], {
+    currency: "GBP",
+    population: 65_228,
+    zone: "Europe/Guernsey",
+    geonameId: 3_042_362,
+    postalRegex:
+      "^((?:(?:[A-PR-UWYZ][A-HK-Y]\\d[ABEHMNPRV-Y0-9]|[A-PR-UWYZ]\\d[A-HJKPS-UW0-9])\\s\\d[ABD-HJLNP-UW-Z]{2})|GIR\\s?0AA)$",
+  }),
+  // The five-digit shape, and the country a qualifier reaches: "90210" is sixty
+  // countries' code at once, so `mexico 90210` is how one of them is named.
+  country("mx", "mex", "Mexico", ["united mexican states"], {
+    capital: "Mexico City",
+    currency: "MXN",
+    phone: "52",
+    population: 126_190_788,
+    area: 1_972_550,
+    lat: 19.42847,
+    lon: -99.12766,
+    zone: "America/Mexico_City",
+    geonameId: 3_996_063,
+    postalRegex: "^(\\d{5})$",
+  }),
+  // Upstream ships eight rows that are an example code rather than a pattern,
+  // and this is one of them: "NRU68" has no metacharacter in it at all. Anchoring
+  // is the whole of what makes it usable, which is why it is here rather than in
+  // the group above.
+  country("nr", "nru", "Nauru", [], {
+    currency: "AUD",
+    zone: "Pacific/Nauru",
+    geonameId: 2_110_425,
+    postalRegex: "NRU68",
+  }),
+  country("br", "bra", "Brazil", ["brasil", "united states of brazil"], {
     currency: "BRL",
     zone: "America/Sao_Paulo",
     geonameId: 3_469_034,
     postalRegex: "^\\d{5}-\\d{3}$",
+  }),
+  // The "united …" family. Eight countries carry an alias beginning with that
+  // word and they are all on the same flat country weight, so nothing but the
+  // length of the alias still to be typed can order them — which is the one
+  // arrangement that isolates the completer's length term. Alphabetical would
+  // lead with the Emirates; length leads with the United States.
+  country("eg", "egy", "Egypt", ["united arab republic"], {
+    capital: "Cairo",
+    currency: "EGP",
+    phone: "20",
+    population: 98_423_595,
+    zone: "Africa/Cairo",
+    geonameId: 357_994,
+    postalRegex: "^\\d{5}$",
+  }),
+  country("id", "idn", "Indonesia", ["united states of indonesia"], {
+    capital: "Jakarta",
+    currency: "IDR",
+    phone: "62",
+    population: 267_663_435,
+    zone: "Asia/Jakarta",
+    geonameId: 1_643_084,
+    postalRegex: "^\\d{5}$",
+  }),
+  country("ve", "ven", "Venezuela", ["united states of venezuela"], {
+    capital: "Caracas",
+    currency: "VES",
+    phone: "58",
+    population: 28_870_195,
+    zone: "America/Caracas",
+    geonameId: 3_625_428,
+    postalRegex: "^\\d{4}$",
+  }),
+  // The country half of the exact-alias pair: "beni" finishes Beni in the DRC
+  // and is still a prefix of Benin, so the heavier country would lead on weight
+  // alone and the completer's bonus for a finished alias is what reorders them.
+  // Chile is here for its Los Ángeles, which is the second reading of a name
+  // most people know as one place. A span with a single reading cannot show that
+  // the readings behind a winner are spaced.
+  // Croatia for Split, the fourth ordinary English word T1 adds to the engine's
+  // input — beside Nice, Mobile and Reading, and like them a real city of over
+  // 100 000 people whose name the engine had no reading for at all.
+  country("hr", "hrv", "Croatia", ["hrvatska"], {
+    capital: "Zagreb",
+    currency: "EUR",
+    phone: "385",
+    population: 3_871_833,
+    zone: "Europe/Zagreb",
+    geonameId: 3_202_326,
+    postalRegex: "^\\d{5}$",
+  }),
+  country("cl", "chl", "Chile", [], {
+    capital: "Santiago",
+    currency: "CLP",
+    phone: "56",
+    population: 18_729_160,
+    zone: "America/Santiago",
+    geonameId: 3_895_114,
+    postalRegex: "^\\d{7}$",
+  }),
+  // The third country holding a "san jose", which is what makes the readings of
+  // that span three deep: two would show a winner and a runner-up, and three is
+  // the shortest list on which RANK_STEP's spacing is visible as a step rather
+  // than as a gap.
+  country("ph", "phl", "Philippines", [], {
+    capital: "Manila",
+    currency: "PHP",
+    phone: "63",
+    population: 106_651_922,
+    zone: "Asia/Manila",
+    geonameId: 1_694_008,
+    postalRegex: "^\\d{4}$",
+  }),
+  country("bj", "ben", "Benin", [], {
+    capital: "Porto-Novo",
+    currency: "XOF",
+    phone: "229",
+    population: 11_485_048,
+    zone: "Africa/Porto-Novo",
+    geonameId: 2_395_170,
   }),
   // Two separators, and the row that proves a normalizer cannot work by
   // reinserting one.
@@ -489,7 +702,7 @@ export const COUNTRIES: readonly CountryRow[] = [
     currency: "EUR",
     zone: "Europe/Malta",
     geonameId: 2_562_770,
-    postalRegex: "^[A-Z]{3}\\s?\\d{2,4}$",
+    postalRegex: "^[A-Z]{3}\\s?\\d{4}$",
   }),
   // The one pattern upstream ships with no closing `$`, which is what makes
   // `PostalFormat`'s re-anchoring observable rather than theoretical.
@@ -522,6 +735,11 @@ export const COUNTRIES: readonly CountryRow[] = [
     zone: "America/Cayman",
     geonameId: 3_580_718,
   }),
+  // The second name that is two countries. "soudan" is French for both, and the
+  // pair is here for the reason the Congos are: §6.1 ranks a collision by
+  // population, so Sudan takes the claim and Mali is the reading behind it. Two
+  // such pairs rather than one, because a single collision cannot show that the
+  // rule is a rule.
   country("sd", "sdn", "Sudan", ["soudan"], {
     capital: "Khartoum",
     currency: "SDG",
@@ -533,6 +751,17 @@ export const COUNTRIES: readonly CountryRow[] = [
     zone: "Africa/Khartoum",
     geonameId: 366_755,
     postalRegex: "^\\d{5}$",
+  }),
+  country("ml", "mli", "Mali", ["soudan"], {
+    capital: "Bamako",
+    currency: "XOF",
+    phone: "223",
+    population: 19_077_690,
+    area: 1_240_000,
+    lat: 12.65,
+    lon: -8.0,
+    zone: "Africa/Bamako",
+    geonameId: 2_453_866,
   }),
 ];
 
@@ -546,8 +775,11 @@ export const COUNTRIES: readonly CountryRow[] = [
 export const CITIES: readonly CityRow[] = [
   // Capitals: §6.1 weights a seat of government above a larger non-capital, and
   // these are the rows that make that orderable.
+  // "kiev" is the row that separates the alias matched from the name shown: a
+  // user typing the old transliteration must still be offered "Kyiv".
   city(703_448, "Kyiv", "ua", {
     admin1: "30",
+    aliases: ["kyiv", "kiev"],
     population: 2_797_553,
     capital: true,
     zone: "Europe/Kyiv",
@@ -578,6 +810,19 @@ export const CITIES: readonly CityRow[] = [
     lat: -4.32758,
     lon: 15.31357,
   }),
+  // The other Congo's capital, and the row that makes `brazzaville congo` a
+  // scoped claim rather than a degraded one: "congo" is two countries, so the
+  // scope walks both in population order and the larger one — the DRC — has no
+  // Brazzaville to offer. Without this row the walk would have nothing to find
+  // in either and the test could not tell a successful second try from a miss.
+  city(2_260_535, "Brazzaville", "cg", {
+    admin1: "12",
+    population: 1_284_609,
+    capital: true,
+    zone: "Africa/Brazzaville",
+    lat: -4.26613,
+    lon: 15.28318,
+  }),
   city(264_371, "Athens", "gr", {
     admin1: "ESYE31",
     population: 664_046,
@@ -586,8 +831,24 @@ export const CITIES: readonly CityRow[] = [
     lat: 37.98376,
     lon: 23.72784,
   }),
-  // One name, two countries. `paris` alone is France; `paris texas` and
-  // `paris tx` are the scoped claim geo spec §5.2 exists for.
+  // Athens, Georgia: the same alias on a bigger-sounding name and a smaller
+  // place, so §6.1's capital row is the whole of the ranking between them. It is
+  // also the scope that must resolve to the US state and never to the country
+  // `ge`, which is why the division below keeps its name.
+  city(4_180_386, "Athens", "us", {
+    admin1: "GA",
+    population: 127_315,
+    zone: "America/New_York",
+    lat: 33.96095,
+    lon: -83.37794,
+  }),
+  // One name, one row. Paris, Texas is *not* here, and its absence is the data
+  // this fixture is asserting: T1 is "over 100 000 people, plus every seat of
+  // government", and at 25 171 and neither, it is exactly the row the tier does
+  // not carry — so `paris texas` finds no US Paris to scope to and degrades,
+  // leaving "texas" dangling. `matcher.test.ts` appends it to a table of its own
+  // where it wants to watch a scope succeed; putting it here would delete the
+  // failure ambiguity.test.ts exists to record.
   city(2_988_507, "Paris", "fr", {
     admin1: "11",
     population: 2_138_551,
@@ -596,28 +857,143 @@ export const CITIES: readonly CityRow[] = [
     lat: 48.85341,
     lon: 2.3488,
   }),
-  city(4_717_560, "Paris", "us", {
-    admin1: "TX",
-    population: 25_171,
-    zone: "America/Chicago",
-    lat: 33.66094,
-    lon: -95.55551,
+  // The arrondissements, which are what "paris" completes to after Paris itself:
+  // every one of them is a longer alias at a lower weight, so they queue behind
+  // the city in the order the length term puts them. Without them the completer
+  // has nothing to rank under a name it already matched exactly.
+  city(6_455_259, "Paris 15 Vaugirard", "fr", {
+    admin1: "11",
+    population: 232_400,
+    zone: "Europe/Paris",
+    lat: 48.84019,
+    lon: 2.29335,
   }),
-  // One name, two divisions of one country — the case a country scope cannot
-  // separate and an admin1 scope can.
+  city(6_455_236, "Paris 18 Buttes-Montmartre", "fr", {
+    admin1: "11",
+    population: 200_600,
+    zone: "Europe/Paris",
+    lat: 48.89218,
+    lon: 2.34472,
+  }),
+  city(6_455_233, "Paris 20 Menilmontant", "fr", {
+    admin1: "11",
+    population: 191_800,
+    zone: "Europe/Paris",
+    lat: 48.86471,
+    lon: 2.39835,
+  }),
+  // One name, three divisions of one country — the case a country scope cannot
+  // separate and an admin1 scope can. Three rather than two because the ranking
+  // test needs a middle: `springfield` alone is Missouri's, and the other two
+  // are the readings behind it in population order.
   city(4_250_542, "Springfield", "us", {
     admin1: "IL",
-    population: 116_250,
+    population: 114_394,
     zone: "America/Chicago",
     lat: 39.80172,
     lon: -89.64371,
   }),
   city(4_409_896, "Springfield", "us", {
     admin1: "MO",
-    population: 167_882,
+    population: 170_188,
     zone: "America/Chicago",
     lat: 37.21533,
     lon: -93.29824,
+  }),
+  city(4_951_788, "Springfield", "us", {
+    admin1: "MA",
+    population: 153_606,
+    zone: "America/New_York",
+    lat: 42.10148,
+    lon: -72.58981,
+  }),
+  // The capital-over-population pair. Costa Rica's San José is a third the size
+  // of California's San Jose and still takes the bare name, because §6.1 weights
+  // a seat of government at a flat +2 and a population at log10(p)/3 — which for
+  // 997 000 is 1.9996, a decided ranking and a coin flip once softmaxed. The two
+  // rows exist to state that the spacing survives being scored.
+  city(3_621_849, "San José", "cr", {
+    admin1: "SJ",
+    aliases: ["san josé", "san jose"],
+    population: 335_007,
+    capital: true,
+    zone: "America/Costa_Rica",
+    lat: 9.93333,
+    lon: -84.08333,
+  }),
+  city(5_392_171, "San Jose", "us", {
+    admin1: "CA",
+    population: 997_000,
+    zone: "America/Los_Angeles",
+    lat: 37.33939,
+    lon: -121.89496,
+  }),
+  city(1_688_497, "San Jose", "ph", {
+    admin1: "49",
+    population: 129_424,
+    zone: "Asia/Manila",
+    lat: 15.79139,
+    lon: 120.99,
+  }),
+  // The scoped rows the corpus reaches for, and the divisions they need.
+  //
+  // Both Cambridges, because the Massachusetts scope is only doing work if the
+  // unscoped answer is the other one: England's is 158 000 to Massachusetts'
+  // 110 000, so `cambridge` alone is English and `cambridge massachusetts` is
+  // the scope overriding a default rather than restating it.
+  city(2_653_941, "Cambridge", "gb", {
+    admin1: "ENG",
+    population: 158_434,
+    zone: "Europe/London",
+    lat: 52.2,
+    lon: 0.11667,
+  }),
+  city(4_931_972, "Cambridge", "us", {
+    admin1: "MA",
+    population: 110_402,
+    zone: "America/New_York",
+    lat: 42.3751,
+    lon: -71.10561,
+  }),
+  // Columbus is the scope whose division name is also a country's: `columbus
+  // ohio` must reach the state, and Ohio is not the trap — Georgia is, next door.
+  city(4_509_177, "Columbus", "us", {
+    admin1: "OH",
+    population: 892_533,
+    zone: "America/New_York",
+    lat: 39.96118,
+    lon: -82.99879,
+  }),
+  // The far endpoints of the distance spot-checks: a city datetime never heard
+  // of, a city it did, and the capital whose zone it owns outright.
+  city(5_419_384, "Denver", "us", {
+    admin1: "CO",
+    population: 715_522,
+    zone: "America/Denver",
+    lat: 39.73915,
+    lon: -104.9847,
+  }),
+  city(2_643_743, "London", "gb", {
+    admin1: "ENG",
+    population: 8_961_989,
+    capital: true,
+    zone: "Europe/London",
+    lat: 51.50853,
+    lon: -0.12574,
+  }),
+  city(1_853_909, "Osaka", "jp", {
+    admin1: "32",
+    population: 2_691_185,
+    zone: "Asia/Tokyo",
+    lat: 34.69374,
+    lon: 135.50218,
+  }),
+  city(4_699_066, "Houston", "us", {
+    admin1: "TX",
+    population: 2_296_224,
+    zone: "America/Chicago",
+    lat: 29.76328,
+    lon: -95.36327,
   }),
   city(5_174_035, "Toledo", "us", {
     admin1: "OH",
@@ -648,7 +1024,7 @@ export const CITIES: readonly CityRow[] = [
     lon: 151.20732,
   }),
   city(6_354_908, "Sydney", "ca", {
-    admin1: "07",
+    admin1: "NS",
     population: 29_904,
     zone: "America/Glace_Bay",
     lat: 46.13511,
@@ -692,6 +1068,13 @@ export const CITIES: readonly CityRow[] = [
     lat: 51.45625,
     lon: -0.97113,
   }),
+  city(3_190_261, "Split", "hr", {
+    admin1: "20",
+    population: 178_102,
+    zone: "Europe/Zagreb",
+    lat: 43.50891,
+    lon: 16.43915,
+  }),
   city(4_076_598, "Mobile", "us", {
     admin1: "AL",
     population: 189_572,
@@ -714,6 +1097,14 @@ export const CITIES: readonly CityRow[] = [
     zone: "America/Los_Angeles",
     lat: 34.05223,
     lon: -118.24368,
+  }),
+  city(3_883_167, "Los Ángeles", "cl", {
+    admin1: "06",
+    aliases: ["los ángeles", "los angeles"],
+    population: 123_445,
+    zone: "America/Santiago",
+    lat: -37.46973,
+    lon: -72.35366,
   }),
   city(5_391_959, "San Francisco", "us", {
     admin1: "CA",
@@ -743,6 +1134,19 @@ export const CITIES: readonly CityRow[] = [
     lat: 33.749,
     lon: -84.38798,
   }),
+  // The historical name that reaches the modern one: a user types "leningrad"
+  // and must be offered "Saint Petersburg". It is the clearest row for the rule
+  // that `text` is the place's display name and `alias` is merely what was
+  // matched — on every other row the two are the same word and the distinction
+  // is invisible.
+  city(498_817, "Saint Petersburg", "ru", {
+    admin1: "66",
+    aliases: ["saint petersburg", "leningrad", "sankt-peterburg"],
+    population: 5_351_935,
+    zone: "Europe/Moscow",
+    lat: 59.93863,
+    lon: 30.31413,
+  }),
   // A city whose every alias is under the length floor, which is why it is
   // absent from the alias index and reachable only as a scoped claim.
   city(479_561, "Ufa", "ru", {
@@ -751,6 +1155,58 @@ export const CITIES: readonly CityRow[] = [
     zone: "Asia/Yekaterinburg",
     lat: 54.74306,
     lon: 55.96779,
+  }),
+  // The second endpoint of each city-to-city distance. A country's coordinates
+  // are its capital's, so `paris to berlin` and `france to germany` have to come
+  // out at the same 878 km; these are the rows that let the corpus say so, and
+  // Kyoto is the pair that is a distance between two cities of one country.
+  city(1_857_910, "Kyoto", "jp", {
+    admin1: "22",
+    population: 1_459_640,
+    zone: "Asia/Tokyo",
+    lat: 35.02107,
+    lon: 135.75385,
+  }),
+  city(2_950_159, "Berlin", "de", {
+    admin1: "16",
+    population: 3_426_354,
+    capital: true,
+    zone: "Europe/Berlin",
+    lat: 52.52437,
+    lon: 13.41053,
+  }),
+  // Tonga's alpha-2 is "to", so a scope walk that did not stop at a conversion
+  // keyword would read `nuku'alofa to japan` as a scoped city and swallow the
+  // operator. Nothing downstream recovers it, which is why the guard is stated
+  // on a real capital rather than on a synthetic row.
+  city(4_032_402, "Nuku'alofa", "to", {
+    population: 22_400,
+    capital: true,
+    zone: "Pacific/Tongatapu",
+    lat: -21.13938,
+    lon: -175.2018,
+  }),
+  // Jakarta's GeoNames aliases really do include "new york van java", and it is
+  // a capital, so on weight alone it ties New York City. What separates them is
+  // how much of the alias is still untyped — which core measured against the
+  // fragment "yor" until the whole input reached it, and neither alias begins
+  // with that. This row is the one that catches the regression.
+  city(1_642_911, "Jakarta", "id", {
+    admin1: "04",
+    aliases: ["jakarta", "new york van java"],
+    population: 8_540_121,
+    capital: true,
+    zone: "Asia/Jakarta",
+    lat: -6.21462,
+    lon: 106.84513,
+  }),
+  // Beni finishes the alias "beni"; Benin the country only begins with it.
+  city(217_745, "Beni", "cd", {
+    admin1: "19",
+    population: 426_000,
+    zone: "Africa/Lubumbashi",
+    lat: 0.49658,
+    lon: 29.47337,
   }),
   // The city-state's city half. Same name and same country as its country row,
   // which is the one place §6.1's country-over-city rule has to be stated.
@@ -771,22 +1227,32 @@ export const CITIES: readonly CityRow[] = [
  * applies to an admin1 alias at all, and a fixture without them cannot say so.
  */
 export const ADMIN1: readonly Admin1Row[] = [
-  { key: "US.IL", name: "Illinois", aliases: ["illinois", "il"] },
-  { key: "US.MO", name: "Missouri", aliases: ["missouri", "mo"] },
+  // A division code survives only when `RESERVED_WORDS` does not already carry
+  // it, because the generator filters this table before shipping it and a
+  // fixture that skipped the filter would let tests scope by codes no real build
+  // can offer. Eight of the sixteen below lose their code that way — every
+  // country alpha-2 is reserved, which takes "il" (Israel), "mo" (Macau), "ca"
+  // (Canada), "al" (Albania), "ga" (Gabon) and "bc"; and "in" and "or" are words
+  // the parser owns outright. The name always survives, so every one of these is
+  // still reachable as `springfield illinois`.
+  { key: "US.IL", name: "Illinois", aliases: ["illinois"] },
+  { key: "US.MO", name: "Missouri", aliases: ["missouri"] },
+  { key: "US.MA", name: "Massachusetts", aliases: ["massachusetts"] },
   { key: "US.TX", name: "Texas", aliases: ["texas", "tx"] },
   { key: "US.OH", name: "Ohio", aliases: ["ohio", "oh"] },
   { key: "US.WA", name: "Washington", aliases: ["washington", "wa"] },
-  { key: "US.CA", name: "California", aliases: ["california", "ca"] },
+  { key: "US.CA", name: "California", aliases: ["california"] },
+  { key: "US.CO", name: "Colorado", aliases: ["colorado"] },
   { key: "US.NY", name: "New York", aliases: ["new york", "ny"] },
   { key: "US.NJ", name: "New Jersey", aliases: ["new jersey", "nj"] },
-  { key: "US.AL", name: "Alabama", aliases: ["alabama", "al"] },
+  { key: "US.AL", name: "Alabama", aliases: ["alabama"] },
   // The country/state collision: `atlanta georgia` must scope to this and never
   // to the country `ge`.
-  { key: "US.GA", name: "Georgia", aliases: ["georgia", "ga"] },
-  // The two whose codes the reserved list refuses.
+  { key: "US.GA", name: "Georgia", aliases: ["georgia"] },
+  // The two whose codes the reserved list refuses as words rather than as codes.
   { key: "US.IN", name: "Indiana", aliases: ["indiana"] },
   { key: "US.OR", name: "Oregon", aliases: ["oregon"] },
-  { key: "CA.BC", name: "British Columbia", aliases: ["british columbia", "bc"] },
+  { key: "CA.BC", name: "British Columbia", aliases: ["british columbia"] },
   { key: "CA.NS", name: "Nova Scotia", aliases: ["nova scotia", "ns"] },
   { key: "AU.02", name: "New South Wales", aliases: ["new south wales", "nsw"] },
 ];

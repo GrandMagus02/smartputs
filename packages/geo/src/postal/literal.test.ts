@@ -173,7 +173,12 @@ test("a country with no postal system is never claimed", () => {
   const withoutFormat = new Set(
     COUNTRIES.filter((c) => c.postalRegex === "").map((c) => c.a2),
   );
-  expect(withoutFormat.size).toBeGreaterThan(50);
+  // A floor rather than a count, and a fixture's floor rather than the real
+  // table's: upstream leaves some sixty countries without a postal system and
+  // this fixture carries eighteen of them, which is enough for the probes below
+  // to have something to miss. "The live table has that many" is a claim about
+  // real data and is asserted where the real data is, in live.network.test.ts.
+  expect(withoutFormat.size).toBeGreaterThan(10);
   for (const probe of ["SW1A 1AA", "90210", "1234 AB", "123 45", "01310-100"])
     for (const unit of units(probe)) expect(withoutFormat.has(unit)).toBe(false);
 });
@@ -333,10 +338,29 @@ test("the weight is what makes it a number, and it is derived from core's", () =
 test("a bare numeric code claims one country, not the sixty that fit it", () => {
   // Sixty countries accept five bare digits and forty-three accept four. They
   // are not alternatives a user could pick between, because the shape carries no
-  // country in it at all.
+  // country in it at all, so the claim is the most populous of them and nothing
+  // behind it.
+  //
+  // Which country that is, is the fixture's answer and not the world's: four
+  // bare digits is Bangladesh once the real table is loaded, and Bangladesh is
+  // not a row this fixture needs. So the winner is derived rather than spelled,
+  // and what is asserted is the rule — exactly one, and the most populous of
+  // everything that accepts the shape. Spelling it would make this test fail
+  // every time a row is added for some other test's sake.
+  const mostPopulous = (code: string): string[] => {
+    const fits = COUNTRIES.filter(
+      (c) => c.postalRegex !== "" && new RegExp(c.postalRegex).test(code),
+    );
+    const best = fits.reduce((a, b) => (b.population > a.population ? b : a));
+    return [best.a2];
+  };
+  for (const code of ["90210", "1234", "123456"]) {
+    expect(units(code)).toHaveLength(1);
+    expect(units(code)).toEqual(mostPopulous(code));
+  }
+  // Spelled for the one shape whose answer is stable, so the derivation above
+  // cannot pass by agreeing with itself.
   expect(units("90210")).toEqual(["us"]);
-  expect(units("1234")).toEqual(["bd"]);
-  expect(units("123456")).toEqual(["cn"]);
 });
 
 test("a bare numeric code is claimed only as a whole input", () => {
@@ -409,7 +433,8 @@ test("no ordinary number becomes ambiguous", () => {
  * expected columns: this file is about the *difference* one matcher makes, and
  * an input that throws in both is as much a match as one that evaluates in both.
  */
-const ROOT = new URL("../../../", import.meta.url);
+/** The repository root: this file is `packages/geo/src/postal/`, so four up. */
+const ROOT = new URL("../../../../", import.meta.url);
 
 const answer = (engine: typeof codes, input: string): string => {
   try {
@@ -423,7 +448,7 @@ const answer = (engine: typeof codes, input: string): string => {
 // Discovered from the filesystem rather than listed, for the reason
 // `ambiguity.test.ts` discovers them: a corpus added later would otherwise be
 // absent from this net and nobody would notice until it broke.
-const corpora = [...new Glob("packages/*/corpus/*.tsv").scanSync(ROOT.pathname)]
+const corpora = [...new Glob("packages/*/corpus/**/*.tsv").scanSync(ROOT.pathname)]
   .map((p) => p.replaceAll("\\", "/"))
   .sort();
 
