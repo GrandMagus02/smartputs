@@ -185,7 +185,7 @@ each token boundary in turn, and collapses a claimed run of *characters* into a
 single `literal` token carrying a finished `Value`. That is what lets
 `next week monday` — three words, no number — and `2026-03-01` — which lexes as
 number-op-number-op-number — reach the parser as one operand. Core ships no
-matchers; [`@smartput/datetime`](/guide/datetime) supplies the only one that
+matchers; [`@smartput/datetime`](/packages/datetime) supplies the only one that
 exists today.
 
 `foldNumerals` collapses a run of spelled-number words into a single `number`

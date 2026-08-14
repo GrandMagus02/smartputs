@@ -8,17 +8,21 @@ import type {
 } from "@smartput/core";
 import { composeLocale, createEngine, SmartputError } from "@smartput/core";
 import { english } from "@smartput/core/locale/en";
-import { COUNTRIES, definePlace, POSTAL_FORMATS, place } from "@smartput/country";
-import placeEn from "@smartput/country/locale/en";
+import { date } from "@smartput/date";
+import { dateRange } from "@smartput/date-range";
 import { datetime } from "@smartput/datetime";
 import datetimeEn from "@smartput/datetime/locale/en";
+import { datetimeRange } from "@smartput/datetime-range";
 import { BUILTIN_KINDS } from "@smartput/kinds";
 import BUILTIN_EN from "@smartput/kinds/locale/en";
+import { RANGE_KINDS } from "@smartput/range";
 import { CURRENCIES, money, snapshot } from "@smartput/rate";
 import moneyEn from "@smartput/rate/locale/en";
+import { time } from "@smartput/time";
+import { timeRange } from "@smartput/time-range";
 
 export type { Completion, Engine, Result };
-export { COUNTRIES, CURRENCIES, definePlace, POSTAL_FORMATS };
+export { CURRENCIES };
 
 /**
  * The language and the words are two descriptors now, and `composeLocale` is
@@ -92,36 +96,58 @@ export const moneyEngine: Engine = createEngine({
 });
 
 /**
- * The place kind at T0: 252 countries and their postal formats, no gazetteer.
+ * Datetime, on a live clock rather than the corpus's frozen reference — a demo
+ * that says "today" and means January is a screenshot.
  *
- * Cities are deliberately absent and are loaded by `SpCity.vue` through a
- * dynamic `import()`, because they are 234 KB gzipped against this tier's 27 KB
- * — putting them here would ship the whole gazetteer to every reader of every
- * page. That is the same argument `definePlace()` exists to let a consumer make,
- * so the docs site makes it too rather than describing it.
+ * The place kind used to be registered here too, which is what made
+ * `3pm in tokyo` read a zone off a place Value. `@smartput/country`,
+ * `@smartput/city` and `@smartput/zip` have since been folded into
+ * `@smartput/geo`, whose gazetteer is a network provider rather than a
+ * committed table, and whose door does not yet expose the kind. The bridge
+ * demos come back when it does — with rows this site fetches or declares
+ * itself, because there is no longer a table to import.
  */
-export const placeEngine: Engine = createEngine({
-  locales: [en],
-  kinds: [...BUILTIN_KINDS, place],
+export const datetimeEngine: Engine = createEngine({
+  locales: [composeLocale(english, [...BUILTIN_EN, datetimeEn])],
+  kinds: [...BUILTIN_KINDS, datetime],
+  now: () => Date.now(),
+  timeZone: "UTC",
 });
 
 /**
- * Datetime with places beside it, which is the only way to show the bridge:
- * `3pm in japan` reads `meta.zone` off a place Value, and neither package knows
- * the other exists. `now` is a live clock rather than the corpus's frozen
- * reference — a demo that says "today" and means January is a screenshot.
+ * Every range kind at once, over the same live clock the datetime demos use.
  *
- * `@smartput/country/locale/en` is not optional here even though `placeEngine`
- * above runs without it. Measured on this pair of kinds: with only datetime's
- * vocabulary installed, `3pm in tokyo` raises `DimensionMismatchError` and
- * `3pm in japan` comes back as 10,708 kilometres — the bridge loses to the
- * distance signature. Installing place's words restores both to a zone
- * conversion. A kind that shares a conversion target with another kind needs
- * its vocabulary, not just its matcher.
+ * `datetime` is a prerequisite rather than a peer: `date` and `time` parse
+ * nothing of their own, they re-read the match chrono already made, so an
+ * engine with the range kinds and no datetime is six kinds that never claim
+ * anything.
  */
-export const datetimeEngine: Engine = createEngine({
-  locales: [composeLocale(english, [...BUILTIN_EN, datetimeEn, placeEn])],
-  kinds: [...BUILTIN_KINDS, datetime, place],
+export const rangeEngine: Engine = createEngine({
+  locales: [composeLocale(english, [...BUILTIN_EN, datetimeEn])],
+  kinds: [
+    ...BUILTIN_KINDS,
+    datetime,
+    date,
+    time,
+    dateRange,
+    timeRange,
+    datetimeRange,
+    ...RANGE_KINDS,
+  ],
+  now: () => Date.now(),
+  timeZone: "UTC",
+});
+
+/**
+ * The engine `@smartput/query` reads values through on this site: the built-ins
+ * for lengths and masses, money for `over 500 usd`, and the date kinds for
+ * `last week`. No place kind — see `datetimeEngine` above — so the schema's
+ * place column is declared and never exercised by these examples.
+ */
+export const queryEngine: Engine = createEngine({
+  locales: [composeLocale(english, [...BUILTIN_EN, moneyEn, datetimeEn])],
+  kinds: [...BUILTIN_KINDS, money, datetime, date, dateRange],
+  rates: DOCS_RATES,
   now: () => Date.now(),
   timeZone: "UTC",
 });

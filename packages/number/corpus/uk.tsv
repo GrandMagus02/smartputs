@@ -1,0 +1,27 @@
+# input	kind	canonical	formatted
+(1 + 2) * 3	number	9	9
+1 + 1	number	2	2
+10 - 4	number	6	6
+6 * 7	number	42	42
+10 / 4	number	2.5	2,5
+-5	number	-5	-5
+1 500	number	1500	1 500
+одна тисяча тридцять два	number	1032	1 032
+двісті п'ять	number	205	205
+0,1 + 0,2	number	0.3	0,3
+2 * 3 * 7	number	42	42
+1234567890123456789	number	1234567890123456789	1 234 567 890 123 456 789
+3 * (4 + 5)	number	27	27
+100 / 3	number	33.33333333333333333333333333	33,333333333333333333333333
+дев'ять	number	9	9
+# The two rows that make this file worth having beside en.tsv. Ukrainian
+# reads "," as the decimal mark, so "1,5" is one number here and two
+# arguments in English — and the group separator it prints is U+00A0,
+# which is not the space it accepts on the way in.
+1,5 + 1,5	number	3	3
+1 500 + 500	number	2000	2 000
+# The hundreds are table entries rather than compositions: `двісті` is not
+# `два сто` and `п'ятсот` is one fused word. The apostrophe inside the
+# numeral is part of the word token, which the lexer had to be taught.
+п'ятсот	number	500	500
+дев'ятсот дев'яносто дев'ять	number	999	999

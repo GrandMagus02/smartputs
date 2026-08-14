@@ -19,13 +19,13 @@ These ship in `@smartput/kinds` and are exported as `BUILTIN_KINDS`.
 
 The **Validate** column is the engine-free micro path: a parser, an operation
 algebra and an immutable class, none of which needs a registry or `decimal.js`
-— see [Validating without the engine](/guide/validating).
+— see [Validating without the engine](/packages/shared).
 
 | Kind | Canonical | Units | Validate |
 | --- | --- | --- | --- |
 | `number` | `one` | *(dimensionless)* | `@smartput/number/validate` |
 | `percent` | `%` | `%` | `@smartput/percent/validate` |
-| `boolean` | *(opaque)* | `bool` — what a [comparison](/guide/comparison) evaluates to, and the one built-in unit nobody types | — |
+| `boolean` | *(opaque)* | `bool` — what a [comparison](/packages/boolean) evaluates to, and the one built-in unit nobody types | — |
 | `length` | `m` | `mm` `cm` `m` `km` `in` `ft` `yd` `mi` | `@smartput/length/validate` |
 | `mass` | `g` | `mg` `g` `kg` `t` `oz` `lb` | `@smartput/mass/validate` |
 | `duration` | `s` | `ms` `s` `min` `h` `d` `wk` | `@smartput/duration/validate` |
@@ -54,7 +54,7 @@ Two more kinds ship but are **not** in `BUILTIN_KINDS`:
 | --- | --- | --- | --- |
 | `measure` | `@smartput/kinds` | `@smartput/measure/validate` | Typographic units — `inch` `mm` `cm` `pt` `pc` `px`. Its `mm`/`cm` aliases collide with `length`, so registering it by default would make `10 cm` ambiguous for everyone. Import it by name — and note the micro path has no such conflict: `parseLength` and `parseMeasure` are two functions someone called deliberately. |
 | `money` | [`@smartput/rate`](/api/rate) | — | Its unit ratios are not constants — they come from a rate table you inject. The micro path has no engine to inject one into, so there is nowhere for a hard-coded FX table to live that would not be worse than no feature. |
-| `datetime` | [`@smartput/datetime`](/guide/datetime) | — | `temporal-polyfill` and `chrono-node` together are several times the size of the engine. An engine that never sees a date should not carry them, and its recognition needs both — nothing on this path applies. |
+| `datetime` | [`@smartput/datetime`](/packages/datetime) | — | `temporal-polyfill` and `chrono-node` together are several times the size of the engine. An engine that never sees a date should not carry them, and its recognition needs both — nothing on this path applies. |
 
 `duration` lives in `@smartput/kinds` rather than in `@smartput/datetime`
 because it is a pure ratio kind — canonical seconds, no calendar.
@@ -123,7 +123,7 @@ type OpaqueSpec = {
 ```
 
 An opaque unit is a label rather than a position on a ratio line —
-[`datetime`](/guide/datetime)'s units are IANA time zones — but it is indexed,
+[`datetime`](/packages/datetime)'s units are IANA time zones — but it is indexed,
 weighted, chosen by the solver and usable as an `in` target like any other. No
 ops are generated for an opaque kind, so every operation it supports is an
 explicit signature, and recognition of anything not shaped like
@@ -237,7 +237,7 @@ on the first keystroke.
 
 ## Next
 
-- [Validating without the engine](/guide/validating) — the micro path in the
+- [Validating without the engine](/packages/shared) — the micro path in the
   table above, at engine-free weight.
 - [Defining a kind](/guide/defining-a-kind) — build one interactively.
 - [Ambiguity and weights](/guide/weights) — how competing candidates are ranked.

@@ -1,0 +1,69 @@
+# What this package answers, in English, over `gazetteer-en.tsv`.
+#
+# Four columns: the query text, the filters it carries, and the name, kind and
+# country of the hit that must come back **first**. First and not merely present,
+# because a search that returns the right answer fourth is a search a launcher
+# cannot use, and "is it in the list" is an assertion that passes for a ranker
+# that does nothing at all.
+#
+# The filter column is `-` for none, or a semicolon-joined list of `kind:`,
+# `country:`, `near:lat,lon` and `bbox:w,s,e,n`. It is a spelling of `GeoQuery`
+# and nothing more; `Geo` never parses anything like it.
+#
+# query	filter	name	kind	country
+
+# Ambiguity resolved by weight. Both Parises match exactly, so population is what
+# separates them — and `country:` is how a caller says they meant the other one.
+paris	-	Paris	city	fr
+paris	country:us	Paris	city	us
+
+# The same question asked as a box rather than as a country. A bbox over Europe
+# admits France and drops Texas, which is the filter half of §4.1's asymmetry.
+paris	bbox:-10,35,30,60	Paris	city	fr
+
+# And as a bias rather than a filter. `near` east Texas outweighs France's
+# eighty-fold population lead; nothing is removed, the order changes.
+paris	near:33.66,-95.56	Paris	city	us
+
+# Plain wins, where nothing is ambiguous.
+kyiv	-	Kyiv	city	ua
+warsaw	-	Warsaw	city	pl
+
+# Two Londons, one much larger. The Canadian one is reachable by naming it.
+london	-	London	city	gb
+london	country:ca	London	city	ca
+
+# Two Springfields in the same country, separated by population alone. This is
+# the row that would pass under a linear population term and a log one alike,
+# and fails under no population term at all.
+springfield	-	Springfield	city	us
+
+# A city and a river with the same name. Unfiltered the city wins on population;
+# `kind:water` is how the river is asked for, and it is the row that makes
+# "rivers are a first-class query" a fact rather than a claim in a README.
+dnipro	-	Dnipro	city	ua
+dnipro	kind:water	Dnipro	water	ua
+
+# One row per remaining feature class this fixture carries, so that a broken
+# mapping from `GeoKind` to GeoNames' letters fails here by name.
+ukraine	kind:country	Ukraine	country	ua
+kyiv oblast	kind:admin	Kyiv Oblast	admin	ua
+everest	kind:terrain	Mount Everest	terrain	np
+hyde park	kind:area	Hyde Park	area	gb
+
+# A postal code is a place whose name is a code, and it is found by the code.
+90210	kind:postal	Beverly Hills	postal	us
+
+# `everest` is not a prefix of "Mount Everest" and still has to find it — the
+# substring band of `similarity`, which is what stops a picker being useless for
+# every feature whose name begins with a generic word.
+mount everest	-	Mount Everest	terrain	np
+
+# Diacritics are folded for case and whitespace but never stripped, so the name
+# has to be typed as it is written. `normalizeName`'s ruling, asserted.
+münchen	-	München	city	de
+MÜNCHEN	-	München	city	de
+
+# A kind filter that changes nothing still must not lose the answer.
+kyiv	kind:city	Kyiv	city	ua
+kyiv	country:ua;kind:city	Kyiv	city	ua

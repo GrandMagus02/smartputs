@@ -1,0 +1,43 @@
+{
+  "geonames": [
+    {
+      "continent": "EU",
+      "capital": "Kyiv",
+      "languages": "uk,ru-UA,rom,pl,hu",
+      "geonameId": 690791,
+      "south": 44.3865852,
+      "isoAlpha3": "UKR",
+      "north": 52.3797,
+      "fipsCode": "UP",
+      "population": "44622516",
+      "east": 40.2275280956001,
+      "isoNumeric": "804",
+      "areaInSqKm": "603700.0",
+      "countryCode": "UA",
+      "west": 22.128889,
+      "countryName": "Ukraine",
+      "postalCodeFormat": "#####",
+      "continentName": "Europe",
+      "currencyCode": "UAH"
+    },
+    {
+      "continent": "AN",
+      "languages": "",
+      "geonameId": 6697173,
+      "south": -90,
+      "isoAlpha3": "ATA",
+      "north": -60.5033333,
+      "fipsCode": "AY",
+      "population": "0",
+      "east": 180,
+      "isoNumeric": "010",
+      "areaInSqKm": "1.4E7",
+      "countryCode": "AQ",
+      "west": -180,
+      "countryName": "Antarctica",
+      "postalCodeFormat": "",
+      "continentName": "Antarctica",
+      "currencyCode": ""
+    }
+  ]
+}

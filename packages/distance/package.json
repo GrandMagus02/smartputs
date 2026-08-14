@@ -12,10 +12,7 @@
   },
   "dependencies": {
     "@smartput/core": "workspace:*",
-    "@smartput/zip": "workspace:*",
     "decimal.js": "^10.6.0"
   },
-  "devDependencies": {
-    "@smartput/country": "workspace:*"
-  }
+  "devDependencies": {}
 }

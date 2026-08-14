@@ -1,0 +1,52 @@
+# input	mode	outcome	currency	amount	formatted
+#
+# The same engine-free door as `en.tsv`, in the language the *digits* belong to.
+#
+# What a currency is does not vary by language — the codes, the symbols, the
+# minor units are ISO 4217 — so the input half of this table is nearly the
+# English one. What varies is how the amount is written, and every `formatted`
+# cell here came back through a Ukrainian `formatNumber` handed to
+# `formatAmount`, which is the same hook `@smartput/rate` passes the engine's
+# formatter through. The decimal comma is the whole difference, and the symbol
+# does not move: `$30,00`, not `30,00 $`.
+#
+# The last four rows are the ones worth reading, and none of them is a success
+# story.
+#
+# `100 гривень` and `30 доларів` are `unknown-currency`: this parser reads the
+# ISO code and the English name, and a Cyrillic word for a currency is neither.
+# That is deliberate — the words are a *vocabulary's* job, and the engine path
+# is where a vocabulary exists — but a form field shipped to Ukrainian users
+# should know it before the first bug report rather than after.
+#
+# `1 250,50 uah` is refused for the space, which is the group separator Intl
+# prints. So this path cannot read back what a Ukrainian formatter writes.
+#
+# `100,50 uah` is the dangerous one, and the reason it is in the file. It does
+# not fail. The comma is stripped as a thousands separator, so one hundred
+# hryvnia fifty becomes ten thousand and fifty, and the caller is handed a
+# confident wrong answer. A consumer whose users type commas wants the engine.
+30 usd	plain	ok	usd	30	$30,00
+30 dollars	plain	ok	usd	30	$30,00
+1,250.50 dollars	plain	ok	usd	1250.5	$1250,50
+-4 eur	plain	ok	eur	-4	-€4,00
+0.05 eur	plain	ok	eur	0.05	€0,05
+1200 jpy	plain	ok	jpy	1200	¥1200
+100 uah	plain	ok	uah	100	₴100,00
+50 gbp	plain	ok	gbp	50	£50,00
+7.5 chf	plain	ok	chf	7.5	CHF7,50
+30 USD	plain	ok	usd	30	$30,00
+2.345 usd	plain	ok	usd	2.345	$2,34
+1000 kwd	plain	unknown-currency	-	-	-
+$30	symbols	ok	usd	30	$30,00
+€0.05	symbols	ok	eur	0.05	€0,05
+30 €	symbols	ok	eur	30	€30,00
+£12.34	symbols	ok	gbp	12.34	£12,34
+¥1200	symbols	ok	jpy	1200	¥1200
+30	plain	missing-currency	-	-	-
+30 xyz	plain	unknown-currency	-	-	-
+100 гривень	plain	unknown-currency	-	-	-
+30 доларів	plain	unknown-currency	-	-	-
+1 250,50 uah	plain	unknown-currency	-	-	-
+100,50 uah	plain	ok	uah	10050	₴10050,00
+₴100	symbols	ok	uah	100	₴100,00

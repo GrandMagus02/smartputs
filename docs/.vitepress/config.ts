@@ -10,7 +10,9 @@ export default defineConfig({
   title: "Smartputs",
   // `srcDir` is the docs folder itself; the planning documents that live
   // alongside it are not part of the site.
-  srcExclude: ["superpowers/**", "**/README.md"],
+  // `_prose/**` is the hand-written half of the package pages: those files are
+  // inlined by scripts/gen-package-pages.ts and must not also be routes.
+  srcExclude: ["superpowers/**", "_prose/**", "**/README.md"],
   cleanUrls: true,
   lastUpdated: true,
   metaChunk: true,
@@ -39,7 +41,7 @@ export default defineConfig({
       UnoCSS(),
       llmstxt({
         // Planning documents are not part of the published corpus either.
-        ignoreFiles: ["superpowers/**"],
+        ignoreFiles: ["superpowers/**", "_prose/**"],
         generateLLMsTxt: true,
         generateLLMsFullTxt: true,
         // Emits `<route>.md` next to every `<route>.html`. The page actions
@@ -58,10 +60,29 @@ export default defineConfig({
         "@smartput/kinds",
         "@smartput/rate",
         "@smartput/math",
+        "@smartput/shared",
+        "@smartput/range",
+        "@smartput/query",
+        "@smartput/geo",
+        "@smartput/date",
+        "@smartput/time",
+        "@smartput/date-range",
+        "@smartput/time-range",
+        "@smartput/datetime-range",
+        // Reka UI ships single-file components compiled to ESM. Vite must
+        // bundle them for the SSR pass rather than hand them to Node, or the
+        // `.vue`-derived modules arrive as bare ESM in a CJS require chain.
+        "reka-ui",
       ],
     },
     optimizeDeps: {
-      exclude: ["@smartput/core", "@smartput/kinds", "@smartput/rate", "@smartput/math"],
+      exclude: [
+        "@smartput/core",
+        "@smartput/kinds",
+        "@smartput/rate",
+        "@smartput/math",
+        "@smartput/shared",
+      ],
     },
     server: { fs: { allow: [repoRoot] } },
   },

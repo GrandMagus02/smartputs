@@ -164,7 +164,7 @@ from surfacing as trailing noise.
 
 ### comparePrecision
 
-Significant digits both operands of a [comparison](/guide/comparison) are
+Significant digits both operands of a [comparison](/packages/boolean) are
 rounded to before it decides. Defaults to the same `26` `formatPrecision` does,
 so two values that print identically compare identically. `"exact"` compares the
 canonicals as computed, for a caller checking the arithmetic rather than the
@@ -195,7 +195,7 @@ createEngine({
 ```
 
 Every `Result` from an engine with `rates` carries `meta.ratesAsOf`. See
-[Money and rates](/guide/money).
+[Money and rates](/packages/rate).
 
 ### rounding
 
@@ -210,7 +210,7 @@ Injectable clock, epoch **milliseconds**. Default `Date.now`. Handed to every
 makes `"today"` and `"next week monday"` testable at all.
 
 Milliseconds rather than a `Temporal.Instant` so core keeps its single runtime
-dependency — [`@smartput/datetime`](/guide/datetime) does the conversion.
+dependency — [`@smartput/datetime`](/packages/datetime) does the conversion.
 
 ```ts
 createEngine({

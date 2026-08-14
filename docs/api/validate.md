@@ -385,7 +385,7 @@ document-relative unit reaches a table that is otherwise a plain object.
 
 ## See also
 
-- [Validating without the engine](/guide/validating) — the guide, the
+- [Validating without the engine](/packages/shared) — the guide, the
   three-door table, when to reach for which.
 - [Value classes](/api/value-classes) — `createValueClass`'s full output and
   the `Quantity` bridge.

@@ -1,16 +1,16 @@
 import { expect, test } from "bun:test";
 import { Decimal, type EvalCtx, type Value } from "@smartput/core";
-import { COUNTRIES } from "@smartput/country";
 import { PlaceDistance } from "./distance";
+import { PLACES } from "./places.fixture";
 
 // One op over the shipped table, which is what `definePlace` registers.
-const distance = new PlaceDistance(COUNTRIES).op;
+const distance = new PlaceDistance(PLACES).op;
 
 // The matcher builds these in the real pipeline; the op only ever sees the
 // finished Value, so the test builds one directly rather than standing up an
 // engine to reach an `apply`.
 function placeValue(a2: string): Value {
-  const row = COUNTRIES.find((r) => r.a2 === a2);
+  const row = PLACES.find((r) => r.a2 === a2);
   if (row === undefined) throw new Error(`no country ${a2}`);
   return Object.freeze({
     kind: "place",

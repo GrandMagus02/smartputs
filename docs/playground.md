@@ -74,6 +74,17 @@ box.
     '600 mi',
   ]" />
 
+## A form field, without the engine
+
+The two demos below run no engine at all — one unit table, the shared parser,
+and [Reka UI](https://reka-ui.com) primitives for the label and the combobox.
+[Inputs and error messages](/guide/inputs) is the how-to; this is the same code
+with the chrome on.
+
+<SpValidatedInput kind="length" />
+
+<SpUnitCombobox kind="length" model-value="12 c" />
+
 ## suggest()
 
 Ranked, never throws. This is the entry point for a live input.

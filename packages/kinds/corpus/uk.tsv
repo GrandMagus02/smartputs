@@ -1,0 +1,45 @@
+# The aggregator's corpus, so the rows are chosen for what only the whole
+# set can answer: the bridges between two kinds, and the comparisons that
+# need `boolean` registered beside the kind being compared. Each of the
+# four bridge owners names its operands by id string rather than importing
+# them, so a signature whose operands are unregistered is unreachable
+# rather than a build error — these rows are what would catch that.
+#
+# In Ukrainian they also answer a second question: a bridge resolves on a
+# *signature*, and a signature is reached through whichever language's
+# words got there. `500 мб / 20 с` proves the datasize÷duration bridge is
+# reachable from Cyrillic, which no English row can say.
+# input	kind	canonical	formatted
+3 м * 4 м	area	12	12м²
+1 км * 1 км	area	1000000	1 000 000м²
+100 км / 2 год	speed	13.88888888888888888888888889	13,888888888888888888888889м/с
+1 км / 1 хв	speed	16.66666666666666666666666667	16,666666666666666666666667м/с
+2 кВт * 3 год	energy	21600000	21 600 000 джоулів
+3 год * 2 кВт	energy	21600000	21 600 000 джоулів
+1 kwh / 1 год	power	1000	1 000 ватів
+1 kwh / 1 кВт	duration	3600	3 600 секунд
+500 мб / 20 с	datarate	200000000	200Мбіт
+100 мбіт * 1 хв	datasize	750000000	750 000 000 байтів
+1 хв * 100 мбіт	datasize	750000000	750 000 000 байтів
+1 гб / 100 мбіт	duration	80	80 секунд
+120 бпм в мс	duration	0.5	500 мілісекунд
+500 мс в бпм	tempo	120	120бпм
+1000 мб = 1 гб	boolean	1	true
+1 миля > 1 км	boolean	1	true
+1 kwh = 3,6 МДж	boolean	1	true
+1 кг + 500 г	mass	1500	1,5 кілограма
+30 год - 30 хв	duration	106200	29,5 години
+212 F в C	temperature	100	100°C
+30 C - 20 C	tempdelta	10	10°C
+20% від 50	number	10	10
+50 + 20%	number	60	60
+(1 + 2) * 3	number	9	9
+одна тисяча тридцять два	number	1032	1 032
+1 кіб в б	datasize	1024	1 024 байти
+90 градусів в радіанах	angle	1.570796326794896619231321692	1,5707963267948966192313217 радіана
+1 гектар в м2	area	10000	10 000м²
+1 гал в л	volume	3.785411784	3,785411784 літра
+# `км/год` is a written symbol and an expression at once: the lexer ends
+# the word token at the slash, so this is length ÷ duration reaching the
+# speed bridge, and it is how a Ukrainian reader writes a speed.
+120 км/год	speed	33.33333333333333333333333333	33,333333333333333333333333м/с

@@ -1,44 +1,48 @@
-import { expect, test } from "bun:test";
 import { composeLocale, createEngine } from "@smartput/core";
 import { english as en } from "@smartput/core/locale/en";
+import { ukrainian as uk } from "@smartput/core/locale/uk";
+import { Corpora } from "@smartput/core/testing";
 import { number } from "@smartput/number";
 import numberEn from "@smartput/number/locale/en";
+import numberUk from "@smartput/number/locale/uk";
 import { length } from "./index";
 import lengthEn from "./locale/en";
+import lengthUk from "./locale/uk";
 
 /**
  * The corpus for `@smartput/length`: one row per sentence someone might type,
  * asserted end to end through an engine built out of what this package
  * publishes and nothing more.
  *
- * `number` for the scaling ops, and for the spelled cardinals the last row reads.
+ * `number` for the scaling ops, and for the spelled cardinals the corpora read.
  *
  * Four columns — input, kind, canonical, formatted — because a kind that reads
  * a sentence and lands on the right number in the wrong kind, or the right
  * number under the wrong words, has failed in a way a single assertion would
  * miss.
+ *
+ * One engine per language, and one corpus file per engine. The two tables are
+ * not translations of each other: `corpus/uk.tsv` carries the rows English
+ * cannot express — four plural categories, a genitive singular for fractions,
+ * a decimal comma — and `corpus/en.tsv` keeps the ones Ukrainian has no use
+ * for. Sharing one table across both engines would assert the table; this
+ * asserts the language.
  */
-const engine = createEngine({
-  locales: [composeLocale(en, [numberEn, lengthEn])],
-  kinds: [number, length],
-});
-const raw = await Bun.file(new URL("../corpus/en.tsv", import.meta.url)).text();
+const corpora = await Corpora.load(new URL("../corpus/", import.meta.url), [
+  {
+    id: "en",
+    engine: createEngine({
+      locales: [composeLocale(en, [numberEn, lengthEn])],
+      kinds: [number, length],
+    }),
+  },
+  {
+    id: "uk",
+    engine: createEngine({
+      locales: [composeLocale(uk, [numberUk, lengthUk])],
+      kinds: [number, length],
+    }),
+  },
+]);
 
-const rows = raw
-  .split("\n")
-  .map((line) => line.trim())
-  .filter((line) => line.length > 0 && !line.startsWith("#"))
-  .map((line) => line.split("\t"));
-
-test("the corpus has rows", () => {
-  expect(rows.length).toBeGreaterThan(10);
-});
-
-for (const [input, kind, canonical, formatted] of rows) {
-  test(`corpus: ${input}`, () => {
-    const r = engine.evaluate(input as string);
-    expect(r.kind).toBe(kind as string);
-    expect(r.value.canonical.toString()).toBe(canonical as string);
-    expect(r.formatted).toBe(formatted as string);
-  });
-}
+corpora.evaluate();

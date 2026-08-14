@@ -1,7 +1,8 @@
 import { expect, test } from "bun:test";
 import { Decimal, type EvalCtx, type Value } from "@smartput/core";
-import { COUNTRIES } from "@smartput/country";
+import { Corpora } from "@smartput/core/testing";
 import { metresBetween, PlaceDistance, UnpositionedPlaceError } from "./distance";
+import { PLACES } from "./places.fixture";
 
 /**
  * The corpus for `@smartput/distance`: the great-circle op, over the table the
@@ -17,10 +18,10 @@ import { metresBetween, PlaceDistance, UnpositionedPlaceError } from "./distance
  * decimal places, and a corpus that had to say "within 1%" would not catch a
  * table row moving by a kilometre.
  */
-const distance = new PlaceDistance(COUNTRIES).op;
+const distance = new PlaceDistance(PLACES).op;
 
 const rowOf = (a2: string) => {
-  const row = COUNTRIES.find((r) => r.a2 === a2);
+  const row = PLACES.find((r) => r.a2 === a2);
   if (row === undefined) throw new Error(`the corpus names no country ${a2}`);
   return row;
 };
@@ -46,26 +47,29 @@ const placeValue = (a2: string): Value => {
 const apply = (from: Value, to: Value): Value =>
   distance.apply(from, to, { self: from, locale: "en" } as EvalCtx);
 
-const raw = await Bun.file(new URL("../corpus/en.tsv", import.meta.url)).text();
+/**
+ * One language, and the table shape anyway.
+ *
+ * A row here is a pair of alpha-2 codes and a distance in metres, so there is
+ * nothing in it for a second language to say — the words "kyiv to warsaw" are
+ * `@smartput/country`'s to read, and its corpus is where a translation of them
+ * would land. The file is `en.tsv` by the repo's convention rather than by
+ * content, and the loader is shared so that a corpus which quietly stopped
+ * existing fails here instead of passing with no rows.
+ */
+const corpora = await Corpora.load(new URL("../corpus/", import.meta.url), [
+  { id: "en" },
+]);
 
-const rows = raw
-  .split("\n")
-  .map((line) => line.trim())
-  .filter((line) => line.length > 0 && !line.startsWith("#"))
-  .map((line) => line.split("\t"));
+/** The recorded rows, for the two properties asserted over them below. */
+const rows = corpora.rows("en");
 
-test("the corpus has rows", () => {
-  expect(rows.length).toBeGreaterThan(10);
+corpora.each(([from, to, _pair, kind, unit, metres]) => {
+  const out = apply(placeValue(from as string), placeValue(to as string));
+  expect(out.kind).toBe(kind as string);
+  expect(out.unit).toBe(unit as string);
+  expect(out.canonical.toString()).toBe(metres as string);
 });
-
-for (const [from, to, pair, kind, unit, metres] of rows) {
-  test(`corpus: ${pair}`, () => {
-    const out = apply(placeValue(from as string), placeValue(to as string));
-    expect(out.kind).toBe(kind as string);
-    expect(out.unit).toBe(unit as string);
-    expect(out.canonical.toString()).toBe(metres as string);
-  });
-}
 
 /**
  * `metresBetween` is exported so that "how far apart are these two points" can

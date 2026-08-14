@@ -1,6 +1,7 @@
 import { expect, test } from "bun:test";
 import { composeLocale, createEngine } from "@smartput/core";
 import { english as coreEn } from "@smartput/core/locale/en";
+import { Corpora } from "@smartput/core/testing";
 import { date } from "@smartput/date";
 import { datetime, TEST_NOW, TEST_ZONE, Temporal } from "@smartput/datetime";
 import { BUILTIN_KINDS } from "@smartput/kinds";
@@ -23,26 +24,22 @@ const engine = createEngine({
   timeZone: TEST_ZONE,
 });
 
-const raw = await Bun.file(new URL("../corpus/en.tsv", import.meta.url)).text();
+const corpora = await Corpora.load(new URL("../corpus/", import.meta.url), [
+  {
+    id: "en",
+    engine,
+  },
+  {
+    id: "uk",
+    pending:
+      "@smartput/datetime reads its dates through chrono-node, which parses English; the zone words come from a vocabulary whose Ukrainian half (`@smartput/datetime/locale/uk`) is P3's and does not exist yet",
+  },
+]);
 
-const rows = raw
-  .split("\n")
-  .map((line) => line.trim())
-  .filter((line) => line.length > 0 && !line.startsWith("#"))
-  .map((line) => line.split("\t"));
+corpora.evaluate();
 
-test("the corpus has rows", () => {
-  expect(rows.length).toBeGreaterThan(10);
-});
-
-for (const [input, kind, canonical, formatted] of rows) {
-  test(`corpus: ${input}`, () => {
-    const r = engine.evaluate(input as string);
-    expect(r.kind).toBe(kind as string);
-    expect(r.value.canonical.toString()).toBe(canonical as string);
-    expect(r.formatted).toBe(formatted as string);
-  });
-}
+/** The recorded rows, for the properties asserted over them below. */
+const rows = corpora.rows("en");
 
 /**
  * Design §7's first property, over the corpus rather than over generated input.

@@ -1,0 +1,27 @@
+# input	kind	canonical	formatted
+1 л в мл	volume	1	1 000 мілілітрів
+1 м3 в л	volume	1000	1 000 літрів
+1 гал в л	volume	3.785411784	3,785411784 літра
+1 пінта в мл	volume	0.473176473	473,176473 мілілітра
+500 мл + 500 мл	volume	1	1 000 мілілітрів
+2 л - 250 мл	volume	1.75	1,75 літра
+3 л * 4	volume	12	12 літрів
+1 л / 4	volume	0.25	0,25 літра
+-2 л	volume	-2	-2 літри
+1000 мл в л	volume	1	1 літр
+один літр	volume	1	1 літр
+1 гал в пінтах	volume	3.785411784	8 пінт
+2 пінти в л	volume	0.946352946	0,946352946 літра
+1,5 л	volume	1.5	1,5 літра
+250 мл в л	volume	0.25	0,25 літра
+# `пінта` is feminine and `літр` masculine, so the fractional row differs
+# between them: "1,5 літра" is a genitive singular that is not the
+# nominative plural, and "1,5 пінти" is one that is.
+21 літр	volume	21	21 літр
+11 літрів	volume	11	11 літрів
+2 літри	volume	2	2 літри
+2 пінти	volume	0.946352946	2 пінти
+5 пінт	volume	2.365882365	5 пінт
+# `кубометр` written out, which is how the cubic metre is said rather than
+# printed — the symbol stays `м³`.
+2 кубометри	volume	2000	2м³

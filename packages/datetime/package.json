@@ -30,7 +30,7 @@
   },
   "devDependencies": {
     "@smartput/core": "workspace:*",
-    "@smartput/country": "workspace:*",
+    "@smartput/geo": "workspace:*",
     "@smartput/kinds": "workspace:*"
   }
 }

@@ -24,12 +24,11 @@
     "@smartput/core": "workspace:*"
   },
   "devDependencies": {
-    "@smartput/city": "workspace:*",
     "@smartput/core": "workspace:*",
-    "@smartput/country": "workspace:*",
     "@smartput/date": "workspace:*",
     "@smartput/date-range": "workspace:*",
     "@smartput/datetime": "workspace:*",
+    "@smartput/geo": "workspace:*",
     "@smartput/kinds": "workspace:*",
     "@smartput/rate": "workspace:*"
   }

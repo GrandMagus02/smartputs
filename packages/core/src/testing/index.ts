@@ -4,6 +4,14 @@ import { buildRegistry, wordsFor } from "../kind/registry";
 import { composeLocale } from "../locale/compose";
 import type { EvalCtx, Kind, Language, Vocabulary } from "../types";
 
+export type { CorpusLanguage, CorpusRow } from "./corpus";
+/**
+ * The corpus harness: a package's `corpus/<lang>.tsv` tables, one engine per
+ * language, and the tests that replay them. Exported here because every kind
+ * package's `corpus.test.ts` had grown its own copy of the same parse-and-loop,
+ * and a second language would have doubled thirty-four of them.
+ */
+export { Corpora, parseCorpus } from "./corpus";
 export type { LocaleContractOptions } from "./locale";
 /**
  * `OPERATOR_CHARS` is exported here and nowhere else: a test that reads printed

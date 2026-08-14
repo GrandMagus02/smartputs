@@ -1,8 +1,10 @@
-import { expect, test } from "bun:test";
 import { composeLocale, createEngine } from "@smartput/core";
 import { english as en } from "@smartput/core/locale/en";
+import { ukrainian as uk } from "@smartput/core/locale/uk";
+import { Corpora } from "@smartput/core/testing";
 import { BUILTIN_KINDS } from "./index";
 import BUILTIN_EN from "./locale/en";
+import BUILTIN_UK from "./locale/uk";
 
 /**
  * The corpus for `@smartput/kinds`: the whole built-in set, wired the way the
@@ -16,28 +18,29 @@ import BUILTIN_EN from "./locale/en";
  * resolve, so an operand quietly dropped from `BUILTIN_KINDS` makes the
  * signature unreachable rather than a build error. The bridge rows below are
  * the only thing that fails when that happens.
+ *
+ * One engine per language, and one corpus file per engine. The two tables are
+ * not translations of each other: `corpus/uk.tsv` carries the rows English
+ * cannot express — four plural categories, a genitive singular for fractions, a
+ * decimal comma where English puts a thousands separator — and `corpus/en.tsv`
+ * keeps the ones Ukrainian has no use for. Sharing one table across both
+ * engines would assert the table; this asserts the language.
  */
-const engine = createEngine({
-  locales: [composeLocale(en, BUILTIN_EN)],
-  kinds: BUILTIN_KINDS,
-});
-const raw = await Bun.file(new URL("../corpus/en.tsv", import.meta.url)).text();
+const corpora = await Corpora.load(new URL("../corpus/", import.meta.url), [
+  {
+    id: "en",
+    engine: createEngine({
+      locales: [composeLocale(en, BUILTIN_EN)],
+      kinds: BUILTIN_KINDS,
+    }),
+  },
+  {
+    id: "uk",
+    engine: createEngine({
+      locales: [composeLocale(uk, BUILTIN_UK)],
+      kinds: BUILTIN_KINDS,
+    }),
+  },
+]);
 
-const rows = raw
-  .split("\n")
-  .map((line) => line.trim())
-  .filter((line) => line.length > 0 && !line.startsWith("#"))
-  .map((line) => line.split("\t"));
-
-test("the corpus has rows", () => {
-  expect(rows.length).toBeGreaterThan(10);
-});
-
-for (const [input, kind, canonical, formatted] of rows) {
-  test(`corpus: ${input}`, () => {
-    const r = engine.evaluate(input as string);
-    expect(r.kind).toBe(kind as string);
-    expect(r.value.canonical.toString()).toBe(canonical as string);
-    expect(r.formatted).toBe(formatted as string);
-  });
-}
+corpora.evaluate();

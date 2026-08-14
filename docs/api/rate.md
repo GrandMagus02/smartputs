@@ -247,5 +247,5 @@ boundary:
 
 ## See also
 
-- [Money and rates](/guide/money) — the guide, including the `$30` parsing limitation.
+- [Money and rates](/packages/rate) — the guide, including the `$30` parsing limitation.
 - [defineKind](/api/define-kind) — the `ratio: (ctx) => Decimal` form money is built on.

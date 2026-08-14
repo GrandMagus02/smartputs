@@ -1,0 +1,26 @@
+# input	kind	canonical	formatted
+20% від 50	number	10	10
+50 + 20%	number	60	60
+50 - 10%	number	45	45
+10%	percent	0.1	10%
+10% + 5%	percent	0.15	15%
+100 * 20%	percent	20	2 000%
+1 у відсотках	percent	1	100%
+0,5 у відсотках	percent	0.5	50%
+200%	percent	2	200%
+-10%	percent	-0.1	-10%
+15% від 200	number	30	30
+50 * 10%	percent	5	500%
+100 - 25%	number	75	75
+2,5%	percent	0.025	2,5%
+100% від 42	number	42	42
+# `у` rather than `в` before the cluster: Ukrainian alternates the two by
+# what surrounds them, and both are conversion keywords, so the corpus can
+# say the natural one.
+#
+# The spelled-out unit, which is where a language shows: `відсоток` and
+# `процент` are both current in Ukrainian and both read, and the printed
+# form stays the `%` sign in either case.
+10 відсотків	percent	0.1	10%
+10 процентів	percent	0.1	10%
+21 відсоток	percent	0.21	21%

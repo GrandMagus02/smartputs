@@ -1,0 +1,31 @@
+# The gazetteer the Ukrainian corpus is searched against.
+#
+# The same fixture shape as `gazetteer-en.tsv`, with the names Ukrainian, and it
+# is the whole of what a second language means to this package. A kind package's
+# corpus needs a translated *vocabulary* — words for units, plural forms, a
+# decimal comma — because the words are the package's. A place's words are its
+# names, and the names are the provider's: GeoNames answers `lang=uk` with these
+# strings and `lang=en` with the others, so there is nothing here to translate
+# and nothing to keep in step.
+#
+# What the rows below therefore assert is the half that is genuinely this
+# package's: that the fold, the similarity bands and the ranking work on Cyrillic
+# exactly as they do on Latin. `КИЇВ` has to find `Київ`, and `київ` has to beat
+# `Київська область` for the query `київ` rather than the other way round.
+#
+# The `id` column is an identity within this fixture, not a GeoNames id — see
+# `gazetteer-en.tsv` for the full note.
+#
+# id	name	kind	country	admin1	population	postal	lat	lon
+1	Київ	city	ua	30	2797553		50.45466	30.5238
+2	Київська область	admin	ua	13	1781000		50.05	30.76667
+3	Дніпро	city	ua	04	1032822		48.46664	35.04066
+4	Дніпро	water	ua		0		46.5	32.3
+5	Україна	country	ua		44622516		50.45466	30.5238
+6	Львів	city	ua	21	717273		49.83826	24.02324
+7	Одеса	city	ua	17	1001558		46.47747	30.73262
+8	Харків	city	ua	07	1430885		49.98081	36.25272
+9	Говерла	terrain	ua	06	0		48.16017	24.50003
+10	Варшава	city	pl	78	1702139		52.22977	21.01178
+11	Париж	city	fr	11	2138551		48.85341	2.3488
+12	Лондон	city	gb	ENG	8961989		51.50853	-0.12574

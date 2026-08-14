@@ -1,4 +1,5 @@
 import type { DefaultTheme, LocaleSpecificConfig } from "vitepress";
+import { packagesSidebar } from "./packages-sidebar";
 
 /**
  * The English locale. It is mounted at the site root, so adding a second
@@ -18,6 +19,7 @@ export const en: LocaleSpecificConfig<DefaultTheme.Config> & {
   themeConfig: {
     nav: [
       { text: "Guide", link: "/guide/", activeMatch: "/guide/" },
+      { text: "Packages", link: "/packages/", activeMatch: "/packages/" },
       { text: "API", link: "/api/", activeMatch: "/api/" },
       { text: "Playground", link: "/playground" },
     ],
@@ -32,12 +34,15 @@ export const en: LocaleSpecificConfig<DefaultTheme.Config> & {
             { text: "The pipeline", link: "/guide/pipeline" },
           ],
         },
+        // What is left here is what belongs to no single package. Everything
+        // that was a page about one — money, datetime, ranges, places, query,
+        // math, comparison, the micro path — now lives on that package's page
+        // under /packages, with its demo, its unit table and its size budget on
+        // the same screen.
         {
-          text: "Core concepts",
+          text: "How the engine works",
           items: [
             { text: "Kinds and units", link: "/guide/kinds" },
-            { text: "Validating without the engine", link: "/guide/validating" },
-            { text: "Comparison", link: "/guide/comparison" },
             { text: "Ambiguity and weights", link: "/guide/weights" },
             { text: "Completion", link: "/guide/completion" },
             { text: "Locales", link: "/guide/locales" },
@@ -45,26 +50,17 @@ export const en: LocaleSpecificConfig<DefaultTheme.Config> & {
           ],
         },
         {
-          text: "Packages",
+          text: "Building with it",
           items: [
-            { text: "Money and rates", link: "/guide/money" },
-            { text: "Dates and time zones", link: "/guide/datetime" },
-            { text: "Ranges", link: "/guide/ranges" },
-            { text: "Selections", link: "/guide/selections" },
-            { text: "Places and distances", link: "/guide/places" },
-            { text: "Querying a database", link: "/guide/querying" },
-            { text: "LaTeX math", link: "/guide/math" },
-            { text: "Equations and matrices", link: "/guide/math-solving" },
-          ],
-        },
-        {
-          text: "Extending",
-          items: [
+            { text: "Inputs and error messages", link: "/guide/inputs" },
             { text: "Defining a kind", link: "/guide/defining-a-kind" },
+            { text: "All packages", link: "/packages/" },
             { text: "Roadmap", link: "/guide/roadmap" },
           ],
         },
       ],
+      // Generated beside the pages themselves — see scripts/gen-package-pages.ts.
+      "/packages/": packagesSidebar,
       "/api/": [
         {
           text: "@smartput/core",

@@ -1,0 +1,21 @@
+# input	kind	canonical	formatted
+100 мбіт	datarate	100000000	100Мбіт
+1 гбіт в мбіт	datarate	1000000000	1 000Мбіт
+500 мб / 20 с	datarate	200000000	200Мбіт
+100 мбіт * 1 хв	datasize	750000000	750 000 000 байтів
+1 хв * 100 мбіт	datasize	750000000	750 000 000 байтів
+1 гб / 100 мбіт	duration	80	80 секунд
+100 мбіт + 50 мбіт	datarate	150000000	150Мбіт
+1 тбіт в гбіт	datarate	1000000000000	1 000Гбіт
+2 мбіт * 3	datarate	6000000	6Мбіт
+1 гбіт / 4	datarate	250000000	0,25Гбіт
+-10 мбіт	datarate	-10000000	-10Мбіт
+8000 біт в кбіт	datarate	8000	8кбіт
+один гбіт	datarate	1000000000	1Гбіт
+1 гбіт в біт	datarate	1000000000	1 000 000 000біт
+250 мбіт	datarate	250000000	250Мбіт
+# `біт` and `байт` are one letter apart in Cyrillic and name two different
+# kinds — a rate and a size. These two rows are the pair that would catch a
+# vocabulary that let one fold onto the other.
+100 мегабіт	datarate	100000000	100Мбіт
+100 мегабайт	datasize	100000000	100 мегабайтів

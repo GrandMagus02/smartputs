@@ -24,7 +24,7 @@ usd?.parse("1,250.50 usd");  // { ok: true, amount: 1250.5, raw: "1250.50", curr
 
 ## Why it is a package
 
-Every ratio kind ships a [micro path](/guide/validating) — `parseLength`,
+Every ratio kind ships a [micro path](/packages/shared) — `parseLength`,
 `parseMass` — and `money` could not, because `UnitTable` needs a ratio per unit
 and money's ratios are a live rate table. That exemption is right about
 **conversion** and wrong about everything else. Which currency a word names, how

@@ -1,0 +1,49 @@
+{
+  "totalResultsCount": 27,
+  "geonames": [
+    {
+      "adminCode1": "05",
+      "lng": "28.6666667",
+      "geonameId": 689558,
+      "toponymName": "Vinnytsia Oblast",
+      "countryId": "690791",
+      "fcl": "A",
+      "population": 1560394,
+      "countryCode": "UA",
+      "name": "Vinnytsia Oblast",
+      "fclName": "country, state, region,...",
+      "adminName1": "Vinnytsia",
+      "countryName": "Ukraine",
+      "fcodeName": "first-order administrative division",
+      "timezone": {
+        "gmtOffset": 2,
+        "timeZoneId": "Europe/Kyiv",
+        "dstOffset": 3
+      },
+      "lat": "49.1666667",
+      "fcode": "ADM1"
+    },
+    {
+      "adminCode1": "30",
+      "lng": "30.5238",
+      "geonameId": 703447,
+      "toponymName": "Kyiv City",
+      "countryId": "690791",
+      "fcl": "A",
+      "population": 2797553,
+      "countryCode": "UA",
+      "name": "Kyiv City",
+      "fclName": "country, state, region,...",
+      "adminName1": "Kyiv City",
+      "countryName": "Ukraine",
+      "fcodeName": "first-order administrative division",
+      "timezone": {
+        "gmtOffset": 2,
+        "timeZoneId": "Europe/Kyiv",
+        "dstOffset": 3
+      },
+      "lat": "50.45466",
+      "fcode": "ADM1"
+    }
+  ]
+}

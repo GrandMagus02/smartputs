@@ -1,15 +1,85 @@
-import { CITIES } from "@smartput/city";
 import { composeLocale, createEngine, type Engine } from "@smartput/core";
 import { english as en } from "@smartput/core/locale/en";
-import { definePlace } from "@smartput/country";
 import { date } from "@smartput/date";
 import { dateRange } from "@smartput/date-range";
 import { datetime, TEST_NOW, TEST_ZONE } from "@smartput/datetime";
+import { definePlace } from "@smartput/geo";
 import { BUILTIN_KINDS } from "@smartput/kinds";
 import BUILTIN_EN from "@smartput/kinds/locale/en";
 import { money, snapshot } from "@smartput/rate";
 import moneyEn from "@smartput/rate/locale/en";
 import { defineSchema, type Schema } from "./schema";
+
+/**
+ * The places this fixture's queries name.
+ *
+ * `@smartput/geo` ships no gazetteer, so a consumer brings its rows — which is
+ * what this file is: a consumer. Two countries and two cities, because
+ * `from ukraine` and `in kyiv` are the two readings the schema below binds a
+ * column to, and a query fixture proving anything about a gazetteer would be
+ * proving it in the wrong package.
+ */
+const COUNTRIES = [
+  {
+    a2: "ua",
+    a3: "ukr",
+    name: "Ukraine",
+    aliases: ["ukraine", "ukr", "ua"],
+    capital: "Kyiv",
+    currency: "UAH",
+    phone: "380",
+    population: 44_622_516,
+    area: 603_700,
+    lat: 50.45466,
+    lon: 30.5238,
+    zone: "Europe/Kyiv",
+    geonameId: 690_791,
+    postalRegex: "^\\d{5}$",
+  },
+  {
+    a2: "pl",
+    a3: "pol",
+    name: "Poland",
+    aliases: ["poland", "pol", "pl"],
+    capital: "Warsaw",
+    currency: "PLN",
+    phone: "48",
+    population: 37_978_548,
+    area: 312_685,
+    lat: 52.22977,
+    lon: 21.01178,
+    zone: "Europe/Warsaw",
+    geonameId: 798_544,
+    postalRegex: "^\\d{2}-\\d{3}$",
+  },
+];
+
+const CITIES = [
+  {
+    geonameId: 703_448,
+    name: "Kyiv",
+    aliases: ["kyiv", "kiev"],
+    country: "ua",
+    admin1: "30",
+    lat: 50.45466,
+    lon: 30.5238,
+    zone: "Europe/Kyiv",
+    population: 2_797_553,
+    capital: true,
+  },
+  {
+    geonameId: 756_135,
+    name: "Warsaw",
+    aliases: ["warsaw"],
+    country: "pl",
+    admin1: "78",
+    lat: 52.22977,
+    lon: 21.01178,
+    zone: "Europe/Warsaw",
+    population: 1_702_139,
+    capital: true,
+  },
+];
 
 /**
  * The engine and schema every test in this package runs against, and the
@@ -38,7 +108,7 @@ export function fixtureEngine(): Engine {
       datetime,
       date,
       dateRange,
-      definePlace({ cities: CITIES }),
+      definePlace({ countries: COUNTRIES, cities: CITIES }),
       money,
     ],
     rates: snapshot("EUR", "2026-08-04", { USD: 1.1, UAH: 45.5 }),

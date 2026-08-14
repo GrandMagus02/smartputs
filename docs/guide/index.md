@@ -86,4 +86,8 @@ spreadsheet references, natural-language sentences, historical FX by date.
 
 - [Getting started](/guide/getting-started) — install and evaluate something.
 - [The pipeline](/guide/pipeline) — the seven stages, with each one inspectable.
+- [Packages](/packages/) — one page per package, each with a live demo, its
+  unit table and what it weighs. Money, dates, ranges, places, querying and
+  maths are each on their own package's page rather than in a parallel guide.
+- [Inputs and error messages](/guide/inputs) — the form-field half.
 - [Defining a kind](/guide/defining-a-kind) — the five-line extension contract.
