@@ -1,4 +1,5 @@
-import { defineVocabulary, type UnitWords } from "@smartput/core";
+import type { UnitWords } from "@smartput/kind/types";
+import { defineVocabulary } from "@smartput/kind/vocabulary";
 import { OFFSET_ZONES, ZONES } from "@smartput/timezone";
 import { DATETIME_KIND } from "../value";
 

@@ -50,7 +50,19 @@ Type-only exports are erased and do not appear here.
 
 - [`@smartput/core`](../core/README.md)
 - [`@smartput/currency`](../currency/README.md)
+- [`@smartput/kind`](../kind/README.md)
 - `decimal.js`
+
+## What it costs
+
+Ceilings, not measurements. `bun run check-size` bundles each entry with
+`bun build --minify` and fails if a row crosses its ceiling **or drops more
+than 30 % below it** — a budget that is only an upper bound reports a vanished
+graph as a triumph.
+
+| Import | Minified | Gzipped |
+| --- | --- | --- |
+| rate/locale/en (a vocabulary outside the kind packages) | ≤ 36.0 kB | ≤ 14.2 kB |
 
 ---
 

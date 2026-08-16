@@ -46,6 +46,7 @@ npm add @smartput/kind
 | `@smartput/kind/freeze` | See the source for what this subpath carries. |
 | `@smartput/kind/errors` | See the source for what this subpath carries. |
 | `@smartput/kind/define` | See the source for what this subpath carries. |
+| `@smartput/kind/aliases` | See the source for what this subpath carries. |
 | `@smartput/kind/from-table` | See the source for what this subpath carries. |
 | `@smartput/kind/ratio-ops` | See the source for what this subpath carries. |
 | `@smartput/kind/vocabulary` | See the source for what this subpath carries. |
@@ -66,7 +67,7 @@ only an upper bound reports a vanished graph as a triumph.
 | Import | Minified | Gzipped |
 | --- | --- | --- |
 | kind root (defineKind, with Decimal behind it) | ≤ 33.5 kB | ≤ 13.3 kB |
-| kind/vocabulary defineVocabulary only | ≤ 33.5 kB | ≤ 13.3 kB |
+| kind/vocabulary defineVocabulary only | ≤ 300 B | ≤ 250 B |
 
 ## Dependencies
 

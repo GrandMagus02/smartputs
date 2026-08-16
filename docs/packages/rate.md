@@ -256,10 +256,22 @@ Type-only exports are erased and do not appear here.
 
 `CURRENCIES` · `createLiveEngine` · `custom` · `ecb` · `money` · `snapshot`
 
+## What it costs
+
+Ceilings, not measurements — `scripts/check-size.ts` bundles each
+entry with `bun build --minify`, measures it, and fails `bun run check` if a
+row crosses its ceiling **or drops more than 30 % below it**. A budget that is
+only an upper bound reports a vanished graph as a triumph.
+
+| Import | Minified | Gzipped |
+| --- | --- | --- |
+| rate/locale/en (a vocabulary outside the kind packages) | ≤ 36.0 kB | ≤ 14.2 kB |
+
 ## Dependencies
 
 - [`@smartput/core`](/packages/core)
 - [`@smartput/currency`](/packages/currency)
+- [`@smartput/kind`](/packages/kind)
 - `decimal.js`
 
 ## See also

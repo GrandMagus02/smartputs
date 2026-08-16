@@ -1,5 +1,6 @@
-import { defineVocabulary, type UnitWords } from "@smartput/core";
 import { currencyVocabulary } from "@smartput/currency";
+import type { UnitWords } from "@smartput/kind/types";
+import { defineVocabulary } from "@smartput/kind/vocabulary";
 
 /**
  * What only English speakers say. The ISO codes and the primary names are

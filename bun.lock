@@ -165,6 +165,7 @@
       "dependencies": {
         "@smartput/core": "workspace:*",
         "@smartput/holiday": "workspace:*",
+        "@smartput/kind": "workspace:*",
         "@smartput/timezone": "workspace:*",
         "chrono-node": "^2.9.0",
         "decimal.js": "^10.6.0",
@@ -233,6 +234,7 @@
       "dependencies": {
         "@smartput/core": "workspace:*",
         "@smartput/distance": "workspace:*",
+        "@smartput/kind": "workspace:*",
         "decimal.js": "^10.6.0",
       },
       "devDependencies": {
@@ -275,11 +277,11 @@
         "@smartput/angle": "workspace:*",
         "@smartput/area": "workspace:*",
         "@smartput/boolean": "workspace:*",
-        "@smartput/core": "workspace:*",
         "@smartput/datarate": "workspace:*",
         "@smartput/datasize": "workspace:*",
         "@smartput/duration": "workspace:*",
         "@smartput/energy": "workspace:*",
+        "@smartput/kind": "workspace:*",
         "@smartput/length": "workspace:*",
         "@smartput/mass": "workspace:*",
         "@smartput/measure": "workspace:*",
@@ -431,6 +433,7 @@
       "dependencies": {
         "@smartput/core": "workspace:*",
         "@smartput/currency": "workspace:*",
+        "@smartput/kind": "workspace:*",
         "decimal.js": "^10.6.0",
       },
       "devDependencies": {

@@ -1,10 +1,10 @@
 import angleEn from "@smartput/angle/locale/en";
 import areaEn from "@smartput/area/locale/en";
-import type { Vocabulary } from "@smartput/core";
 import datarateEn from "@smartput/datarate/locale/en";
 import datasizeEn from "@smartput/datasize/locale/en";
 import durationEn from "@smartput/duration/locale/en";
 import energyEn from "@smartput/energy/locale/en";
+import type { Vocabulary } from "@smartput/kind/types";
 import lengthEn from "@smartput/length/locale/en";
 import massEn from "@smartput/mass/locale/en";
 import numberEn from "@smartput/number/locale/en";

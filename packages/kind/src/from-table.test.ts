@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
 import type { UnitTable } from "@smartput/shared";
-import { aliasesFor, decimalRatios, type RatioTable } from "./from-table";
+import { decimalRatios, type RatioTable } from "./from-table";
 
 /** Named separately so the assertions below compare against a `string`, not
  * against `RatioTable["ratio"][U]`, which is a string *or* a `Ctx` function. */
@@ -24,11 +24,6 @@ test("decimalRatios keeps every digit the string carried", () => {
   // through one would zero everything past the 17th.
   expect(ratios.deg.toString()).not.toBe(String(Number(DEG)));
   expect(ratios.deg.minus(Number(DEG)).isZero()).toBe(false);
-});
-
-test("aliasesFor inverts the flat map, in declaration order", () => {
-  expect(aliasesFor(T, "rad")).toEqual(["rad", "radian"]);
-  expect(aliasesFor(T, "deg")).toEqual(["deg", "degree", "degrees"]);
 });
 
 test("a real UnitTable satisfies RatioTable, so core needs no import to accept one", () => {

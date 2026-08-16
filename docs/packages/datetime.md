@@ -579,6 +579,7 @@ only an upper bound reports a vanished graph as a triumph.
 
 | Import | Minified | Gzipped |
 | --- | --- | --- |
+| datetime/locale/en (a vocabulary outside the kind packages) | ≤ 35.9 kB | ≤ 14.4 kB |
 | datetime root (no holiday data) | ≤ 145 kB | ≤ 50.8 kB |
 | datetime/holiday (the opt-in cost) | ≤ 1579 kB | ≤ 288 kB |
 
@@ -586,6 +587,7 @@ only an upper bound reports a vanished graph as a triumph.
 
 - [`@smartput/core`](/packages/core)
 - [`@smartput/holiday`](/packages/holiday)
+- [`@smartput/kind`](/packages/kind)
 - [`@smartput/timezone`](/packages/timezone)
 - `chrono-node`
 - `decimal.js`

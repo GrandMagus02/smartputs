@@ -1,29 +1,252 @@
 /**
  * Brand palette and the shared form controls the interactive demos use.
  * Anything scoped to a single demo lives in that component instead.
+ *
+ * The palette is the banner's: a magenta tube (#FF3FA4) and a cyan tube
+ * (#2DE2FF) lit against a near-black violet (#090714), with the brain's amber
+ * (#FFB13D) as the third light. The two pale tints the tubes throw — blush
+ * #FFE9F5 and frost #EAFDFF — are the text colours in the dark and the page
+ * surfaces in the light.
  */
 
 :root {
-  --vp-c-brand-1: #2f8f66;
-  --vp-c-brand-2: #34a374;
-  --vp-c-brand-3: #3cb684;
-  --vp-c-brand-soft: rgba(52, 163, 116, 0.14);
+  --sp-magenta: #ff3fa4;
+  --sp-cyan: #2de2ff;
+  --sp-amber: #ffb13d;
+  --sp-blush: #ffe9f5;
+  --sp-frost: #eafdff;
+  --sp-void: #090714;
+
+  /* ------------------------------------------------------------- light --- */
+
+  /* Blush is the chrome (sidebar, feature cards, code groups); frost is the
+     soft surface (custom blocks, callouts). The page itself sits just above
+     blush so the chrome reads as a panel rather than as the background. */
+  --vp-c-bg: #fff7fc;
+  --vp-c-bg-alt: var(--sp-blush);
+  --vp-c-bg-soft: var(--sp-frost);
+  --vp-c-bg-elv: #ffffff;
+
+  --vp-c-text-1: var(--sp-void);
+  --vp-c-text-2: #4d4468;
+  --vp-c-text-3: #8b80a8;
+
+  --vp-c-divider: rgba(9, 7, 20, 0.1);
+  --vp-c-border: rgba(9, 7, 20, 0.16);
+  --vp-c-gutter: rgba(9, 7, 20, 0.08);
+
+  /* Full-strength magenta is 3.3:1 on blush, so links and small text step down
+     to a deeper mix of it; the tube colour itself stays for fills and glow. */
+  --vp-c-brand-1: #c4007f;
+  --vp-c-brand-2: #de1494;
+  --vp-c-brand-3: var(--sp-magenta);
+  --vp-c-brand-soft: rgba(255, 63, 164, 0.13);
+
+  --vp-c-tip-1: #0a6e7c;
+  --vp-c-tip-2: #0e8a9b;
+  --vp-c-tip-3: var(--sp-cyan);
+  --vp-c-tip-soft: rgba(45, 226, 255, 0.14);
+
+  --vp-c-warning-1: #8a5300;
+  --vp-c-warning-2: #a86800;
+  --vp-c-warning-3: var(--sp-amber);
+  --vp-c-warning-soft: rgba(255, 177, 61, 0.16);
+
+  --vp-code-block-bg: #14102a;
 
   --vp-home-hero-name-color: transparent;
-  --vp-home-hero-name-background: linear-gradient(120deg, #2f8f66, #6fbf8f 60%, #b8d95f);
+  --vp-home-hero-name-background: linear-gradient(
+    100deg,
+    #c4007f,
+    var(--sp-magenta) 42%,
+    #0e8a9b
+  );
   --vp-home-hero-image-background-image: linear-gradient(
     -45deg,
-    rgba(52, 163, 116, 0.6),
-    rgba(184, 217, 95, 0.5)
+    rgba(255, 63, 164, 0.55),
+    rgba(45, 226, 255, 0.45)
   );
-  --vp-home-hero-image-filter: blur(48px);
+  --vp-home-hero-image-filter: blur(56px);
 }
 
 .dark {
-  --vp-c-brand-1: #5cc596;
-  --vp-c-brand-2: #4fb888;
-  --vp-c-brand-3: #3ea073;
-  --vp-c-brand-soft: rgba(92, 197, 150, 0.16);
+  --vp-c-bg: var(--sp-void);
+  --vp-c-bg-alt: #05030d;
+  --vp-c-bg-soft: #130e26;
+  --vp-c-bg-elv: #15102c;
+
+  /* Blush carries the reading text, frost the supporting text: the two tints
+     stay distinguishable at 12px where a single grey would not. */
+  --vp-c-text-1: var(--sp-blush);
+  --vp-c-text-2: rgba(234, 253, 255, 0.72);
+  --vp-c-text-3: rgba(234, 253, 255, 0.45);
+
+  --vp-c-divider: rgba(255, 233, 245, 0.1);
+  --vp-c-border: rgba(234, 253, 255, 0.16);
+  --vp-c-gutter: #05030d;
+
+  --vp-c-brand-1: #ff6ec0;
+  --vp-c-brand-2: var(--sp-magenta);
+  --vp-c-brand-3: #e01a8e;
+  --vp-c-brand-soft: rgba(255, 63, 164, 0.18);
+
+  --vp-c-tip-1: #7cf0ff;
+  --vp-c-tip-2: var(--sp-cyan);
+  --vp-c-tip-3: #17b6d1;
+  --vp-c-tip-soft: rgba(45, 226, 255, 0.16);
+
+  --vp-c-warning-1: #ffc978;
+  --vp-c-warning-2: var(--sp-amber);
+  --vp-c-warning-3: #d18a1e;
+  --vp-c-warning-soft: rgba(255, 177, 61, 0.16);
+
+  --vp-code-block-bg: #05030d;
+
+  /* Elevation is light, not shadow: a dark surface lifts by picking up the
+     magenta throw rather than by casting a darker black. */
+  --vp-shadow-1: 0 1px 2px rgba(0, 0, 0, 0.5);
+  --vp-shadow-2: 0 3px 12px rgba(0, 0, 0, 0.55);
+  --vp-shadow-3:
+    0 12px 32px rgba(0, 0, 0, 0.6), 0 0 40px -12px rgba(255, 63, 164, 0.35);
+  --vp-shadow-4: 0 14px 44px rgba(0, 0, 0, 0.65);
+  --vp-shadow-5: 0 18px 56px rgba(0, 0, 0, 0.7);
+
+  --vp-home-hero-name-background: linear-gradient(
+    100deg,
+    var(--sp-magenta),
+    #ff9ad5 40%,
+    var(--sp-cyan)
+  );
+  --vp-home-hero-image-background-image: linear-gradient(
+    -45deg,
+    rgba(255, 63, 164, 0.5),
+    rgba(45, 226, 255, 0.4)
+  );
+}
+
+/* The brand button is a lit tube: filled magenta, void-coloured text, and a
+   halo that only appears on hover so the resting page stays quiet. */
+:root {
+  --vp-button-brand-border: transparent;
+  --vp-button-brand-text: #ffffff;
+  --vp-button-brand-bg: #c4007f;
+  --vp-button-brand-hover-border: transparent;
+  --vp-button-brand-hover-text: #ffffff;
+  --vp-button-brand-hover-bg: var(--sp-magenta);
+  --vp-button-brand-active-border: transparent;
+  --vp-button-brand-active-text: #ffffff;
+  --vp-button-brand-active-bg: #a80070;
+}
+
+.dark {
+  --vp-button-brand-text: var(--sp-void);
+  --vp-button-brand-bg: var(--sp-magenta);
+  --vp-button-brand-hover-text: var(--sp-void);
+  --vp-button-brand-hover-bg: #ff63ba;
+  --vp-button-brand-active-text: var(--sp-void);
+  --vp-button-brand-active-bg: #e01a8e;
+}
+
+.VPButton.brand {
+  transition:
+    box-shadow 0.25s,
+    background-color 0.25s;
+}
+
+.VPButton.brand:hover {
+  box-shadow: 0 0 24px -4px rgba(255, 63, 164, 0.6);
+}
+
+/* ------------------------------------------------------------- wordmark --- */
+
+/* The hero name is set in the mono face the demos type into: the product reads
+   what people key in, so its own name is shown keyed in. */
+.VPHero .name {
+  font-family: var(--vp-font-family-mono);
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+  filter: drop-shadow(0 0 22px rgba(255, 63, 164, 0.35));
+}
+
+.dark .VPHero .name {
+  filter: drop-shadow(0 0 26px rgba(255, 63, 164, 0.45));
+}
+
+/* --------------------------------------------------------- neon horizon --- */
+
+/* The signature: a perspective grid running to a lit horizon behind the home
+   hero — the tubes' throw on a floor. Pinned to the top of the home page and
+   faded out before the first section, so only the hero stands on it. */
+.VPHome::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 720px;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    radial-gradient(
+      120% 62% at 50% 74%,
+      rgba(255, 63, 164, 0.16),
+      transparent 62%
+    ),
+    radial-gradient(
+      90% 50% at 78% 8%,
+      rgba(45, 226, 255, 0.12),
+      transparent 60%
+    );
+  -webkit-mask-image: linear-gradient(180deg, #000 42%, transparent);
+  mask-image: linear-gradient(180deg, #000 42%, transparent);
+}
+
+/* The grid is wider than the page so its vanishing lines reach both edges;
+   `clip` keeps that overhang from adding a horizontal scrollbar. */
+.VPHome {
+  position: relative;
+  overflow-x: clip;
+}
+
+/* Everything on the page sits in front of the horizon, including the prose
+   below the fold that the grid's lower edge would otherwise reach. */
+.VPHome .VPHero,
+.VPHome .VPFeatures,
+.VPHome .sp-home {
+  position: relative;
+  z-index: 1;
+}
+
+/* The grid itself. A single element, tilted, with the lines thinning towards
+   the horizon because the mask takes them out before the perspective does. */
+.VPHome::after {
+  content: "";
+  position: absolute;
+  top: 300px;
+  left: -25%;
+  width: 150%;
+  height: 420px;
+  pointer-events: none;
+  z-index: 0;
+  background-image:
+    linear-gradient(rgba(45, 226, 255, 0.22) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 63, 164, 0.18) 1px, transparent 1px);
+  background-size: 56px 56px;
+  transform: perspective(320px) rotateX(62deg);
+  transform-origin: 50% 0;
+  -webkit-mask-image: linear-gradient(
+    180deg,
+    transparent,
+    #000 34%,
+    transparent 92%
+  );
+  mask-image: linear-gradient(180deg, transparent, #000 34%, transparent 92%);
+  opacity: 0.55;
+}
+
+@media (max-width: 960px) {
+  .VPHome::after {
+    top: 520px;
+    opacity: 0.4;
+  }
 }
 
 /* ------------------------------------------------------------ hero slot --- */
@@ -57,6 +280,16 @@
   .VPHero .image-container {
     justify-content: flex-end;
   }
+}
+
+/* The calculator is the lit object in front of the grid, so it gets the tube
+   edge the rest of the page does without. */
+.dark .VPHero .hero-calc {
+  border-color: rgba(255, 63, 164, 0.35);
+  box-shadow:
+    0 20px 60px rgba(0, 0, 0, 0.65),
+    0 0 0 1px rgba(255, 63, 164, 0.12),
+    0 0 60px -18px rgba(255, 63, 164, 0.55);
 }
 
 /* ---------------------------------------------------------------- demos --- */
@@ -97,10 +330,14 @@
     box-shadow 0.2s;
 }
 
+/* Focus is a tube switching on: the ring is the brand colour's own light, not
+   a grey outline, and it is the one place glow appears on a doc page. */
 .sp-input:focus {
   outline: none;
-  border-color: var(--vp-c-brand-1);
-  box-shadow: 0 0 0 3px var(--vp-c-brand-soft);
+  border-color: var(--vp-c-brand-2);
+  box-shadow:
+    0 0 0 3px var(--vp-c-brand-soft),
+    0 0 18px -6px var(--sp-magenta);
 }
 
 .sp-input--sm {
@@ -138,20 +375,25 @@
   line-height: 1.6;
   transition:
     color 0.2s,
-    border-color 0.2s;
+    border-color 0.2s,
+    box-shadow 0.2s;
 }
 
 .sp-chip:hover {
   color: var(--vp-c-brand-1);
-  border-color: var(--vp-c-brand-1);
+  border-color: var(--vp-c-brand-2);
 }
 
 /* A chip that is a choice rather than a shortcut — the kind switcher on the
    input demos, where one of them is always the current one. */
 .sp-chip--on {
   color: var(--vp-c-brand-1);
-  border-color: var(--vp-c-brand-1);
+  border-color: var(--vp-c-brand-2);
   background: var(--vp-c-brand-soft);
+}
+
+.dark .sp-chip--on {
+  box-shadow: 0 0 16px -6px var(--sp-magenta);
 }
 
 /* Feature icons on the home page: the `icon` frontmatter field renders raw
@@ -159,4 +401,33 @@
 .VPFeature .icon [class^="i-lucide-"] {
   width: 22px;
   height: 22px;
+}
+
+/* Every second feature icon takes the cyan tube instead of the magenta one,
+   so the grid of ten reads as two lights rather than one repeated ten times. */
+.VPFeature .icon {
+  color: var(--vp-c-brand-1);
+}
+
+.VPFeatures .items > div:nth-child(even) .VPFeature .icon {
+  color: var(--vp-c-tip-1);
+}
+
+/* -------------------------------------------------------------- chrome --- */
+
+.dark .VPNav {
+  border-bottom: 1px solid rgba(255, 63, 164, 0.14);
+}
+
+.dark .VPSidebarItem.is-active > .item > .link > .text,
+.dark .VPDocOutlineItem a.active {
+  text-shadow: 0 0 18px rgba(255, 110, 192, 0.5);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .VPButton.brand,
+  .sp-input,
+  .sp-chip {
+    transition: none;
+  }
 }

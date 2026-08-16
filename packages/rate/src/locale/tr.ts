@@ -1,5 +1,6 @@
-import { defineVocabulary, type UnitWords } from "@smartput/core";
 import { currencyVocabulary } from "@smartput/currency";
+import type { UnitWords } from "@smartput/kind/types";
+import { defineVocabulary } from "@smartput/kind/vocabulary";
 
 /** One currency's Turkish half: what may be typed, and what may be printed. */
 interface TurkishWords {

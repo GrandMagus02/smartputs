@@ -1,4 +1,5 @@
 import { expect, test } from "bun:test";
+import { DECIMAL_BRAND } from "./brand";
 import { Decimal } from "./decimal";
 import { deepFreeze } from "./freeze";
 
@@ -20,6 +21,23 @@ test("leaves Decimal instances unfrozen so arithmetic still works", () => {
   deepFreeze({ d });
   expect(Object.isFrozen(d)).toBe(false);
   expect(d.times(2).toString()).toBe("6");
+});
+
+test("skips anything branded on its prototype, not just our own Decimal", () => {
+  // The stand-in for the case this guard exists to survive: a second copy of
+  // decimal.js in the same bundle. Its instances are not `instanceof` our
+  // Decimal, so the old check returned false and froze one — after which the
+  // next `.times()` throws from inside a library that has no idea why.
+  //
+  // A real second copy cannot be installed here (bun dedupes one version, and
+  // pinning a second for a unit test is a worse lie than this object). What is
+  // actually under test is the mechanism that makes the foreign case work:
+  // `Symbol.for` resolves to the same symbol wherever it is called, and the
+  // brand is read off the prototype chain rather than off the instance.
+  const foreign = Object.create({ [DECIMAL_BRAND]: true }) as Record<string, unknown>;
+  foreign.d = "3";
+  deepFreeze({ foreign });
+  expect(Object.isFrozen(foreign)).toBe(false);
 });
 
 test("terminates on a cyclic structure", () => {

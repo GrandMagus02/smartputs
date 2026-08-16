@@ -1,10 +1,10 @@
 import angleNl from "@smartput/angle/locale/nl";
 import areaNl from "@smartput/area/locale/nl";
-import type { Vocabulary } from "@smartput/core";
 import datarateNl from "@smartput/datarate/locale/nl";
 import datasizeNl from "@smartput/datasize/locale/nl";
 import durationNl from "@smartput/duration/locale/nl";
 import energyNl from "@smartput/energy/locale/nl";
+import type { Vocabulary } from "@smartput/kind/types";
 import lengthNl from "@smartput/length/locale/nl";
 import massNl from "@smartput/mass/locale/nl";
 import numberNl from "@smartput/number/locale/nl";

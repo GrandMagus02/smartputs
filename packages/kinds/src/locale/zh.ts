@@ -1,10 +1,10 @@
 import angleZh from "@smartput/angle/locale/zh";
 import areaZh from "@smartput/area/locale/zh";
-import type { Vocabulary } from "@smartput/core";
 import datarateZh from "@smartput/datarate/locale/zh";
 import datasizeZh from "@smartput/datasize/locale/zh";
 import durationZh from "@smartput/duration/locale/zh";
 import energyZh from "@smartput/energy/locale/zh";
+import type { Vocabulary } from "@smartput/kind/types";
 import lengthZh from "@smartput/length/locale/zh";
 import massZh from "@smartput/mass/locale/zh";
 import numberZh from "@smartput/number/locale/zh";

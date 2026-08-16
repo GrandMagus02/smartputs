@@ -17,6 +17,16 @@ import { buildPackage, packageManifests, rootDir } from "./build";
 export interface EntrySpec {
   label: string;
   from: string;
+  /**
+   * The exported names to import and keep alive.
+   *
+   * `"default"` is spelled here as itself and means the module's default
+   * export: every locale module in the repo is a bare
+   * `export default defineVocabulary(...)`, so a harness that could only write
+   * a named import had no way to measure one at all. The synthetic entry
+   * rewrites it to `import { default as __default0 }`, because `default` is a
+   * reserved word and cannot be a binding — see `measureHere`.
+   */
   names: string[];
   /** Budget in minified bytes. */
   min: number;
@@ -161,8 +171,22 @@ function workspacePlugin(map: Map<string, string>): BunPlugin {
 async function measureHere(spec: EntrySpec): Promise<Sizes> {
   const map = await workspaceResolutions();
 
-  const source = `import { ${spec.names.join(", ")} } from ${JSON.stringify(spec.from)};
-(globalThis as Record<string, unknown>).__keep = [${spec.names.join(", ")}];
+  // A name is normally its own local binding, which is why this used to be two
+  // `join(", ")` calls. `"default"` is the exception and the reason the two
+  // halves are now computed separately: it is the one export name that is also
+  // a reserved word, so `import { default }` is a syntax error and the keep-
+  // alive below cannot mention it either. Aliasing it per index — rather than to
+  // a single fixed identifier — keeps a spec that asks for the default export
+  // *and* a named one from colliding.
+  const locals = spec.names.map((name, index) =>
+    name === "default" ? `__default${index}` : name,
+  );
+  const clause = spec.names
+    .map((name, index) => (name === locals[index] ? name : `${name} as ${locals[index]}`))
+    .join(", ");
+
+  const source = `import { ${clause} } from ${JSON.stringify(spec.from)};
+(globalThis as Record<string, unknown>).__keep = [${locals.join(", ")}];
 `;
   const slug = spec.label.replace(/[^a-z0-9]+/gi, "-");
   const entry = `${TMP_DIR}/${slug}.ts`;
@@ -295,6 +319,87 @@ export const BUDGETS: EntrySpec[] = [
   // Four rows — `geo root`, `range`, `range/class`, `query/sql` — were already
   // over their budgets before that change and are deliberately left alone here.
   // Raising them would have hidden someone else's regression inside this one.
+  //
+  // 2026-08-16, the Decimal brand: `deepFreeze` stopped importing decimal.js.
+  // The guard that skips Decimal instances was `value instanceof Decimal`, which
+  // made `@smartput/kind/freeze` import the class, and `defineVocabulary` calls
+  // `deepFreeze` — so a table of nouns linked a 33 KB arithmetic engine. It now
+  // reads a `Symbol.for("smartput.decimal")` brand that `decimal.ts` stamps onto
+  // `Decimal.prototype`, and `freeze.ts` imports nothing but that symbol.
+  //
+  // The row it was aimed at:
+  //
+  //   kind/vocabulary defineVocabulary only   33_407 -> 272 B min, 13_276 -> 206 B gzip
+  //
+  // That is 123x, and the ceiling below is dropped to 300 B so the harness holds
+  // it there. Every other row in the table was re-measured, because a fix that
+  // only gets checked where it was expected to help is not checked:
+  //
+  //   * No movement at all in the twenty-two parse and class rows, the two
+  //     barrel shake-checks, `currency/validate`, or `holiday root`. `deepFreeze`
+  //     is authoring-time; a parser and a value class never call it.
+  //   * +53 B min in every row that carries `@smartput/kind` itself — `kind root`
+  //     33_407 -> 33_460, `boolean` 33_719 -> 33_772, `boolean/class` 34_042 ->
+  //     34_095. That is the brand's whole runtime cost, once: the `Symbol.for`
+  //     binding and the prototype assignment beside `Decimal.set`.
+  //   * +130 to +217 B min in the rows that reach kind through several of its
+  //     subpaths — the datetime and range family, `query root`, `query/mongo`,
+  //     `geo providers`, `distance root`. `scripts/build.ts` runs with
+  //     `packages: "external"` and no splitting, so a relative import is inlined
+  //     into every dist entry that reaches it: a consumer pulling in three of
+  //     kind's entries gets three copies of that 53 B. This is not new — the
+  //     `Decimal.set` call next to the stamp has always been duplicated the same
+  //     way — and it is what `brand.ts` uses `Symbol.for` rather than `Symbol()`
+  //     for. Inlined copies of `Symbol()` would be different symbols and the
+  //     brand would never match.
+  //
+  // Those ceilings are raised below rather than left failing, and the trade is
+  // stated plainly: ~130 B added to about a dozen rows that were already paying
+  // for decimal.js anyway, to take 33 KB off every vocabulary in the repo. The
+  // four rows that were already over stay over — `geo root`, `range`,
+  // `range/class`, `query/sql` moved by this change too, and raising them here
+  // would fold someone else's regression into this one, which is the same
+  // reasoning the extraction note above used.
+  //
+  // What did *not* move is the finding worth keeping: `length/locale/en` went
+  // 34_667 -> 34_720, i.e. up by the same 53 B and not down by 33 KB. A locale
+  // module reaches decimal.js by a second, entirely independent door —
+  // `aliasesFor` shares a module with `decimalRatios` — and closing the first one
+  // proves that door is load-bearing on its own rather than merely suspected.
+  // Splitting `aliasesFor` out is the change that collects the win there.
+  //
+  // 2026-08-16, the aliasesFor split: that second door is now shut too, and the
+  // win it was predicted to collect landed in full.
+  //
+  //   length/locale/en   34_720 -> 1_519 B min, 13_781 -> 655 B gzip
+  //
+  // `aliasesFor` and `RatioTable` moved out of `from-table.ts` into a new
+  // `packages/kind/src/aliases.ts` that imports nothing, `from-table.ts` kept
+  // `decimalRatios` and re-exports the type, and 273 locale files were
+  // rewritten by script to take `@smartput/kind/aliases` and
+  // `@smartput/kind/vocabulary` instead of the root barrel. No public name moved
+  // — the barrel and core's shim still export both — so this is a byte change
+  // with no API surface to it at all.
+  //
+  // Every other row was re-measured, and this time the answer is short: not one
+  // of them moved a byte. Every number the brand commit above wrote down comes
+  // back identical — `kind root` 33_460, `boolean` 33_772, `boolean/class`
+  // 34_095, and the four over-budget rows at 49_461 / 43_617 / 43_642 / 36_924 —
+  // so this commit neither pays that 53 B back nor adds to it, and no row
+  // dropped far enough to trip the 70% floor. That is what the shape of the fix
+  // predicts: the two functions never called each other, and outside the locale
+  // files nobody had ever taken `aliasesFor` and `decimalRatios` by a path where
+  // separating them changes the graph. The four rows that were already over
+  // (`geo root`, `range`, `range/class`, `query/sql`) are, once again,
+  // deliberately untouched.
+  //
+  // The trap that let a 33 KB vocabulary happen is now written down where it can
+  // be tripped over — the header of `packages/kind/src/index.ts`. The root barrel
+  // is the arithmetic tier and costs ~33 KB because `defineKind` needs `Decimal`,
+  // so a consumer that wants only tables and words must come in by the
+  // `./aliases`, `./vocabulary` and `./errors` subpaths. The tight ceiling on the
+  // `length/locale/en` row below is what enforces that, and it is the only thing
+  // that does.
   {
     label: "angle/validate parseAngle only",
     from: "@smartput/angle/validate",
@@ -415,29 +520,123 @@ export const BUDGETS: EntrySpec[] = [
     label: "kind root (defineKind, with Decimal behind it)",
     from: "@smartput/kind",
     names: ["defineKind"],
-    min: 33_450,
-    gzip: 13_300,
+    min: 33_500,
+    gzip: 13_350,
   },
-  // Naming a kind's words costs the same 33 KB, and it should not. The path is
-  // `defineVocabulary` -> `deepFreeze` -> `value instanceof Decimal`, one guard
-  // that exists because decimal.js mutates instance internals and freezing one
-  // breaks arithmetic — so a single `instanceof` links the whole library into a
-  // bundle whose payload is a table of nouns.
+  // Naming a kind's words used to cost the same 33 KB, and now costs 272 B.
   //
-  // The row is here at its true number rather than at the number it ought to
-  // be: it predates the extraction, it is not this change's to fix, and a
-  // budget that lies about what ships is worse than one that records something
-  // ugly. Swapping the guard for a structural check (`typeof
-  // (value as { toFixed?: unknown }).toFixed === "function"`, or a
-  // `Symbol.for("decimal")` brand) should drop this to a few hundred bytes and
-  // take every vocabulary in the repo with it. Whoever does it: measure first,
-  // and expect the `boolean` and `angle/class` rows to move too.
+  // The path was `defineVocabulary` -> `deepFreeze` -> `value instanceof
+  // Decimal`: one guard, which exists because decimal.js mutates instance
+  // internals and freezing one breaks arithmetic, and which linked the whole
+  // library into a bundle whose payload is a table of nouns. The reason was
+  // sound and the mechanism was not. `deepFreeze` now tests a
+  // `Symbol.for("smartput.decimal")` brand that `decimal.ts` stamps onto
+  // `Decimal.prototype`, so recognising a Decimal no longer requires importing
+  // one — see `packages/kind/src/brand.ts` for why the symbol is registry-global
+  // and why that makes the check stricter than the `instanceof` it replaced.
+  //
+  // 33_407 -> 272 B minified, 13_276 -> 206 B gzipped, measured before and
+  // after; the dated note at the head of this table has the rest of the ledger,
+  // including the dozen rows that went *up* by ~53 B each to pay for it. The
+  // budget is the measurement rounded up to the next 50 B like any other, which
+  // means this row now has ~28 B of headroom and will fail on any regrowth at
+  // all. That is the intent: this is the row where the engine gets back in.
   {
     label: "kind/vocabulary defineVocabulary only",
     from: "@smartput/kind/vocabulary",
     names: ["defineVocabulary"],
-    min: 33_450,
-    gzip: 13_300,
+    min: 300,
+    gzip: 250,
+  },
+  // What the row above costs a consumer who never asked for it: a kind's locale
+  // entry, which is eight English nouns and their aliases, and which measured
+  // 34_667 B when this row was added. Labelled for the general case because it
+  // is one — every locale module in the repo is the same three lines over a
+  // different table, so `de`, `ja` and `uk` all cost this too, and `length/en`
+  // is only the one with a row.
+  //
+  // Nothing in this repo had ever measured a locale entry, which is exactly why
+  // a 34 KB vocabulary survived this long in a repo with a byte-budget harness.
+  // The `names: ["default"]` support two paragraphs up exists for this row: a
+  // vocabulary is a default export, so until now the harness could not have
+  // asked the question even if someone had thought to.
+  //
+  // 34 KB was the wrong answer for a table of nouns by roughly the whole of
+  // decimal.js, which arrived twice over and by two unrelated doors:
+  // `defineVocabulary` -> `deepFreeze` -> `value instanceof Decimal` (the guard
+  // the row above documents), and `aliasesFor` sharing a module with
+  // `decimalRatios`, so naming the alias helper links the ratio machinery. A
+  // translator's file pays for the arithmetic engine because of an `instanceof`
+  // and a module boundary, and neither has anything to do with words.
+  //
+  // 2026-08-16, the first door: `deepFreeze` stopped importing decimal.js and
+  // `kind/vocabulary` went 33_407 -> 272 B, while this row went 34_667 -> 34_720
+  // — *up* by the 53 B the brand costs and down by nothing at all. That was the
+  // proof the second door was never merely suspected: both were load-bearing
+  // independently, so closing one bought a locale module exactly zero.
+  //
+  // 2026-08-16, the second door, and the one this row was written for:
+  //
+  //   length/locale/en   34_720 -> 1_519 B min, 13_781 -> 655 B gzip
+  //
+  // 22.9x minified, 21.0x gzipped, and not one line of the vocabulary changed.
+  // `aliasesFor` and the `RatioTable` interface moved to
+  // `packages/kind/src/aliases.ts`, which imports nothing; `from-table.ts` keeps
+  // `decimalRatios` and the `Decimal` it needs, and re-exports the type so no
+  // public name moved. Then 273 locale files across the sixteen kind packages
+  // with locales, plus the `kinds` aggregator, were rewritten by script from
+  //
+  //   import { aliasesFor, defineVocabulary } from "@smartput/kind";
+  //
+  // to the two subpaths — `@smartput/kind/aliases` and
+  // `@smartput/kind/vocabulary` — because the root barrel is one module and
+  // `defineKind` lives in it, so naming *anything* there links decimal.js
+  // regardless of what you asked for. That trap is now written into
+  // `packages/kind/src/index.ts`'s header, where the next person will meet it.
+  //
+  // 273 published entries — sixteen kind packages with a locale directory and
+  // the `kinds` aggregator, seventeen languages each; `boolean` has none —
+  // stopped shipping an arithmetic engine to say that "kilometre" means `km`.
+  // Not every vocabulary in the repo: the sweep was written as "every kind
+  // package", and `datetime`, `rate` and `geo` ship vocabularies without being
+  // kind packages, so their 35 locale files were missed on the first pass and
+  // migrated after a review caught it. Their rows are below. The whole 33 KB was
+  // decimal.js arriving twice by two unrelated doors, and the second one was a
+  // module boundary that existed because two functions were written the same
+  // afternoon.
+  //
+  // The ceiling is 1_550 B — the measurement rounded up to the next 50 B like
+  // every other row — which leaves ~31 B of headroom and a floor of 1_085 B.
+  // A single stray `from "@smartput/kind"` in any locale file puts this row back
+  // over by a factor of twenty-two, which is precisely the alarm wanted.
+  {
+    label: "length/locale/en (a kind's words, no arithmetic)",
+    from: "@smartput/length/locale/en",
+    names: ["default"],
+    min: 1550,
+    gzip: 700,
+  },
+  // The same guard for the two packages the first migration missed, and they are
+  // the reason it is worth having more than one row for this. `length` is a kind
+  // package; `rate` and `datetime` are not, so a sweep written as "every kind
+  // package" walked straight past them and left their seventeen locales each
+  // still importing core’s root barrel at ~35.7 KB apiece — a third of the
+  // published vocabularies in the repo, reported as finished. One row per shape
+  // rather than one row for the class, because the bug was never a byte count:
+  // it was a sweep whose definition of "every" did not match the repo’s.
+  {
+    label: "rate/locale/en (a vocabulary outside the kind packages)",
+    from: "@smartput/rate/locale/en",
+    names: ["default"],
+    min: 35_950,
+    gzip: 14_200,
+  },
+  {
+    label: "datetime/locale/en (a vocabulary outside the kind packages)",
+    from: "@smartput/datetime/locale/en",
+    names: ["default"],
+    min: 35_850,
+    gzip: 14_400,
   },
 
   // The same claim for the class barrel, which had no row at all. Spec §8 says
@@ -526,8 +725,8 @@ export const BUDGETS: EntrySpec[] = [
     label: "geo providers (every adapter)",
     from: "@smartput/geo/providers",
     names: ["geonames", "postalCodes", "bundled", "custom"],
-    min: 43_250,
-    gzip: 16_650,
+    min: 43_400,
+    gzip: 16_700,
   },
 
   // Holidays, and the guard row that is the entire argument for the subpath.
@@ -584,7 +783,7 @@ export const BUDGETS: EntrySpec[] = [
     label: "datetime root (no holiday data)",
     from: "@smartput/datetime",
     names: ["datetime"],
-    min: 144_550,
+    min: 144_700,
     gzip: 50_800,
     floor: 138_000,
   },
@@ -646,7 +845,7 @@ export const BUDGETS: EntrySpec[] = [
     label: "date",
     from: "@smartput/date",
     names: ["date"],
-    min: 145_650,
+    min: 145_800,
     gzip: 50_900,
     floor: 138_000,
   },
@@ -654,7 +853,7 @@ export const BUDGETS: EntrySpec[] = [
     label: "time",
     from: "@smartput/time",
     names: ["time"],
-    min: 145_950,
+    min: 146_050,
     gzip: 51_000,
     floor: 138_000,
   },
@@ -666,7 +865,7 @@ export const BUDGETS: EntrySpec[] = [
     label: "range-core",
     from: "@smartput/range-core",
     names: ["WINDOWS", "startOfWeek"],
-    min: 145_000,
+    min: 145_100,
     gzip: 50_800,
     floor: 138_000,
   },
@@ -674,16 +873,16 @@ export const BUDGETS: EntrySpec[] = [
     label: "date-range",
     from: "@smartput/date-range",
     names: ["dateRange"],
-    min: 149_350,
-    gzip: 51_950,
+    min: 149_450,
+    gzip: 52_000,
     floor: 138_000,
   },
   {
     label: "time-range",
     from: "@smartput/time-range",
     names: ["timeRange"],
-    min: 147_250,
-    gzip: 51_450,
+    min: 147_400,
+    gzip: 51_500,
     floor: 138_000,
   },
   {
@@ -705,8 +904,8 @@ export const BUDGETS: EntrySpec[] = [
     label: "datetime-range root (no holiday data)",
     from: "@smartput/datetime-range",
     names: ["datetimeRange"],
-    min: 148_100,
-    gzip: 51_800,
+    min: 148_200,
+    gzip: 51_850,
     floor: 138_000,
   },
   {
@@ -723,7 +922,7 @@ export const BUDGETS: EntrySpec[] = [
     label: "datetime-range holiday",
     from: "@smartput/datetime-range/holiday",
     names: ["datetimeRangeHoliday"],
-    min: 1_587_100,
+    min: 1_587_200,
     gzip: 292_000,
   },
   {
@@ -792,8 +991,8 @@ export const BUDGETS: EntrySpec[] = [
     label: "query root (grammar + schema, no dialect)",
     from: "@smartput/query",
     names: ["QueryEngine", "defineSchema"],
-    min: 59_450,
-    gzip: 21_950,
+    min: 59_550,
+    gzip: 22_000,
   },
   {
     label: "query/sql",
@@ -806,8 +1005,8 @@ export const BUDGETS: EntrySpec[] = [
     label: "query/mongo",
     from: "@smartput/query/mongo",
     names: ["MongoCompiler"],
-    min: 38_150,
-    gzip: 15_150,
+    min: 38_300,
+    gzip: 15_200,
   },
 ];
 

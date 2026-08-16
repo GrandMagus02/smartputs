@@ -1,10 +1,10 @@
 import angleKo from "@smartput/angle/locale/ko";
 import areaKo from "@smartput/area/locale/ko";
-import type { Vocabulary } from "@smartput/core";
 import datarateKo from "@smartput/datarate/locale/ko";
 import datasizeKo from "@smartput/datasize/locale/ko";
 import durationKo from "@smartput/duration/locale/ko";
 import energyKo from "@smartput/energy/locale/ko";
+import type { Vocabulary } from "@smartput/kind/types";
 import lengthKo from "@smartput/length/locale/ko";
 import massKo from "@smartput/mass/locale/ko";
 import numberKo from "@smartput/number/locale/ko";

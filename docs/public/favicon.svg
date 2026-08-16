@@ -1,6 +1,15 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="smartputs">
   <title>smartputs</title>
-  <rect width="32" height="32" rx="8" fill="#2f8f66"/>
-  <path d="M8 12h6M8 20h6M11 9v6" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/>
-  <path d="M18 11.5h6M18 16h6M18 20.5h6" stroke="#b8d95f" stroke-width="2.4" stroke-linecap="round"/>
+  <defs>
+    <filter id="tube" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="1.4"/>
+    </filter>
+  </defs>
+  <rect width="32" height="32" rx="8" fill="#090714"/>
+  <g filter="url(#tube)" opacity="0.75">
+    <path d="M8 12h6M8 20h6M11 9v6" stroke="#FF3FA4" stroke-width="2.4" stroke-linecap="round"/>
+    <path d="M18 11.5h6M18 16h6M18 20.5h6" stroke="#2DE2FF" stroke-width="2.4" stroke-linecap="round"/>
+  </g>
+  <path d="M8 12h6M8 20h6M11 9v6" stroke="#FFE9F5" stroke-width="2.4" stroke-linecap="round"/>
+  <path d="M18 11.5h6M18 16h6M18 20.5h6" stroke="#EAFDFF" stroke-width="2.4" stroke-linecap="round"/>
 </svg>

@@ -43,7 +43,7 @@ only an upper bound reports a vanished graph as a triumph.
 
 | Import | Minified | Gzipped |
 | --- | --- | --- |
-| datetime-range root (no holiday data) | ≤ 148 kB | ≤ 51.8 kB |
+| datetime-range root (no holiday data) | ≤ 148 kB | ≤ 51.9 kB |
 | datetime-range holiday | ≤ 1587 kB | ≤ 292 kB |
 
 ## Dependencies

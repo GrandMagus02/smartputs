@@ -98,6 +98,7 @@
   "dependencies": {
     "@smartput/core": "workspace:*",
     "@smartput/currency": "workspace:*",
+    "@smartput/kind": "workspace:*",
     "decimal.js": "^10.6.0"
   },
   "devDependencies": {

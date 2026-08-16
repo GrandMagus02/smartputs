@@ -37,6 +37,11 @@
       "types": "./dist/define.d.ts",
       "default": "./dist/define.js"
     },
+    "./aliases": {
+      "bun": "./src/aliases.ts",
+      "types": "./dist/aliases.d.ts",
+      "default": "./dist/aliases.js"
+    },
     "./from-table": {
       "bun": "./src/from-table.ts",
       "types": "./dist/from-table.d.ts",

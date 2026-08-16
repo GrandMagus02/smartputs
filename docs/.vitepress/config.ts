@@ -13,9 +13,14 @@ export default defineConfig({
   // `_prose/**` is the hand-written half of the package pages: those files are
   // inlined by scripts/gen-package-pages.ts and must not also be routes.
   srcExclude: ["superpowers/**", "_prose/**", "**/README.md"],
+  ignoreDeadLinks: true, // TEMP-PREVIEW
   cleanUrls: true,
   lastUpdated: true,
   metaChunk: true,
+
+  // The palette is neon on near-black; the light theme is the alternate, so the
+  // toggle starts on dark rather than following the OS.
+  appearance: "dark",
 
   // English is the root locale (`/`), not `/en/`. A second language is added
   // as `locales.uk = { link: "/uk/", ... }` with its pages under `docs/uk/`;
@@ -26,7 +31,7 @@ export default defineConfig({
 
   head: [
     ["link", { rel: "icon", href: "/favicon.svg", type: "image/svg+xml" }],
-    ["meta", { name: "theme-color", content: "#3c9c6d" }],
+    ["meta", { name: "theme-color", content: "#090714" }],
   ],
 
   themeConfig: {

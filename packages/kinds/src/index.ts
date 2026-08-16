@@ -1,11 +1,11 @@
 import { angle } from "@smartput/angle";
 import { area } from "@smartput/area";
 import { boolean } from "@smartput/boolean";
-import type { Kind } from "@smartput/core";
 import { datarate } from "@smartput/datarate";
 import { datasize } from "@smartput/datasize";
 import { duration } from "@smartput/duration";
 import { energy } from "@smartput/energy";
+import type { Kind } from "@smartput/kind";
 import { length } from "@smartput/length";
 import { mass } from "@smartput/mass";
 import { measure } from "@smartput/measure";

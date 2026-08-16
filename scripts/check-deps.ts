@@ -40,9 +40,17 @@ const ALLOWED: Record<string, string[]> = {
   // here: the emitted `holiday.d.ts` names the package, and a published
   // declaration naming a package absent from the manifest is a dependency a
   // consumer discovers on install.
+  // @smartput/kind is here for the same reason it is in every kind package:
+  // this package ships a vocabulary, and a vocabulary is words. Its locale files
+  // take `defineVocabulary` from `@smartput/kind/vocabulary` and its types from
+  // `@smartput/kind/types` rather than from core’s root barrel, which is the
+  // arithmetic tier — naming any export there links decimal.js whether or not the
+  // name has anything to do with numbers. Measured: this package’s `locale/en`
+  // was 35.7 KB through the barrel and is ~1.3 KB through the subpaths.
   "packages/datetime/package.json": [
     "@smartput/core",
     "@smartput/holiday",
+    "@smartput/kind",
     "@smartput/timezone",
     "chrono-node",
     "decimal.js",
@@ -75,7 +83,19 @@ const ALLOWED: Record<string, string[]> = {
   // units, the aliases and the parser — because none of those change when a
   // rate does, and a form field that only wants to read "30 usd" should not
   // have to link a provider to do it.
-  "packages/rate/package.json": ["decimal.js", "@smartput/core", "@smartput/currency"],
+  // @smartput/kind is here for the same reason it is in every kind package:
+  // this package ships a vocabulary, and a vocabulary is words. Its locale files
+  // take `defineVocabulary` from `@smartput/kind/vocabulary` and its types from
+  // `@smartput/kind/types` rather than from core’s root barrel, which is the
+  // arithmetic tier — naming any export there links decimal.js whether or not the
+  // name has anything to do with numbers. Measured: this package’s `locale/en`
+  // was 35.7 KB through the barrel and is ~1.3 KB through the subpaths.
+  "packages/rate/package.json": [
+    "decimal.js",
+    "@smartput/core",
+    "@smartput/currency",
+    "@smartput/kind",
+  ],
   // What a currency *is*, with nothing about what it is worth: the table, the
   // vocabulary, the parser and the formatter. Core is here for `Decimal` — the
   // repo forbids importing decimal.js directly, because core's module-load
@@ -110,7 +130,19 @@ const ALLOWED: Record<string, string[]> = {
   // `bundled()` both take their rows as arguments, so the tiering rule the four
   // deleted packages existed to enforce now holds by construction — there is no
   // table to keep out of a bundle.
-  "packages/geo/package.json": ["@smartput/core", "@smartput/distance", "decimal.js"],
+  // @smartput/kind is here for the same reason it is in every kind package:
+  // this package ships a vocabulary, and a vocabulary is words. Its locale files
+  // take `defineVocabulary` from `@smartput/kind/vocabulary` and its types from
+  // `@smartput/kind/types` rather than from core’s root barrel, which is the
+  // arithmetic tier — naming any export there links decimal.js whether or not the
+  // name has anything to do with numbers. Measured: this package’s `locale/en`
+  // was 35.7 KB through the barrel and is ~1.3 KB through the subpaths.
+  "packages/geo/package.json": [
+    "@smartput/core",
+    "@smartput/distance",
+    "@smartput/kind",
+    "decimal.js",
+  ],
 
   // The micro-validation path. Zero runtime dependencies, enforced here: a
   // first one would mean decimal.js or core leaked into a 600-byte budget.
@@ -277,9 +309,28 @@ const ALLOWED: Record<string, string[]> = {
   "packages/query/package.json": ["@smartput/core"],
 
   // The aggregator: re-exports every kind above and owns BUILTIN_KINDS, so it
-  // is the one package legitimately allowed to depend on all of them.
+  // is the one package legitimately allowed to depend on all of them. Breadth
+  // is the point of the package; it is not a smell here the way it would be
+  // anywhere else in this map.
+  //
+  // The one name here that is not a kind used to be `@smartput/core`, and
+  // swapping it for `@smartput/kind` is what leaves the repo with no runtime
+  // cycle at all. Nothing here ever called core: the edge was type-only, `Kind`
+  // in `src/index.ts` and `Vocabulary` in each of the seventeen locale files,
+  // both naming types that live in `@smartput/kind` now and reach core only by
+  // re-export. Type-only is not free in this repo — the import survives into
+  // the emitted `.d.ts`, and a published declaration naming a package absent
+  // from the manifest is a dependency a consumer discovers on install — so the
+  // manifest had to carry core, and core's manifest carries the kinds it
+  // registers. That was the cycle, and it was made entirely of types.
+  //
+  // What remains is core devDepending on kinds, which its corpus and locale
+  // contract tests genuinely need: a test edge, not a cycle. It never reaches
+  // an installed graph, because a devDependency is not published, and it is
+  // one-way in the only direction that ships — kinds -> the authoring layer,
+  // never kinds -> the engine.
   "packages/kinds/package.json": [
-    "@smartput/core",
+    "@smartput/kind",
     "@smartput/angle",
     "@smartput/boolean",
     "@smartput/area",
