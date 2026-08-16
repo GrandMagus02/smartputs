@@ -46,11 +46,16 @@ test("no shipped cue word is also a unit alias of the kind that claims it", () =
 });
 
 test("a cue flips the one ambiguity the built-in kinds contain", () => {
-  // `m` (duration:min vs length:m) is the ONLY surface ambiguous across kinds in
-  // BUILTIN_KINDS — measured against the alias index, not assumed. So it is the
-  // only place a shipped cue table can be observed changing a winner, and both
-  // directions are asserted because one direction rides the alphabetical
-  // tie-break for free.
+  // Measured against the alias index, not assumed: BUILTIN_KINDS has TWELVE
+  // surfaces ambiguous across kinds, not one — `m` (duration:min vs length:m)
+  // plus `c`/`°c`/`celsius`/`centigrade`, `f`/`°f`/`fahrenheit`,
+  // `k`/`°k`/`kelvin`/`kelvins` (all `temperature` vs `tempdelta`). `m` is
+  // still the only one a shipped cue table can be observed flipping:
+  // `temperature` beats `tempdelta` by a margin no cue can cross — even a
+  // hand-passed `cues: { tempdelta: 20 }` leaves the contest at 1.000/0.000
+  // — and `tempdelta` ships no cue table of its own regardless. Both
+  // directions of the `m` flip are asserted because one direction rides the
+  // alphabetical tie-break for free.
   const temporal = engine.scan("Will be in time in 5m");
   expect(temporal[0]?.readings[0]?.kind).toBe("duration");
   expect(temporal[0]?.readings[0]?.confidence).toBeGreaterThan(0.9);
