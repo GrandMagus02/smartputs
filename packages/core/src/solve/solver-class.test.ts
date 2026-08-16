@@ -114,6 +114,17 @@ test("the solver instance is frozen and stateless across runs", () => {
   expect(solver.all(program)).toEqual(solver.all(program));
 });
 
+test("Solver.all forwards cues to solve", () => {
+  // SolveScope is documented as a structural subset of EvalOptions precisely so
+  // createEngine can forward the caller's options untouched — a field added to
+  // the interface but not to the forwarding spread is silently ignored, which
+  // is the failure this test exists to catch.
+  const program = programFor("10 m");
+  const ranked = solver.all(program, { cues: { duration: 4 } });
+  expect(ranked[0]?.kind).toBe("duration");
+  expect(ranked[0]?.cueBonus).toBe(4);
+});
+
 test("resolutions are frozen", () => {
   const all = solver.all(programFor("1 kg"));
   // The array container itself, not just each element: `all[0] = fake` must

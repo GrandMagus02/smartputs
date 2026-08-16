@@ -21,6 +21,12 @@ export interface SolveScope {
   kinds?: KindId[];
   /** Locale ids a reading's `Candidate.locale` must be one of. */
   locales?: string[];
+  /**
+   * Kind -> summed cue weight, added once per resolution to its result kind.
+   * `scan` computes it from the words around a mark; a caller who already knows
+   * the domain may pass it to `evaluate`/`suggest` directly.
+   */
+  cues?: Readonly<Record<KindId, number>>;
 }
 
 /**
@@ -50,6 +56,7 @@ export class Solver {
       input: program.input.source,
       ...(opts?.kinds ? { kinds: opts.kinds } : {}),
       ...(opts?.locales ? { locales: opts.locales } : {}),
+      ...(opts?.cues ? { cues: opts.cues } : {}),
     });
   }
 

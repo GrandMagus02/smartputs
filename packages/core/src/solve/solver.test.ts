@@ -55,14 +55,22 @@ const en = composeLocale(
 );
 const registry = buildRegistry([number, length, duration], [en]);
 
-function run(input: string, layers: Parameters<typeof createResolver>[0]["layers"] = []) {
+function run(
+  input: string,
+  layers: Parameters<typeof createResolver>[0]["layers"] = [],
+  cues?: Readonly<Record<string, number>>,
+) {
   const resolver = createResolver({ registry, locales: [en], format: en, layers });
   const normalized = normalize(input);
   const node = parse(lex(normalized.text, en), resolver, input);
   const program = buildProgram(node, normalized);
   return {
     node,
-    assignments: solve(program, registry, { maxCandidates: 10_000, input }),
+    assignments: solve(program, registry, {
+      maxCandidates: 10_000,
+      input,
+      ...(cues ? { cues } : {}),
+    }),
   };
 }
 
@@ -462,4 +470,43 @@ test("explain lists a non-zero signature weight as its own row", () => {
   // weighted signature in the repo lives: every summand of score has a row.
   const sum = assignment?.contributions.reduce((s, c) => s + c.value, 0);
   expect(sum).toBe(assignment?.score);
+});
+
+test("a cue lands once per resolution, not once per slot", () => {
+  // The regression spec §5 exists to prevent. `10 km + 5 km` has two `length`
+  // slots; a cue folded into a weight LAYER would be summed per slot and
+  // contribute 8. Priced on the resolution, it contributes 4 — the same as it
+  // would to a single-quantity mark, which is what "the word `away` is nearby"
+  // actually means.
+  const { assignments } = run("10 km + 5 km", [], { length: 4 });
+  expect(assignments[0]?.kind).toBe("length");
+  expect(assignments[0]?.cueBonus).toBe(4);
+});
+
+test("cueBonus is a summand of score", () => {
+  const plain = run("10 m").assignments.find((a) => a.kind === "duration");
+  const cued = run("10 m", [], { duration: 3 }).assignments.find(
+    (a) => a.kind === "duration",
+  );
+  expect(plain?.cueBonus).toBe(0);
+  expect(cued?.cueBonus).toBe(3);
+  expect((cued?.score ?? 0) - (plain?.score ?? 0)).toBe(3);
+});
+
+test("a cue moves the winner and leaves the loser visible", () => {
+  // The §4 arithmetic, asserted rather than trusted. Delta 4 through the
+  // softmax is 0.982/0.018 — decisive, and not a claim of certainty.
+  const { assignments } = run("10 m", [], { duration: 4 });
+  expect(assignments[0]?.kind).toBe("duration");
+  expect(assignments[0]?.confidence).toBeCloseTo(0.982, 3);
+  expect(assignments[1]?.kind).toBe("length");
+  expect(assignments[1]?.confidence).toBeCloseTo(0.018, 3);
+});
+
+test("a cue for a kind no reading produces changes nothing", () => {
+  const withCue = run("10 m", [], { mass: 4 }).assignments;
+  const without = run("10 m").assignments;
+  expect(withCue.map((a) => [a.kind, a.score])).toEqual(
+    without.map((a) => [a.kind, a.score]),
+  );
 });

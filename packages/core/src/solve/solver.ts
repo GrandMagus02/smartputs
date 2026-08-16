@@ -19,6 +19,16 @@ export interface Resolution {
   readonly contextBonus: number;
   /** The part of `score` that came from op signatures, so explain() can list it. */
   readonly signatureWeight: number;
+  /**
+   * The part of `score` contributed by cue words near this reading — `scan`'s
+   * term, and the mirror of `contextBonus` and `signatureWeight` above.
+   *
+   * Added once per resolution and against the resolution's *result* kind, which
+   * is what a cue actually claims: "away" says this quantity is a distance, and
+   * for `5 km + 3 km` the quantity is the sum. Pricing it per reading instead
+   * would make it louder the longer the expression is.
+   */
+  readonly cueBonus: number;
   readonly confidence: number;
 }
 
@@ -197,7 +207,18 @@ function softmax(scores: number[]): number[] {
 export function solve(
   program: Program,
   registry: Registry,
-  opts: { maxCandidates: number; kinds?: KindId[]; locales?: string[]; input: string },
+  opts: {
+    maxCandidates: number;
+    kinds?: KindId[];
+    locales?: string[];
+    input: string;
+    /**
+     * Kind -> summed cue weight. NOT clamped here: `scan` applies
+     * `CUE_CEILING`, and a caller passing this through `EvalOptions.cues`
+     * directly is trusted with it exactly as they are trusted with `weights`.
+     */
+    cues?: Readonly<Record<KindId, number>>;
+  },
 ): Resolution[] {
   const root = program.root;
   const slots = collectSlots(root, opts.kinds, opts.locales);
@@ -213,6 +234,7 @@ export function solve(
     score: number;
     contextBonus: number;
     signatureWeight: number;
+    cueBonus: number;
   }> = [];
 
   const enumerate = (
@@ -225,12 +247,14 @@ export function solve(
       if (kind === null) return;
       const bonus = contextBonus(root, choices, registry);
       const signature = signatureWeight(root, choices, registry);
+      const cue = opts.cues?.[kind] ?? 0;
       viable.push({
         choices: { ...choices },
         kind,
-        score: weight + bonus + signature,
+        score: weight + bonus + signature + cue,
         contextBonus: bonus,
         signatureWeight: signature,
+        cueBonus: cue,
       });
       return;
     }
