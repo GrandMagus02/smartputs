@@ -64,6 +64,42 @@ export interface ScanMatch {
 }
 
 /**
+ * True when `token` is something a parsed expression can END on — i.e. its
+ * presence right before a `-` makes that `-` binary rather than unary.
+ *
+ * `number`, `literal`, and `rparen` are always this: nothing else can follow
+ * them to extend the same operand. A `word` is a *conditional* case, and the
+ * one this function exists to get right: unit aliases lex as plain `word`
+ * tokens the same as any other prose word (`lex.ts`'s token union has no
+ * separate "unit" case), so "5 km" is `number` `word`, exactly the same shape
+ * as "note -5" is `word` `op`. Only the registry can tell the two apart —
+ * `km` is indexed in `registry.aliasIndex`, `note` is not — which is why this
+ * needs a `Registry` and cannot be a check on token type alone. Getting the
+ * `word` case wrong is precisely the bug being fixed here: treating a unit
+ * word as never operand-terminating (an early version of this fix did) makes
+ * "5 km - 3 h" anchor a fresh unary run at the `-`, reading "- 3 h" as a
+ * negative duration instead of leaving the `-` as the binary subtraction of a
+ * length from a length... except the two operands are different kinds, so
+ * what the caller actually gets is two marks, the second silently
+ * sign-flipped — the exact defect class this task was opened to remove,
+ * relocated from `-5 km` to `5 km - 3 h`.
+ *
+ * Case-folded with plain `.toLowerCase()`, not the locale-aware
+ * `toLocaleLowerCase(localeId)` `Tokenizer`'s own `isUnitAlias` uses: this is
+ * a cheap gate on whether backoff even attempts treating a sign as unary, not
+ * a resolution — `matchAt`'s real parse-then-solve is what actually decides
+ * whether a match sticks, so a rare locale-fold mismatch here (Turkish
+ * dotless i, mainly) costs at most one wrong anchor guess, not a wrong
+ * answer.
+ */
+function endsOperand(token: Token, registry: Registry): boolean {
+  if (token.type === "number" || token.type === "literal" || token.type === "rparen") {
+    return true;
+  }
+  return token.type === "word" && registry.aliasIndex.has(token.text.toLowerCase());
+}
+
+/**
  * A token index at which a quantity may begin.
  *
  * A bare unit word is deliberately not one: "the kilometre is a unit" must mark
@@ -75,42 +111,31 @@ export interface ScanMatch {
  * - an `lparen` — a parenthesised expression begins at its paren, never at the
  *   number inside it, or backoff finds "1 + 2" and stops, never trying the run
  *   that also swallows the closing paren and everything after it;
- * - an `op` of `-` or `+` in UNARY position: the next token has to be
- *   something a sign can attach to (`number`, `literal`, `lparen`), and the
- *   previous token has to be something that CANNOT be the tail of an operand
- *   — i.e. not a `number`, a `literal`, or an `rparen`. Those three are the
- *   only token types a parsed expression can end on, so a sign right after
- *   one of them is binary: "5 - 3 km" has `number` before its `-`, and
- *   "(1 + 2) - 3" has `rparen` before its `-`, and in both cases treating the
- *   sign as unary would let backoff build a run like "- 3 km" that starts
- *   mid-subtraction, silently changing what a *correct* longer match already
- *   covers. Every other previous token — absent, another `op`, an `lparen`, a
- *   `keyword`, or an ordinary `word` — cannot itself terminate an operand, so
- *   a sign after one of those is unambiguously unary. The `word` case is not
- *   a hypothetical: it is "note -5 km ok", the carrier sentence the corpus
- *   test wraps every row in. "note" precedes the `-` and is plainly not a
- *   quantity, so the sign has nothing to its left to bind to; an allow-list
- *   naming only `op`/`lparen`/`keyword` would miss this and go on dropping
- *   the sign whenever ordinary prose sits in front of it.
+ * - an `op` of `-` in UNARY position: the next token has to be something a
+ *   sign can attach to (`number`, `literal`, `lparen`), and the previous
+ *   token has to fail `endsOperand` — see that function for why a `word` is
+ *   a conditional case rather than an automatic pass, and not `+`: `pratt.ts`
+ *   has a unary branch for `-` only, so a `+` anchor would never parse and
+ *   would cost up to `maxSpan` wasted attempts per `+` in the input for
+ *   nothing. (If a unary `+` is ever added to the parser, this is the line to
+ *   revisit.) Without the previous-token guard, the binary minus in
+ *   "5 - 3 km" would anchor too — backoff would then be free to build the run
+ *   "- 3 km" starting mid-subtraction, silently changing what a *correct*
+ *   longer match already covers.
  */
-function isAnchor(tokens: readonly Token[], index: number): boolean {
+function isAnchor(tokens: readonly Token[], index: number, registry: Registry): boolean {
   const token = tokens[index];
   if (token === undefined) return false;
   if (token.type === "number" || token.type === "literal") return true;
   if (token.type === "lparen") return true;
-  if (token.type === "op" && (token.op === "-" || token.op === "+")) {
+  if (token.type === "op" && token.op === "-") {
     const next = tokens[index + 1];
     if (next === undefined) return false;
     if (next.type !== "number" && next.type !== "literal" && next.type !== "lparen") {
       return false;
     }
     const previous = tokens[index - 1];
-    return (
-      previous === undefined ||
-      (previous.type !== "number" &&
-        previous.type !== "literal" &&
-        previous.type !== "rparen")
-    );
+    return previous === undefined || !endsOperand(previous, registry);
   }
   return false;
 }
@@ -181,7 +206,7 @@ export class Scanner {
     const out: ScanMatch[] = [];
     let i = 0;
     while (i < tokens.length) {
-      if (!isAnchor(tokens, i)) {
+      if (!isAnchor(tokens, i, this.registry)) {
         i += 1;
         continue;
       }

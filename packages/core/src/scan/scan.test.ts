@@ -188,6 +188,59 @@ test("the binary minus that precedes a unit is left alone", () => {
   expect(spans("5 - 3 km")).toEqual(["5 - 3"]);
 });
 
+test("the binary minus that precedes a unit WORD is also left alone", () => {
+  // The case a plain word/keyword allow-list gets wrong: "km" lexes as a
+  // `word` token, indistinguishable by TYPE from "note" in "note -5 km ok".
+  // Only the registry tells them apart. Before that check existed, "5 km"
+  // parsed as its own mark (correctly), the walk resumed right at the `-`,
+  // and — because a bare `word` was treated as never operand-terminating —
+  // the `-` anchored a fresh unary run, reading "- 3 h" as a NEGATIVE
+  // duration. Two marks are expected either way; what regressed was the sign
+  // on the second one, so its value is asserted, not just its span.
+  const input = "5 km - 3 h";
+  const marks = scanner.run(input, parser);
+  expect(marks.map((m) => input.slice(m.span.start, m.span.end))).toEqual([
+    "5 km",
+    "3 h",
+  ]);
+  const second = marks[1];
+  const resolution = second?.resolutions[0];
+  expect(resolution).toBeDefined();
+  if (second === undefined || resolution === undefined) return;
+  expect(evaluator.run(second.program, resolution).value.canonical.toString()).toBe(
+    "10800",
+  );
+});
+
+test("a carrier word before a leading minus still anchors it", () => {
+  // Pinned separately from the bare "-5 km" case above: this is what killed
+  // the first allow-list attempt at this rule (`op`/`lparen`/`keyword` only)
+  // and what the corpus test actually exercises, since it wraps every row in
+  // "note {row} ok". "note" is an ordinary `word` and not a registered unit
+  // alias, so `endsOperand` must say no and let the `-` anchor.
+  const input = "note -5 km ok";
+  const marks = scanner.run(input, parser);
+  const mark = marks[0];
+  expect(mark).toBeDefined();
+  if (mark === undefined) return;
+  expect(input.slice(mark.span.start, mark.span.end)).toBe("-5 km");
+  const resolution = mark.resolutions[0];
+  expect(resolution).toBeDefined();
+  if (resolution === undefined) return;
+  expect(evaluator.run(mark.program, resolution).value.canonical.toString()).toBe(
+    "-5000",
+  );
+});
+
+test("a leading minus is read as unary even before a markdown bullet's item", () => {
+  // A known limitation, not an accident: there is no lexical way to tell a
+  // list bullet's "- " from a negation, and `engine.evaluate("- 2 kg")`
+  // already reads this as -2 kg on its own — scan agreeing with evaluate is
+  // the consistent answer, not a scan-specific bug to chase. Pinned so a
+  // future reader knows it was considered and left alone deliberately.
+  expect(spans("- 2 kg flour")).toEqual(["- 2 kg"]);
+});
+
 test("a non-breaking space does not collapse every mark onto the whole input", () => {
   // U+00A0 is what pasting from a web page produces. Before the mapSpan fix,
   // NFKC folding made every mark report the entire input as its span, which
