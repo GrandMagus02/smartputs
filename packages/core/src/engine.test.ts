@@ -975,3 +975,47 @@ test("a surface meaning two different keywords across languages fails on boot", 
     }),
   ).toThrow(KeywordConflictError);
 });
+
+test("cues passed to suggest re-rank the readings", () => {
+  // Bare "10 m" ties, and solve's tie-break is `a.kind.localeCompare(b.kind)`,
+  // so `duration` wins unaided. Biasing toward `length` is therefore the only
+  // direction that proves the option is wired: asserting `duration` here would
+  // pass with EvalOptions.cues deleted.
+  const unbiased = engine.suggest("10 m");
+  expect(unbiased[0]?.kind).toBe("duration");
+
+  const ranked = engine.suggest("10 m", { cues: { length: 4 } });
+  expect(ranked[0]?.kind).toBe("length");
+  expect(ranked[1]?.kind).toBe("duration");
+  // The magnitude too, not just the order — see spec §4. Delta 4 through the
+  // softmax is 0.982/0.018.
+  expect(ranked[0]?.confidence).toBeCloseTo(0.982, 3);
+});
+
+test("explain lists cueBonus as its own row when a cue applied", () => {
+  const explained = engine.explain("10 m", { cues: { duration: 3 } });
+  const duration = explained.assignments.find((a) => a.kind === "duration");
+  expect(duration?.contributions).toContainEqual({
+    selector: "cueBonus",
+    value: 3,
+    layer: 0,
+  });
+});
+
+test("explain omits the cueBonus row when no cue applied", () => {
+  // Emitted only when non-zero, following `signature` and not `contextBonus`:
+  // an unconditional row would add `cueBonus: 0` to every explanation in the
+  // repo to say nothing, and would move every recorded parity fixture.
+  const explained = engine.explain("10 m");
+  for (const assignment of explained.assignments) {
+    expect(assignment.contributions.map((c) => c.selector)).not.toContain("cueBonus");
+  }
+});
+
+test("the contribution rows still sum to the score with a cue applied", () => {
+  const explained = engine.explain("10 m", { cues: { duration: 3 } });
+  for (const assignment of explained.assignments) {
+    const sum = assignment.contributions.reduce((total, c) => total + c.value, 0);
+    expect(sum).toBeCloseTo(assignment.score, 10);
+  }
+});

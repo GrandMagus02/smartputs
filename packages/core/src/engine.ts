@@ -128,6 +128,19 @@ export interface EvalOptions {
   locales?: string[];
   weights?: Weights;
   /**
+   * Kind -> weight, added once to a reading whose *result* kind matches — the
+   * term `scan` computes from the words around a mark (spec §5.1).
+   *
+   * Public rather than a private channel `scan` alone can reach, because a
+   * caller who already knows their domain can say the same thing directly:
+   * `suggest("10 m", { cues: { duration: 3 } })` gets exactly the bias scan
+   * would have computed from a nearby "in". It is what makes `scan` a
+   * segmenter over public machinery rather than a second engine.
+   *
+   * Unlike `weights`, this is a small scale: see `CUE_CEILING`.
+   */
+  cues?: Readonly<Record<KindId, number>>;
+  /**
    * Per-call output language, overriding `EngineOptions.format`. Must name an
    * installed locale.
    *
@@ -445,6 +458,9 @@ function toExplanation(
           ...(a.signatureWeight === 0
             ? []
             : [{ selector: "signature", value: a.signatureWeight, layer: 0 }]),
+          ...(a.cueBonus === 0
+            ? []
+            : [{ selector: "cueBonus", value: a.cueBonus, layer: 0 }]),
         ],
       };
     }),
