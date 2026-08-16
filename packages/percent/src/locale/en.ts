@@ -38,5 +38,19 @@ export default defineVocabulary({
   units: {
     "%": { aliases: alias("%"), symbol: "%" },
   },
+  // Weights are single digits, clamped per kind per mark by `CUE_CEILING`
+  // (4) -- see `duration`'s table for the derivation. A cue ranks readings
+  // that already exist; none of these can turn a bare number into a
+  // percentage on its own.
+  //
+  // `off` is deliberately absent: it is core's `off` operator
+  // (`@smartput/core`'s `en` locale keywords), and "20 off" backs off to a
+  // bare `20`, putting `off` *outside* the mark -- exactly where a percent
+  // cue would silently turn a plain number into a percentage, which spec §9
+  // forbids. `discount` was checked and kept: the only grep hit against it is
+  // a core comment recording that "discount" was deliberately *not* made a
+  // spelling of `off`, not a real collision. `rate` earns 1 rather than more
+  // for the same weak-evidence reason `from` and `long` earn 1 in `length`'s
+  // table.
   cues: { discount: 3, increase: 2, growth: 2, share: 2, rate: 1 },
 });

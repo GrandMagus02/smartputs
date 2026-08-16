@@ -47,6 +47,20 @@ const temperatureEn: readonly Vocabulary[] = [
       f: { aliases: alias("f"), symbol: "°F" },
       k: { aliases: alias("k"), symbol: "K" },
     },
+    // Weights are single digits, clamped per kind per mark by `CUE_CEILING`
+    // (4) -- see `duration`'s table for the derivation. A cue ranks readings
+    // that already exist; it cannot turn a bare number into a temperature.
+    //
+    // `degrees` is deliberately absent: it is an alias of the `angle` kind
+    // (`@smartput/angle`'s vocabulary), so it is the word most likely to sit
+    // *inside* an angle mark rather than beside a temperature one, and as a
+    // cue here it would fight the reading it should leave alone.
+    //
+    // The temperature/tempdelta split looks like it should be this table's
+    // live case, but it measures out inert: "200 c" already resolves
+    // temperature at confidence 1.000 against tempdelta's 0.000, and no cue
+    // weight up to the ceiling moves it. `tempdelta`, below, carries no table
+    // of its own for that reason.
     cues: { hot: 3, cold: 3, warm: 2, oven: 3, fever: 3, forecast: 2 },
   }),
   defineVocabulary({

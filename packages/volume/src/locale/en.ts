@@ -50,5 +50,15 @@ export default defineVocabulary({
       forms: { one: "pint", other: "pints" },
     },
   },
+  // Weights are single digits, clamped per kind per mark by `CUE_CEILING`
+  // (4) -- see `duration`'s table for the derivation. A cue ranks readings
+  // that already exist; none of these can turn a bare number into a volume.
+  //
+  // `litres` is deliberately absent even though it reads like the most
+  // natural volume cue: it is this kind's own unit alias (see `l`'s `forms`
+  // above), and a unit alias sitting beside a quantity is a second quantity,
+  // not context. With `BUILTIN_KINDS` alone volume has no ambiguous surface,
+  // so this table cannot move a ranking today; it goes live once a kind with
+  // an overlapping alias ships.
   cues: { pour: 3, bottle: 3, tank: 3, recipe: 2, capacity: 3 },
 });

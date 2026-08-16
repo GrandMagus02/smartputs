@@ -48,5 +48,14 @@ export default defineVocabulary({
       forms: { one: "acre", other: "acres" },
     },
   },
+  // Weights are single digits, clamped per kind per mark by `CUE_CEILING`
+  // (4) -- see `duration`'s table for the derivation. A cue ranks readings
+  // that already exist; none of these can turn a bare number into an area.
+  //
+  // Nothing here collided with area's own aliases or another kind's, so
+  // there is no drop to record. With `BUILTIN_KINDS` alone area has no
+  // ambiguous surface, so this table cannot move a ranking today; it is
+  // wired into the cue index and goes live once a kind with an overlapping
+  // alias ships.
   cues: { floor: 2, plot: 3, garden: 2, surface: 3, covers: 2 },
 });

@@ -55,5 +55,13 @@ export default defineVocabulary({
       forms: { one: "horsepower", other: "horsepower" },
     },
   },
+  // Weights are single digits, clamped per kind per mark by `CUE_CEILING`
+  // (4) -- see `duration`'s table for the derivation. A cue ranks readings
+  // that already exist; none of these can turn a bare number into a power.
+  //
+  // No word collided with power's own aliases or another kind's here either.
+  // With `BUILTIN_KINDS` alone power has no ambiguous surface, so this table
+  // cannot move a ranking today; it goes live once a kind with an overlapping
+  // alias ships.
   cues: { engine: 3, motor: 3, output: 2, draws: 2, rated: 2 },
 });

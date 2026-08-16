@@ -72,5 +72,16 @@ export default defineVocabulary({
       forms: { one: "tebibyte", other: "tebibytes" },
     },
   },
+  // Weights are single digits, clamped per kind per mark by `CUE_CEILING`
+  // (4) -- see `duration`'s table for the derivation. A cue ranks readings
+  // that already exist; none of these can turn a bare number into a
+  // datasize.
+  //
+  // No word collided with datasize's own aliases or another kind's, so
+  // nothing was dropped or second-guessed here. With `BUILTIN_KINDS` alone
+  // datasize has no ambiguous surface -- "5 mb" already resolves at
+  // confidence 1.000 -- so this table cannot move a ranking today; it is
+  // wired into the cue index and goes live once a kind with an overlapping
+  // alias ships.
   cues: { file: 3, download: 2, upload: 2, disk: 3, storage: 3, ram: 3, quota: 2 },
 });

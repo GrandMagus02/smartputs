@@ -47,5 +47,18 @@ export default defineVocabulary({
     oz: { aliases: alias("oz"), symbol: "oz", forms: { one: "ounce", other: "ounces" } },
     lb: { aliases: alias("lb"), symbol: "lb", forms: { one: "pound", other: "pounds" } },
   },
+  // Weights are single digits, clamped per kind per mark by `CUE_CEILING`
+  // (4) so that even a saturated table reports the losing reading's odds
+  // rather than erasing them -- see `duration`'s table for the derivation. A
+  // cue ranks readings that already exist; none of these can turn a bare
+  // number into a mass.
+  //
+  // No word here was dropped and none was a false-positive collision to
+  // record. With `BUILTIN_KINDS` alone, though, mass has no ambiguous
+  // surface -- "5 kg" already resolves at confidence 1.000 -- so this table
+  // cannot move a ranking today. It is wired into `registry.cueIndex` (which
+  // `cues.test.ts` asserts) and goes live once a kind with an overlapping
+  // alias -- `@smartput/geo`, `@smartput/datetime`, `@smartput/rate` -- is
+  // installed.
   cues: { weighs: 4, weight: 4, heavy: 3, lifts: 2, parcel: 2, luggage: 3 },
 });

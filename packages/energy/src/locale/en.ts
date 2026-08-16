@@ -64,5 +64,15 @@ export default defineVocabulary({
       forms: { one: "btu", other: "btus" },
     },
   },
+  // Weights are single digits, clamped per kind per mark by `CUE_CEILING`
+  // (4) -- see `duration`'s table for the derivation. A cue ranks readings
+  // that already exist; none of these can turn a bare number into an energy.
+  //
+  // `calories` is deliberately absent, for the same reason as volume's
+  // `litres`: it is this kind's own unit alias (see `cal`'s `forms` above),
+  // and a unit alias beside a quantity is a second quantity, not context.
+  // With `BUILTIN_KINDS` alone energy has no ambiguous surface, so this table
+  // cannot move a ranking today; it goes live once a kind with an overlapping
+  // alias ships.
   cues: { consumed: 3, battery: 3, burned: 2, bill: 2 },
 });

@@ -43,6 +43,20 @@ export default defineVocabulary({
     d: { aliases: alias("d"), symbol: "d", forms: { one: "day", other: "days" } },
     wk: { aliases: alias("wk"), symbol: "wk", forms: { one: "week", other: "weeks" } },
   },
+  // Weights are single digits; `CUE_CEILING` (4, `core/src/scan/cues.ts`)
+  // clamps the summed weight per kind per mark, and the softmax in
+  // `solve/solver.ts` turns a difference of 4 into 0.982 against 0.018 --
+  // decisive, but short of claiming the losing reading does not exist. A cue
+  // ranks readings that already exist; it can never turn a bare number into a
+  // duration.
+  //
+  // `in` reaches the cue index even though `lex` folds it into a `keyword`
+  // token rather than a `word` token -- `scan/cues.ts`'s `cueSurface` slices
+  // the normalized source for exactly that case, on purpose. It is also the
+  // cue that carries this table's one live effect in `BUILTIN_KINDS`: `m` is
+  // the only surface ambiguous across kinds (duration's minute against
+  // length's metre), and `in`/`time`/`in` saturating at the ceiling is what
+  // resolves "Will be in time in 5m" to duration instead of a tie.
   cues: {
     in: 3,
     within: 3,

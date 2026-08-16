@@ -45,5 +45,15 @@ export default defineVocabulary({
       forms: { one: "knot", other: "knots" },
     },
   },
+  // Weights are single digits, clamped per kind per mark by `CUE_CEILING`
+  // (4) -- see `duration`'s table for the derivation. A cue ranks readings
+  // that already exist; none of these can turn a bare number into a speed.
+  //
+  // `speed` itself was checked against this kind's own unit aliases (`mps`,
+  // `kph`, `kmh`, `mph`, `knot`, `knots`, `kt`) and kept -- the apparent
+  // collision a grep turns up is the kind id, `kind: "speed"`, not a unit
+  // alias. With `BUILTIN_KINDS` alone speed has no ambiguous surface, so this
+  // table cannot move a ranking today; it goes live once a kind with an
+  // overlapping alias ships.
   cues: { speed: 4, fast: 3, limit: 2, driving: 2, wind: 2, pace: 2 },
 });

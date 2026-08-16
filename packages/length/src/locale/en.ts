@@ -81,6 +81,20 @@ export default defineVocabulary({
     yd: { aliases: alias("yd"), symbol: "yd", forms: { one: "yard", other: "yards" } },
     mi: { aliases: alias("mi"), symbol: "mi", forms: { one: "mile", other: "miles" } },
   },
+  // Weights are single digits, and `CUE_CEILING` (4) clamps the summed weight
+  // per kind per mark -- a difference of 4 comes out 0.982 against 0.018 in
+  // the solver's softmax, decisive without claiming the losing reading is
+  // impossible. A cue ranks readings that already exist; it cannot admit a
+  // bare number as a length.
+  //
+  // `away` is this table's one live cue in `BUILTIN_KINDS`: `m` is the only
+  // surface ambiguous across kinds (length's metre against duration's
+  // minute), and `away` at weight 4 is what resolves "my house is 5 m away"
+  // to length instead of a 0.500/0.500 tie.
+  //
+  // `from` and `long` earn 1 rather than more because each argues for length
+  // only weakly -- "5 minutes from now" is at least as common as "5 km from
+  // work", and "how long" asks about duration as often as distance.
   cues: {
     away: 4,
     far: 3,
