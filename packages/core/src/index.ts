@@ -115,7 +115,7 @@ export { Printer } from "./print/print";
 // The segmenter behind `engine.scan`, exposed for the same reason `Solver` and
 // `Parser` are: a caller who wants marks without formatted readings can drive
 // it directly, and a plugin can see what a cue did without an engine.
-export type { CueHit } from "./scan/cues";
+export type { CollectCuesArgs, CueHit } from "./scan/cues";
 export { CUE_CEILING, collectCues } from "./scan/cues";
 export type { ScanMatch, ScannerOptions, ScanScope } from "./scan/scan";
 export { DEFAULT_CUE_WINDOW, DEFAULT_MAX_SPAN, Scanner } from "./scan/scan";
