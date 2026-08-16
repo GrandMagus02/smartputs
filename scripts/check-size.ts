@@ -539,12 +539,22 @@ export const BUDGETS: EntrySpec[] = [
   // the `Mark`/`Reading`/`CueHit` types it returns are all reachable from
   // `createEngine`, so the growth belongs to core and the facade merely
   // reports it.
+  //
+  // 2026-08-16, the scan-mode fix wave: 83_281 -> 83_714 B min, 30_161 ->
+  // 30_279 B gzip. Three of the wave's fixes are real code, not test-only, and
+  // all three are reachable from `createEngine` the same way scan mode itself
+  // was: `matchAt`'s and `endsOperand`'s shared `gapBreaksRun` (the
+  // punctuation-and-newline gap check backoff was missing), `collectCues`'s
+  // locale-aware fold (`toLocaleLowerCase(locale)` in place of
+  // `.toLowerCase()`), and its per-(token, kind) dedup plus `locales`
+  // forwarding. The growth still belongs to core; the facade still only
+  // reports it.
   {
     label: "smartputs root (the facade over core)",
     from: "smartputs",
     names: ["createEngine"],
-    min: 83_300,
-    gzip: 30_200,
+    min: 83_750,
+    gzip: 30_300,
   },
   {
     label: "kind root (defineKind, with Decimal behind it)",
@@ -641,9 +651,15 @@ export const BUDGETS: EntrySpec[] = [
   // over by a factor of twenty-two, which is precisely the alarm wanted.
   //
   // 2026-08-16, scan mode: 1_519 -> 1_626 B min, 655 -> 735 B gzip. `en.ts`
-  // gained a `cues` table so length's words can argue for a `scan()` mark;
-  // every other kind package's locale is unaffected, which is why this is the
-  // only row in the block that moved.
+  // gained a `cues` table so length's words can argue for a `scan()` mark —
+  // and it is not the only kind package whose `locale/en.ts` did: area,
+  // datasize, duration, energy, mass, percent, power, speed, temperature and
+  // volume all gained one too. This is the only row of the ten-plus-one that
+  // moved because it is the only one with a budget row at all — `length` is
+  // the one kind package this block measures individually (`rate` and
+  // `datetime` are the other two `locale/en` rows below, and neither ships
+  // cues). The other ten grew with no row here to raise, which is a gap in
+  // this file's coverage, not evidence their `en.ts` stayed the same size.
   {
     label: "length/locale/en (a kind's words, no arithmetic)",
     from: "@smartput/length/locale/en",
