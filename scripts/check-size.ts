@@ -154,7 +154,14 @@ function workspacePlugin(map: Map<string, string>): BunPlugin {
   return {
     name: "smartput-workspace",
     setup(build) {
-      build.onResolve({ filter: /^@smartput\// }, (args) => {
+      // Every workspace name is scoped except one. `smartputs` is the unscoped
+      // install name — the thing somebody types who has heard of the project and
+      // not of its package layout — so a filter of `^@smartput/` skipped it, the
+      // bundler fell through to node resolution, and its budget row failed with
+      // "Could not resolve" rather than a number. Anchored with `(?:/|$)` so it
+      // matches the package and its subpaths without also swallowing some future
+      // `smartputs-something`.
+      build.onResolve({ filter: /^(?:@smartput\/|smartputs(?:\/|$))/ }, (args) => {
         const path = map.get(args.path);
         if (path === undefined) {
           throw new Error(
@@ -516,6 +523,23 @@ export const BUDGETS: EntrySpec[] = [
   // — and decimal.js is very nearly the whole of this row. That is what the
   // `boolean` row further down has always been measuring; the extraction only
   // made it visible on its own instead of buried in a kind's total.
+  // The unscoped install name, measured so the facade cannot grow a cost of its
+  // own. Every module in `smartputs` is a re-export of the matching
+  // `@smartput/core` entry, and the measurement says so exactly: the same
+  // `createEngine` import is 78_895 B through either name — identical to the
+  // byte — and 28_643 B against 28_647 B gzipped, a four-byte difference that is
+  // compression noise over a re-export rather than a second copy of anything.
+  //
+  // So this row is an equality check wearing a budget. If it ever climbs away
+  // from core's own number, some module in the facade stopped being a re-export
+  // and started being code.
+  {
+    label: "smartputs root (the facade over core)",
+    from: "smartputs",
+    names: ["createEngine"],
+    min: 78_900,
+    gzip: 28_650,
+  },
   {
     label: "kind root (defineKind, with Decimal behind it)",
     from: "@smartput/kind",

@@ -250,6 +250,49 @@ is what to reach for when a reading is not the one you expected.`,
 adding a kind adds a table and not another copy of the algebra.`,
   }),
 
+  // Deliberately the same six calls core's own example makes, against an engine
+  // built the same way, because the claim this package has to support is that
+  // there is no difference. An example that showed something core's did not
+  // would be describing a façade that had grown a feature.
+  smartputs: async () => ({
+    imports: [
+      'import { composeLocale, createEngine } from "smartputs";',
+      'import { english } from "smartputs/locale/en";',
+      'import { BUILTIN_KINDS } from "@smartput/kinds";',
+      'import BUILTIN_EN from "@smartput/kinds/locale/en";',
+      "",
+      "const engine = createEngine({",
+      "  locales: [composeLocale(english, BUILTIN_EN)],",
+      "  kinds: BUILTIN_KINDS,",
+      "});",
+    ],
+    lines: [
+      'engine.evaluate("1 kg + 500 g").formatted',
+      'engine.evaluate("2 km in m").formatted',
+      'engine.evaluate("20% of 250").formatted',
+    ],
+    scope: async () => ({
+      ...(await src("smartputs", "index.ts")),
+      engine: await builtinEngine(),
+    }),
+    note: `Note what is imported and what is not. \`smartputs\` is the engine and
+nothing else: it depends on \`@smartput/core\` and on nothing further, so the
+\`@smartput/kinds\` line above is not decoration. Installing this package alone
+gets you an engine that cannot read anything — \`createEngine({ locales: [],
+kinds: [] })\` throws \`createEngine requires at least one locale\`, and giving it
+a locale but no kinds gets you \`NoCandidateError: Unknown unit "km"\` on the
+first thing you evaluate.
+
+That is deliberate. Which kinds to register is the one decision nobody can make
+for you, and a convenience package that answered it by pulling all seventeen
+would make the shortest install name the heaviest thing in the repo. So:
+\`bun i smartputs @smartput/kinds\` for everything, or a single kind package if
+that is all you need.
+
+If you only want to validate one kind out of a form field, you want none of
+this: \`@smartput/length/validate\` is 1.5 KB and has no engine in it.`,
+  }),
+
   kind: async () => ({
     imports: [
       'import { decimalRatios, defineKind, defineVocabulary } from "@smartput/kind";',

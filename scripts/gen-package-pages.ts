@@ -98,6 +98,54 @@ same \`name\`/\`code\`/\`input\` shape, no dependency.`,
       ["The `/validate` API", "/api/validate"],
     ],
   },
+  smartputs: {
+    group: "Engine",
+    summary: "The unscoped install name. Everything `@smartput/core` is, under one word.",
+    body: `\`\`\`sh
+bun i smartputs
+\`\`\`
+
+Every subpath, every export and every object identity of
+[\`@smartput/core\`](/packages/core), re-exported under the name someone types
+when they have heard of this project and not of its package layout.
+\`smartputs/locale/en\` is \`@smartput/core/locale/en\`; \`smartputs/solve\` is
+\`@smartput/core/solve\`. There is nothing else in it, and \`parity.test.ts\`
+asserts that subpath by subpath rather than trusting the generator that wrote
+the re-exports.
+
+**Read this part before installing.** This is the engine, and an engine with no
+kinds registered cannot read anything — it fails loudly rather than quietly:
+
+\`\`\`ts
+import { composeLocale, createEngine } from "smartputs";
+import { english } from "smartputs/locale/en";
+
+createEngine({ locales: [], kinds: [] });
+// Error: createEngine requires at least one locale
+
+createEngine({ locales: [composeLocale(english, [])], kinds: [] })
+  .evaluate("2 km in m");
+// NoCandidateError: Unknown unit "km"
+\`\`\`
+
+Which kinds to register is the one decision nobody can make for you, so this
+package does not make it. Add the kinds you want beside it —
+[\`@smartput/length\`](/packages/length) alone, or
+[\`@smartput/kinds\`](/packages/kinds) for all seventeen — and compose a locale:
+
+\`\`\`sh
+bun i smartputs @smartput/kinds
+\`\`\`
+
+If you only want to read one kind out of a form field, you want none of this:
+[\`@smartput/length/validate\`](/packages/length) is 1.5 KB and has no engine in
+it at all.`,
+    see: [
+      ["@smartput/core", "/packages/core"],
+      ["The pipeline", "/guide/pipeline"],
+      ["createEngine", "/api/create-engine"],
+    ],
+  },
   kind: {
     group: "Engine",
     summary: "The layer a kind and a language are written in, with no engine in it.",
@@ -471,6 +519,12 @@ export const DEMOS: Record<string, string> = {
   shared: '<SpValidatedInput kind="length" />',
   // No demo component of its own: what this package does is let *another*
   // package have one. The custom-kind playground is that, run end to end.
+  // The same demo core gets: it is the same engine, reached by a shorter name.
+  smartputs: [
+    '<SpEvaluate model-value="1 kg + 500 g" />',
+    "",
+    '<SpExplain model-value="10 m + 5 min" />',
+  ].join("\n"),
   kind: "<SpCustomKind />",
   kinds: "<SpConvert />",
 

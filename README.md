@@ -20,11 +20,30 @@ than guess silently.
 ## Install
 
 ```sh
-bun add @smartput/core     # or: pnpm add @smartput/core / npm install @smartput/core
+bun i smartputs @smartput/kinds     # the engine, plus every built-in kind
 ```
 
-ESM only, types included. `@smartput/core` ships exactly one runtime dependency,
-`decimal.js` — `bun run check-deps` fails the repo on a second.
+`smartputs` is `@smartput/core` under the name you can remember: same subpaths,
+same exports, same object identities, asserted subpath by subpath in its own
+`parity.test.ts`. Install `@smartput/core` directly if you prefer the scope —
+they are the same package and the byte counts agree exactly.
+
+The second half is not optional. The engine registers no kinds until you give it
+some, so `smartputs` alone throws on the first thing you evaluate. Take
+[`@smartput/kinds`](docs/packages/kinds.md) for all seventeen, or a single
+package like `@smartput/length` if that is all you need.
+
+**If you only want to read one kind out of a form field, install neither.**
+[`@smartput/length/validate`](docs/packages/length.md) is 1.5 KB, has no engine
+in it, and is what most people actually want:
+
+```sh
+bun i @smartput/length
+```
+
+ESM only, types included. `@smartput/core` ships two runtime dependencies —
+`decimal.js` and [`@smartput/kind`](docs/packages/kind.md), the half of core that
+moved out — and `bun run check-deps` fails the repo on a third.
 
 ## Build an engine
 
@@ -143,7 +162,9 @@ page under [`docs/packages/`](docs/packages/).
 
 | Package | |
 | --- | --- |
+| [`smartputs`](docs/packages/smartputs.md) | The unscoped install name. Everything `@smartput/core` is, under one word. |
 | [`@smartput/core`](docs/packages/core.md) | The engine: normalize, tokenize, parse, solve, eval, print. |
+| [`@smartput/kind`](docs/packages/kind.md) | The layer a kind and a language are written in, with no engine in it. |
 | [`@smartput/kinds`](docs/packages/kinds.md) | Every built-in kind, its vocabulary, and the two barrels over them. |
 | [`@smartput/shared`](docs/packages/shared.md) | The micro path: one parser, one algebra, one value-class factory. |
 | [`@smartput/number`](docs/packages/number.md) | The unitless kind, and the one that accepts a bare number. |

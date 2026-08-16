@@ -148,6 +148,22 @@ const ALLOWED: Record<string, string[]> = {
   // first one would mean decimal.js or core leaked into a 600-byte budget.
   "packages/shared/package.json": [],
 
+  // The unscoped install name. `bun i smartputs` is what somebody types who has
+  // heard of this project and not of its package layout, and every module in it
+  // is a generated re-export of the matching `@smartput/core` entry — same
+  // subpaths, same names, same object identities, asserted subpath by subpath in
+  // its own `parity.test.ts`.
+  //
+  // One edge, to core, and it is the whole design rather than a starting point.
+  // A façade that also pulled `@smartput/kinds` would make `bun i smartputs`
+  // work out of the box and would be the wrong trade: kinds is every built-in
+  // kind and its vocabularies, so the convenient name would become the heaviest
+  // install in the repo, and the person who wanted one kind would have no way
+  // down from it. The engine is the part that is the same for everybody; which
+  // kinds to register is the decision only the consumer can make. That is why
+  // its README opens by saying `createEngine()` with no kinds parses nothing.
+  "packages/smartputs/package.json": ["@smartput/core"],
+
   // One package per language (spec §10). It is the words-free half — analyzers,
   // cardinals, keywords, plural selection, render defaults — so it names no kind
   // package at all: a vocabulary reaches its language through `composeLocale`,
