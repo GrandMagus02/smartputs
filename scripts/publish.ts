@@ -34,6 +34,7 @@ import {
  *   bun run publish-packages --only @smartput/kind,@smartput/shared
  *   bun run publish-packages --version 0.1.0     # stamp a first version everywhere
  *   bun run publish-packages --ci                # token from NPM_TOKEN, no prompts
+ *   bun run publish-packages --no-open           # do not open the token page
  */
 
 const REGISTRY = "https://registry.npmjs.org";
@@ -41,6 +42,8 @@ const FIRST_VERSION = "0.1.0";
 
 interface Args {
   dryRun: boolean;
+  /** Open npm’s token page in a browser before the first prompt. */
+  open: boolean;
   ci: boolean;
   skipChecks: boolean;
   only: string[] | undefined;
@@ -51,6 +54,7 @@ interface Args {
 function parseArgs(argv: string[]): Args {
   const args: Args = {
     dryRun: argv.includes("--dry-run"),
+    open: !argv.includes("--no-open"),
     ci: argv.includes("--ci"),
     skipChecks: argv.includes("--skip-checks"),
     only: undefined,
@@ -124,6 +128,78 @@ async function promptSecret(label: string): Promise<string> {
     };
     stdin.on("data", onData);
   });
+}
+
+/**
+ * Who npm thinks you are, from whatever config is already on this machine.
+ *
+ * Only ever used to build a URL, so a failure is not one: an unauthenticated
+ * shell gets the generic page and types its own username once, which is a
+ * better outcome than refusing to help because we could not personalise a link.
+ */
+async function npmUsername(): Promise<string | undefined> {
+  const { stdout, exitCode } = await run(
+    ["npm", "whoami", "--registry", REGISTRY],
+    rootDir,
+  );
+  const name = stdout.trim();
+  return exitCode === 0 && name ? name : undefined;
+}
+
+/**
+ * Opens a URL in whatever the platform calls a browser, and does not care if it
+ * cannot. Over SSH, in a container, or on a box with no desktop there is
+ * nothing to open — the URL is printed either way, which is the half that has
+ * to work.
+ */
+async function openUrl(url: string): Promise<boolean> {
+  const cmd =
+    process.platform === "darwin"
+      ? ["open", url]
+      : process.platform === "win32"
+        ? ["cmd", "/c", "start", "", url]
+        : ["xdg-open", url];
+  try {
+    const proc = Bun.spawn(cmd, { stdout: "ignore", stderr: "ignore" });
+    return (await proc.exited) === 0;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Points a browser at npm's token page, once per run, just before the first
+ * token is asked for.
+ *
+ * Once, not per package: the prompt loop reuses the last token on an empty
+ * line, so a run that opened a tab for each of 38 packages would be punishing
+ * the ergonomic path. And lazily rather than up front, because a rerun that
+ * finds everything already published never asks for a token at all and should
+ * not steal focus to say so.
+ *
+ * The "All packages" line is not a style note. npm's granular tokens scope to a
+ * list of packages that already exist, so on a first publish there is nothing
+ * to select and a scoped token 403s on every one of them — the failure reads as
+ * an auth problem and is really a chicken-and-egg one.
+ */
+async function offerTokenPage(): Promise<void> {
+  const user = await npmUsername();
+  const url = user
+    ? `https://www.npmjs.com/settings/${user}/tokens/granular-access-tokens/new`
+    : "https://www.npmjs.com/login?next=/settings";
+
+  console.log("\n  a token is needed. npm's token page:");
+  console.log(`    ${url}`);
+  if (user === undefined) {
+    console.log("    (not logged in here — sign in, then Access Tokens → Generate)");
+  }
+  console.log(
+    "    for a FIRST publish choose Packages and scopes → All packages: a granular",
+  );
+  console.log("    token lists packages that already exist, and none of these do yet.");
+  if (!(await openUrl(url))) {
+    console.log("    (could not open a browser — copy the link above)");
+  }
 }
 
 /** A visible line, for answers that are not secrets. */
@@ -319,6 +395,7 @@ async function main() {
   }
 
   let lastToken = "";
+  let offeredTokenPage = false;
   const done: StagedPackage[] = [];
   const skipped: string[] = [];
   const failed: string[] = [];
@@ -333,6 +410,10 @@ async function main() {
     console.log(`\n${pkg.name}@${pkg.version}`);
     let token = ciToken;
     if (!args.ci) {
+      if (args.open && !offeredTokenPage) {
+        offeredTokenPage = true;
+        await offerTokenPage();
+      }
       token = await promptSecret(
         `  npm token for ${pkg.name}${lastToken ? " (empty reuses the last one)" : ""}: `,
       );
