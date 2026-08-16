@@ -45,4 +45,5 @@ export default defineVocabulary({
       forms: { one: "knot", other: "knots" },
     },
   },
+  cues: { speed: 4, fast: 3, limit: 2, driving: 2, wind: 2, pace: 2 },
 });

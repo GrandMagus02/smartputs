@@ -50,4 +50,5 @@ export default defineVocabulary({
       forms: { one: "pint", other: "pints" },
     },
   },
+  cues: { pour: 3, bottle: 3, tank: 3, recipe: 2, capacity: 3 },
 });

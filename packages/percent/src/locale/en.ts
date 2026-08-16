@@ -38,4 +38,5 @@ export default defineVocabulary({
   units: {
     "%": { aliases: alias("%"), symbol: "%" },
   },
+  cues: { discount: 3, increase: 2, growth: 2, share: 2, rate: 1 },
 });

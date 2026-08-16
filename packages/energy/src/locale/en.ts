@@ -64,4 +64,5 @@ export default defineVocabulary({
       forms: { one: "btu", other: "btus" },
     },
   },
+  cues: { consumed: 3, battery: 3, burned: 2, bill: 2 },
 });

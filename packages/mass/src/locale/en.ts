@@ -47,4 +47,5 @@ export default defineVocabulary({
     oz: { aliases: alias("oz"), symbol: "oz", forms: { one: "ounce", other: "ounces" } },
     lb: { aliases: alias("lb"), symbol: "lb", forms: { one: "pound", other: "pounds" } },
   },
+  cues: { weighs: 4, weight: 4, heavy: 3, lifts: 2, parcel: 2, luggage: 3 },
 });

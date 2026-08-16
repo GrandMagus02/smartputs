@@ -72,4 +72,5 @@ export default defineVocabulary({
       forms: { one: "tebibyte", other: "tebibytes" },
     },
   },
+  cues: { file: 3, download: 2, upload: 2, disk: 3, storage: 3, ram: 3, quota: 2 },
 });

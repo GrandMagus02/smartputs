@@ -47,6 +47,7 @@ const temperatureEn: readonly Vocabulary[] = [
       f: { aliases: alias("f"), symbol: "°F" },
       k: { aliases: alias("k"), symbol: "K" },
     },
+    cues: { hot: 3, cold: 3, warm: 2, oven: 3, fever: 3, forecast: 2 },
   }),
   defineVocabulary({
     locale: "en",

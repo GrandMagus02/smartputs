@@ -48,4 +48,5 @@ export default defineVocabulary({
       forms: { one: "acre", other: "acres" },
     },
   },
+  cues: { floor: 2, plot: 3, garden: 2, surface: 3, covers: 2 },
 });

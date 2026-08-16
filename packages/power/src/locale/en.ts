@@ -55,4 +55,5 @@ export default defineVocabulary({
       forms: { one: "horsepower", other: "horsepower" },
     },
   },
+  cues: { engine: 3, motor: 3, output: 2, draws: 2, rated: 2 },
 });
