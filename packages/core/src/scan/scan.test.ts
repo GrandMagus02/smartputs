@@ -2,9 +2,12 @@ import { expect, test } from "bun:test";
 import { english as en } from "@smartput/core/locale/en";
 import { BUILTIN_KINDS } from "@smartput/kinds";
 import BUILTIN_EN from "@smartput/kinds/locale/en";
+import BUILTIN_TR from "@smartput/kinds/locale/tr";
+import { createEngine } from "../engine";
 import { Evaluator } from "../eval/evaluator";
 import { buildRegistry } from "../kind/registry";
 import { composeLocale } from "../locale/compose";
+import { turkish } from "../locale/tr";
 import { defineVocabulary } from "../locale/vocabulary";
 import { createResolver } from "../parse/candidates";
 import { Normalizer } from "../parse/normalize";
@@ -35,6 +38,7 @@ const scanner = new Scanner({
   tokenizer: new Tokenizer({ locale, locales: [locale], registry }),
   solver: new Solver({ registry }),
   registry,
+  locale: locale.id,
 });
 
 const spans = (input: string) =>
@@ -212,6 +216,44 @@ test("the binary minus that precedes a unit WORD is also left alone", () => {
   );
 });
 
+test("a comma between a unit and the next sign still lets the sign anchor", () => {
+  // `lex` silently drops characters it does not recognize — a comma among
+  // them — so it exists nowhere in the token stream and "5 km, -3 C" tokenizes
+  // with the same TYPES as "5 km -3 C". Only the normalized text between the
+  // two tokens' spans still has the comma, which is what says "km" closed a
+  // CLAUSE here rather than an operand the sign continues subtracting from.
+  // Regression: an earlier version of this rule checked only token types and
+  // read "km" as always operand-terminating, which silently flipped this
+  // mark's sign to positive — a wrong answer `evaluate()` never gives, since
+  // `evaluate("5 km, -3 C outside")` throws rather than reading it at all.
+  const input = "I ran 5 km, -3 C outside";
+  const marks = scanner.run(input, parser);
+  expect(marks.map((m) => input.slice(m.span.start, m.span.end))).toEqual([
+    "5 km",
+    "-3 C",
+  ]);
+  const second = marks[1];
+  const resolution = second?.resolutions[0];
+  expect(resolution).toBeDefined();
+  if (second === undefined || resolution === undefined) return;
+  expect(evaluator.run(second.program, resolution).value.canonical.toString()).toBe("-3");
+});
+
+test("a full stop between a unit and the next sign still lets the sign anchor", () => {
+  // Same shape as the comma case, different clause-ending character.
+  const input = "I ran 5 km. -3 C outside";
+  const marks = scanner.run(input, parser);
+  expect(marks.map((m) => input.slice(m.span.start, m.span.end))).toEqual([
+    "5 km",
+    "-3 C",
+  ]);
+  const second = marks[1];
+  const resolution = second?.resolutions[0];
+  expect(resolution).toBeDefined();
+  if (second === undefined || resolution === undefined) return;
+  expect(evaluator.run(second.program, resolution).value.canonical.toString()).toBe("-3");
+});
+
 test("a carrier word before a leading minus still anchors it", () => {
   // Pinned separately from the bare "-5 km" case above: this is what killed
   // the first allow-list attempt at this rule (`op`/`lparen`/`keyword` only)
@@ -239,6 +281,26 @@ test("a leading minus is read as unary even before a markdown bullet's item", ()
   // the consistent answer, not a scan-specific bug to chase. Pinned so a
   // future reader knows it was considered and left alone deliberately.
   expect(spans("- 2 kg flour")).toEqual(["- 2 kg"]);
+});
+
+test("the unit-alias fold in endsOperand is locale-aware, not just en's own", () => {
+  // "DAKİKA".toLowerCase() is "daki̇ka" (a dotted lowercase i survives the
+  // uppercase dotted İ), which misses `registry.aliasIndex`'s entry for
+  // "dakika" — folded at build time with `toLocaleLowerCase("tr")`, which
+  // correctly produces "dakika". A plain `.toLowerCase()` in `endsOperand`
+  // would misread "DAKİKA" as ordinary prose rather than a unit, making the
+  // `-` that follows anchor a fresh unary run — the same sign-flip bug as
+  // the punctuation-gap case above, triggered by a fold mismatch instead of
+  // a missed comma. Built through `createEngine`, not the module-level
+  // English `scanner`, because the bug is specific to a `tr` format locale.
+  const engine = createEngine({
+    locales: [composeLocale(turkish, BUILTIN_TR)],
+    kinds: BUILTIN_KINDS,
+    format: "tr",
+  });
+  const marks = engine.scan("5 DAKİKA - 3 kb");
+  expect(marks.map((m) => m.text)).toEqual(["5 DAKİKA", "3 kb"]);
+  expect(marks[1]?.readings[0]?.value.canonical.toString()).toBe("3000");
 });
 
 test("a non-breaking space does not collapse every mark onto the whole input", () => {

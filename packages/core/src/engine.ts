@@ -317,7 +317,7 @@ function buildStages(opts: EngineOptions, registry: Registry, format: Locale) {
     // `Scanner` only ever calls `solver.all()`, which applies neither
     // `tiebreak` nor `ambiguityEpsilon` — so sharing the configured instance
     // costs nothing and keeps one solver per engine.
-    scanner: new Scanner({ tokenizer, solver, registry }),
+    scanner: new Scanner({ tokenizer, solver, registry, locale: format.id }),
     evaluator: newEvaluator(opts, registry, format, opts.comparePrecision),
     printer: newPrinter(opts, registry, format),
   };

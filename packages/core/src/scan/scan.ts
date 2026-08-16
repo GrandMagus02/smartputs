@@ -29,6 +29,13 @@ export interface ScannerOptions {
   tokenizer: Tokenizer;
   solver: Solver;
   registry: Registry;
+  /**
+   * The engine's format locale id, needed only to case-fold a `word` token's
+   * text the same way `registry.aliasIndex`'s keys were folded when it was
+   * built — see `endsOperand` for why an ordinary `.toLowerCase()` is not
+   * good enough.
+   */
+  locale: string;
 }
 
 export interface ScanScope {
@@ -65,38 +72,62 @@ export interface ScanMatch {
 
 /**
  * True when `token` is something a parsed expression can END on — i.e. its
- * presence right before a `-` makes that `-` binary rather than unary.
+ * presence right before `sign` makes `sign` binary rather than unary.
  *
- * `number`, `literal`, and `rparen` are always this: nothing else can follow
- * them to extend the same operand. A `word` is a *conditional* case, and the
- * one this function exists to get right: unit aliases lex as plain `word`
- * tokens the same as any other prose word (`lex.ts`'s token union has no
- * separate "unit" case), so "5 km" is `number` `word`, exactly the same shape
- * as "note -5" is `word` `op`. Only the registry can tell the two apart —
- * `km` is indexed in `registry.aliasIndex`, `note` is not — which is why this
- * needs a `Registry` and cannot be a check on token type alone. Getting the
- * `word` case wrong is precisely the bug being fixed here: treating a unit
- * word as never operand-terminating (an early version of this fix did) makes
- * "5 km - 3 h" anchor a fresh unary run at the `-`, reading "- 3 h" as a
- * negative duration instead of leaving the `-` as the binary subtraction of a
- * length from a length... except the two operands are different kinds, so
- * what the caller actually gets is two marks, the second silently
- * sign-flipped — the exact defect class this task was opened to remove,
- * relocated from `-5 km` to `5 km - 3 h`.
+ * Two things can make that true, and both have to hold: `token` must abut
+ * `sign` with nothing but spaces between them, and `token`'s own type/text
+ * must be operand-shaped.
  *
- * Case-folded with plain `.toLowerCase()`, not the locale-aware
- * `toLocaleLowerCase(localeId)` `Tokenizer`'s own `isUnitAlias` uses: this is
- * a cheap gate on whether backoff even attempts treating a sign as unary, not
- * a resolution — `matchAt`'s real parse-then-solve is what actually decides
- * whether a match sticks, so a rare locale-fold mismatch here (Turkish
- * dotless i, mainly) costs at most one wrong anchor guess, not a wrong
- * answer.
+ * The gap check comes first and can veto the type check outright. `lex`
+ * silently drops characters it does not recognize — a comma, a full stop —
+ * so they exist nowhere in the token stream and can only be seen in the
+ * normalized *text* between two tokens' spans. `"5 km, -3 C"` and
+ * `"5 km. -3 C"` tokenize identically to `"5 km -3 C"` as far as token TYPES
+ * go, but the first two end a clause at the comma/full stop while the third
+ * does not — the `-` starts a new quantity in the first two, and continues
+ * subtracting from the same one in the third. `cues.ts`'s `broken` reads
+ * sentence boundaries out of the same gap for the same reason: the token
+ * stream cannot express punctuation, only the source text between spans can.
+ * Skipping this check was a real regression the first version of this
+ * function shipped with — `"I ran 5 km, -3 C outside"` silently flipped the
+ * second mark's sign, the exact defect class this whole rule exists to
+ * remove, because `endsOperand` said "km ends an operand" without noticing a
+ * comma sat between `km` and the sign.
+ *
+ * The type check, once the gap is clear: `number`, `literal`, and `rparen`
+ * always end an operand — nothing else can follow them to extend the same
+ * one. A `word` is *conditional*, and the reason this function needs a
+ * `Registry` at all: unit aliases lex as plain `word` tokens the same as any
+ * other prose word (`lex.ts`'s token union has no separate "unit" case), so
+ * "5 km" is `number` `word`, exactly the same shape as "note -5" is `word`
+ * `op`. Only the registry can tell `km` (indexed) from `note` (not) apart.
+ * Case-folded with `toLocaleLowerCase(localeId)`, matching exactly how
+ * `registry.ts` folded the alias keys it is compared against
+ * (`alias.toLocaleLowerCase(localeId)`) and how `Tokenizer`'s own
+ * `isUnitAlias` looks them up — a plain `.toLowerCase()` disagrees with that
+ * fold for `tr`/`az`/`lt` aliases containing `i`/`I` (`"DAKİKA".toLowerCase()`
+ * is `"daki̇ka"`, an index miss; `toLocaleLowerCase("tr")` is `"dakika"`, a
+ * hit), and getting this wrong is not a harmless wasted guess: a missed hit
+ * makes a genuine unit word look like ordinary prose, which is exactly the
+ * shape of bug the gap check above exists to fix, just triggered by a fold
+ * mismatch instead of a missing punctuation check.
  */
-function endsOperand(token: Token, registry: Registry): boolean {
+function endsOperand(
+  token: Token | undefined,
+  sign: Token,
+  text: string,
+  registry: Registry,
+  localeId: string,
+): boolean {
+  if (token === undefined) return false;
+  if (/\S/.test(text.slice(token.end, sign.start))) return false;
   if (token.type === "number" || token.type === "literal" || token.type === "rparen") {
     return true;
   }
-  return token.type === "word" && registry.aliasIndex.has(token.text.toLowerCase());
+  return (
+    token.type === "word" &&
+    registry.aliasIndex.has(token.text.toLocaleLowerCase(localeId))
+  );
 }
 
 /**
@@ -114,16 +145,35 @@ function endsOperand(token: Token, registry: Registry): boolean {
  * - an `op` of `-` in UNARY position: the next token has to be something a
  *   sign can attach to (`number`, `literal`, `lparen`), and the previous
  *   token has to fail `endsOperand` — see that function for why a `word` is
- *   a conditional case rather than an automatic pass, and not `+`: `pratt.ts`
- *   has a unary branch for `-` only, so a `+` anchor would never parse and
- *   would cost up to `maxSpan` wasted attempts per `+` in the input for
- *   nothing. (If a unary `+` is ever added to the parser, this is the line to
- *   revisit.) Without the previous-token guard, the binary minus in
- *   "5 - 3 km" would anchor too — backoff would then be free to build the run
- *   "- 3 km" starting mid-subtraction, silently changing what a *correct*
- *   longer match already covers.
+ *   a conditional case rather than an automatic pass, and why the gap
+ *   between the two tokens matters as much as their types, and not `+`:
+ *   `pratt.ts` has a unary branch for `-` only, so a `+` anchor would never
+ *   parse and would cost up to `maxSpan` wasted attempts per `+` in the
+ *   input for nothing. (If a unary `+` is ever added to the parser, this is
+ *   the line to revisit.) Without the previous-token guard, the binary minus
+ *   in "5 - 3 km" would anchor too — backoff would then be free to build the
+ *   run "- 3 km" starting mid-subtraction, silently changing what a
+ *   *correct* longer match already covers.
+ *
+ * Two related shapes still lose a sign, and neither is fixable at this
+ * layer: "- 2 kg flour" reads as -2kg because there is no lexical way to
+ * tell a markdown bullet's "- " from a negation — `engine.evaluate("- 2
+ * kg")` already agrees, so scan matching it is the consistent answer, not a
+ * bug to chase. And "the min -5 km" reads +5km because `min` genuinely is a
+ * registered alias (of `duration`'s minute) sitting where ordinary prose
+ * happens to be — `endsOperand` cannot distinguish "the word before the sign
+ * IS a unit, used as a unit" from "the word before the sign IS a unit,
+ * used as an ordinary noun", because nothing in the token stream marks the
+ * difference. Both are real ambiguities of the input, not defects in this
+ * function.
  */
-function isAnchor(tokens: readonly Token[], index: number, registry: Registry): boolean {
+function isAnchor(
+  tokens: readonly Token[],
+  index: number,
+  text: string,
+  registry: Registry,
+  localeId: string,
+): boolean {
   const token = tokens[index];
   if (token === undefined) return false;
   if (token.type === "number" || token.type === "literal") return true;
@@ -135,7 +185,7 @@ function isAnchor(tokens: readonly Token[], index: number, registry: Registry): 
       return false;
     }
     const previous = tokens[index - 1];
-    return previous === undefined || !endsOperand(previous, registry);
+    return !endsOperand(previous, token, text, registry, localeId);
   }
   return false;
 }
@@ -175,12 +225,14 @@ export class Scanner {
   private readonly tokenizer: Tokenizer;
   private readonly solver: Solver;
   private readonly registry: Registry;
+  private readonly locale: string;
 
   constructor(cfg: ScannerOptions) {
     this.normalizer = cfg.normalizer ?? new Normalizer();
     this.tokenizer = cfg.tokenizer;
     this.solver = cfg.solver;
     this.registry = cfg.registry;
+    this.locale = cfg.locale;
     Object.freeze(this);
   }
 
@@ -206,7 +258,7 @@ export class Scanner {
     const out: ScanMatch[] = [];
     let i = 0;
     while (i < tokens.length) {
-      if (!isAnchor(tokens, i, this.registry)) {
+      if (!isAnchor(tokens, i, normalized.text, this.registry, this.locale)) {
         i += 1;
         continue;
       }
