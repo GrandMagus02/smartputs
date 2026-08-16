@@ -1,0 +1,68 @@
+# input	kind	canonical	formatted
+#
+# The clock is 2026-01-15T12:00:00Z — a Thursday — and the engine zone is UTC,
+# the same pinning `corpus/en.tsv` records. `canonical` is epoch nanoseconds for
+# a datetime and canonical seconds for a duration. `formatted` follows
+# "YYYY-MM-DD HH:MM <zone symbol>", with midnight whenever the input named no
+# time of day — and it is never translated, because the kind's format hook
+# builds it from Temporal fields rather than from ICU.
+
+# datetime — recognition. An ISO date is the one date syntax every locale
+# shares; a bare clock time takes its date from the pinned clock.
+2026-03-01	datetime	1772323200000000000	2026-03-01 00:00 UTC
+9:30	datetime	1768469400000000000	2026-01-15 09:30 UTC
+
+# The date reader is chrono-node in its English configuration, whichever locale
+# formats the answer, so "bugün", "yarın" and "1 Mart 2026" all throw while
+# their English spellings read under a Turkish engine. A known gap, recorded
+# here rather than worked around: `chrono-bridge.ts` says as much where it
+# spells `to|as|in` in English.
+next friday	datetime	1769126400000000000	2026-01-23 00:00 UTC
+1 March 2026	datetime	1772323200000000000	2026-03-01 00:00 UTC
+
+# datetime + duration, with the duration spelled in Turkish.
+2026-03-01 + 3 gün	datetime	1772582400000000000	2026-03-04 00:00 UTC
+2026-03-01 - 1 hafta	datetime	1771718400000000000	2026-02-22 00:00 UTC
+9:30 + 90 dakika	datetime	1768474800000000000	2026-01-15 11:00 UTC
+# February is 28 days long in 2026; the addition is calendar arithmetic, not
+# 86400 seconds.
+2026-02-28 + 1 d	datetime	1772323200000000000	2026-03-01 00:00 UTC
+2026-03-01 + üç gün	datetime	1772582400000000000	2026-03-04 00:00 UTC
+
+# datetime - datetime is a duration, and the duration is what carries Turkish.
+# There is one printed form per unit and no number axis at all, so "2 gün" and
+# "6 hafta" are the same word the singular is.
+2026-01-17 - 2026-01-15	duration	172800	2 gün
+# `durationValue` reports the largest unit it fills, so 45 days is weeks, and
+# the remainder is where the decimal comma shows.
+2026-03-01 - 2026-01-15	duration	3888000	6,4285714285714285714285714 hafta
+# "." groups and "," decimals.
+1000 gün	duration	86400000	1.000 gün
+2 hafta çarpı 3	duration	3628800	6 hafta
+6 saat bölü 2	duration	10800	3 saat
+-5 dakika	duration	-300	-5 dakika
+
+# The conversion keyword is a verb, not a preposition — "çevir" is "convert",
+# and in ordinary Turkish it would follow its object. Core takes it in front,
+# as it takes every other language's. "to" is listed beside it in core's
+# Turkish keyword table and reaches the same zone.
+15:00 çevir tokyo	datetime	1768489200000000000	2026-01-16 00:00 JST
+15:00 to japonya	datetime	1768489200000000000	2026-01-16 00:00 JST
+# The suffix stripper reaches the zone alias the same way it reaches a unit:
+# "tokyoya" and "moskovaya" are the dative of a word the vocabulary stores bare.
+15:00 çevir tokyoya	datetime	1768489200000000000	2026-01-16 00:00 JST
+15:00 çevir moskovaya	datetime	1768489200000000000	2026-01-15 18:00 MSK
+# The dotless i. Uppercase I lowercases to "ı", not to "i", so "ÇEVIR" is
+# "çevır" — which is why the keyword table lists that spelling too.
+15:00 ÇEVIR TOKYO	datetime	1768489200000000000	2026-01-16 00:00 JST
+# July, so London is on BST and the same zone that reads +00:00 in January
+# reads +01:00 here. Only a date-aware kind can tell the two apart.
+2026-07-01 çevir londra	datetime	1782864000000000000	2026-07-01 01:00 London
+15:00 çevir hindistan	datetime	1768489200000000000	2026-01-15 20:30 IST
+
+# Nothing below is a date. These rows are the accept-gate's regression guard
+# (plan ruling R4): if a chrono upgrade starts claiming them, they fail loudly.
+10 km + 5 km	length	15000	15 kilometre
+20 C	temperature	20	20 °C
+5 dakika	duration	300	5 dakika
+

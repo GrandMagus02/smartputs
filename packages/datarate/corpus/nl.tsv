@@ -1,0 +1,39 @@
+# input	kind	canonical	formatted
+100 mbps	datarate	100000000	100 Mbit
+500 MB / 20 s	datarate	200000000	200 Mbit
+100 Mbit * 1 min	datasize	750000000	750.000.000 byte
+1 min * 100 Mbit	datasize	750000000	750.000.000 byte
+1 GB / 100 Mbit	duration	80	80 seconden
+100 Mbit + 50 Mbit	datarate	150000000	150 Mbit
+200 Mbit - 50 Mbit	datarate	150000000	150 Mbit
+2 Mbit * 3	datarate	6000000	6 Mbit
+1 Gbit / 4	datarate	250000000	0,25 Gbit
+-10 Mbit	datarate	-10000000	-10 Mbit
+8000 bit in kbit	datarate	8000	8 kbit
+tweehonderd megabit	datarate	200000000	200 Mbit
+# "." groups and "," marks the decimal — German's pair, and Indonesian's.
+1.234.567 bit	datarate	1234567	1.234.567 bit
+1,5 Gbit	datarate	1500000000	1,5 Gbit
+# `byte` does not move on the number axis and is written small, where German
+# capitalises the same loanword and Spanish pluralises it. Dutch declines for
+# nothing here, and the noun beside it in the next row shows that the language
+# is not simply formless: `seconde` does move.
+1 byte	datasize	1	1 byte
+5 byte	datasize	5	5 byte
+125 MB / 1 Gbit	duration	1	1 seconde
+# Dutch spells the plural of a vowel-final loan with an apostrophe, and both
+# spellings of the colloquial rate noun are listed for it.
+100 mega	datarate	100000000	100 Mbit
+100 mega's	datarate	100000000	100 Mbit
+# Two words for `times` where most languages here have one, and `gedeeld door`
+# as the two-token division.
+2 Mbit maal 3	datarate	6000000	6 Mbit
+2 Mbit keer 3	datarate	6000000	6 Mbit
+10 Gbit gedeeld door 4	datarate	2500000000	2,5 Gbit
+# `naar` beside `in` as a second conversion preposition.
+1 Gbit naar Mbit	datarate	1000000000	1.000 Mbit
+# "megabit" and "megabyte" are one letter apart and name two kinds — the same
+# pair `uk.tsv` draws in Cyrillic, and the factor of 8 between them is the one
+# the bridge signatures write out.
+100 megabit	datarate	100000000	100 Mbit
+100 megabyte	datasize	100000000	100 megabyte

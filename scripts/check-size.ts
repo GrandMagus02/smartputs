@@ -275,6 +275,26 @@ export const BUDGETS: EntrySpec[] = [
   // The three angle rows are well over §13's *original* budgets, which is why
   // §13 carries a dated amendment: the table costs what the spec predicted
   // (392 B), the shared parser costs six times what §13 implicitly assumed.
+  //
+  // 2026-08-16, the kind extraction: eleven rows below went up by 150–250 B and
+  // every one of them is a package that imports `@smartput/core`. That is the
+  // price of the boundary itself, not of any code that was added — `defineKind`,
+  // the `SmartputError` hierarchy, `Decimal` and the types moved to
+  // `@smartput/kind`, so what used to be modules inside core's bundle are now
+  // modules across a package edge, and a bundler cannot flatten those away.
+  // Measured, then committed, then §13 amended, in that order.
+  //
+  // It is worth recording that the trade did *not* pay for itself in bytes: the
+  // kind packages it was meant to lighten barely moved (`boolean` root went
+  // 33_818 -> 33_719, because what it was carrying was decimal.js and never the
+  // pipeline), so this is 240 B spent on layering — no cycle between core and
+  // the kinds, and fifteen packages that stopped naming the engine at all — and
+  // not on size. Anyone reading these numbers later should not go looking for
+  // the size win. There isn't one.
+  //
+  // Four rows — `geo root`, `range`, `range/class`, `query/sql` — were already
+  // over their budgets before that change and are deliberately left alone here.
+  // Raising them would have hidden someone else's regression inside this one.
   {
     label: "angle/validate parseAngle only",
     from: "@smartput/angle/validate",
@@ -385,6 +405,40 @@ export const BUDGETS: EntrySpec[] = [
     min: 1400,
     gzip: 800,
   },
+  // What a kind package pays for the authoring layer, measured apart from any
+  // kind so the number is the layer and nothing else. `defineKind` drags
+  // `Decimal` behind it — a ratio is a decimal string until something reads it
+  // — and decimal.js is very nearly the whole of this row. That is what the
+  // `boolean` row further down has always been measuring; the extraction only
+  // made it visible on its own instead of buried in a kind's total.
+  {
+    label: "kind root (defineKind, with Decimal behind it)",
+    from: "@smartput/kind",
+    names: ["defineKind"],
+    min: 33_450,
+    gzip: 13_300,
+  },
+  // Naming a kind's words costs the same 33 KB, and it should not. The path is
+  // `defineVocabulary` -> `deepFreeze` -> `value instanceof Decimal`, one guard
+  // that exists because decimal.js mutates instance internals and freezing one
+  // breaks arithmetic — so a single `instanceof` links the whole library into a
+  // bundle whose payload is a table of nouns.
+  //
+  // The row is here at its true number rather than at the number it ought to
+  // be: it predates the extraction, it is not this change's to fix, and a
+  // budget that lies about what ships is worse than one that records something
+  // ugly. Swapping the guard for a structural check (`typeof
+  // (value as { toFixed?: unknown }).toFixed === "function"`, or a
+  // `Symbol.for("decimal")` brand) should drop this to a few hundred bytes and
+  // take every vocabulary in the repo with it. Whoever does it: measure first,
+  // and expect the `boolean` and `angle/class` rows to move too.
+  {
+    label: "kind/vocabulary defineVocabulary only",
+    from: "@smartput/kind/vocabulary",
+    names: ["defineVocabulary"],
+    min: 33_450,
+    gzip: 13_300,
+  },
 
   // The same claim for the class barrel, which had no row at all. Spec §8 says
   // the `/*#__PURE__*/` annotation "is what lets an unused kind's class drop
@@ -472,7 +526,7 @@ export const BUDGETS: EntrySpec[] = [
     label: "geo providers (every adapter)",
     from: "@smartput/geo/providers",
     names: ["geonames", "postalCodes", "bundled", "custom"],
-    min: 43_000,
+    min: 43_250,
     gzip: 16_650,
   },
 
@@ -530,7 +584,7 @@ export const BUDGETS: EntrySpec[] = [
     label: "datetime root (no holiday data)",
     from: "@smartput/datetime",
     names: ["datetime"],
-    min: 144_400,
+    min: 144_550,
     gzip: 50_800,
     floor: 138_000,
   },
@@ -592,7 +646,7 @@ export const BUDGETS: EntrySpec[] = [
     label: "date",
     from: "@smartput/date",
     names: ["date"],
-    min: 145_500,
+    min: 145_650,
     gzip: 50_900,
     floor: 138_000,
   },
@@ -600,7 +654,7 @@ export const BUDGETS: EntrySpec[] = [
     label: "time",
     from: "@smartput/time",
     names: ["time"],
-    min: 145_750,
+    min: 145_950,
     gzip: 51_000,
     floor: 138_000,
   },
@@ -612,7 +666,7 @@ export const BUDGETS: EntrySpec[] = [
     label: "range-core",
     from: "@smartput/range-core",
     names: ["WINDOWS", "startOfWeek"],
-    min: 144_800,
+    min: 145_000,
     gzip: 50_800,
     floor: 138_000,
   },
@@ -620,7 +674,7 @@ export const BUDGETS: EntrySpec[] = [
     label: "date-range",
     from: "@smartput/date-range",
     names: ["dateRange"],
-    min: 149_150,
+    min: 149_350,
     gzip: 51_950,
     floor: 138_000,
   },
@@ -628,7 +682,7 @@ export const BUDGETS: EntrySpec[] = [
     label: "time-range",
     from: "@smartput/time-range",
     names: ["timeRange"],
-    min: 147_100,
+    min: 147_250,
     gzip: 51_450,
     floor: 138_000,
   },
@@ -651,7 +705,7 @@ export const BUDGETS: EntrySpec[] = [
     label: "datetime-range root (no holiday data)",
     from: "@smartput/datetime-range",
     names: ["datetimeRange"],
-    min: 147_900,
+    min: 148_100,
     gzip: 51_800,
     floor: 138_000,
   },
@@ -669,7 +723,7 @@ export const BUDGETS: EntrySpec[] = [
     label: "datetime-range holiday",
     from: "@smartput/datetime-range/holiday",
     names: ["datetimeRangeHoliday"],
-    min: 1_587_000,
+    min: 1_587_100,
     gzip: 292_000,
   },
   {
@@ -738,7 +792,7 @@ export const BUDGETS: EntrySpec[] = [
     label: "query root (grammar + schema, no dialect)",
     from: "@smartput/query",
     names: ["QueryEngine", "defineSchema"],
-    min: 59_200,
+    min: 59_450,
     gzip: 21_950,
   },
   {
@@ -752,7 +806,7 @@ export const BUDGETS: EntrySpec[] = [
     label: "query/mongo",
     from: "@smartput/query/mongo",
     names: ["MongoCompiler"],
-    min: 37_900,
+    min: 38_150,
     gzip: 15_150,
   },
 ];

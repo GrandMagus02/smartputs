@@ -1,0 +1,33 @@
+# input	kind	canonical	formatted
+10 км	length	10000	10 километров
+1 кг + 500 г	mass	1500	1,5 килограмма
+30 ч - 30 мин	duration	106200	29,5 часа
+2 км в метры	length	2000	2 000 метров
+1 км / 4	length	250	0,25 километра
+(1 + 2) * 3	number	9	9
+-5 км	length	-5000	-5 километров
+212 F в C	temperature	100	100°C
+30 C - 20 C	tempdelta	10	10°C
+20% от 50	number	10	10
+90 градусов в радианы	angle	1.570796326794896619231321692	1,5707963267948966192313217 радиана
+1 киб в байты	datasize	1024	1 024 байта
+3 м * 4 м	area	12	12м²
+100 км / 2 ч	speed	13.88888888888888888888888889	13,888888888888888888888889м/с
+один километр	length	1000	1 километр
+двести пять граммов	mass	205	205 граммов
+# Four plural categories on boundaries that are not Polish's: `one` takes
+# every number ending in 1 except 11, so 21 is singular here and `many` in
+# `corpus/pl.tsv`.
+1 метр	length	1	1 метр
+2 метра	length	2	2 метра
+5 метров	length	5	5 метров
+21 метр	length	21	21 метр
+11 метров	length	11	11 метров
+# `few` is the genitive singular here and the nominative plural in Polish:
+# "102 метра" against "102 metry", the same category and a different word.
+102 метра	length	102	102 метра
+# A decimal comma and a U+00A0 group separator.
+1 234 567 мм	length	1234.567	1 234 567 миллиметров
+# Both word operators are two tokens hanging off "на", which is `keywords.by`.
+2 км умножить на 3	length	6000	6 километров
+10 км разделить на 4	length	2500	2,5 километра

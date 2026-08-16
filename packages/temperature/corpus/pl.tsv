@@ -1,0 +1,42 @@
+# input	kind	canonical	formatted
+20 C	temperature	20	20 °C
+0 C na F	temperature	0	32 °F
+212 F na C	temperature	100	100 °C
+100 C do K	temperature	100	373,15 K
+0 K na C	temperature	-273.15	-273,15 °C
+10 C + 5 C	temperature	15	15 °C
+30 C - 20 C	tempdelta	10	10 °C
+5 F - 3 F	tempdelta	1.11111111111111111111111111	2 °F
+(30 C - 20 C) razy 2	tempdelta	20	20 °C
+(30 C - 20 C) podzielić przez 4	tempdelta	2.5	2,5 °C
+-5 C	temperature	-5	-5 °C
+dwadzieścia C	temperature	20	20 °C
+minus 40 C na F	temperature	-40	-40 °F
+# A space before the degree sign, which Russian and Ukrainian — the same plural
+# family, the same U+00A0 group separator — do not leave.
+20 C w K	temperature	20	293,15 K
+# A decimal comma and a U+00A0 group separator.
+36,6 C	temperature	36.6	36,6 °C
+1234,5 K	temperature	961.35	1 234,5 K
+12345 C	temperature	12345	12 345 °C
+# The four plural categories, carried by the alias list rather than by any
+# printed form: "kelwin" for one, "kelwiny" for two through four, "kelwinów"
+# from five up. All three read, and K is what all three print — a scale has no
+# number axis to agree on.
+1 kelwin	temperature	-272.15	1 K
+2 kelwiny	temperature	-271.15	2 K
+5 kelwinów	temperature	-268.15	5 K
+300 kelwinów	temperature	26.85	300 K
+# The case endings. A Polish reader writes the scale in whatever case the
+# sentence around it governs, and none of that reaches the answer.
+20 celsjusz	temperature	20	20 °C
+20 celsjusza	temperature	20	20 °C
+20 celsjuszem	temperature	20	20 °C
+20 kelwinami	temperature	-253.15	20 K
+98,6 fahrenheita na C	temperature	37	37 °C
+dwadzieścia celsjusza na fahrenheita	temperature	20	68 °F
+# Four prepositions introduce a conversion target; "w" and "na" both appear
+# above, "do" on the spine, and "we" is the pre-consonantal twin of "w".
+20 C we K	temperature	20	293,15 K
+# "razy" stands alone; "podzielić przez" is two tokens folded into one.
+(30 C - 20 C) podzielić przez 8	tempdelta	1.25	1,25 °C

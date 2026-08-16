@@ -1,0 +1,42 @@
+# input	kind	canonical	formatted
+2 لتر إلى مل	volume	2	2,000 مليلتر
+1 غالون إلى لتر	volume	3.785411784	3.785411784 لتر
+1 باينت إلى مل	volume	0.473176473	473.176473 مليلتر
+500 مل + 500 مل	volume	1	1,000 مليلتر
+2 لتر - 250 مل	volume	1.75	1.75 لتر
+3 لتر * 4	volume	12	12 لترًا
+1 لتر / 4	volume	0.25	0.25 لتر
+مئتان وخمسة لتر	volume	205	205 لترات
+# Six plural categories, the most any language in this set has, and each of
+# them a different word. CLDR's Arabic rule: 0 zero, 1 one, 2 two, 3-10 few,
+# 11-99 many, and everything else — 100, and every fraction — other.
+0 لتر	volume	0	0 لتر
+1 لتر	volume	1	1 لتر
+2 لتر	volume	2	2 لتران
+3 لتر	volume	3	3 لترات
+11 لتر	volume	11	11 لترًا
+100 لتر	volume	100	100 لتر
+1.5 لتر	volume	1.5	1.5 لتر
+# The two, the few and the many are not suffixes on a stem: لتران is a dual
+# and لترات a sound plural, and لترًا carries the accusative tanwīn that the
+# 11-99 counted noun takes. No stripper could derive them.
+2 غالون	volume	7.570823568	2 غالونان
+3 غالون	volume	11.356235352	3 غالونات
+11 غالون	volume	41.639529624	11 غالونًا
+# The category is read off the *result*, not off anything typed: 10 lands in
+# few and the operand that produced it never did.
+10 لتر	volume	10	10 لترات
+-2 لتر	volume	-2	-2 لتران
+# The digits and separators are Latin. `ar` resolves to a `latn` numbering
+# system with "," for groups and "." for the decimal, so an Arabic sentence
+# reads and prints its numbers left to right inside right-to-left text.
+1,500 مل إلى لتر	volume	1.5	1.5 لتر
+# Arabic has no one-token word for the cubic metre, so the unit carries no
+# `forms` and the symbol is printed instead.
+2 م3	volume	2000	2 م³
+# في is both "in" and "times" in Arabic, and it is claimed as the conversion
+# preposition; ضرب is what is left to say "multiplied". قسمة على is the
+# two-token division, hanging off على as `keywords.by`.
+2 لتر في مل	volume	2	2,000 مليلتر
+2 لتر ضرب 3	volume	6	6 لترات
+10 لتر قسمة على 4	volume	2.5	2.5 لتر

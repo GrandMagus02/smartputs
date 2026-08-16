@@ -1,0 +1,36 @@
+# input	kind	canonical	formatted
+1 polegada em pt	measure	1	72 pontos
+72 pt em polegadas	measure	1	1 polegada
+6 pc em polegadas	measure	1	1 polegada
+1 polegada em mm	measure	1	25,4 milímetros
+1 polegada em px	measure	1	96 pixels
+96 px em polegadas	measure	1	1 polegada
+2 polegadas + 36 pt	measure	2.5	2,5 polegadas
+1 polegada - 12 pt	measure	0.8333333333333333333333333333	0,83333333333333333333333333 polegada
+3 polegadas * 2	measure	6	6 polegadas
+1 polegada / 4	measure	0.25	0,25 polegada
+-2 polegadas	measure	-2	-2 polegadas
+1 pc em pt	measure	0.1666666666666666666666666667	12 pontos
+10 mm em cm	measure	0.3937007874015748031496062992	1 centímetro
+uma polegada	measure	1	1 polegada
+doze pontos	measure	0.1666666666666666666666666667	12 pontos
+# "." groups and "," is the decimal point.
+25,4 mm em polegadas	measure	1	1 polegada
+1.440 pt em polegadas	measure	20	20 polegadas
+1.234.567 px	measure	12860.07291666666666666666667	1.234.567 pixels
+# A fraction takes the *singular*, as in French and against Spanish — two
+# Iberian languages disagreeing about the same number. "1,5 polegadas" reads
+# and "1,5 polegada" comes back.
+1,5 polegada	measure	1.5	1,5 polegada
+1,5 polegadas	measure	1.5	1,5 polegada
+0,5 polegada	measure	0.5	0,5 polegada
+# `paica` is the Portuguese spelling of the pica, and `píxeis` the European
+# plural the reader takes; the writer prints the Brazilian `pixels`.
+2 paicas em pontos	measure	0.3333333333333333333333333333	24 pontos
+5 píxeis	measure	0.05208333333333333333333333335	5 pixels
+# "por" is times, so "dividido por" cannot parse — two operators in a row.
+# "sobre" is what divides.
+3 polegadas vezes 2	measure	6	6 polegadas
+1 polegada sobre 4	measure	0.25	0,25 polegada
+# "para" is the second conversion preposition beside "em".
+2 polegadas para milímetros	measure	2	50,8 milímetros

@@ -1,0 +1,44 @@
+# input	kind	canonical	formatted
+1 kg + 500 g	mass	1500	1,5 kilogramme
+3 livres	mass	1360.77711	3 livres
+1 t en kilogrammes	mass	1000000	1 000 kilogrammes
+16 onces en livres	mass	453.59237	1 livre
+1 kg en grammes	mass	1000	1 000 grammes
+2 kg - 500 g	mass	1500	1,5 kilogramme
+3 kg * 4	mass	12000	12 kilogrammes
+1 t / 8	mass	125000	0,125 tonne
+-2 kg	mass	-2000	-2 kilogrammes
+500 mg en grammes	mass	0.5	0,5 gramme
+un kilogramme	mass	1000	1 kilogramme
+deux cent cinq kilogrammes	mass	205000	205 kilogrammes
+2,5 tonnes en kilogrammes	mass	2500000	2 500 kilogrammes
+1 livre en onces	mass	453.59237	16 onces
+# The decimal comma, and a group separator that is both invisible and narrow:
+# this runtime groups French with U+202F. The reader takes any of the three
+# spaces — ASCII, U+00A0, U+202F — because `normalize()` folds them; the writer
+# emits U+202F and only U+202F, so the row below is not the row above.
+1234567 mg	mass	1234.567	1 234 567 milligrammes
+1 500 g en kilogrammes	mass	1500	1,5 kilogramme
+# French agrees `one` with everything below two, so a fraction takes the
+# *singular*: "1,5 kilogramme", "0,125 tonne". Spanish and Italian pluralise
+# the same digits, and English has no way to state the question.
+1,5 kg	mass	1500	1,5 kilogramme
+0,5 kg	mass	500	0,5 kilogramme
+1,5 gramme	mass	1.5	1,5 gramme
+2 kilogrammes	mass	2000	2 kilogrammes
+2 grammes	mass	2	2 grammes
+# Vigesimal counting: ninety is said as four-twenties-ten, and the cardinal
+# reader has to add across the hyphens rather than read a single word.
+quatre-vingt-dix kilogrammes	mass	90000	90 kilogrammes
+soixante-dix grammes	mass	70	70 grammes
+# `once` is the French ounce, and it is spelled exactly like the Italian
+# *plural* `once` next door — same five letters, opposite ends of the number
+# axis, and neither vocabulary derivable from the other.
+1 once	mass	28.349523125	1 once
+2 onces	mass	56.69904625	2 onces
+# The word operators. "fois" stands alone; "divisé par" is two tokens folded
+# into one, the way English folds "divided by".
+2 kg fois 3	mass	6000	6 kilogrammes
+10 kg divisé par 4	mass	2500	2,5 kilogrammes
+# "vers" is the second conversion preposition, beside "en".
+2 kg vers grammes	mass	2000	2 000 grammes

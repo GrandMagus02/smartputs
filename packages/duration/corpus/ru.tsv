@@ -1,0 +1,35 @@
+# input	kind	canonical	formatted
+2 недели	duration	1209600	2 недели
+30 часов - 30 минут	duration	106200	29,5 часа
+90 минут в часах	duration	5400	1,5 часа
+1 день в часах	duration	86400	24 часа
+500 мс + 500 мс	duration	1	1 000 миллисекунд
+2 часа * 3	duration	21600	6 часов
+-2 часа	duration	-7200	-2 часа
+1 час в секундах	duration	3600	3 600 секунд
+1,5 часа в минутах	duration	5400	90 минут
+2 дня + 12 часов	duration	216000	2,5 дня
+один час	duration	3600	1 час
+# The four plural categories. 21 takes the singular and 11 does not — the rule
+# reads the last two digits, not the last one.
+1 час	duration	3600	1 час
+2 часа	duration	7200	2 часа
+5 часов	duration	18000	5 часов
+11 часов	duration	39600	11 часов
+21 час	duration	75600	21 час
+102 часа	duration	367200	102 часа
+# The fractional category is the genitive singular. On `час` it is spelled
+# like `few`, which is where Russian and Polish part company: "102 часа" is a
+# genitive singular and "102 godziny" is a nominative plural.
+1,5 часа	duration	5400	1,5 часа
+1 день / 4	duration	21600	0,25 дня
+1 день	duration	86400	1 день
+2 дня	duration	172800	2 дня
+5 дней	duration	432000	5 дней
+# `сутки` is a separate noun for a twenty-four-hour day, listed as an alias of
+# `d`. It reads, and `день` is what comes back.
+1 сутки	duration	86400	1 день
+# Both word operators are two tokens, and both hang off `на` — the same
+# `keywords.by` serves multiply and divide.
+2 часа умножить на 3	duration	21600	6 часов
+1 день разделить на 4	duration	21600	0,25 дня

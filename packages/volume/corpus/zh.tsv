@@ -1,0 +1,48 @@
+# input	kind	canonical	formatted
+2升	volume	2	2升
+1加仑到升	volume	3.785411784	3.785411784升
+500毫升 + 500毫升	volume	1	1,000毫升
+2升 - 250毫升	volume	1.75	1.75升
+3升 * 4	volume	12	12升
+1升 / 4	volume	0.25	0.25升
+-2升	volume	-2	-2升
+一升	volume	1	1升
+1,500毫升到升	volume	1.5	1.5升
+1.5升	volume	1.5	1.5升
+1,234,567毫升	volume	1234.567	1,234,567毫升
+# No number agreement of any kind: Chinese marks plurality nowhere on a noun,
+# so every unit here has exactly one printed form and 1 and 5 take the same
+# word. The separators are English's — "," for groups, "." for the decimal.
+1升	volume	1	1升
+5升	volume	5	5升
+2加仑	volume	7.570823568	2加仑
+# No space between the number and the unit, on input or output. `Printer`'s
+# `gap` is empty for this language, which is what makes the round trip hold:
+# the engine reads back its own "2,000毫升" byte for byte.
+2升为毫升	volume	2	2,000毫升
+# 公升 is the fuller spelling of the litre and 升 is what prints.
+2公升	volume	2	2升
+# 到 is matched as its own token, and a glued conversion resolves only when
+# what precedes it is still a unit once 到 is taken off. That holds after the
+# two-character 公升 and not after the one-character 升, which is why the
+# second row below needs the space Chinese would not otherwise write.
+2公升到毫升	volume	2	2,000毫升
+2升 到 毫升	volume	2	2,000毫升
+# 立方米 is one token, so Chinese prints the cubic metre in words where the
+# Romance languages fall back to `m³`. 立米 is the clipped trade spelling of
+# the same unit.
+2立方米	volume	2000	2立方米
+2立米	volume	2000	2立方米
+# The pint is the one unit Chinese has no word for here: it carries no
+# `forms`, so the Latin symbol is printed, glued like everything else.
+5pint	volume	2.365882365	5pint
+# The myriad. Chinese counts in ten-thousands, so 万 is a magnitude word in its
+# own right and 一万 is one of them, not ten of a thousand.
+一万毫升	volume	10	10,000毫升
+# The word operators need whitespace around them even though Chinese is
+# written without any: 乘 and 除以 are matched as separate tokens.
+2升 乘 3	volume	6	6升
+10升 除以 4	volume	2.5	2.5升
+# 换算 and 转换 are verbs rather than prepositions, and both introduce a target
+# on their own.
+2升换算毫升	volume	2	2,000毫升

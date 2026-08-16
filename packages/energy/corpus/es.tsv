@@ -1,0 +1,40 @@
+# input	kind	canonical	formatted
+1 kwh en julios	energy	3600000	3.600.000 julios
+2 kW * 3 horas	energy	21600000	21.600.000 julios
+1 kwh / 1 hora	power	1000	1.000 vatios
+1 kwh / 1 kW	duration	3600	3.600 segundos
+1 kcal en julios	energy	4184	4.184 julios
+500 J + 500 J	energy	1000	1.000 julios
+2 kJ * 3	energy	6000	6 kilojulios
+1 kJ - 250 J	energy	750	0,75 kilojulios
+-1 kwh	energy	-3600000	-1kWh
+un kilojulio	energy	1000	1 kilojulio
+doscientos julios	energy	200	200 julios
+1000 cal en kcal	energy	4184	1 kilocaloría
+# "." groups and "," is the decimal, so "1.500 J" is fifteen hundred joules.
+1.234.567 J	energy	1234567	1.234.567 julios
+2,5 kwh	energy	9000000	2,5kWh
+# The joule is "julio" in Spanish, a word rather than a transcription, and the
+# English spelling is kept as an alias beside it.
+1 julio	energy	1	1 julio
+2 julios	energy	2	2 julios
+# A fraction takes the **plural**: "1,5 kilojulios", never "1,5 kilojulio".
+# French reaches the opposite answer on the same amount.
+1,5 kJ	energy	1500	1,5 kilojulios
+# The calorie's accent is optional on input and printed on output, so the two
+# spellings meet at one form.
+1 caloría	energy	4.184	1 caloría
+1 caloria	energy	4.184	1 caloría
+5 calorías	energy	20.92	5 calorías
+# BTU declares `forms` here, both of them the initialism itself, and that is
+# what buys it the space. The watt-hour family below has no `forms` at all —
+# no Spanish word fits in one token — so it prints on the symbol branch, which
+# in this language joins the number to the unit.
+5 BTU	energy	5275.2792631	5 BTU
+1 kWh	energy	3600000	1kWh
+# The word operators, and the trap in them: "por" is `times`, so "dividido
+# por" cannot parse. Spanish division is "entre".
+2 kJ por 3	energy	6000	6 kilojulios
+10 kJ entre 4	energy	2500	2,5 kilojulios
+# "a" is the second conversion preposition beside the "en" generation emits.
+2 kWh a julios	energy	7200000	7.200.000 julios

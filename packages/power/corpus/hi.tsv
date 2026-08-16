@@ -1,0 +1,39 @@
+# input	kind	canonical	formatted
+1 kW में वाट	power	1000	1,000 वाट
+1 MW में किलोवाट	power	1000000	1,000 किलोवाट
+2.5 kW	power	2500	2.5 किलोवाट
+500 W + 500 W	power	1000	1,000 वाट
+2 kW - 500 W	power	1500	1.5 किलोवाट
+3 kW * 2	power	6000	6 किलोवाट
+1 MW / 4	power	250000	0.25 मेगावाट
+-1 kW	power	-1000	-1 किलोवाट
+1000 W में किलोवाट	power	1000	1 किलोवाट
+एक किलोवाट	power	1000	1 किलोवाट
+दो सौ पांच किलोवाट	power	205000	205 किलोवाट
+100 एचपी में किलोवाट	power	74569.987158227022	74.569987158227022 किलोवाट
+# No number axis: `one` and `other` are the same word on every unit, and a
+# fraction gets it too.
+1 वाट	power	1	1 वाट
+5 वाट	power	5	5 वाट
+1.5 किलोवाट	power	1500	1.5 किलोवाट
+# Three names for the horsepower — the Sanskrit compound, the English loan in
+# Devanagari, and the two letters read out — and one printed form for all
+# three.
+1 अश्वशक्ति	power	745.69987158227022	1 अश्वशक्ति
+1 एचपी	power	745.69987158227022	1 अश्वशक्ति
+1 हॉर्सपावर	power	745.69987158227022	1 अश्वशक्ति
+# लाख is a magnitude word in its own right: a hundred thousand, not a hundred
+# of a thousand.
+1 लाख वाट	power	100000	100,000 वाट
+# The reader is grouping-agnostic — Indian lakh-crore grouping and Western
+# threes are the same number to it. The writer is not: it groups in fixed
+# threes and cannot yet produce "12,34,567". A recorded core gap, pinned here
+# rather than papered over.
+1,234,567 W	power	1234567	1,234,567 वाट
+12,34,567 W	power	1234567	1,234,567 वाट
+# The conversion is a postposition, and there are three of them.
+2 kW को वाट	power	2000	2,000 वाट
+2 kW से वाट	power	2000	2,000 वाट
+# The word operators, all bare.
+2 kW गुणा 3	power	6000	6 किलोवाट
+1 MW भाग 4	power	250000	0.25 मेगावाट

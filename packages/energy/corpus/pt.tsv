@@ -1,0 +1,38 @@
+# input	kind	canonical	formatted
+1 kwh em joules	energy	3600000	3.600.000 joules
+2 kW * 3 horas	energy	21600000	21.600.000 joules
+1 kwh / 1 hora	power	1000	1.000 watts
+1 kwh / 1 kW	duration	3600	3.600 segundos
+500 J + 500 J	energy	1000	1.000 joules
+2 kJ * 3	energy	6000	6 quilojoules
+1 kJ - 250 J	energy	750	0,75 quilojoule
+1 kJ / 4	energy	250	0,25 quilojoule
+-1 kwh	energy	-3600000	-1kWh
+um quilojoule	energy	1000	1 quilojoule
+duzentos joules	energy	200	200 joules
+# "." groups and "," is the decimal.
+1.234.567 J	energy	1234567	1.234.567 joules
+2,5 kwh	energy	9000000	2,5kWh
+# A fraction takes the **singular** — "1,5 quilojoule" — where Spanish, the
+# other Iberian language in this set, prints a plural on the same amount.
+1 joule	energy	1	1 joule
+2 joules	energy	2	2 joules
+1,5 kJ	energy	1500	1,5 quilojoule
+# "quilo-" is the Portuguese prefix and it is what prints; the international
+# "kilo-" reads and never comes back out.
+1 kilojoule	energy	1000	1 quilojoule
+2 kilojoules	energy	2000	2 quilojoules
+1 caloria	energy	4.184	1 caloria
+5 calorias	energy	20.92	5 calorias
+# BTU declares `forms`, both of them the initialism, and that is what buys it
+# the space. The watt-hour family has no `forms` — no Portuguese word for it
+# fits in one token — so it prints on the symbol branch, which this language
+# joins to the number.
+5 BTU	energy	5275.2792631	5 BTU
+1 kWh	energy	3600000	1kWh
+# The word operators, and the trap in them: "por" is `times`, so "dividido por"
+# is two operators in a row and does not parse. Portuguese division is "sobre".
+2 kJ por 3	energy	6000	6 quilojoules
+10 kJ sobre 4	energy	2500	2,5 quilojoules
+# "para" is the second conversion preposition beside the "em" generation emits.
+2 kWh para joules	energy	7200000	7.200.000 joules

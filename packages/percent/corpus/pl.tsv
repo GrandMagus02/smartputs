@@ -1,0 +1,41 @@
+# input	kind	canonical	formatted
+20%	percent	0.2	20 %
+20 procent	percent	0.2	20 %
+50 + 20%	number	60	60
+50 - 10%	number	45	45
+20% z 50	number	10	10
+10% + 5%	percent	0.15	15 %
+100% - 40%	percent	0.6	60 %
+50 * 10%	percent	5	500 %
+10% / 2	percent	0.05	5 %
+-10%	percent	-0.1	-10 %
+dziesięć procent	percent	0.1	10 %
+dwadzieścia pięć procent	percent	0.25	25 %
+0,5 w procentach	percent	0.5	50 %
+5 / 50 w procentach	percent	0.1	10 %
+# U+00A0 groups and "," is the decimal point; the input here is typed with an
+# ordinary space and the output comes back with the no-break one. Polish sets
+# the sign off from the number, where Russian on the same two separators sets
+# it tight.
+2,5%	percent	0.025	2,5 %
+1 000%	percent	10	1 000 %
+100 * 20%	percent	20	2 000 %
+# The four categories, on the read side only. Polish takes `few` for 2-4 and
+# `many` from 5 up, the teens go to `many` however they end, and the fractional
+# row is the genitive singular — five distinct words, one printed answer,
+# because the written form of this unit is the sign in every language here.
+1 procent	percent	0.01	1 %
+2 procenty	percent	0.02	2 %
+5 procent	percent	0.05	5 %
+22 procenty	percent	0.22	22 %
+1,5 procenta	percent	0.015	1,5 %
+# "procent" is also the genitive plural, the bare-stem row, so "20 procent" and
+# "20 procentów" are both nominal and both read.
+20 procentów	percent	0.2	20 %
+# The abbreviation Polish newspapers set percentages in, listed without its full
+# stop because a word token ends at the period.
+20 proc	percent	0.2	20 %
+# "podzielić przez" is two tokens, `over` and `by`.
+50 razy 10%	percent	5	500 %
+10% podzielić przez 2	percent	0.05	5 %
+0,5 na procenty	percent	0.5	50 %

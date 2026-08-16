@@ -1,0 +1,39 @@
+# input	kind	canonical	formatted
+30 usd	money	27.27272727272727272727272727	$30.00
+100달러 를 유로	money	90.90909090909090909090909091	€90.91
+5유로 더하기 5유로	money	10	€10.00
+30달러 빼기 10유로	money	17.27272727272727272727272727	$19.00
+2유로 곱하기 3	money	6	€6.00
+10유로 나누기 4	money	2.5	€2.50
+-5유로	money	-5	-€5.00
+이 유로	money	2	€2.00
+# No space between the number and the unit, and no form of the noun moves
+# for the count.
+2유로	money	2	€2.00
+1000유로	money	1000	€1,000.00
+1234567유로	money	1234567	€1,234,567.00
+# The word operators need whitespace around them, as in Chinese and
+# Japanese; the symbols do not.
+2유로*3	money	6	€6.00
+5유로 플러스 5유로	money	10	€10.00
+# The particle glues to the noun and is stripped back off: a bare quantity
+# reads with it attached.
+5달러를	money	4.545454545454545454545454546	$5.00
+# A conversion does not, once the unit is Hangul — "100달러를 유로" and
+# "100달러에서 유로" both fail to parse, and only the spaced particle above
+# or a Latin unit alias below gets through. Recorded as the shape of the
+# gap rather than worked around.
+100usd를 유로	money	90.90909090909090909090909091	€90.91
+# The Korean words: transcriptions of the English or of the source language,
+# never translations.
+5달러	money	4.545454545454545454545454546	$5.00
+3파운드	money	3.566333808844507845934379457	£3.00
+5프랑	money	5.31914893617021276595744681	CHF5.00
+100흐리우냐	money	2.197802197802197802197802198	₴100.00
+5즈워티	money	1.168224299065420560747663552	zł5.00
+# The yen has a second Korean word — 엔화, "yen currency" — and no minor
+# unit, so nothing follows the grouped digits.
+1000엔	money	5.882352941176470588235294118	¥1,000
+1000엔화	money	5.882352941176470588235294118	¥1,000
+# Korean groups with "," and puts the decimal on ".", the English pair.
+1.5유로	money	1.5	€1.50

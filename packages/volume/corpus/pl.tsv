@@ -1,0 +1,44 @@
+# input	kind	canonical	formatted
+2 l w ml	volume	2	2 000 mililitrów
+1 gal w litrach	volume	3.785411784	3,785411784 litra
+500 ml + 500 ml	volume	1	1 000 mililitrów
+2 l - 250 ml	volume	1.75	1,75 litra
+3 l * 4	volume	12	12 litrów
+1 l / 4	volume	0.25	0,25 litra
+-2 l	volume	-2	-2 litry
+jeden litr	volume	1	1 litr
+dwieście pięć litrów	volume	205	205 litrów
+# A U+00A0 group separator on the way out, and an ordinary space accepted on
+# the way in. The decimal separator is the comma.
+1 500 ml w litrach	volume	1.5	1,5 litra
+1 234 567 ml	volume	1234.567	1 234 567 mililitrów
+# The four plural categories on one unit, which English has two of. Polish
+# picks `few` for 2-4, `many` from 5 up, and the teens go to `many` however
+# they end.
+1 litr	volume	1	1 litr
+2 litry	volume	2	2 litry
+5 litrów	volume	5	5 litrów
+12 litrów	volume	12	12 litrów
+22 litry	volume	22	22 litry
+# The fractional category is the genitive *singular* — "1,5 litra", never
+# "1,5 litrów" — and it is a fifth word, not a reuse of one of the four above.
+1,5 l	volume	1.5	1,5 litra
+# Where Polish and Russian part company on the same number: `few` is the
+# nominative plural here ("102 litry") and the genitive singular there
+# ("102 литра"). Same category, different word.
+102 litry	volume	102	102 litry
+# The feminine unit. `pinta` declines on a different pattern, and its `many`
+# form is a bare stem rather than an -ów ending.
+2 pinty	volume	0.946352946	2 pinty
+5 pint	volume	2.365882365	5 pint
+# Polish has no one-token word for the cubic metre, so the unit carries no
+# `forms` and the symbol is printed instead.
+2 m3	volume	2000	2 m³
+# Two more conversion prepositions beside "w": "na" and "do" both introduce a
+# target, and only "w" governs the locative that `selectForm` reads.
+2 l na mililitry	volume	2	2 000 mililitrów
+2 l do mililitrów	volume	2	2 000 mililitrów
+# The word operators. "razy" stands alone; "podzielić przez" is two tokens
+# folded into one.
+2 l razy 3	volume	6	6 litrów
+10 l podzielić przez 4	volume	2.5	2,5 litra

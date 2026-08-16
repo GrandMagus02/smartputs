@@ -1,0 +1,35 @@
+# input	kind	canonical	formatted
+10 km	length	10000	10 quilômetros
+1 kg + 500 g	mass	1500	1,5 quilograma
+30 h - 30 min	duration	106200	29,5 horas
+2 km em metros	length	2000	2.000 metros
+(1 + 2) * 3	number	9	9
+-5 km	length	-5000	-5 quilômetros
+212 F em C	temperature	100	100°C
+30 C - 20 C	tempdelta	10	10°C
+20% de 50	number	10	10
+90 graus em radianos	angle	1.570796326794896619231321692	1,5707963267948966192313217 radiano
+1 kib em b	datasize	1024	1.024 bytes
+3 m * 4 m	area	12	12m²
+100 km / 2 h	speed	13.88888888888888888888888889	13,888888888888888888888889m/s
+um quilômetro	length	1000	1 quilômetro
+duzentos e cinco gramas	mass	205	205 gramas
+# "." groups and "," is the decimal point.
+1.500 g	mass	1500	1.500 gramas
+# A fraction takes the **singular**, as in French and against Spanish — the
+# two Iberian languages disagreeing about the same number is the reason
+# neither file can be derived from the other.
+1 km / 4	length	250	0,25 quilômetro
+1,5 km	length	1500	1,5 quilômetro
+2,5 km	length	2500	2,5 quilômetros
+# `pé` / `pés`, a plural that moves the accent.
+1 pé	length	0.3048	1 pé
+3 pés	length	0.9144	3 pés
+# European `quilómetro` reads and Brazilian `quilômetro` prints.
+1 quilómetro	length	1000	1 quilômetro
+# "vezes" is `times`; "por" is `times` too, which is why division is "sobre"
+# and never "dividido por" — two operators in a row do not parse.
+2 km vezes 3	length	6000	6 quilômetros
+10 km sobre 4	length	2500	2,5 quilômetros
+# "para" is the second conversion preposition, beside "em".
+2 km para metros	length	2000	2.000 metros

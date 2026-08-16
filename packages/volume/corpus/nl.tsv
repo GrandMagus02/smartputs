@@ -1,0 +1,40 @@
+# input	kind	canonical	formatted
+2 l	volume	2	2 liter
+2 l in ml	volume	2	2.000 milliliter
+1 gal in l	volume	3.785411784	3,785411784 liter
+1 pint in ml	volume	0.473176473	473,176473 milliliter
+500 ml + 500 ml	volume	1	1.000 milliliter
+2 l - 250 ml	volume	1.75	1,75 liter
+3 l * 4	volume	12	12 liter
+1 l / 4	volume	0.25	0,25 liter
+-2 l	volume	-2	-2 liter
+1 gal in pint	volume	3.785411784	8 pint
+een liter	volume	1	1 liter
+tweehonderdvijf liter	volume	205	205 liter
+# "." groups and "," is the decimal point — German's pair, the exact inverse
+# of English's.
+1.500 ml in liter	volume	1.5	1,5 liter
+1,5 l	volume	1.5	1,5 liter
+1.234.567 ml	volume	1234.567	1.234.567 milliliter
+# Not one unit moves on the number axis: a Dutch measure noun stays singular
+# after a numeral. "5 liter", "2 gallon" — and German, whose `Gallone` is
+# feminine, prints the plural for that very unit.
+1 liter	volume	1	1 liter
+5 liter	volume	5	5 liter
+2 gallon	volume	7.570823568	2 gallon
+# The loan plurals are read and never printed. Reading and printing are
+# separate decisions here, and only printing has to round-trip.
+2 gallons	volume	7.570823568	2 gallon
+2 pinten	volume	0.946352946	2 pint
+# `kubiekemeter` is the same split one unit further on: Dutch writes the word
+# and reads it, but the unit carries no `forms`, so the symbol is what comes
+# back.
+2 kubiekemeter	volume	2000	2 m³
+2 m3	volume	2000	2 m³
+# Modern Dutch lost case on common nouns, so a conversion target is spelled
+# exactly like a bare quantity: "naar ml", never a dative.
+2 l naar ml	volume	2	2.000 milliliter
+# Two bare multipliers, both ordinary Dutch; "gedeeld door" is the two-token
+# operator, folded the way English folds "divided by".
+2 l maal 3	volume	6	6 liter
+10 l gedeeld door 4	volume	2.5	2,5 liter

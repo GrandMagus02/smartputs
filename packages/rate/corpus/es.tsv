@@ -1,0 +1,42 @@
+# input	kind	canonical	formatted
+30 usd	money	27.27272727272727272727272727	$30,00
+2 euros	money	2	€2,00
+100 dólares en euros	money	90.90909090909090909090909091	€90,91
+5 euros más 5 euros	money	10	€10,00
+30 dólares menos 10 euros	money	17.27272727272727272727272727	$19,00
+2 euros por 3	money	6	€6,00
+10 euros entre 4	money	2.5	€2,50
+-5 euros	money	-5	-€5,00
+dos euros	money	2	€2,00
+(1 usd / 3) * 3	money	0.909090909090909090909090909	$1,00
+# "." groups and "," carries the decimal, so an amount English writes
+# "1,000.50" is written here with the two marks swapped.
+1,5 euros	money	1.5	€1,50
+1.000,50 euros	money	1000.5	€1.000,50
+1.234.567 uah en euros	money	27133.34065934065934065934066	€27.133,34
+# One dollar is "dólar" and every other count is "dólares", the fraction
+# included — Spanish pluralises 1,5 where French does not. Only the reader
+# sees either word: `money` prints the currency sign, never a noun.
+1 dólar	money	0.9090909090909090909090909091	$1,00
+2 dólares	money	1.818181818181818181818181818	$2,00
+1,5 dólares	money	1.363636363636363636363636364	$1,50
+# The words Spanish coined rather than borrowed, and the yen's own -es
+# plural after a consonant.
+3 libras	money	3.566333808844507845934379457	£3,00
+5 francos	money	5.31914893617021276595744681	CHF5,00
+100 grivnas	money	2.197802197802197802197802198	₴100,00
+5 eslotis	money	1.168224299065420560747663552	zł5,00
+1000 yenes	money	5.882352941176470588235294118	¥1.000
+# A known gap, recorded rather than worked around. `numberSymbols` reduces a
+# language to two characters — group and decimal — so every language groups
+# in threes from the first thousand. CLDR gives Spanish a minimum group size
+# of two, which would print this as "€1000,00" and start grouping at ten
+# thousand.
+1000 euros	money	1000	€1.000,00
+# "en" and "a" both introduce a conversion target; "por" is multiply and
+# "entre" is divide, so Spanish spends four of its keywords on words that
+# look like prepositions.
+100 dólares a euros	money	90.90909090909090909090909091	€90,91
+# The accent is a spelling and not an identity: the unaccented form reads to
+# the same currency.
+5 dolares	money	4.545454545454545454545454546	$5,00

@@ -1,0 +1,37 @@
+# input	kind	canonical	formatted
+120 bpm	tempo	120	120 نبضة
+120 bpm إلى ms	duration	0.5	500 ms
+120 bpm إلى ثانية	duration	0.5	0.5 ثانية
+500 ms إلى bpm	tempo	120	120 نبضة
+1 ثانية إلى bpm	tempo	60	60 نبضة
+2 هرتز إلى bpm	tempo	120	120 نبضة
+120 bpm إلى هرتز	tempo	120	2 هرتزان
+120 bpm + 8 bpm	tempo	128	128 نبضة
+140 bpm - 20 bpm	tempo	120	120 نبضة
+60 bpm * 2	tempo	120	120 نبضة
+120 bpm / 2	tempo	60	60 نبضة
+-10 bpm	tempo	-10	-10 نبضة
+مئة وعشرون bpm	tempo	120	120 نبضة
+174 bpm	tempo	174	174 نبضة
+# "نبضة" — a pulse — reads a tempo and is also what prints, because it is the
+# symbol. The unit carries no forms, so one shape covers every count.
+120 نبضة	tempo	120	120 نبضة
+# "في" is both "in" and "times" and is claimed for the conversion, so "ضرب" is
+# what multiplication is left with; division is "قسمة" then "على".
+60 bpm ضرب 2	tempo	120	120 نبضة
+120 bpm قسمة على 2	tempo	60	60 نبضة
+# Six plural categories, the most any language in this set has: 0 zero, 1 one,
+# 2 two, 3-10 few, 11-99 many, and everything else — 100, and every fraction —
+# other. Three of the six spell out هرتز and three do not, which is why all six
+# are written down rather than left to a rule.
+0 هرتز	tempo	0	0 هرتز
+1 هرتز	tempo	60	1 هرتز
+2 هرتز	tempo	120	2 هرتزان
+3 هرتز	tempo	180	3 هرتزات
+11 هرتز	tempo	660	11 هرتزًا
+100 هرتز	tempo	6000	100 هرتز
+1.5 هرتز	tempo	90	1.5 هرتز
+# The digits and separators are Latin inside otherwise right-to-left text: this
+# language resolves to a `latn` numbering system, "," for groups and "." for the
+# decimal.
+1,200 bpm	tempo	1200	1,200 نبضة

@@ -1,0 +1,51 @@
+# input	kind	canonical	formatted
+90度	angle	1.570796326794896619231321692	90度
+90度换算弧度	angle	1.570796326794896619231321692	1.5707963267948966192313217弧度
+0.25圈换算度	angle	1.570796326794896619231321692	90度
+200grad换算度	angle	3.141592653589793238462643383	180度
+90度 + 90度	angle	3.141592653589793238462643384	180度
+1圈 - 90度	angle	4.712388980384689857693965075	0.75圈
+180度 / 4	angle	0.7853981633974483096156608458	45度
+-90度	angle	-1.570796326794896619231321692	-90度
+1弧度换算度	angle	1	57.295779513082320876798155度
+360度换算圈	angle	6.283185307179586476925286767	1圈
+1.5弧度	angle	1.5	1.5弧度
+1,234,567度	angle	21547.25898646883482793950141	1,234,567度
+# No number agreement of any kind: Chinese marks plurality nowhere on a noun,
+# so every unit here has exactly one printed form and 1, 5 and 1.5 take the
+# same word. The separators are English's — "," for groups, "." for the
+# decimal.
+1度	angle	0.01745329251994329576923690768	1度
+5度	angle	0.08726646259971647884618453842	5度
+1.5度	angle	0.02617993877991494365385536153	1.5度
+# No space between the number and the unit, on input or output, which is what
+# makes the round trip hold: the engine reads back its own "1,080度" byte for
+# byte.
+3圈换算度	angle	18.8495559215387594307758603	1,080度
+# The gradian has no Chinese form at all and renders through its Latin symbol.
+# Both Chinese names for it — 百分度 and 新度 — are cut in two by ICU, and the
+# word that survives segmentation, 梯度, is the mathematical gradient and a
+# different thing. A Latin run has no character of a declared script, so
+# `scriptSegmenter` returns it whole and the symbol round-trips.
+200grad	angle	3.141592653589793238462643383	200grad
+# 转 is read and never written: it is also the first character of the
+# conversion keyword 转换, and 圈 has no such second job.
+2转	angle	12.56637061435917295385057353	2圈
+# The myriad. Chinese counts in ten-thousands, so 万 is a magnitude word in
+# its own right and 一万 is one of them, not ten of a thousand.
+一万度	angle	174.5329251994329576923690768	10,000度
+二百圈	angle	1256.637061435917295385057353	200圈
+# A cardinal needs a space before a unit that a dictionary would otherwise
+# swallow it into: ICU reads 一度 as the adverb "once" and 一百度 as the search
+# engine, and neither reaches the alias index. With the space, the same word
+# lands.
+一 圈	angle	6.283185307179586476925286767	1圈
+# The word operators need whitespace around them even though Chinese is
+# written without any: 乘 and 除以 are matched as separate tokens, and
+# "2圈乘3" does not parse. The symbol operators above have no such
+# requirement.
+2圈 乘 3	angle	37.69911184307751886155172059	6圈
+180度 除以 4	angle	0.7853981633974483096156608458	45度
+# 换算, 到 and 为 all introduce a target, and none of them needs a space.
+90度到弧度	angle	1.570796326794896619231321692	1.5707963267948966192313217弧度
+90度为圈	angle	1.570796326794896619231321692	0.25圈

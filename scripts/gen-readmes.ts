@@ -250,6 +250,27 @@ is what to reach for when a reading is not the one you expected.`,
 adding a kind adds a table and not another copy of the algebra.`,
   }),
 
+  kind: async () => ({
+    imports: [
+      'import { decimalRatios, defineKind, defineVocabulary } from "@smartput/kind";',
+      'import { LENGTH_UNITS } from "@smartput/length/units";',
+    ],
+    lines: [
+      'Object.keys(decimalRatios(LENGTH_UNITS)).join(", ")',
+      'defineKind({ id: "length", value: { mode: "ratio", canonical: "m", ratios: decimalRatios(LENGTH_UNITS) } }).id',
+      'defineVocabulary({ kind: "length", units: { m: { one: "metre", other: "metres" } } }).kind',
+      'Object.isFrozen(defineVocabulary({ kind: "length", units: {} }))',
+    ],
+    scope: async () => ({
+      ...(await src("kind", "index.ts")),
+      ...(await src("length", "units.ts")),
+    }),
+    note: `No engine anywhere in this block, which is the point: a kind and its
+words are data, and defining them should not link a parser. \`defineKind\` and
+\`defineVocabulary\` both deep-freeze what they return, so a descriptor cannot
+be edited after an engine has read it.`,
+  }),
+
   kinds: async () => ({
     imports: [
       'import { BUILTIN_KINDS, mass, length } from "@smartput/kinds";',

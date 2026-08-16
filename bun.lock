@@ -45,6 +45,7 @@
       "name": "@smartput/angle",
       "version": "0.0.0",
       "dependencies": {
+        "@smartput/kind": "workspace:*",
         "@smartput/shared": "workspace:*",
       },
       "devDependencies": {
@@ -52,17 +53,12 @@
         "@smartput/kinds": "workspace:*",
         "@smartput/number": "workspace:*",
       },
-      "peerDependencies": {
-        "@smartput/core": "workspace:*",
-      },
-      "optionalPeers": [
-        "@smartput/core",
-      ],
     },
     "packages/area": {
       "name": "@smartput/area",
       "version": "0.0.0",
       "dependencies": {
+        "@smartput/kind": "workspace:*",
         "@smartput/shared": "workspace:*",
       },
       "devDependencies": {
@@ -71,18 +67,12 @@
         "@smartput/length": "workspace:*",
         "@smartput/number": "workspace:*",
       },
-      "peerDependencies": {
-        "@smartput/core": "workspace:*",
-      },
-      "optionalPeers": [
-        "@smartput/core",
-      ],
     },
     "packages/boolean": {
       "name": "@smartput/boolean",
       "version": "0.0.0",
       "dependencies": {
-        "@smartput/core": "workspace:*",
+        "@smartput/kind": "workspace:*",
       },
       "devDependencies": {
         "@smartput/core": "workspace:*",
@@ -97,6 +87,7 @@
       "name": "@smartput/core",
       "version": "0.0.0",
       "dependencies": {
+        "@smartput/kind": "workspace:*",
         "decimal.js": "^10.6.0",
       },
       "devDependencies": {
@@ -118,6 +109,7 @@
       "name": "@smartput/datarate",
       "version": "0.0.0",
       "dependencies": {
+        "@smartput/kind": "workspace:*",
         "@smartput/shared": "workspace:*",
       },
       "devDependencies": {
@@ -127,17 +119,12 @@
         "@smartput/kinds": "workspace:*",
         "@smartput/number": "workspace:*",
       },
-      "peerDependencies": {
-        "@smartput/core": "workspace:*",
-      },
-      "optionalPeers": [
-        "@smartput/core",
-      ],
     },
     "packages/datasize": {
       "name": "@smartput/datasize",
       "version": "0.0.0",
       "dependencies": {
+        "@smartput/kind": "workspace:*",
         "@smartput/shared": "workspace:*",
       },
       "devDependencies": {
@@ -145,12 +132,6 @@
         "@smartput/kinds": "workspace:*",
         "@smartput/number": "workspace:*",
       },
-      "peerDependencies": {
-        "@smartput/core": "workspace:*",
-      },
-      "optionalPeers": [
-        "@smartput/core",
-      ],
     },
     "packages/date": {
       "name": "@smartput/date",
@@ -223,23 +204,19 @@
       "name": "@smartput/duration",
       "version": "0.0.0",
       "dependencies": {
+        "@smartput/kind": "workspace:*",
         "@smartput/shared": "workspace:*",
       },
       "devDependencies": {
         "@smartput/core": "workspace:*",
         "@smartput/number": "workspace:*",
       },
-      "peerDependencies": {
-        "@smartput/core": "workspace:*",
-      },
-      "optionalPeers": [
-        "@smartput/core",
-      ],
     },
     "packages/energy": {
       "name": "@smartput/energy",
       "version": "0.0.0",
       "dependencies": {
+        "@smartput/kind": "workspace:*",
         "@smartput/shared": "workspace:*",
       },
       "devDependencies": {
@@ -249,12 +226,6 @@
         "@smartput/number": "workspace:*",
         "@smartput/power": "workspace:*",
       },
-      "peerDependencies": {
-        "@smartput/core": "workspace:*",
-      },
-      "optionalPeers": [
-        "@smartput/core",
-      ],
     },
     "packages/geo": {
       "name": "@smartput/geo",
@@ -285,6 +256,16 @@
       "version": "0.0.0",
       "dependencies": {
         "date-holidays": "^3.34.1",
+      },
+    },
+    "packages/kind": {
+      "name": "@smartput/kind",
+      "version": "0.0.0",
+      "dependencies": {
+        "decimal.js": "^10.6.0",
+      },
+      "devDependencies": {
+        "@smartput/shared": "workspace:*",
       },
     },
     "packages/kinds": {
@@ -321,35 +302,25 @@
       "name": "@smartput/length",
       "version": "0.0.0",
       "dependencies": {
+        "@smartput/kind": "workspace:*",
         "@smartput/shared": "workspace:*",
       },
       "devDependencies": {
         "@smartput/core": "workspace:*",
         "@smartput/number": "workspace:*",
       },
-      "peerDependencies": {
-        "@smartput/core": "workspace:*",
-      },
-      "optionalPeers": [
-        "@smartput/core",
-      ],
     },
     "packages/mass": {
       "name": "@smartput/mass",
       "version": "0.0.0",
       "dependencies": {
+        "@smartput/kind": "workspace:*",
         "@smartput/shared": "workspace:*",
       },
       "devDependencies": {
         "@smartput/core": "workspace:*",
         "@smartput/number": "workspace:*",
       },
-      "peerDependencies": {
-        "@smartput/core": "workspace:*",
-      },
-      "optionalPeers": [
-        "@smartput/core",
-      ],
     },
     "packages/math": {
       "name": "@smartput/math",
@@ -364,6 +335,7 @@
       "name": "@smartput/measure",
       "version": "0.0.0",
       "dependencies": {
+        "@smartput/kind": "workspace:*",
         "@smartput/shared": "workspace:*",
       },
       "devDependencies": {
@@ -371,17 +343,12 @@
         "@smartput/kinds": "workspace:*",
         "@smartput/number": "workspace:*",
       },
-      "peerDependencies": {
-        "@smartput/core": "workspace:*",
-      },
-      "optionalPeers": [
-        "@smartput/core",
-      ],
     },
     "packages/number": {
       "name": "@smartput/number",
       "version": "0.0.0",
       "dependencies": {
+        "@smartput/kind": "workspace:*",
         "@smartput/shared": "workspace:*",
       },
       "devDependencies": {
@@ -398,6 +365,7 @@
       "name": "@smartput/percent",
       "version": "0.0.0",
       "dependencies": {
+        "@smartput/kind": "workspace:*",
         "@smartput/shared": "workspace:*",
       },
       "devDependencies": {
@@ -405,17 +373,12 @@
         "@smartput/kinds": "workspace:*",
         "@smartput/number": "workspace:*",
       },
-      "peerDependencies": {
-        "@smartput/core": "workspace:*",
-      },
-      "optionalPeers": [
-        "@smartput/core",
-      ],
     },
     "packages/power": {
       "name": "@smartput/power",
       "version": "0.0.0",
       "dependencies": {
+        "@smartput/kind": "workspace:*",
         "@smartput/shared": "workspace:*",
       },
       "devDependencies": {
@@ -423,12 +386,6 @@
         "@smartput/kinds": "workspace:*",
         "@smartput/number": "workspace:*",
       },
-      "peerDependencies": {
-        "@smartput/core": "workspace:*",
-      },
-      "optionalPeers": [
-        "@smartput/core",
-      ],
     },
     "packages/query": {
       "name": "@smartput/query",
@@ -490,6 +447,7 @@
       "name": "@smartput/speed",
       "version": "0.0.0",
       "dependencies": {
+        "@smartput/kind": "workspace:*",
         "@smartput/shared": "workspace:*",
       },
       "devDependencies": {
@@ -499,17 +457,12 @@
         "@smartput/length": "workspace:*",
         "@smartput/number": "workspace:*",
       },
-      "peerDependencies": {
-        "@smartput/core": "workspace:*",
-      },
-      "optionalPeers": [
-        "@smartput/core",
-      ],
     },
     "packages/temperature": {
       "name": "@smartput/temperature",
       "version": "0.0.0",
       "dependencies": {
+        "@smartput/kind": "workspace:*",
         "@smartput/shared": "workspace:*",
       },
       "devDependencies": {
@@ -517,17 +470,12 @@
         "@smartput/kinds": "workspace:*",
         "@smartput/number": "workspace:*",
       },
-      "peerDependencies": {
-        "@smartput/core": "workspace:*",
-      },
-      "optionalPeers": [
-        "@smartput/core",
-      ],
     },
     "packages/tempo": {
       "name": "@smartput/tempo",
       "version": "0.0.0",
       "dependencies": {
+        "@smartput/kind": "workspace:*",
         "@smartput/shared": "workspace:*",
       },
       "devDependencies": {
@@ -536,12 +484,6 @@
         "@smartput/kinds": "workspace:*",
         "@smartput/number": "workspace:*",
       },
-      "peerDependencies": {
-        "@smartput/core": "workspace:*",
-      },
-      "optionalPeers": [
-        "@smartput/core",
-      ],
     },
     "packages/time": {
       "name": "@smartput/time",
@@ -577,6 +519,7 @@
       "name": "@smartput/volume",
       "version": "0.0.0",
       "dependencies": {
+        "@smartput/kind": "workspace:*",
         "@smartput/shared": "workspace:*",
       },
       "devDependencies": {
@@ -584,12 +527,6 @@
         "@smartput/kinds": "workspace:*",
         "@smartput/number": "workspace:*",
       },
-      "peerDependencies": {
-        "@smartput/core": "workspace:*",
-      },
-      "optionalPeers": [
-        "@smartput/core",
-      ],
     },
   },
   "packages": {
@@ -900,6 +837,8 @@
     "@smartput/geo": ["@smartput/geo@workspace:packages/geo"],
 
     "@smartput/holiday": ["@smartput/holiday@workspace:packages/holiday"],
+
+    "@smartput/kind": ["@smartput/kind@workspace:packages/kind"],
 
     "@smartput/kinds": ["@smartput/kinds@workspace:packages/kinds"],
 

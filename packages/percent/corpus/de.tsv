@@ -1,0 +1,33 @@
+# input	kind	canonical	formatted
+20%	percent	0.2	20 %
+20 Prozent	percent	0.2	20 %
+50 + 20%	number	60	60
+50 - 10%	number	45	45
+20% von 50	number	10	10
+10% + 5%	percent	0.15	15 %
+100% - 40%	percent	0.6	60 %
+50 * 10%	percent	5	500 %
+10% / 2	percent	0.05	5 %
+-10%	percent	-0.1	-10 %
+zehn Prozent	percent	0.1	10 %
+fünfundzwanzig Prozent	percent	0.25	25 %
+0,5 in Prozent	percent	0.5	50 %
+5 / 50 in Prozent	percent	0.1	10 %
+# "." groups and "," is the decimal point, so "1.000%" is a thousand percent
+# and "2,5%" is two and a half.
+2,5%	percent	0.025	2,5 %
+1.000%	percent	10	1.000 %
+100 * 20%	percent	20	2.000 %
+# The neuter measure noun does not inflect after a cardinal — "20 Prozent",
+# never "20 Prozente". The free plural and the dative plural are read all the
+# same, because the aliases are the input surface and say nothing about output.
+20 prozente	percent	0.2	20 %
+0,5 in Prozenten	percent	0.5	50 %
+# DIN 5008 sets the sign off from the number, and `german.renderQuantity`
+# overrides the default template to do it. Every formatted column in this file
+# carries that space; this row types it too, and gets the same byte back.
+20 %	percent	0.2	20 %
+# The word operators. "geteilt durch" is two tokens, `over` and `by`.
+50 mal 10%	percent	5	500 %
+10% geteilt durch 2	percent	0.05	5 %
+ein Prozent	percent	0.01	1 %

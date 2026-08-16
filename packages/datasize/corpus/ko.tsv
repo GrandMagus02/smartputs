@@ -1,0 +1,43 @@
+# input	kind	canonical	formatted
+1KiB를 B	datasize	1024	1,024바이트
+1GB를 MB	datasize	1000000000	1,000메가바이트
+1GiB를 MiB	datasize	1073741824	1,024MiB
+1TB를 GB	datasize	1000000000000	1,000기가바이트
+1MiB를 kB	datasize	1048576	1,048.576킬로바이트
+1024B를 KiB	datasize	1024	1KiB
+500MB + 500MB	datasize	1000000000	1,000메가바이트
+1GB - 200MB	datasize	800000000	0.8기가바이트
+2GB * 3	datasize	6000000000	6기가바이트
+1TB / 4	datasize	250000000000	0.25테라바이트
+-1GB	datasize	-1000000000	-1기가바이트
+일 기가바이트	datasize	1000000000	1기가바이트
+이백오 메가바이트	datasize	205000000	205메가바이트
+# No number agreement. Korean marks number nowhere on a measured noun, so the
+# `forms` table has the single key `other` and every count prints the one
+# word. The separators are English's, and there is no space before the unit.
+5B	datasize	5	5바이트
+1.5GB	datasize	1500000000	1.5기가바이트
+1,234,567B	datasize	1234567	1,234,567바이트
+# Two registers, one per family, and the split is deliberate. The decimal
+# units spell themselves out in Hangul because that is what a Korean
+# storefront writes; the IEC binary units are KS-standard calques that read
+# and never print, because what a Korean page prints for 1024 bytes is "KiB".
+# 1키비바이트 below goes in as Hangul and comes back Latin.
+5기가바이트	datasize	5000000000	5기가바이트
+1키비바이트	datasize	1024	1KiB
+# Korean has been spaced since 1896, so `korean.segment` is undefined and no
+# dictionary can veto a compound — unlike Japanese next door, every one of the
+# nine Hangul names arrives whole.
+512메가바이트	datasize	512000000	512메가바이트
+# The particles. 를 and 에서 are glued to the word they mark, and both
+# introduce a conversion target. A glued particle after a bare quantity is
+# stripped too.
+2GB에서 MB	datasize	2000000000	2,000메가바이트
+2GB를 메가바이트	datasize	2000000000	2,000메가바이트
+500메가바이트를	datasize	500000000	500메가바이트
+# The myriad. Korean counts in ten-thousands, so 만 is a magnitude word in its
+# own right.
+1만 바이트	datasize	10000	10,000바이트
+# The word operators stand alone and take whitespace.
+2GB 곱하기 3	datasize	6000000000	6기가바이트
+10GB 나누기 4	datasize	2500000000	2.5기가바이트

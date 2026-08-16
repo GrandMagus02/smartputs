@@ -1,0 +1,65 @@
+# input	kind	canonical	formatted
+#
+# The clock is 2026-01-15T12:00:00Z — a Thursday — and the engine zone is UTC,
+# the same pinning `corpus/en.tsv` records. `canonical` is epoch nanoseconds for
+# a datetime and canonical seconds for a duration. `formatted` follows
+# "YYYY-MM-DD HH:MM <zone symbol>", with midnight whenever the input named no
+# time of day — and it is never translated, because the kind's format hook
+# builds it from Temporal fields rather than from ICU.
+
+# datetime — recognition. An ISO date is the one date syntax every locale
+# shares; a bare clock time takes its date from the pinned clock.
+2026-03-01	datetime	1772323200000000000	2026-03-01 00:00 UTC
+9:30	datetime	1768469400000000000	2026-01-15 09:30 UTC
+
+# The date reader is chrono-node in its English configuration, whichever locale
+# formats the answer, so "vandaag", "morgen" and "1 maart 2026" all throw while
+# their English spellings read under a Dutch engine. A known gap, recorded here
+# rather than worked around: `chrono-bridge.ts` says as much where it spells
+# `to|as|in` in English.
+next friday	datetime	1769126400000000000	2026-01-23 00:00 UTC
+1 March 2026	datetime	1772323200000000000	2026-03-01 00:00 UTC
+
+# datetime + duration, with the duration spelled in Dutch.
+2026-03-01 + 3 dagen	datetime	1772582400000000000	2026-03-04 00:00 UTC
+2026-03-01 - 1 week	datetime	1771718400000000000	2026-02-22 00:00 UTC
+9:30 + 90 minuten	datetime	1768474800000000000	2026-01-15 11:00 UTC
+# February is 28 days long in 2026; the addition is calendar arithmetic, not
+# 86400 seconds.
+2026-02-28 + 1 d	datetime	1772323200000000000	2026-03-01 00:00 UTC
+2026-03-01 + drie dagen	datetime	1772582400000000000	2026-03-04 00:00 UTC
+
+# datetime - datetime is a duration, and the duration is what carries Dutch.
+2026-01-17 - 2026-01-15	duration	172800	2 dagen
+# `durationValue` reports the largest unit it fills, so 45 days is weeks, and
+# the remainder is where the decimal comma shows.
+2026-03-01 - 2026-01-15	duration	3888000	6,4285714285714285714285714 weken
+# "." groups and "," decimals — the German pair, not the English one.
+1000 dagen	duration	86400000	1.000 dagen
+# The hour does not move on the number axis: "uur" is both of its forms, so one
+# and two print the same word where "dag"/"dagen" does not.
+1 uur	duration	3600	1 uur
+2 uur	duration	7200	2 uur
+# Two words for times, one two-token phrase for over.
+2 weken keer 3	duration	3628800	6 weken
+6 uur gedeeld door 2	duration	10800	3 uur
+-5 minuten	duration	-300	-5 minuten
+
+# Zone conversion. "in" keeps the instant and relabels the wall clock; "naar"
+# is the other word core maps onto the same keyword.
+15:00 in tokio	datetime	1768489200000000000	2026-01-16 00:00 JST
+15:00 naar tokio	datetime	1768489200000000000	2026-01-16 00:00 JST
+# July, so London is on BST and the same zone that reads +00:00 in January
+# reads +01:00 here. Only a date-aware kind can tell the two apart.
+2026-07-01 in londen	datetime	1782864000000000000	2026-07-01 01:00 London
+# Both spellings of the diaeresis, listed for the reason a keyboard that cannot
+# type ë is not a reason to lose the zone.
+15:00 in californië	datetime	1768489200000000000	2026-01-15 07:00 PT
+15:00 in californie	datetime	1768489200000000000	2026-01-15 07:00 PT
+
+# Nothing below is a date. These rows are the accept-gate's regression guard
+# (plan ruling R4): if a chrono upgrade starts claiming them, they fail loudly.
+10 km + 5 km	length	15000	15 kilometer
+20 C	temperature	20	20 °C
+5 minuten	duration	300	5 minuten
+

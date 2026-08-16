@@ -1,0 +1,35 @@
+# input	kind	canonical	formatted
+30 usd	money	27.27272727272727272727272727	$30.00
+100ドル を ユーロ	money	90.90909090909090909090909091	€90.91
+5ユーロ 足す 5ユーロ	money	10	€10.00
+30ドル 引く 10ユーロ	money	17.27272727272727272727272727	$19.00
+2ユーロ かける 3	money	6	€6.00
+10ユーロ わる 4	money	2.5	€2.50
+-5ユーロ	money	-5	-€5.00
+(1 usd / 3) * 3	money	0.909090909090909090909090909	$1.00
+# No space between the number and the unit, as in Chinese, and no form of
+# the noun moves for the count.
+2ユーロ	money	2	€2.00
+1000ユーロ	money	1000	€1,000.00
+1234567ユーロ	money	1234567	€1,234,567.00
+# The word operators need whitespace; the symbols do not.
+2ユーロ*3	money	6	€6.00
+5ユーロ プラス 5ユーロ	money	10	€10.00
+# The conversion keywords are case particles rather than prepositions, and
+# they glue to the word in front of them — "ドルを", not "ドル を". Both are
+# read.
+100ドルをユーロ	money	90.90909090909090909090909091	€90.91
+100ドルからユーロ	money	90.90909090909090909090909091	€90.91
+# The unit words are katakana loans, and the one native word is the yen's
+# own character. It is the currency with no minor unit, so nothing follows
+# the grouped digits.
+1000円	money	5.882352941176470588235294118	¥1,000
+5米ドル	money	4.545454545454545454545454546	$5.00
+3英ポンド	money	3.566333808844507845934379457	£3.00
+5スイスフラン	money	5.31914893617021276595744681	CHF5.00
+100フリヴニャ	money	2.197802197802197802197802198	₴100.00
+5ズロチ	money	1.168224299065420560747663552	zł5.00
+# The Sino-Japanese cardinal, in kanji rather than in digits.
+二ユーロ	money	2	€2.00
+# Japanese groups with "," and puts the decimal on ".", the English pair.
+1.5ユーロ	money	1.5	€1.50

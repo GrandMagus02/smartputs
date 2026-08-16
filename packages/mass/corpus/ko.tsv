@@ -1,0 +1,43 @@
+# input	kind	canonical	formatted
+10킬로그램	mass	10000	10킬로그램
+3파운드	mass	1360.77711	3파운드
+10그램 + 5킬로그램	mass	5010	5,010그램
+1킬로그램 - 250그램	mass	750	0.75킬로그램
+10킬로그램 * 3	mass	30000	30킬로그램
+1톤 / 8	mass	125000	0.125톤
+-2킬로그램	mass	-2000	-2킬로그램
+1.5킬로그램	mass	1500	1.5킬로그램
+1,234,567밀리그램	mass	1234.567	1,234,567밀리그램
+# No number agreement of any kind, so every unit has one printed form and 1 and
+# 5 take the same word. The separators are English's, and there is no space
+# between the number and the unit on either side of the round trip.
+1그램	mass	1	1그램
+5그램	mass	5	5그램
+# The particles. Korean marks the source of a conversion with the accusative
+# 을/를 and the origin with 에서, both written glued to the unit word, and the
+# suffix stripper takes them off a bare quantity too.
+5킬로그램을	mass	5000	5킬로그램
+500그램에서	mass	500	500그램
+# A conversion parses when the particle is its own token — which it is after a
+# Latin unit alias, the mixed-script spelling Korean technical writing uses.
+2kg를 그램	mass	2000	2,000그램
+1t를 킬로그램	mass	1000000	1,000킬로그램
+16oz를 파운드	mass	453.59237	1파운드
+1lb를 온스	mass	453.59237	16온스
+1,500g를 킬로그램	mass	1500	1.5킬로그램
+500mg를 그램	mass	0.5	0.5그램
+# After a *Hangul* unit the glued particle does not separate, and the
+# conversion has to be written with a space before it. "2킬로그램을 그램" does
+# not parse; the row below is the same sentence that does.
+2킬로그램 을 그램	mass	2000	2,000그램
+1파운드 를 온스	mass	453.59237	16온스
+# 킬로 is the clipping, and the full Hangul word is what comes back.
+3킬로	mass	3000	3킬로그램
+# The myriad. Korean counts in ten-thousands, so 만 is its own magnitude word.
+만 그램	mass	10000	10,000그램
+일 킬로그램	mass	1000	1킬로그램
+이백오 킬로그램	mass	205000	205킬로그램
+# The operators are native Korean verbal nouns and stand as separate tokens.
+2킬로그램 곱하기 3	mass	6000	6킬로그램
+10킬로그램 나누기 4	mass	2500	2.5킬로그램
+2킬로그램 더하기 500그램	mass	2500	2.5킬로그램

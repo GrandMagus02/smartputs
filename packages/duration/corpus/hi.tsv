@@ -1,0 +1,39 @@
+# input	kind	canonical	formatted
+2 सप्ताह	duration	1209600	2 सप्ताह
+30 घंटे - 30 मिनट	duration	106200	29.5 घंटे
+90 मिनट को घंटे	duration	5400	1.5 घंटे
+1 दिन को घंटे	duration	86400	24 घंटे
+1 सप्ताह को दिन	duration	604800	7 दिन
+500 ms + 500 ms	duration	1	1,000 मिलीसेकंड
+2 घंटे * 3	duration	21600	6 घंटे
+1 दिन / 4	duration	21600	0.25 दिन
+-2 घंटे	duration	-7200	-2 घंटे
+1 घंटा को सेकंड	duration	3600	3,600 सेकंड
+3600 सेकंड को घंटे	duration	3600	1 घंटा
+1.5 घंटे को मिनट	duration	5400	90 मिनट
+2 दिन + 12 घंटे	duration	216000	2.5 दिन
+एक घंटा	duration	3600	1 घंटा
+# घंटा is the one unit with a number axis at all: घंटा for one, घंटे for the
+# rest. The other five spell both categories the same way.
+1 घंटा	duration	3600	1 घंटा
+5 घंटे	duration	18000	5 घंटे
+1 दिन	duration	86400	1 दिन
+5 दिन	duration	432000	5 दिन
+# Three particles mark the conversion target, all three the same
+# `keywords.in` entry, and each stands between the source and the target
+# rather than after either.
+90 मिनट से घंटे	duration	5400	1.5 घंटे
+1 दिन में घंटे	duration	86400	24 घंटे
+# लाख is a magnitude word in its own right — a hundred thousand, the unit
+# Indian counting is built on.
+1 लाख सेकंड	duration	100000	100,000 सेकंड
+# The reader is grouping-agnostic: Indian 2-2-3 grouping and Western 3-3
+# grouping are the same number to it. The writer, though, groups in fixed
+# threes and cannot yet produce the Indian form — a recorded gap in core's
+# number printer, pinned here rather than papered over.
+12,34,567 मिलीसेकंड	duration	1234.567	1,234,567 मिलीसेकंड
+# The word operators.
+2 घंटे जोड़ 30 मिनट	duration	9000	2.5 घंटे
+2 दिन घटा 12 घंटे	duration	129600	1.5 दिन
+# हफ़्ता is an alias that reads and never prints; सप्ताह is the printed word.
+1 हफ़्ता	duration	604800	1 सप्ताह

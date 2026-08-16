@@ -1,0 +1,37 @@
+# input	kind	canonical	formatted
+20%	percent	0.2	20%
+20 porcento	percent	0.2	20%
+50 + 20%	number	60	60
+50 - 10%	number	45	45
+20% de 50	number	10	10
+10% + 5%	percent	0.15	15%
+100% - 40%	percent	0.6	60%
+50 * 10%	percent	5	500%
+10% / 2	percent	0.05	5%
+-10%	percent	-0.1	-10%
+dez porcento	percent	0.1	10%
+vinte e cinco porcento	percent	0.25	25%
+0,5 em porcentagem	percent	0.5	50%
+5 / 50 em porcentagem	percent	0.1	10%
+# "." groups and "," is the decimal point.
+2,5%	percent	0.025	2,5%
+1.000%	percent	10	1.000%
+100 * 20%	percent	20	2.000%
+# Four Portuguese nouns for the one unit, and both sides of the Atlantic are
+# read: Brazil writes "porcentagem", Portugal "percentagem", and "percentual"
+# is the adjective used as a noun.
+20 porcentagem	percent	0.2	20%
+20 percentagem	percent	0.2	20%
+20 percentuais	percent	0.2	20%
+# "por" is `times`, so "dividido por" cannot parse — two operators in a row.
+# Portuguese division is "sobre".
+50 vezes 10%	percent	5	500%
+10% sobre 2	percent	0.05	5%
+# What Portuguese writes is "por cento", two tokens, and both fragments are
+# claimed elsewhere: "por" by `times` and "cento" by the cardinal 100. So the
+# phrase multiplies instead of naming the unit. A recorded gap — `pt.test.ts`
+# pins the same wrong answer.
+20 por cento	number	2000	2.000
+# "desconto" is the `off` keyword: what is left after the discount.
+20% desconto 50	number	40	40
+0,5 para percentagem	percent	0.5	50%

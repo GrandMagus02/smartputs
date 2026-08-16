@@ -1,0 +1,35 @@
+# input	kind	canonical	formatted
+1 kib ke b	datasize	1024	1.024 byte
+1 gb ke mb	datasize	1000000000	1.000 megabyte
+1 gib ke mib	datasize	1073741824	1.024 mebibyte
+1 tb dalam gb	datasize	1000000000000	1.000 gigabyte
+1 mib ke kb	datasize	1048576	1.048,576 kilobyte
+1024 b ke kib	datasize	1024	1 kibibyte
+2 gigabyte ke megabyte	datasize	2000000000	2.000 megabyte
+500 mb + 500 mb	datasize	1000000000	1.000 megabyte
+1 gb - 200 mb	datasize	800000000	0,8 gigabyte
+2 gb * 3	datasize	6000000000	6 gigabyte
+1 tb / 4	datasize	250000000000	0,25 terabyte
+-1 gb	datasize	-1000000000	-1 gigabyte
+# "." groups and "," is the decimal point, the Dutch pair Indonesian inherited.
+1.500 byte	datasize	1500	1.500 byte
+1234567 byte	datasize	1234567	1.234.567 byte
+1,5 GB	datasize	1500000000	1,5 gigabyte
+# No plural at all. Indonesian reduplicates a noun to pluralise it and never
+# does so after a numeral, so the `forms` table has the single key `other` and
+# 1, 2 and 5 print the same word.
+1 byte	datasize	1	1 byte
+2 byte	datasize	2	2 byte
+5 byte	datasize	5	5 byte
+# "bita" is the Indonesian spelling of the borrowed unit and it reads; the
+# English spelling prints, which is what an Indonesian spec sheet writes.
+# There is no spelled-cardinal row anywhere in this file, and that is not an
+# omission: Indonesian is the one language of the seventeen with no cardinal
+# table in core, so "satu gigabyte" throws rather than reading as one.
+1 bita	datasize	1	1 byte
+5 bita	datasize	5	5 byte
+# The operators are all bare words, none of them two-token.
+2 GB kali 3	datasize	6000000000	6 gigabyte
+10 GB bagi 4	datasize	2500000000	2,5 gigabyte
+100 MB tambah 100 MB	datasize	200000000	200 megabyte
+1 GB kurang 200 MB	datasize	800000000	0,8 gigabyte

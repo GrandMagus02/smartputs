@@ -1,0 +1,33 @@
+# input	kind	canonical	formatted
+3 m * 4 m	area	12	12m²
+1 hectare em m2	area	10000	10.000m²
+1 acre em m2	area	4046.8564224	4.046,8564224m²
+2 km2 em hectares	area	2000000	200 hectares
+5000 cm2 em m2	area	0.5	0,5m²
+10 m2 + 5 m2	area	15	15m²
+1 hectare - 2500 m2	area	7500	0,75 hectare
+3 m2 * 4	area	12	12m²
+100 m2 / 4	area	25	25m²
+-5 m2	area	-5	-5m²
+2 sqkm em m2	area	2000000	2.000.000m²
+1 m2 em cm2	area	1	10.000cm²
+dois hectares	area	20000	2 hectares
+1 km * 1 km	area	1000000	1.000.000m²
+12 m2	area	12	12m²
+# A fraction takes the **singular** here — "1,5 hectare" — which is French's
+# answer and not Spanish's. Two Iberian languages disagreeing about the same
+# borrowed noun.
+1 hectare	area	10000	1 hectare
+2 hectares	area	20000	2 hectares
+1,5 hectare	area	15000	1,5 hectare
+2 acres	area	8093.7128448	2 acres
+# "." groups and "," is the decimal point.
+1.500 m2	area	1500	1.500m²
+# "por" is times as well as a preposition, so "dividido por" is two operators
+# in a row and does not parse. Portuguese division is "sobre".
+10 m2 vezes 3	area	30	30m²
+10 m2 por 3	area	30	30m²
+100 m2 sobre 4	area	25	25m²
+# "para" is the second conversion preposition, beside "em".
+1 acre para hectares	area	4046.8564224	0,40468564224 hectare
+cento e vinte m2	area	120	120m²

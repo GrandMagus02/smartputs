@@ -1,0 +1,36 @@
+# input	kind	canonical	formatted
+1kW를 와트	power	1000	1,000와트
+1MW를 kW	power	1000000	1,000킬로와트
+2.5킬로와트	power	2500	2.5킬로와트
+500와트 + 500와트	power	1000	1,000와트
+2킬로와트 - 500와트	power	1500	1.5킬로와트
+3킬로와트 * 2	power	6000	6킬로와트
+1MW / 4	power	250000	0.25메가와트
+-1킬로와트	power	-1000	-1킬로와트
+일 킬로와트	power	1000	1킬로와트
+이백오 킬로와트	power	205000	205킬로와트
+1hp를 와트	power	745.69987158227022	745.69987158227022와트
+100hp를 킬로와트	power	74569.987158227022	74.569987158227022킬로와트
+1,234,567와트	power	1234567	1,234,567와트
+# No number agreement: `forms` is a single `other` key per unit. Unlike Chinese
+# and Japanese, the Hangul word is what prints — 킬로와트, not "kW".
+1와트	power	1	1와트
+5와트	power	5	5와트
+# 마력 has no `forms` entry, and prints anyway because its symbol is the Hangul
+# word.
+1마력	power	745.69987158227022	1마력
+5hp	power	3728.4993579113511	5마력
+2kW를 마력	power	2000	2.6820441791900558686475711마력
+# The particle stripper. A bare quantity can carry its case particle glued onto
+# the unit, and the particle comes off before the alias is matched.
+5킬로와트를	power	5000	5킬로와트
+5와트를	power	5	5와트
+# But only on a bare quantity. A glued particle after a Hangul unit does not
+# separate a conversion — "1킬로와트를 와트" does not parse — so a conversion
+# needs the particle spaced off, or a Latin unit alias to hang it on.
+1킬로와트 를 와트	power	1000	1,000와트
+1000와트 를 킬로와트	power	1000	1킬로와트
+500W에서 킬로와트	power	500	0.5킬로와트
+# The word operators.
+2킬로와트 곱하기 3	power	6000	6킬로와트
+1MW 나누기 4	power	250000	0.25메가와트

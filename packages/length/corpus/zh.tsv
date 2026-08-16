@@ -1,0 +1,40 @@
+# input	kind	canonical	formatted
+10公里	length	10000	10公里
+12英寸	length	0.3048	12英寸
+2公里到米	length	2000	2,000米
+1英里到公里	length	1609.344	1.609344公里
+10米 + 5公里	length	5010	5,010米
+1公里 - 250米	length	750	0.75公里
+10公里 * 3	length	30000	30公里
+1公里 / 4	length	250	0.25公里
+-5公里	length	-5000	-5公里
+3英尺到厘米	length	0.9144	91.44厘米
+1码到厘米	length	0.9144	91.44厘米
+5280英尺到英里	length	1609.344	1英里
+1,500毫米到米	length	1.5	1.5米
+1.5公里	length	1500	1.5公里
+1,234,567毫米	length	1234.567	1,234,567毫米
+# No number agreement of any kind: Chinese marks plurality nowhere on a noun,
+# so every unit here has exactly one printed form and 1 and 5 take the same
+# word. The separators are English's — "," for groups, "." for the decimal.
+1米	length	1	1米
+5米	length	5	5米
+# No space between the number and the unit, on input or output. `Printer`'s
+# `gap` is empty for this language, which is what makes the round trip hold:
+# the engine reads back its own "2,000米" byte for byte.
+2公里为米	length	2000	2,000米
+# The myriad. Chinese counts in ten-thousands, so 万 is a magnitude word in its
+# own right and 一万 is one of them, not ten of a thousand.
+一万米	length	10000	10,000米
+二百零五公里	length	205000	205公里
+一公里	length	1000	1公里
+# The word operators need whitespace around them even though Chinese is
+# written without any: 乘 and 除以 are matched as separate tokens, and
+# "2公里乘3" does not parse. The symbol operators above have no such
+# requirement.
+2公里 乘 3	length	6000	6公里
+10公里 除以 4	length	2500	2.5公里
+10米 加 5公里	length	5010	5,010米
+# 换算 and 转换 are verbs rather than prepositions, and both introduce a
+# target on their own.
+2公里换算米	length	2000	2,000米

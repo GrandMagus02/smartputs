@@ -1,0 +1,36 @@
+# input	kind	canonical	formatted
+90 graus	angle	1.570796326794896619231321692	90 graus
+90 graus em radianos	angle	1.570796326794896619231321692	1,5707963267948966192313217 radiano
+0,25 voltas em graus	angle	1.570796326794896619231321692	90 graus
+200 grados em graus	angle	3.141592653589793238462643383	180 graus
+90 graus + 90 graus	angle	3.141592653589793238462643384	180 graus
+1 volta - 90 graus	angle	4.712388980384689857693965075	0,75 volta
+45 graus * 2	angle	1.570796326794896619231321692	90 graus
+180 graus / 4	angle	0.7853981633974483096156608458	45 graus
+-90 graus	angle	-1.570796326794896619231321692	-90 graus
+1 radiano em graus	angle	1	57,295779513082320876798155 graus
+uma volta	angle	6.283185307179586476925286767	1 volta
+duzentos gons	angle	3.141592653589793238462643383	200 grados
+360 graus em voltas	angle	6.283185307179586476925286767	1 volta
+1,5 radianos	angle	1.5	1,5 radiano
+# "." groups and "," is the decimal point.
+1.000 graus	angle	17.45329251994329576923690768	1.000 graus
+3 voltas em graus	angle	18.8495559215387594307758603	1.080 graus
+# A fraction takes the **singular** — "1,5 grau", "0,75 volta" — which is
+# French's answer and not Spanish's, two Iberian languages parting company on
+# the same number.
+1 grau	angle	0.01745329251994329576923690768	1 grau
+2 graus	angle	0.03490658503988659153847381537	2 graus
+1,5 graus	angle	0.02617993877991494365385536153	1,5 grau
+0,75 voltas	angle	4.712388980384689857693965075	0,75 volta
+# "gon" and "gons" are read and never written: Portuguese prints "grado", the
+# name it gives the gradian itself.
+1 gon	angle	0.01570796326794896619231321692	1 grado
+2 gons	angle	0.03141592653589793238462643383	2 grados
+# The word operators, and the trap under them: "por" is `times` beside
+# "vezes", so "dividido por" is two operators in a row and division is
+# "sobre".
+45 graus vezes 2	angle	1.570796326794896619231321692	90 graus
+180 graus sobre 4	angle	0.7853981633974483096156608458	45 graus
+# "para" is the second conversion preposition beside "em".
+90 graus para radianos	angle	1.570796326794896619231321692	1,5707963267948966192313217 radiano

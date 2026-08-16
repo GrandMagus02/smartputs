@@ -1,4 +1,4 @@
-import { aliasesFor, defineVocabulary } from "@smartput/core";
+import { aliasesFor, defineVocabulary } from "@smartput/kind";
 import { MASS_UNITS, type MassUnit } from "../units";
 
 const alias = (unit: MassUnit) => aliasesFor(MASS_UNITS, unit);

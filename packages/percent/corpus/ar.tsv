@@ -1,0 +1,37 @@
+# input	kind	canonical	formatted
+20%	percent	0.2	20 %
+20 بالمئة	percent	0.2	20 %
+50 + 20%	number	60	60
+50 - 10%	number	45	45
+20% من 50	number	10	10
+10% + 5%	percent	0.15	15 %
+100% - 40%	percent	0.6	60 %
+50 * 10%	percent	5	500 %
+10% / 2	percent	0.05	5 %
+-10%	percent	-0.1	-10 %
+عشرة بالمئة	percent	0.1	10 %
+5 / 50 في المئة	percent	0.1	10 %
+# Latin digits and Latin separators inside right-to-left text: "," groups and
+# "." is the decimal point, which `ar.ts` sets by hand rather than taking from
+# Intl. The sign is set off from the number.
+2.5%	percent	0.025	2.5 %
+1,000%	percent	10	1,000 %
+100 * 20%	percent	20	2,000 %
+# Three one-token spellings, two orthographies of مئة plus the colloquial one.
+20 بالمائة	percent	0.2	20 %
+20 بالمية	percent	0.2	20 %
+# في is both "in" and the conversion keyword, so the two-token phrase "في المئة"
+# — what Arabic actually writes — parses as a conversion onto المئة rather than
+# failing. The head is claimed for exactly that reason.
+0.5 في المئة	percent	0.5	50 %
+0.5 إلى بالمئة	percent	0.5	50 %
+# The word operators, each one token. ضرب is what is left for `times` once في
+# is spent on the conversion.
+50 ضرب 10%	percent	5	500 %
+10% قسمة 2	percent	0.05	5 %
+10% زائد 5%	percent	0.15	15 %
+100% ناقص 40%	percent	0.6	60 %
+# Arabic-Indic digits are not read — ٥٠% answers 1%, silently, rather than
+# raising — so not one row in this file is written in them. The bug is core's
+# and is recorded there.
+20 pct	percent	0.2	20 %

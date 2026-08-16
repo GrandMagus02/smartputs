@@ -1,0 +1,36 @@
+# input	kind	canonical	formatted
+1 + 1	number	2	2
+10 - 4	number	6	6
+6 * 7	number	42	42
+10 / 4	number	2.5	2,5
+-5	number	-5	-5
+(1 + 2) * 3	number	9	9
+100 / 3	number	33.33333333333333333333333333	33,333333333333333333333333
+# "." groups and "," marks the decimal.
+1.500	number	1500	1.500
+0,1 + 0,2	number	0.3	0,3
+# Turkish cardinals are spaced rather than compounded, and the multiplier goes
+# in front of every scale word: "iki yüz beş" is two-hundred-five in three
+# tokens where German writes one.
+yirmi bir	number	21	21
+on altı	number	16	16
+iki yüz beş	number	205	205
+beş yüz	number	500	500
+dokuz yüz doksan dokuz	number	999	999
+bin otuz iki	number	1032	1.032
+bir	number	1	1
+sıfır	number	0	0
+# The dotless i. Turkish folds "I" to "ı" and "İ" to "i", which is not what
+# the default mapping does with either, so an upper-cased cardinal reads back
+# only under the language's own folding: "ON ALTI" needs I→ı and "YİRMİ BİR"
+# needs İ→i.
+ON ALTI	number	16	16
+YIRMI BIR	number	21	21
+YİRMİ BİR	number	21	21
+# Word operators, with an accent-stripped alias beside the first for the
+# keyboards that cannot reach ı, ç and ö.
+10 artı 5	number	15	15
+10 arti 5	number	15	15
+10 eksi 4	number	6	6
+6 çarpı 7	number	42	42
+10 bölü 4	number	2.5	2,5

@@ -1,0 +1,46 @@
+# What a comparison returns. Registering this kind is what turns
+# `1000 MB = 1 GB` from an unresolvable expression into `true`.
+#
+# `true` and `false` are not translated, and that is this file's finding
+# rather than an oversight it hides: the kind ships no vocabulary at all,
+# so `formatValue` degrades to the unit key in every language. A Turkish
+# engine answering "true" is what the code does today, and a row asserting
+# it is what makes a later `boolean/locale/tr` a visible diff here.
+# input	kind	canonical	formatted
+1000 MB = 1 GB	boolean	1	true
+1 km > 999 m	boolean	1	true
+1 km < 999 m	boolean	0	false
+1 m = 100 cm	boolean	1	true
+1 >= 1	boolean	1	true
+1 <= 0	boolean	0	false
+5 != 4	boolean	1	true
+1 kg + 500 g = 1,5 kg	boolean	1	true
+1 km - 250 m = 750 m	boolean	1	true
+-5 km < 0 km	boolean	1	true
+bir kilometre = 1000 metre	boolean	1	true
+# The decimal comma and the group dot.
+1,5 km = 1500 m	boolean	1	true
+1.500 m = 1,5 km	boolean	1	true
+# Conversion is a verb, and the verb is claimed as `keywords.in`, so it
+# stands *before* the target the way a preposition does. The order Turkish
+# actually writes — "2 km metreye çevir", verb last — does not parse.
+2 km çevir metre = 2000 m	boolean	1	true
+2 km çevir metreye = 2000 m	boolean	1	true
+# The case suffixes, stripped rather than enumerated: dative on one unit,
+# ablative on another, plural on a third.
+5 metreye = 5 m	boolean	1	true
+2 kilometreden = 2000 m	boolean	1	true
+5 metreler = 5 m	boolean	1	true
+# The dotless i. Upper-casing folds I to ı and İ to i, so both spellings of
+# a shouted unit land on the same word.
+10 KİLOMETRE = 10 km	boolean	1	true
+10 KILOMETRE = 10 km	boolean	1	true
+# Both word operators are single tokens; neither takes a preposition
+# after it the way German's and Polish's do.
+2 km çarpı 3 = 6 km	boolean	1	true
+10 km bölü 4 = 2,5 km	boolean	1	true
+# One printed form per unit and no number axis at all — the smallest
+# `forms` table of the seventeen.
+1 inç = 2,54 cm	boolean	1	true
+3 fit = 91,44 cm	boolean	1	true
+1 metrekare = 10000 cm2	boolean	1	true

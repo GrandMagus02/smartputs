@@ -1,0 +1,89 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+# A new push to a branch makes the previous run's answer worthless.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  # Lint, types, dependency table and tests, in one job: they share an install
+  # and a warm bun cache, and splitting them across runners costs more in setup
+  # than it saves in wall clock.
+  check:
+    name: lint · types · deps · test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.0
+
+      - run: bun install --frozen-lockfile
+
+      - name: Lint and format check
+        run: bun run lint
+
+      - name: Typecheck
+        run: bun run typecheck
+
+      - name: Dependency table
+        run: bun run check-deps
+
+      - name: Tests
+        run: bun test
+
+  # Build, import budgets and tarball size. Separate because it is the slow half
+  # (37 tsc declaration emits plus 37 npm packs) and a failure here reads
+  # differently from a failing test.
+  size:
+    name: build · import budgets · package size
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.0
+
+      # npm pack does the measuring; bun does everything else.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - run: bun install --frozen-lockfile
+
+      - name: Build
+        run: bun run build
+
+      - name: Import budgets
+        run: bun run check-size
+
+      - name: Package size
+        run: bun run pack-size
+
+  # The version numbers and the CHANGELOG come from commit subjects, so a
+  # subject the release script cannot read is a bug caught cheapest here.
+  commits:
+    name: conventional commits
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.0
+
+      - name: Check subjects on this pull request
+        run: bun run check-commits ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }}

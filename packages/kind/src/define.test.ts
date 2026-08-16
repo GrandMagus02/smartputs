@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test";
-import { Decimal } from "../decimal";
-import type { EvalCtx, OpSignature, RatioSpec, Value } from "../types";
+import { Decimal } from "./decimal";
 import { defineKind, normalizeKind } from "./define";
+import type { EvalCtx, OpSignature, RatioSpec, Value } from "./types";
 
 const ctx = (v: Value): EvalCtx => ({ self: v, locale: "en" });
 const val = (unit: string): Value => ({

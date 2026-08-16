@@ -1,0 +1,35 @@
+# input	kind	canonical	formatted
+2 l	volume	2	2 litri
+2 l in ml	volume	2	2.000 millilitri
+1 gal in l	volume	3.785411784	3,785411784 litri
+1 pinta in ml	volume	0.473176473	473,176473 millilitri
+500 ml + 500 ml	volume	1	1.000 millilitri
+2 l - 250 ml	volume	1.75	1,75 litri
+3 l * 4	volume	12	12 litri
+1 l / 4	volume	0.25	0,25 litri
+-2 l	volume	-2	-2 litri
+1 gal in pinte	volume	3.785411784	8 pinte
+un litro	volume	1	1 litro
+duecentocinque litri	volume	205	205 litri
+# "." groups and "," is the decimal point, German's pair.
+1.500 ml in litri	volume	1.5	1,5 litri
+1,5 l	volume	1.5	1,5 litri
+1.234.567 ml	volume	1234.567	1.234.567 millilitri
+# Two categories, and a fraction takes the plural — "1,5 litri", "0,25 litri".
+# Italian sides with Spanish here and against French.
+1 litro	volume	1	1 litro
+2 litri	volume	2	2 litri
+0,5 l	volume	0.5	0,5 litri
+# `-o`/`-i` on the masculine nouns, `-a`/`-e` on the feminine one: the plural
+# is a vowel swap rather than a suffix, on every unit that has a word at all.
+1 gallone	volume	3.785411784	1 gallone
+2 galloni	volume	7.570823568	2 galloni
+2 pinte	volume	0.946352946	2 pinte
+# No one-token word for the cubic metre, so the symbol is printed and
+# `defaultRenderQuantity` glues it to the number.
+2 m3	volume	2000	2m³
+# "a" is the second conversion preposition beside "in"; "per" is `times` and
+# "diviso" is a bare `over` that needs no particle after it.
+2 l a ml	volume	2	2.000 millilitri
+2 l per 3	volume	6	6 litri
+10 l diviso 4	volume	2.5	2,5 litri

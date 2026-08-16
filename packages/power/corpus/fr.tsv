@@ -1,0 +1,39 @@
+# input	kind	canonical	formatted
+1 kW en W	power	1000	1 000 watts
+1 MW en kW	power	1000000	1 000 kilowatts
+2,5 kW	power	2500	2,5 kilowatts
+500 W + 500 W	power	1000	1 000 watts
+2 kW - 500 W	power	1500	1,5 kilowatt
+3 kW * 2	power	6000	6 kilowatts
+1 MW / 4	power	250000	0,25 mégawatt
+-1 kW	power	-1000	-1 kilowatt
+1000 W en kW	power	1000	1 kilowatt
+un kilowatt	power	1000	1 kilowatt
+deux cent cinq kilowatts	power	205000	205 kilowatts
+100 hp en kW	power	74569.987158227022	74,569987158227022 kilowatts
+# The group separator is U+202F, a narrow no-break space, and it is accepted on
+# input as well — `normalize()` folds every whitespace character to a plain
+# space before anything reads the string back.
+1234567 W	power	1234567	1 234 567 watts
+1 500 000 W en MW	power	1500000	1,5 mégawatt
+# French `one` swallows every fraction below two, so a fraction is singular
+# where Spanish and Italian make it plural.
+1 watt	power	1	1 watt
+5 watts	power	5	5 watts
+1,5 kW	power	1500	1,5 kilowatt
+0,5 kW	power	500	0,5 kilowatt
+# The accent is written on the megawatt and nowhere else in the table. The bare
+# spelling reads, and the accented one is what comes back.
+1 megawatt	power	1000000	1 mégawatt
+# The horsepower has only a symbol, and French spaces a symbol exactly as it
+# spaces a word — the one language here whose `renderQuantity` collapses the
+# default's two branches into one.
+1 hp	power	745.69987158227022	1 hp
+# "fois" alone, and a two-token "divisé par".
+2 kW fois 3	power	6000	6 kilowatts
+1 MW divisé par 4	power	250000	0,25 mégawatt
+# "vers" beside "en".
+2 kW vers watts	power	2000	2 000 watts
+# The word operators.
+500 W plus 500 W	power	1000	1 000 watts
+2 kW moins 500 W	power	1500	1,5 kilowatt

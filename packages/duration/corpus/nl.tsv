@@ -1,0 +1,35 @@
+# input	kind	canonical	formatted
+2 weken	duration	1209600	2 weken
+30 uur - 30 minuten	duration	106200	29,5 uur
+90 minuten in uur	duration	5400	1,5 uur
+1 dag in uur	duration	86400	24 uur
+500 ms + 500 ms	duration	1	1.000 milliseconden
+2 uur * 3	duration	21600	6 uur
+-2 uur	duration	-7200	-2 uur
+1 uur in seconden	duration	3600	3.600 seconden
+3600 seconden in uur	duration	3600	1 uur
+45 minuten	duration	2700	45 minuten
+1,5 uur in minuten	duration	5400	90 minuten
+2 dagen + 12 uur	duration	216000	2,5 dagen
+een uur	duration	3600	1 uur
+# "." groups and "," is the decimal point, German's pair.
+86.400 seconden in dagen	duration	86400	1 dag
+# `uur` is the one unit that does not move on the number axis: one form for
+# every count, and `uren` reads but never prints.
+1 uur	duration	3600	1 uur
+5 uur	duration	18000	5 uur
+1,5 uur	duration	5400	1,5 uur
+# The other five do pluralise, so the flat `uur` above is a fact about that
+# word rather than about Dutch.
+1 minuut	duration	60	1 minuut
+5 minuten	duration	300	5 minuten
+1 dag	duration	86400	1 dag
+2 dagen	duration	172800	2 dagen
+# The operators. "maal" and "keer" are both times; "gedeeld door" is two
+# tokens, the participle plus `keywords.by`.
+2 uur maal 3	duration	21600	6 uur
+2 uur keer 3	duration	21600	6 uur
+1 dag gedeeld door 4	duration	21600	0,25 dagen
+# Two prepositions introduce a conversion target, and Dutch has no case, so
+# the target is spelled exactly like a bare quantity.
+1 week naar dagen	duration	604800	7 dagen

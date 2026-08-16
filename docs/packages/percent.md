@@ -89,7 +89,7 @@ only an upper bound reports a vanished graph as a triumph.
 
 ## Dependencies
 
-- [`@smartput/core`](/packages/core)
+- [`@smartput/kind`](/packages/kind)
 - [`@smartput/shared`](/packages/shared)
 
 ## See also

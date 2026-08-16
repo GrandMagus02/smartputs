@@ -1,0 +1,44 @@
+# input	kind	canonical	formatted
+2リットル	volume	2	2リットル
+2リットルをミリリットル	volume	2	2,000ミリリットル
+1ガロンをリットル	volume	3.785411784	3.785411784リットル
+1パイントをミリリットル	volume	0.473176473	473.176473ミリリットル
+500ミリリットル + 500ミリリットル	volume	1	1,000ミリリットル
+2リットル - 250ミリリットル	volume	1.75	1.75リットル
+3リットル * 4	volume	12	12リットル
+1リットル / 4	volume	0.25	0.25リットル
+-2リットル	volume	-2	-2リットル
+1ガロンをパイント	volume	3.785411784	8パイント
+一リットル	volume	1	1リットル
+二百五リットル	volume	205	205リットル
+1,500ミリリットルをリットル	volume	1.5	1.5リットル
+1.5リットル	volume	1.5	1.5リットル
+1,234,567ミリリットル	volume	1234.567	1,234,567ミリリットル
+# No number agreement of any kind: Japanese marks plurality nowhere, so every
+# unit has one printed form and 1 and 5 take the same word. The separators are
+# English's — "," for groups, "." for the decimal.
+1リットル	volume	1	1リットル
+5リットル	volume	5	5リットル
+2ガロン	volume	7.570823568	2ガロン
+# No space between number and unit, on input or output, which is what makes
+# the round trip hold: the engine reads back its own "2,000ミリリットル"
+# exactly.
+#
+# The units are katakana loans, and the conversion markers are the case
+# particles を (accusative, the source) and から ("from"), written glued to the
+# word they mark.
+2リットルからミリリットル	volume	2	2,000ミリリットル
+# 立方メートル is one token, so Japanese prints the cubic metre in words where
+# the Romance languages fall back to `m³`. 立米 is the clipped trade spelling
+# and is read onto the same unit.
+2立方メートル	volume	2000	2立方メートル
+2立米	volume	2000	2立方メートル
+# The myriad. Japanese counts in ten-thousands, so 万 is its own magnitude word
+# and 一万 is one of them rather than ten of a thousand.
+一万ミリリットル	volume	10	10,000ミリリットル
+# The word operators need whitespace around them even though Japanese is
+# written without any: かける, 割る and 足す are matched as separate tokens.
+2リットル かける 3	volume	6	6リットル
+10リットル 割る 4	volume	2.5	2.5リットル
+# The katakana operator beside the native one — both are ordinary Japanese.
+2リットル プラス 500ミリリットル	volume	2.5	2.5リットル

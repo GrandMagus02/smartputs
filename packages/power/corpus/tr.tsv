@@ -1,0 +1,37 @@
+# input	kind	canonical	formatted
+1 kW çevir vat	power	1000	1.000 vat
+1 MW çevir kilovat	power	1000000	1.000 kilovat
+2,5 kW	power	2500	2,5 kilovat
+500 W + 500 W	power	1000	1.000 vat
+2 kW - 500 W	power	1500	1,5 kilovat
+3 kW * 2	power	6000	6 kilovat
+1 MW / 4	power	250000	0,25 megavat
+-1 kW	power	-1000	-1 kilovat
+1000 W çevir kilovat	power	1000	1 kilovat
+bir kilovat	power	1000	1 kilovat
+iki yüz beş kilovat	power	205000	205 kilovat
+100 bg çevir kilovat	power	74569.987158227022	74,569987158227022 kilovat
+# "." groups and "," is the decimal point, German's pair.
+1.234.567 W	power	1234567	1.234.567 vat
+1.500.000 W çevir MW	power	1500000	1,5 megavat
+# Turkish does not pluralise after a numeral, so every unit here has exactly
+# one printed form and no number axis at all — the smallest `forms` table of
+# the seventeen.
+1 vat	power	1	1 vat
+5 vat	power	5	5 vat
+1,5 vat	power	1.5	1,5 vat
+# The suffix stripper. Case and plural agglutinate onto the unit word, and none
+# of these endings is listed as an alias — the stripper takes them off and the
+# bare stem is what matches.
+10 vata	power	10	10 vat
+10 kilovattan	power	10000	10 kilovat
+10 vatlar	power	10	10 vat
+# The dotless i. `toLocaleLowerCase("tr")` sends "I" to "ı" and "İ" to "i", so
+# both spellings of a capitalised unit have to fold onto the one alias. No
+# other language in this set has a case fold that moves a letter's identity.
+10 KILOVAT	power	10000	10 kilovat
+10 KİLOVAT	power	10000	10 kilovat
+10 BEYGIR	power	7456.9987158227022	10 beygir
+# The operators are all bare words, none of them two-token.
+2 kW çarpı 3	power	6000	6 kilovat
+1 MW bölü 4	power	250000	0,25 megavat

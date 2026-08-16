@@ -1,0 +1,43 @@
+# input	kind	canonical	formatted
+1 + 1	number	2	2
+10 - 4	number	6	6
+6 * 7	number	42	42
+10 / 4	number	2.5	2.5
+-5	number	-5	-5
+(1 + 2) * 3	number	9	9
+100 / 3	number	33.33333333333333333333333333	33.333333333333333333333333
+# The separators are English's — "," for groups, "." for the decimal — and the
+# reader is grouping-agnostic: it strips every comma wherever it falls without
+# counting the digits between them, so the Indian and the international
+# grouping of the same number are the same number.
+1,234,567	number	1234567	1,234,567
+12,34,567	number	1234567	1,234,567
+0.1 + 0.2	number	0.3	0.3
+# A recorded core gap, pinned rather than worked around: `formatNumber` groups
+# with a fixed period of three, so what comes back is "1,234,567" where a Hindi
+# page writes "12,34,567". `NumberFormatSpec` carries a group *character* and
+# no grouping *rule*, so no field on this language can change it. See the
+# comment on `numberFormat` in `@smartput/core/locale/hi`.
+1234567	number	1234567	1,234,567
+# Every number below a hundred is its own word rather than a composition of
+# tens and units: इक्कीस is not "twenty one" reassembled.
+इक्कीस	number	21	21
+सोलह	number	16	16
+एक	number	1	1
+शून्य	number	0	0
+# सौ and हज़ार take a multiplier in front of them, and the scale words carry on
+# past a thousand into लाख — a hundred thousand as one lexical step, which is
+# the same counting the Indian grouping above writes down.
+दो सौ पाँच	number	205	205
+पाँच सौ	number	500	500
+नौ सौ निन्यानवे	number	999	999
+एक हज़ार बत्तीस	number	1032	1,032
+एक लाख	number	100000	100,000
+दस लाख	number	1000000	1,000,000
+# Word operators. Each is a single token, and this language declares no `by`
+# keyword at all, so nothing here is the two-token operator German and French
+# spell their division with.
+10 जोड़ 5	number	15	15
+10 घटा 4	number	6	6
+6 गुणा 7	number	42	42
+10 भाग 4	number	2.5	2.5

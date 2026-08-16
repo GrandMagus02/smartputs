@@ -1,0 +1,32 @@
+# input	kind	canonical	formatted
+20%	percent	0.2	20%
+20 persen	percent	0.2	20%
+50 + 20%	number	60	60
+50 - 10%	number	45	45
+20% dari 50	number	10	10
+10% + 5%	percent	0.15	15%
+100% - 40%	percent	0.6	60%
+50 * 10%	percent	5	500%
+10% / 2	percent	0.05	5%
+-10%	percent	-0.1	-10%
+0,5 ke persen	percent	0.5	50%
+5 / 50 ke persen	percent	0.1	10%
+# "." groups and "," is the decimal point — the Dutch pair, which is how it got
+# here.
+2,5%	percent	0.025	2,5%
+1.000%	percent	10	1.000%
+100 * 20%	percent	20	2.000%
+# One word, invariant: Indonesian marks number nowhere on a noun, so 1 and 1000
+# take the same string and there is no plural line under it.
+1 persen	percent	0.01	1%
+1000 persen	percent	10	1.000%
+# There is no `id-cardinals.ts` in core — the only language here without one —
+# so "sepuluh persen" throws and no spelled-number row exists in this file.
+20 pct	percent	0.2	20%
+# The word operators, each one token.
+50 kali 10%	percent	5	500%
+10% bagi 2	percent	0.05	5%
+10% tambah 5%	percent	0.15	15%
+100% kurang 40%	percent	0.6	60%
+# Both `in` keywords reach the conversion.
+0,5 dalam persen	percent	0.5	50%

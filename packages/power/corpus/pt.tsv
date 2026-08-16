@@ -1,0 +1,36 @@
+# input	kind	canonical	formatted
+1 kW em W	power	1000	1.000 watts
+1 MW em kW	power	1000000	1.000 quilowatts
+2,5 kW	power	2500	2,5 quilowatts
+500 W + 500 W	power	1000	1.000 watts
+2 kW - 500 W	power	1500	1,5 quilowatt
+3 kW * 2	power	6000	6 quilowatts
+1 MW / 4	power	250000	0,25 megawatt
+-1 kW	power	-1000	-1 quilowatt
+1000 W em kW	power	1000	1 quilowatt
+um quilowatt	power	1000	1 quilowatt
+duzentos e cinco quilowatts	power	205000	205 quilowatts
+100 hp em kW	power	74569.987158227022	74,569987158227022 quilowatts
+# "." groups and "," is the decimal point.
+1.234.567 W	power	1234567	1.234.567 watts
+1.500.000 W em MW	power	1500000	1,5 megawatt
+# A fraction is singular here — "1,5 quilowatt" — where Spanish, the other
+# Iberian language in this set, makes it plural. Whole numbers pluralise
+# normally.
+1 watt	power	1	1 watt
+5 watts	power	5	5 watts
+1,5 kW	power	1500	1,5 quilowatt
+# European "vátio" reads; the Brazilian "watt" is what prints.
+1 vátio	power	1	1 watt
+5 vátios	power	5	5 watts
+# "por" is times as well as "vezes", so division falls to "sobre" — and to a
+# bare "dividido", which needs no "por" after it precisely because "por" is
+# already taken.
+2 kW vezes 3	power	6000	6 quilowatts
+2 kW por 3	power	6000	6 quilowatts
+1 MW sobre 4	power	250000	0,25 megawatt
+# "para" beside "em".
+2 kW para watts	power	2000	2.000 watts
+# The word operators.
+500 W mais 500 W	power	1000	1.000 watts
+2 kW menos 500 W	power	1500	1,5 quilowatt

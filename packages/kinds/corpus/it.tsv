@@ -1,0 +1,43 @@
+# input	kind	canonical	formatted
+#
+# The aggregator's corpus, so the rows range across the set rather than drill
+# one kind: the bridges between two kinds, and the comparisons that need
+# `boolean` registered beside the kind being compared. Each bridge owner names
+# its operands by id string rather than importing them, so a signature whose
+# operands are unregistered is unreachable rather than a build error.
+3 m * 4 m	area	12	12m²
+100 km / 2 h	speed	13.88888888888888888888888889	13,888888888888888888888889m/s
+2 kw * 3 h	energy	21600000	21.600.000 joule
+1 kwh / 1 kw	duration	3600	3.600 secondi
+500 mb / 20 s	datarate	200000000	200Mbps
+100 mbps * 1 min	datasize	750000000	750.000.000 byte
+500 ms in bpm	tempo	120	120bpm
+1000 mb = 1 gb	boolean	1	true
+1 miglio > 1 km	boolean	1	true
+212 F in C	temperature	100	100°C
+30 C - 20 C	tempdelta	10	10°C
+20% di 50	number	10	10
+(1 + 2) * 3	number	9	9
+1 kib in b	datasize	1024	1.024 byte
+-5 km	length	-5000	-5 chilometri
+# "." groups and "," separates the decimal.
+1.500 m in km	length	1500	1,5 chilometri
+250 ml + 1 l	volume	1.25	1.250 millilitri
+# A fraction takes the plural, as in Spanish and against French: "1,5
+# chilogrammi", "1,5 ore".
+1 kg + 500 g	mass	1500	1,5 chilogrammi
+1 ora + 30 minuti	duration	5400	1,5 ore
+# `chilometro` and `chilowattora` are spelled with `ch`; the `k` forms read and
+# never print.
+1 chilometro in metri	length	1000	1.000 metri
+2 chilowattora in mj	energy	7200000	7,2 megajoule
+# The imperial length whose plural changes the stem's own vowel rather than
+# its ending — miglio, miglia.
+2 miglia in km	length	3218.688	3,218688 chilometri
+# "per" is times and "diviso" stands alone as over, so Italian spends no
+# second token on either operator.
+3 kg per 4	mass	12000	12 chilogrammi
+2 km diviso 4	length	500	0,5 chilometri
+# A spelled cardinal, written as Italian writes it: one word, no spaces, and
+# the tens elided into the thousand.
+milletrentadue	number	1032	1.032

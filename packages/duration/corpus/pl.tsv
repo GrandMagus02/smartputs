@@ -1,0 +1,38 @@
+# input	kind	canonical	formatted
+30 godzin - 30 minut	duration	106200	29,5 godziny
+90 minut w godzinach	duration	5400	1,5 godziny
+1 dzień w godzinach	duration	86400	24 godziny
+500 ms + 500 ms	duration	1	1 000 milisekund
+2 godziny * 3	duration	21600	6 godzin
+-2 godziny	duration	-7200	-2 godziny
+1 godzina w sekundach	duration	3600	3 600 sekund
+3600 sekund w godzinach	duration	3600	1 godzina
+1,5 godziny w minutach	duration	5400	90 minut
+2 dni + 12 godzin	duration	216000	2,5 dnia
+jedna godzina	duration	3600	1 godzina
+# The four plural categories on one unit, which English has two of. Polish
+# picks `few` for 2-4, `many` from 5 up, and the teens go to `many` however
+# they end.
+1 godzina	duration	3600	1 godzina
+2 godziny	duration	7200	2 godziny
+5 godzin	duration	18000	5 godzin
+12 godzin	duration	43200	12 godzin
+22 godziny	duration	79200	22 godziny
+102 godziny	duration	367200	102 godziny
+# The fractional category is the genitive singular — "1,5 godziny" — and it is
+# a fifth word, not a reuse of one of the four above. Here it happens to be
+# spelled like `few`; on `dzień` below it is not.
+1,5 godziny	duration	5400	1,5 godziny
+1 dzień / 4	duration	21600	0,25 dnia
+# `dzień` is the one unit whose `few` and `many` coincide: "2 dni" and "5 dni"
+# are the same word, and the genitive singular "dnia" is the odd one out.
+1 dzień	duration	86400	1 dzień
+2 dni	duration	172800	2 dni
+5 dni	duration	432000	5 dni
+5 tygodni	duration	3024000	5 tygodni
+# "podzielić przez" is two tokens, the verb plus `keywords.by`.
+1 dzień podzielić przez 4	duration	21600	0,25 dnia
+# Four prepositions introduce a conversion target. After "w" the target is in
+# the locative — "w godzinach" up in the spine — so the vocabulary carries a
+# case axis on top of the four number categories; after "do" it is not.
+1 tydzień do dni	duration	604800	7 dni

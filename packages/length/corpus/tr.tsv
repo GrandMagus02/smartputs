@@ -1,0 +1,46 @@
+# input	kind	canonical	formatted
+10 km	length	10000	10 kilometre
+12 inç	length	0.3048	12 inç
+2 km çevir metre	length	2000	2.000 metre
+1 mil çevir kilometre	length	1609.344	1,609344 kilometre
+10 m + 5 km	length	5010	5.010 metre
+1 km - 250 m	length	750	0,75 kilometre
+10 km * 3	length	30000	30 kilometre
+1 km / 4	length	250	0,25 kilometre
+-5 km	length	-5000	-5 kilometre
+3 fit çevir santimetre	length	0.9144	91,44 santimetre
+bir kilometre	length	1000	1 kilometre
+iki yüz beş kilometre	length	205000	205 kilometre
+1 yarda çevir santimetre	length	0.9144	91,44 santimetre
+5280 fit çevir mil	length	1609.344	1 mil
+# "." groups and "," is the decimal point, German's pair.
+1.500 mm çevir metre	length	1.5	1,5 metre
+1,5 km	length	1500	1,5 kilometre
+1.234.567 mm	length	1234.567	1.234.567 milimetre
+# Turkish does not pluralise after a numeral, so every unit here has exactly
+# one printed form and no number axis at all — the smallest `forms` table of
+# the seventeen. "1 metre", "5 metre", "1,5 metre", all the same word.
+1 metre	length	1	1 metre
+5 metre	length	5	5 metre
+1,5 metre	length	1.5	1,5 metre
+2 mil	length	3218.688	2 mil
+# A conversion is not a preposition here: the target takes a case suffix and
+# the sentence hangs off the verb "çevir". "to" is claimed beside it because
+# Turkish writing borrows it.
+2 km to metre	length	2000	2.000 metre
+# The suffix stripper. Turkish agglutinates case and plural onto the unit
+# word, and none of these endings is listed as an alias — the stripper takes
+# them off and the bare stem is what matches.
+10 metreye	length	10	10 metre
+10 kilometreden	length	10000	10 kilometre
+10 metreler	length	10	10 metre
+# The dotless i. `toLocaleLowerCase("tr")` sends "I" to "ı" and "İ" to "i",
+# so a Turkish engine has to fold both spellings of a capitalised unit onto
+# the one alias. No other language in this set has a case fold that moves a
+# letter's identity.
+10 KİLOMETRE	length	10000	10 kilometre
+10 KILOMETRE	length	10000	10 kilometre
+36 INC	length	0.9144	36 inç
+# The operators are all bare words, none of them two-token.
+2 km çarpı 3	length	6000	6 kilometre
+10 km bölü 4	length	2500	2,5 kilometre

@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { Decimal } from "@smartput/core";
+import { Decimal } from "@smartput/kind";
 import { POWER_UNITS, type PowerUnit } from "./units";
 
 const unitKeys = Object.keys(POWER_UNITS.ratio) as PowerUnit[];

@@ -1,0 +1,37 @@
+# input	kind	canonical	formatted
+1 + 1	number	2	2
+10 - 4	number	6	6
+6 * 7	number	42	42
+10 / 4	number	2.5	2,5
+-5	number	-5	-5
+(1 + 2) * 3	number	9	9
+100 / 3	number	33.33333333333333333333333333	33,333333333333333333333333
+# "." groups and "," marks the decimal, so a dot inside an argument is never a
+# decimal point here.
+1.500	number	1500	1.500
+0,1 + 0,2	number	0.3	0,3
+# Italian writes every cardinal below a million as one word, and the tens elide
+# their final vowel in front of a vowel: venti + uno is ventuno, venti + otto
+# is ventotto, but venti + due keeps both.
+ventuno	number	21	21
+ventotto	number	28	28
+ventidue	number	22	22
+trentuno	number	31	31
+# The compounding runs all the way up, so a four-digit number is still one
+# token and "mille" contracts to "mila" above one thousand.
+duecentocinque	number	205	205
+cinquecento	number	500	500
+novecentonovantanove	number	999	999
+milletrentadue	number	1032	1.032
+diecimila	number	10000	10.000
+# A million breaks the word, and the numeral in front of it is the apocopated
+# "un" rather than "uno".
+un milione	number	1000000	1.000.000
+uno	number	1	1
+zero	number	0	0
+# Word operators. "per" is times and "diviso" is a bare over with no
+# preposition after it.
+10 più 5	number	15	15
+10 piu 5	number	15	15
+6 per 7	number	42	42
+10 diviso 4	number	2.5	2,5

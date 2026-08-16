@@ -1,0 +1,36 @@
+# input	kind	canonical	formatted
+1 + 1	number	2	2
+10 - 4	number	6	6
+6 * 7	number	42	42
+10 / 4	number	2.5	2,5
+-5	number	-5	-5
+(1 + 2) * 3	number	9	9
+100 / 3	number	33.33333333333333333333333333	33,333333333333333333333333
+# The group separator is a space and the decimal a comma. Three different
+# space characters are read as the separator — ASCII, U+00A0 and U+202F — and
+# exactly one of them, U+202F, is ever written back.
+1 500	number	1500	1 500
+2 000 + 500	number	2500	2 500
+3 000 + 500	number	3500	3 500
+0,1 + 0,2	number	0.3	0,3
+# Vigesimal from seventy up: 70 is sixty-ten, 80 is four-twenties and 90 is
+# four-twenty-ten. The tens row stops at soixante and the teens carry the rest.
+soixante-dix	number	70	70
+soixante et onze	number	71	71
+quatre-vingts	number	80	80
+quatre-vingt-un	number	81	81
+quatre-vingt-dix	number	90	90
+neuf cent quatre-vingt-dix-neuf	number	999	999
+# "et" joins 21, 31 … 71 and nothing else; every other pair is hyphenated.
+vingt et un	number	21	21
+mille trente-deux	number	1032	1 032
+# 1 is the only numeral that declines for gender, and with no noun to agree
+# with both spellings still have to read back as 1.
+un	number	1	1
+une	number	1	1
+zéro	number	0	0
+# Word operators. "divisé par" and "multiplié par" are each one operator in two
+# tokens, where "fois" is the bare one.
+6 fois 7	number	42	42
+6 multiplié par 7	number	42	42
+10 divisé par 4	number	2.5	2,5

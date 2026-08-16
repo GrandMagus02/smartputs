@@ -1,0 +1,38 @@
+# input	kind	canonical	formatted
+1inch를 밀리미터	measure	1	25.4밀리미터
+72pt를 인치	measure	1	1인치
+6pc를 인치	measure	1	1인치
+25.4mm를 인치	measure	1	1인치
+1inch를 px	measure	1	96픽셀
+96px를 인치	measure	1	1인치
+2인치 + 36포인트	measure	2.5	2.5인치
+1인치 - 12포인트	measure	0.8333333333333333333333333333	0.83333333333333333333333333인치
+3인치 * 2	measure	6	6인치
+1인치 / 4	measure	0.25	0.25인치
+-2인치	measure	-2	-2인치
+1pc를 포인트	measure	0.1666666666666666666666666667	12포인트
+10mm를 센티미터	measure	0.3937007874015748031496062992	1센티미터
+일 인치	measure	1	1인치
+십이 포인트	measure	0.1666666666666666666666666667	12포인트
+# The separators are English's, and there is no space between the number and
+# the unit on input or output.
+1,440pt를 인치	measure	20	20인치
+1234567픽셀	measure	12860.07291666666666666666667	1,234,567픽셀
+# No number agreement anywhere; 파이카 and 픽셀 are Hangul transcriptions
+# where Chinese leaves both in Latin.
+1인치	measure	1	1인치
+5인치	measure	5	5인치
+1.5인치	measure	1.5	1.5인치
+1파이카	measure	0.1666666666666666666666666667	1파이카
+# The particle stripper. A case particle glued to the unit word comes off a
+# bare quantity cleanly.
+5인치를	measure	5	5인치
+5인치에서	measure	5	5인치
+# It does not come off in front of a conversion target: "1인치를 포인트" does
+# not parse. A space before the particle does, and so does the mixed-script
+# form the rows above use — a Latin unit alias with the particle attached.
+1인치 를 포인트	measure	1	72포인트
+2인치 에서 밀리미터	measure	2	50.8밀리미터
+# The word operators stand alone and take whitespace.
+3인치 곱하기 2	measure	6	6인치
+1인치 나누기 4	measure	0.25	0.25인치

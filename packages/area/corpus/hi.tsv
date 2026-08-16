@@ -1,0 +1,37 @@
+# input	kind	canonical	formatted
+3 मीटर * 4 मीटर	area	12	12 मी²
+1 हेक्टेयर में मी2	area	10000	10,000 मी²
+1 एकड़ में मी2	area	4046.8564224	4,046.8564224 मी²
+2 किमी2 में हेक्टेयर	area	2000000	200 हेक्टेयर
+5000 सेमी2 में मी2	area	0.5	0.5 मी²
+10 मी2 + 5 मी2	area	15	15 मी²
+1 हेक्टेयर - 2500 मी2	area	7500	0.75 हेक्टेयर
+3 मी2 * 4	area	12	12 मी²
+100 मी2 / 4	area	25	25 मी²
+-5 मी2	area	-5	-5 मी²
+1 मी2 में सेमी2	area	1	10,000 सेमी²
+1 किमी * 1 किमी	area	1000000	1,000,000 मी²
+12 मी2	area	12	12 मी²
+दो सौ हेक्टेयर	area	2000000	200 हेक्टेयर
+# Two categories, and Hindi spends neither: the unit nouns here are invariant,
+# so `one` and `other` are the same word.
+1 हेक्टेयर	area	10000	1 हेक्टेयर
+2 हेक्टेयर	area	20000	2 हेक्टेयर
+1.5 हेक्टेयर	area	15000	1.5 हेक्टेयर
+1 एकड़	area	4046.8564224	1 एकड़
+# Hindi names the squared units in one token, so they read — and they print as
+# Devanagari symbols, because the vocabulary gives them no `forms`.
+100 वर्गमीटर	area	100	100 मी²
+2 वर्गकिलोमीटर	area	2000000	2 किमी²
+# लाख is a magnitude word in its own right: a hundred thousand, not a hundred
+# of a thousand.
+एक लाख मी2	area	100000	100,000 मी²
+# The reader is grouping-agnostic — Indian lakh-crore grouping and Western
+# grouping are the same number to it. The writer only produces threes, so the
+# Indian grouping does not survive the round trip. A recorded gap in
+# `@smartput/core`, pinned here rather than worked around.
+12,34,567 मी2	area	1234567	1,234,567 मी²
+# को and से are the other two conversion postpositions, beside में.
+1 एकड़ को हेक्टेयर	area	4046.8564224	0.40468564224 हेक्टेयर
+1 हेक्टेयर से मी2	area	10000	10,000 मी²
+10 मी2 गुणा 3	area	30	30 मी²

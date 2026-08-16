@@ -1,0 +1,50 @@
+# input	kind	canonical	formatted
+#
+# The aggregator's corpus, so the rows range across the set rather than drill
+# one kind: the bridges between two kinds, and the comparisons that need
+# `boolean` registered beside the kind being compared. Each bridge owner names
+# its operands by id string rather than importing them, so a signature whose
+# operands are unregistered is unreachable rather than a build error.
+#
+# German asks a second question of them: a bridge is reached through whichever
+# language's words got there, and everything below the bridges is about what
+# happens to the *answer* once German has to print it.
+3 m * 4 m	area	12	12 Quadratmeter
+100 km / 2 h	speed	13.88888888888888888888888889	13,888888888888888888888889 m/s
+2 kw * 3 h	energy	21600000	21.600.000 Joule
+1 kwh / 1 h	power	1000	1.000 Watt
+1 kwh / 1 kw	duration	3600	3.600 Sekunden
+500 mb / 20 s	datarate	200000000	200 Mbit
+100 mbps * 1 min	datasize	750000000	750.000.000 Byte
+120 bpm in ms	duration	0.5	500 Millisekunden
+1000 mb = 1 gb	boolean	1	true
+1 mi > 1 km	boolean	1	true
+212 F in C	temperature	100	100 °C
+30 C - 20 C	tempdelta	10	10 °C
+20% von 50	number	10	10
+(1 + 2) * 3	number	9	9
+-5 km	length	-5000	-5 Kilometer
+# "." groups and "," separates the decimal, the reverse of English. Both rows
+# are the pair that would be misread the other way round: 1.500 is fifteen
+# hundred going in, and 1.250 is twelve hundred and fifty coming out.
+1.500 m in km	length	1500	1,5 Kilometer
+250 ml + 1 l	volume	1.25	1.250 Milliliter
+# German unit nouns are mostly masculine or neuter and do not move on the
+# number axis: "1,5 Kilogramm" and "12 Kilogramm" are the same word. `die
+# Meile` is the one feminine unit in the set that actually pluralises.
+1 kg + 500 g	mass	1500	1,5 Kilogramm
+1 Meile in km	length	1609.344	1,609344 Kilometer
+2 Meilen in km	length	3218.688	3,218688 Kilometer
+# The dative is read and never printed: "in Metern" is how the target is
+# spelled, "2.000 Meter" is what comes back.
+2 km in Metern	length	2000	2.000 Meter
+# `in` is a reserved keyword, so the German vocabulary omits it as an alias
+# for the inch and asks for the German word instead.
+12 Zoll in cm	length	0.3048	30,48 Zentimeter
+# The word operators. "mal" stands alone; "geteilt durch" is two tokens, the
+# second hanging off `keywords.by`.
+3 kg mal 4	mass	12000	12 Kilogramm
+2 km geteilt durch 4	length	500	0,5 Kilometer
+# A spelled cardinal, written as German writes it: one word, units before
+# tens, and no space anywhere in it.
+eintausendzweiunddreißig	number	1032	1.032

@@ -1,0 +1,43 @@
+# input	kind	canonical	formatted
+30 usd	money	27.27272727272727272727272727	$30.00
+2 يورو	money	2	€2.00
+100 دولار إلى يورو	money	90.90909090909090909090909091	€90.91
+5 يورو زائد 5 يورو	money	10	€10.00
+30 دولار ناقص 10 يورو	money	17.27272727272727272727272727	$19.00
+2 يورو ضرب 3	money	6	€6.00
+10 يورو قسمة على 4	money	2.5	€2.50
+-5 يورو	money	-5	-€5.00
+خمسة دولارات	money	4.545454545454545454545454546	$5.00
+(1 usd / 3) * 3	money	0.909090909090909090909090909	$1.00
+# Latin digits and the English separator pair inside right-to-left text:
+# Arabic is the one language here whose `numberFormat` is written out rather
+# than taken from Intl, and what it says is "," and ".".
+1.5 يورو	money	1.5	€1.50
+1000 يورو	money	1000	€1,000.00
+1,234,567 uah إلى يورو	money	27133.34065934065934065934066	€27,133.34
+# Six plural categories, which is the most any language here asks for: 0
+# zero, 1 one, 2 two, 3-10 few, 11-99 many, and everything else other. Six
+# readings landing on one currency is what these rows pin — `money` prints
+# the currency sign and none of the six words.
+0 دولار	money	0	$0.00
+1 دولار	money	0.9090909090909090909090909091	$1.00
+2 دولاران	money	1.818181818181818181818181818	$2.00
+3 دولارات	money	2.727272727272727272727272727	$3.00
+11 دولارًا	money	10	$11.00
+100 دولار	money	90.90909090909090909090909091	$100.00
+# The dual has two cases, and the oblique one is what follows a preposition
+# or a verb. Both read.
+2 دولارين	money	1.818181818181818181818181818	$2.00
+# The broken plurals: Arabic forms most plurals by reshaping the stem rather
+# than by adding an ending, so "جنيهات" and "فرنكات" are not "جنيه" and
+# "فرنك" with a suffix.
+3 جنيهات	money	3.566333808844507845934379457	£3.00
+5 فرنكات	money	5.31914893617021276595744681	CHF5.00
+# Back to the `other` category, on the currency with no minor unit: nothing
+# follows the grouped digits.
+1000 ين	money	5.882352941176470588235294118	¥1,000
+# "في" means both "in" and "times", and this vocabulary claims it for the
+# conversion — which is why "ضرب" is the word left over for multiply.
+100 دولار في يورو	money	90.90909090909090909090909091	€90.91
+# Division is two tokens, and the first of them has a second spelling.
+10 يورو تقسيم على 4	money	2.5	€2.50

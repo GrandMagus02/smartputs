@@ -1,0 +1,35 @@
+# input	kind	canonical	formatted
+90 grados	angle	1.570796326794896619231321692	90 grados
+90 grados en radianes	angle	1.570796326794896619231321692	1,5707963267948966192313217 radianes
+0,25 vueltas en grados	angle	1.570796326794896619231321692	90 grados
+200 gradianes en grados	angle	3.141592653589793238462643383	180 grados
+90 grados + 90 grados	angle	3.141592653589793238462643384	180 grados
+1 vuelta - 90 grados	angle	4.712388980384689857693965075	0,75 vueltas
+45 grados * 2	angle	1.570796326794896619231321692	90 grados
+180 grados / 4	angle	0.7853981633974483096156608458	45 grados
+-90 grados	angle	-1.570796326794896619231321692	-90 grados
+1 radián en grados	angle	1	57,295779513082320876798155 grados
+una vuelta	angle	6.283185307179586476925286767	1 vuelta
+doscientos gones	angle	3.141592653589793238462643383	200 gradianes
+360 grados en vueltas	angle	6.283185307179586476925286767	1 vuelta
+1,5 radianes	angle	1.5	1,5 radianes
+# "." groups and "," is the decimal point.
+1.000 grados	angle	17.45329251994329576923690768	1.000 grados
+3 vueltas en grados	angle	18.8495559215387594307758603	1.080 grados
+# Two categories, `one` and `other`, and a fraction takes `other` — Spanish
+# says "1,5 grados", plural. French and Portuguese say the singular for the
+# same number; Italian agrees with Spanish.
+1 grado	angle	0.01745329251994329576923690768	1 grado
+2 grados	angle	0.03490658503988659153847381537	2 grados
+1,5 grados	angle	0.02617993877991494365385536153	1,5 grados
+0,75 vueltas	angle	4.712388980384689857693965075	0,75 vueltas
+# "gones" is read and never written: the printed plural of the gradian is
+# "gradianes", so an input spelled the other way still round-trips to one form.
+2 gones	angle	0.03141592653589793238462643383	2 gradianes
+# The word operators, and the trap under them: "por" is `times`, so division
+# has to be "entre" — "dividido por" would be two operators in a row.
+45 grados por 2	angle	1.570796326794896619231321692	90 grados
+180 grados entre 4	angle	0.7853981633974483096156608458	45 grados
+90 grados más 90 grados	angle	3.141592653589793238462643384	180 grados
+# "a" is the second conversion preposition beside "en".
+90 grados a radianes	angle	1.570796326794896619231321692	1,5707963267948966192313217 radianes

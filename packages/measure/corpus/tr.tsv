@@ -1,0 +1,43 @@
+# input	kind	canonical	formatted
+1 inç çevir pt	measure	1	72 punto
+72 pt çevir inç	measure	1	1 inç
+6 pc çevir inç	measure	1	1 inç
+1 inç çevir mm	measure	1	25,4 milimetre
+1 inç çevir px	measure	1	96 piksel
+96 px çevir inç	measure	1	1 inç
+2 inç + 36 pt	measure	2.5	2,5 inç
+1 inç - 12 pt	measure	0.8333333333333333333333333333	0,83333333333333333333333333 inç
+3 inç * 2	measure	6	6 inç
+1 inç / 4	measure	0.25	0,25 inç
+-2 inç	measure	-2	-2 inç
+1 pc çevir pt	measure	0.1666666666666666666666666667	12 punto
+10 mm çevir cm	measure	0.3937007874015748031496062992	1 santimetre
+bir inç	measure	1	1 inç
+on iki punto	measure	0.1666666666666666666666666667	12 punto
+# "." groups and "," is the decimal point, German's pair.
+25,4 mm çevir inç	measure	1	1 inç
+1.440 pt çevir inç	measure	20	20 inç
+1234567 px	measure	12860.07291666666666666666667	1.234.567 piksel
+# Turkish does not pluralise after a numeral, so every unit here has exactly
+# one printed form and no number axis at all.
+1 punto	measure	0.01388888888888888888888888889	1 punto
+12 punto	measure	0.1666666666666666666666666667	12 punto
+1,5 inç	measure	1.5	1,5 inç
+# A conversion is not a preposition: the target takes a case suffix and the
+# sentence hangs off the verb "çevir". "to" is claimed beside it because
+# Turkish writing borrows it.
+1 inç to mm	measure	1	25,4 milimetre
+# The suffix stripper. Case and plural agglutinate onto the unit word and
+# none of these endings is listed as an alias — the stripper takes them off
+# and the bare stem is what matches.
+10 pikselden	measure	0.1041666666666666666666666667	10 piksel
+10 puntoya	measure	0.1388888888888888888888888889	10 punto
+10 inçler	measure	10	10 inç
+# The dotless i. `toLocaleLowerCase("tr")` sends "I" to "ı" and "İ" to "i",
+# so a Turkish engine has to fold both spellings of a capitalised unit onto
+# the one alias.
+10 INÇ	measure	10	10 inç
+10 İNÇ	measure	10	10 inç
+# The operators are all bare words, none of them two-token.
+3 inç çarpı 2	measure	6	6 inç
+1 inç bölü 4	measure	0.25	0,25 inç

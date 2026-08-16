@@ -9,12 +9,18 @@ import { Glob } from "bun";
  * dependency at all.
  */
 const ALLOWED: Record<string, string[]> = {
-  // Spec §4 and §13: core ships exactly one runtime dependency and does not
-  // depend on @smartput/shared — the dependency runs the other way. It was
-  // listed here for a while so that `from-table.ts` could `import type
-  // { UnitTable }`; that type is now declared structurally in core as
-  // `RatioTable`, so nothing in core names the package outside a dev-only test.
-  "packages/core/package.json": ["decimal.js"],
+  // Spec §4 and §13 said core ships exactly one runtime dependency. It ships
+  // two as of the kind extraction, and the amendment is worth stating rather
+  // than quietly widening: `@smartput/kind` is not a new thing core reached
+  // for, it is the half of core that moved out. Every name in it was core's,
+  // core re-exports all of them, and its published surface did not change by a
+  // symbol — so the list grew while what a consumer installs shrank.
+  //
+  // Core still does not depend on `@smartput/shared`; that dependency runs the
+  // other way. It was listed here for a while so that `from-table.ts` could
+  // `import type { UnitTable }`; that type is declared structurally as
+  // `RatioTable`, so nothing core ships names the package outside a dev test.
+  "packages/core/package.json": ["@smartput/kind", "decimal.js"],
   // The zone tables and the written-offset parser, with no runtime dependency
   // at all — a table of zone names needs no engine to be a table, and a form
   // field offering a zone picker should not install chrono and Temporal to get
@@ -119,20 +125,31 @@ const ALLOWED: Record<string, string[]> = {
   // after it.
   //
 
-  // Extracted built-in kinds. Each is a leaf: it defines one kind against the
-  // machinery in core and depends on nothing else, which is what keeps the
-  // aggregator below the only package that has to know the full set.
+  // The layer a kind and a language are written in: `defineKind`,
+  // `defineVocabulary`, `decimalRatios`, `aliasesFor`, `deriveValue`, the
+  // `Decimal` every ratio is carried in, the `SmartputError` hierarchy and the
+  // types all of it is spelled with. One runtime dependency, the same one core
+  // has, and for the same reason — `Decimal.set({ precision: 28 })` lives here
+  // now, so this is the module every package in the repo is pinned to.
   //
-  // `@smartput/core` is absent from every list here and that is the point. It
-  // is an *optional peer* for each of them (see CORE_IS_PEER below): the only
-  // entries that reach it are `.` and `./locale/*`, both of which a consumer
-  // reaches by having already written `createEngine` — so core is a package
-  // they install by name, and listing it here would charge the far larger
-  // `./validate` audience 1.4 MB of engine plus decimal.js on install for an
-  // import their bundler was always going to shake out. check-size.ts has held
-  // the *bundle* at 1.5 KB since the micro path shipped; this holds the
-  // install graph to the same claim.
-  "packages/angle/package.json": ["@smartput/shared"],
+  // It exists because the edge ran the wrong way. Seventeen leaf packages named
+  // `@smartput/core` to say what a kilometre is, which is a fact about metres
+  // and nothing to do with parsing a sentence; core in turn named four of them
+  // back as devDependencies. Splitting by *layer* rather than by size breaks
+  // that cycle: core is the pipeline, this is what the pipeline agrees with a
+  // kind about before it runs. Core re-exports every name below unchanged, so
+  // the split cost its consumers nothing.
+  "packages/kind/package.json": ["decimal.js"],
+  // Extracted built-in kinds. Each is a leaf: it defines one kind against the
+  // machinery in `@smartput/kind` and depends on nothing else, which is what
+  // keeps the aggregator below the only package that has to know the full set.
+  //
+  // `@smartput/core` is absent from every list here and that is the point.
+  // These packages no longer name the engine at all — `defineKind` and
+  // `defineVocabulary` moved to the layer above, so what used to be an optional
+  // peer is now simply not an edge. `number` is the one exception left, and it
+  // says why in its own entry.
+  "packages/angle/package.json": ["@smartput/kind", "@smartput/shared"],
   // What a comparison returns. The odd one out of the leaf kinds: it names no
   // `@smartput/shared`, because the micro path is for *ratio* kinds — a
   // `parseBoolean` over units that do not exist would be a subpath with nothing
@@ -144,24 +161,27 @@ const ALLOWED: Record<string, string[]> = {
   // for the peer next door stated backwards: this package ships *only* the
   // engine entry, so there is no audience for it that does not want core, and
   // demoting it to a peer would trade a guarantee for nothing.
-  "packages/boolean/package.json": ["@smartput/core"],
-  "packages/area/package.json": ["@smartput/shared"],
-  "packages/datasize/package.json": ["@smartput/shared"],
-  "packages/duration/package.json": ["@smartput/shared"],
-  "packages/length/package.json": ["@smartput/shared"],
-  "packages/mass/package.json": ["@smartput/shared"],
-  "packages/measure/package.json": ["@smartput/shared"],
-  // A leaf again, and the shortest way to say why: this package is a ratio of
-  // one and a unit id. It carried a *language* edge for as long as `words.ts`
-  // lived here — English cardinals, read through `@smartput/core/locale/en` — and
-  // that file has moved to the language it was always written in, taking the
-  // edge with it. A kind that named one language would have been a kind no
-  // other language could ship without.
-  "packages/number/package.json": ["@smartput/shared"],
-  "packages/percent/package.json": ["@smartput/shared"],
-  "packages/speed/package.json": ["@smartput/shared"],
-  "packages/temperature/package.json": ["@smartput/shared"],
-  "packages/volume/package.json": ["@smartput/shared"],
+  "packages/boolean/package.json": ["@smartput/kind"],
+  "packages/area/package.json": ["@smartput/kind", "@smartput/shared"],
+  "packages/datasize/package.json": ["@smartput/kind", "@smartput/shared"],
+  "packages/duration/package.json": ["@smartput/kind", "@smartput/shared"],
+  "packages/length/package.json": ["@smartput/kind", "@smartput/shared"],
+  "packages/mass/package.json": ["@smartput/kind", "@smartput/shared"],
+  "packages/measure/package.json": ["@smartput/kind", "@smartput/shared"],
+  // The one kind still holding an edge to core, and the only optional peer left
+  // in the repo (see CORE_IS_PEER below). `words.ts` reads English cardinals
+  // through `@smartput/core/locale/en` to turn "one hundred and five" into 105,
+  // and that is a *language*, not kind machinery — nothing the extraction moved
+  // would help, because what it wants is the words themselves.
+  //
+  // It stays a peer rather than a dependency because `words.ts` is reachable
+  // only from `.`: `./validate`, `./units` and `./class` never touch it, which
+  // `peerLeaksInto`'s bundle check below enforces on every run.
+  "packages/number/package.json": ["@smartput/kind", "@smartput/shared"],
+  "packages/percent/package.json": ["@smartput/kind", "@smartput/shared"],
+  "packages/speed/package.json": ["@smartput/kind", "@smartput/shared"],
+  "packages/temperature/package.json": ["@smartput/kind", "@smartput/shared"],
+  "packages/volume/package.json": ["@smartput/kind", "@smartput/shared"],
 
   // The four kinds that bridge two other kinds rather than standing alone. They
   // are leaves too, and that is the point worth stating: an op signature names
@@ -171,13 +191,13 @@ const ALLOWED: Record<string, string[]> = {
   // `@smartput/power`. A dependency here would mean someone reached for an
   // import where an id would do, and would drag two more tables into a bundle
   // that asked for one.
-  "packages/datarate/package.json": ["@smartput/shared"],
-  "packages/energy/package.json": ["@smartput/shared"],
-  "packages/power/package.json": ["@smartput/shared"],
+  "packages/datarate/package.json": ["@smartput/kind", "@smartput/shared"],
+  "packages/energy/package.json": ["@smartput/kind", "@smartput/shared"],
+  "packages/power/package.json": ["@smartput/kind", "@smartput/shared"],
   // Reciprocal rather than linear — 120 bpm is a half-second beat — so its
   // bridge to `duration` is an `in` signature instead of a ratio row. Same
   // string-named operands, same empty edge list.
-  "packages/tempo/package.json": ["@smartput/shared"],
+  "packages/tempo/package.json": ["@smartput/kind", "@smartput/shared"],
 
   // The calendar-day half of datetime's recognition. It depends on datetime
   // rather than on chrono because it re-reads the match datetime already made
@@ -283,44 +303,34 @@ const ALLOWED: Record<string, string[]> = {
 /**
  * The packages that declare `@smartput/core` as an optional peer instead of a
  * dependency, and the exact shape that declaration must have. Listed by path
- * rather than derived from "has a `./validate`" so that adding a kind is a
+ * rather than derived from "has a `./validate`" so that adding one is a
  * decision someone wrote down here, the same rule the map above follows.
  *
- * Optional and not required: `npm add @smartput/length` must install cleanly
- * and print nothing, because the consumer who stops at `parseLength` has
+ * All sixteen ratio kinds were here for a milestone. `@smartput/kind` took
+ * fifteen of them off it — a peer they no longer need is not an optimisation,
+ * it is an edge that stopped existing — and `number` is what is left, because
+ * its `words.ts` wants English *words* rather than kind machinery. That is the
+ * shape to keep this set in: a package belongs here when it reaches core for
+ * something core is genuinely the home of, from an entry a micro-path consumer
+ * never loads. Anything else is a layering mistake wearing a peer as a hat.
+ *
+ * Optional and not required: `npm add @smartput/number` must install cleanly
+ * and print nothing, because the consumer who stops at `parseNumber` has
  * everything they came for. A required peer would warn every one of them about
  * a package they were right not to want.
  *
  * The devDependency alongside it is not redundant. A peer is resolved by the
  * consumer, and inside this workspace *we* are the consumer: the kind's own
- * `.` entry, its locale files and its tests all import core, and with only the
- * peer edge declared their resolution would depend on a hoist that no lockfile
- * promises.
+ * `.` entry and its tests import core, and with only the peer edge declared
+ * their resolution would depend on a hoist that no lockfile promises.
  *
- * What makes any of this true rather than merely written down is
- * `peerLeaksInto` below. A manifest saying core is optional is a claim about
+ * What makes any of this true rather than merely written down is the bundle
+ * check below. A manifest saying core is optional is a claim about
  * reachability, and the claim is worth exactly what checks it: move one import
- * of `defineKind` from `index.ts` into `units.ts` and every sentence above
+ * of `numberFromWords` from `index.ts` into `units.ts` and every sentence above
  * becomes false while the manifest still reads the same.
  */
-const CORE_IS_PEER = new Set([
-  "packages/angle/package.json",
-  "packages/area/package.json",
-  "packages/datarate/package.json",
-  "packages/datasize/package.json",
-  "packages/duration/package.json",
-  "packages/energy/package.json",
-  "packages/length/package.json",
-  "packages/mass/package.json",
-  "packages/measure/package.json",
-  "packages/number/package.json",
-  "packages/percent/package.json",
-  "packages/power/package.json",
-  "packages/speed/package.json",
-  "packages/temperature/package.json",
-  "packages/tempo/package.json",
-  "packages/volume/package.json",
-]);
+const CORE_IS_PEER = new Set(["packages/number/package.json"]);
 
 const PEER = "@smartput/core";
 
@@ -534,7 +544,7 @@ for (const path of found) {
   // teeth — no entry outside `.` and `./locale/*` can actually reach it.
   const peers = Object.keys(pkg.peerDependencies ?? {});
   if (CORE_IS_PEER.has(path)) {
-    const meta = (pkg.peerDependenciesMeta ?? {})[PEER];
+    const meta = pkg.peerDependenciesMeta?.[PEER];
     if (peers.join(",") !== PEER) {
       console.error(
         `${pkg.name} is listed in CORE_IS_PEER but declares peerDependencies [${peers.join(", ") || "(none)"}]; expected exactly ${PEER}.`,

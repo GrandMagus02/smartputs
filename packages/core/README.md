@@ -66,6 +66,7 @@ Type-only exports are erased and do not appear here.
 
 ## Dependencies
 
+- [`@smartput/kind`](../kind/README.md)
 - `decimal.js`
 
 ---

@@ -19,6 +19,10 @@
     "typecheck": "bun run scripts/typecheck.ts",
     "check-deps": "bun run scripts/check-deps.ts",
     "check-size": "bun run scripts/check-size.ts",
+    "check-commits": "bun run scripts/check-commits.ts",
+    "pack-size": "bun run scripts/pack-size.ts",
+    "release": "bun run scripts/release.ts",
+    "publish-packages": "bun run scripts/publish.ts",
     "parity:record": "bun run scripts/parity-record.ts",
     "check": "bun run lint && bun run typecheck && bun run check-deps && bun test && bun run build && bun run check-size"
   },

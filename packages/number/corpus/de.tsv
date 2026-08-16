@@ -1,0 +1,39 @@
+# input	kind	canonical	formatted
+1 + 1	number	2	2
+10 - 4	number	6	6
+6 * 7	number	42	42
+10 / 4	number	2.5	2,5
+-5	number	-5	-5
+(1 + 2) * 3	number	9	9
+100 / 3	number	33.33333333333333333333333333	33,333333333333333333333333
+# "." groups and "," marks the decimal, the exact inverse of English. Both
+# separators are strings English also reads, and reads as the other number:
+# "1.500" is fifteen hundred here and one and a half there, "1,5" three halves
+# here and fifteen there.
+1.500	number	1500	1.500
+1.234.567.890	number	1234567890	1.234.567.890
+0,1 + 0,2	number	0.3	0,3
+1,5 + 1,5	number	3	3
+1.500 + 500	number	2000	2.000
+# Every cardinal below a million is a single token, so a German number word is
+# a compound to be cut rather than a run of words to be collected. Inside it
+# the units come before the tens: einundzwanzig is one-and-twenty.
+einundzwanzig	number	21	21
+sechsundvierzig	number	46	46
+zweihundertfünf	number	205	205
+neunhundertneunundneunzig	number	999	999
+eintausendzweiunddreißig	number	1032	1.032
+# A million is where the compounding stops — two words — and the numeral in
+# front of it is the feminine "eine". Both spellings of 1 read back as 1, which
+# is what lets the printer's gender agreement emit either one.
+eine Million	number	1000000	1.000.000
+ein	number	1	1
+eine	number	1	1
+# The word operators. "geteilt durch" is one operator in two tokens; a bare
+# "durch" is a `by` with no verb in front of it and does not parse at all.
+zwei plus drei	number	5	5
+6 mal 7	number	42	42
+10 geteilt durch 4	number	2.5	2,5
+10 dividiert durch 4	number	2.5	2,5
+# "minus" in front of a spelled cardinal is a sign, not a missing left operand.
+minus fünf	number	-5	-5

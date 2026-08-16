@@ -38,10 +38,14 @@ scripts/     build, typecheck and the repo's custom guard scripts
 | `bun run build` | Builds every entry each package declares in `exports`. |
 | `bun run docs:dev` | Builds, regenerates package pages, then serves the docs site. |
 | `bun run check` | The full gate: lint, typecheck, check-deps, test, build, check-size. |
+| `bun run pack-size` | Stages every package as npm would see it and measures the tarball. |
+| `bun run check-commits [range]` | Reads commit subjects the way the release script does. |
+| `bun run release --dry-run` | Prints the version each package would move to, and why. |
+| `bun run publish-packages` | The first-time npm publish, prompting for a token per package. |
 
-Run `bun run check` before opening a pull request. There is no CI workflow committed to
-the repo yet, so this local run *is* the gate — nothing else will catch a regression for
-you.
+Run `bun run check` before opening a pull request. `.github/workflows/ci.yml` runs the
+same commands on every pull request, plus `pack-size` and a Conventional Commits check
+over the branch's subjects.
 
 ## Things the checks enforce
 
@@ -106,3 +110,54 @@ Keep the change and its tests in one commit where practical, describe what the c
 does and why the old behaviour was wrong, and make sure `bun run check` is green. If a
 change alters a generated file or a parity fixture, say so in the description so the
 diff is read rather than skimmed.
+
+## Commit messages
+
+Subjects follow [Conventional Commits](https://www.conventionalcommits.org), because the
+version numbers and the changelogs are computed from them rather than written by hand:
+
+```
+feat(length): add the nautical mile
+fix: stop rounding the international yard
+feat(core)!: rename parse() to solve()
+```
+
+- **Type** is one of `feat`, `fix`, `perf`, `revert`, `docs`, `style`, `refactor`,
+  `test`, `build`, `ci`, `chore`. Only the first four release anything.
+- **Scope** is a package directory name (`length`, `core`) or one of `repo`, `ci`,
+  `deps`, `docs`, `scripts`, `release`. It is optional.
+- **Breaking** is a `!` before the colon, a `BREAKING CHANGE:` footer, or both. Below
+  1.0.0 it is a minor bump, not a major one.
+- Lower-case subject, no full stop, 72 characters at most.
+
+`bun run check-commits origin/main..HEAD` is the same check CI runs.
+
+## Releasing
+
+Releases are automatic. Merging to `main` runs `.github/workflows/release.yml`, which:
+
+1. runs `bun run check` and `bun run pack-size` against the merge result;
+2. runs `scripts/release.ts` — per package, it reads the commits since that package's
+   last `<name>@<version>` tag, works out the bump, writes the new version into the
+   manifest and prepends a section to that package's `CHANGELOG.md`. A package whose
+   dependency moved is republished at a patch, so no published range points at a version
+   its dependent was never tested against;
+3. commits, tags each released package and pushes;
+4. publishes to npm in dependency order with provenance, and cuts a GitHub release per
+   package.
+
+It needs one repository secret, `NPM_TOKEN`, with publish rights to the `@smartput`
+scope.
+
+**The first publish is manual**, because 37 package names have to be claimed:
+
+```sh
+bun run publish-packages --dry-run --version 0.1.0   # stage everything, publish nothing
+bun run publish-packages --version 0.1.0             # for real, one token per package
+git push --tags
+```
+
+It stages each package into `.publish/` — `workspace:*` ranges resolved, dev
+dependencies dropped, the shared licence and repository fields filled in — prompts for
+an npm token before each publish, and never writes to `~/.npmrc`. Anything already on
+the registry is skipped, so a run that fails part-way can simply be run again.

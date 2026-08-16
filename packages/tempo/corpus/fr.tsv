@@ -1,0 +1,36 @@
+# input	kind	canonical	formatted
+120 bpm	tempo	120	120 bpm
+120 bpm en ms	duration	0.5	500 millisecondes
+500 ms en bpm	tempo	120	120 bpm
+1 s en bpm	tempo	60	60 bpm
+2 Hz en bpm	tempo	120	120 bpm
+120 bpm en Hz	tempo	120	2 hertz
+120 bpm + 8 bpm	tempo	128	128 bpm
+140 bpm - 20 bpm	tempo	120	120 bpm
+60 bpm * 2	tempo	120	120 bpm
+120 bpm / 2	tempo	60	60 bpm
+-10 bpm	tempo	-10	-10 bpm
+cent vingt bpm	tempo	120	120 bpm
+174 bpm	tempo	174	174 bpm
+# "battement" reads a tempo and never prints one: the unit carries no forms, so
+# the symbol is all it can emit.
+120 battements	tempo	120	120 bpm
+1 battement	tempo	1	1 bpm
+# "vers" is the second conversion preposition beside "en".
+120 bpm vers millisecondes	duration	0.5	500 millisecondes
+# "fois" is one token; division is two, "divisé" then "par".
+60 bpm fois 2	tempo	120	120 bpm
+120 bpm divisé par 2	tempo	60	60 bpm
+# Vigesimal above sixty: ninety is spoken as four-twenties-ten.
+quatre-vingt-dix bpm	tempo	90	90 bpm
+# Hertz is its own plural in French, so both form keys hold the same word, and
+# one hertz is sixty beats a minute rather than one.
+1 Hz	tempo	60	1 hertz
+2 Hz	tempo	120	2 hertz
+1,5 Hz	tempo	90	1,5 hertz
+# French `one` swallows every fraction below two, so half a second is a
+# *singular* seconde. Spanish and Italian print the plural for the same number.
+120 bpm en secondes	duration	0.5	0,5 seconde
+# The group separator printed back is U+202F, a narrow no-break space, though an
+# ordinary space is what a keyboard types.
+1 200 bpm	tempo	1200	1 200 bpm

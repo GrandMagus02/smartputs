@@ -1,0 +1,38 @@
+# input	kind	canonical	formatted
+90 डिग्री	angle	1.570796326794896619231321692	90 डिग्री
+90 डिग्री को रेडियन	angle	1.570796326794896619231321692	1.5707963267948966192313217 रेडियन
+0.25 फेरे को डिग्री	angle	1.570796326794896619231321692	90 डिग्री
+200 ग्रेडियन को डिग्री	angle	3.141592653589793238462643383	180 डिग्री
+90 डिग्री + 90 डिग्री	angle	3.141592653589793238462643384	180 डिग्री
+1 फेरा - 90 डिग्री	angle	4.712388980384689857693965075	0.75 फेरा
+180 डिग्री / 4	angle	0.7853981633974483096156608458	45 डिग्री
+-90 डिग्री	angle	-1.570796326794896619231321692	-90 डिग्री
+1 रेडियन को डिग्री	angle	1	57.295779513082320876798155 डिग्री
+एक फेरा	angle	6.283185307179586476925286767	1 फेरा
+दो सौ ग्रेडियन	angle	3.141592653589793238462643383	200 ग्रेडियन
+360 डिग्री को फेरे	angle	6.283185307179586476925286767	1 फेरा
+1.5 रेडियन	angle	1.5	1.5 रेडियन
+# Three of the four units have one printed form for every count, so डिग्री is
+# the same word at 1 and at 5. फेरा is the one unit with a number axis, and
+# Hindi's `one` covers every fraction below two, so 0.75 takes the singular
+# and only 2 reaches the plural.
+1 डिग्री	angle	0.01745329251994329576923690768	1 डिग्री
+5 डिग्री	angle	0.08726646259971647884618453842	5 डिग्री
+1 फेरा	angle	6.283185307179586476925286767	1 फेरा
+2 फेरे	angle	12.56637061435917295385057353	2 फेरे
+0.75 फेरे	angle	4.712388980384689857693965075	0.75 फेरा
+# अंश is read and never written: the printed word for a degree is डिग्री.
+5 अंश	angle	0.08726646259971647884618453842	5 डिग्री
+# The reader is grouping-agnostic: Indian lakh-crore grouping and Western
+# grouping are the same number to it. The writer is not, and that half is a
+# recorded gap rather than a corpus error — it groups in fixed threes, so
+# 12,34,567 goes in and 1,234,567 comes out.
+12,34,567 डिग्री	angle	21547.25898646883482793950141	1,234,567 डिग्री
+1,234,567 डिग्री	angle	21547.25898646883482793950141	1,234,567 डिग्री
+# लाख is a magnitude word the reader knows all the same.
+एक लाख डिग्री	angle	1745.329251994329576923690768	100,000 डिग्री
+# The operators are bare words and the conversion marker is a postposition:
+# को and में both follow the source and introduce the target.
+2 फेरे गुणा 3	angle	37.69911184307751886155172059	6 फेरे
+180 डिग्री भाग 4	angle	0.7853981633974483096156608458	45 डिग्री
+90 डिग्री में रेडियन	angle	1.570796326794896619231321692	1.5707963267948966192313217 रेडियन

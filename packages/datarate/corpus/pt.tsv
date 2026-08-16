@@ -1,0 +1,40 @@
+# input	kind	canonical	formatted
+100 mbps	datarate	100000000	100Mbps
+500 MB / 20 s	datarate	200000000	200Mbps
+100 mbps * 1 min	datasize	750000000	750.000.000 bytes
+1 min * 100 mbps	datasize	750000000	750.000.000 bytes
+1 GB / 100 mbps	duration	80	80 segundos
+100 mbps + 50 mbps	datarate	150000000	150Mbps
+200 mbps - 50 mbps	datarate	150000000	150Mbps
+2 mbps * 3	datarate	6000000	6Mbps
+1 gbps / 4	datarate	250000000	0,25Gbps
+-10 mbps	datarate	-10000000	-10Mbps
+8000 bps em kbps	datarate	8000	8kbps
+duzentos megabits	datarate	200000000	200Mbps
+# "." groups and "," marks the decimal.
+1.234.567 bps	datarate	1234567	1.234.567bps
+1,5 gbps	datarate	1500000000	1,5Gbps
+# A fraction takes the **singular** — "1,5 segundo", against the "1 segundo"
+# beside it and the "80 segundos" above. Spanish, the other Iberian language in
+# this set, puts the same number in the plural.
+125 MB / 1 gbps	duration	1	1 segundo
+187,5 MB / 1 gbps	duration	1.5	1,5 segundo
+# `byte` does move on the number axis, so the singular above is a choice the
+# renderer made rather than a table with one entry.
+1 byte	datasize	1	1 byte
+5 bytes	datasize	5	5 bytes
+# "megas" is what a Brazilian calls a megabit per second when talking about a
+# connection.
+100 megas	datarate	100000000	100Mbps
+# `por` is `times` in Portuguese, which is why the division below is `sobre`:
+# "dividido por" puts two operators in a row and does not parse at all.
+2 mbps por 3	datarate	6000000	6Mbps
+10 gbps sobre 4	datarate	2500000000	2,5Gbps
+# `para` beside `em` as a second conversion preposition.
+1 gbps para mbps	datarate	1000000000	1.000Mbps
+# European `quilobit` is read; the printed symbol stays Latin either way.
+1 quilobit	datarate	1000	1kbps
+# "megabit" and "megabyte" are one letter apart and name two kinds, and the
+# factor of 8 between them is the one the bridge signatures write out.
+100 megabit	datarate	100000000	100Mbps
+100 megabyte	datasize	100000000	100 megabytes

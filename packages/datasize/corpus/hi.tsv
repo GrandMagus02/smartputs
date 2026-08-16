@@ -1,0 +1,40 @@
+# input	kind	canonical	formatted
+1 kib में b	datasize	1024	1,024 बाइट
+1 गीगाबाइट में मेगाबाइट	datasize	1000000000	1,000 मेगाबाइट
+1 गिबिबाइट में मेबिबाइट	datasize	1073741824	1,024 मेबिबाइट
+1 टेराबाइट को गीगाबाइट	datasize	1000000000000	1,000 गीगाबाइट
+1 मेबिबाइट में किलोबाइट	datasize	1048576	1,048.576 किलोबाइट
+1024 बाइट में किबिबाइट	datasize	1024	1 किबिबाइट
+500 mb + 500 mb	datasize	1000000000	1,000 मेगाबाइट
+1 gb - 200 mb	datasize	800000000	0.8 गीगाबाइट
+2 gb * 3	datasize	6000000000	6 गीगाबाइट
+1 tb / 4	datasize	250000000000	0.25 टेराबाइट
+-1 gb	datasize	-1000000000	-1 गीगाबाइट
+एक गीगाबाइट	datasize	1000000000	1 गीगाबाइट
+दो सौ पाँच मेगाबाइट	datasize	205000000	205 मेगाबाइट
+# No number agreement. Hindi does inflect a noun for number, but a measure
+# word after a numeral stays in the direct singular, so both `forms` keys hold
+# the same word and 1, 2 and 5 print it.
+1 बाइट	datasize	1	1 बाइट
+2 बाइट	datasize	2	2 बाइट
+5 बाइट	datasize	5	5 बाइट
+1.5 जीबी	datasize	1500000000	1.5 गीगाबाइट
+# The reader is grouping-agnostic: Indian grouping and international grouping
+# are the same number to it. The writer is not — it groups in fixed threes and
+# cannot yet produce 12,34,567. A recorded gap in core's number rendering, and
+# these two rows are what will change when it closes.
+12,34,567 बाइट	datasize	1234567	1,234,567 बाइट
+1234567 बाइट	datasize	1234567	1,234,567 बाइट
+# लाख is a magnitude word rather than a numeral, and it multiplies what
+# precedes it by a hundred thousand.
+1 लाख बाइट	datasize	100000	100,000 बाइट
+# The three-letter abbreviations are Devanagari transliterations of the Latin
+# ones — केबी, एमबी, जीबी — and they read where the spelled-out compound
+# prints.
+5 केबी	datasize	5000	5 किलोबाइट
+# The operators are all bare words, and the conversion is a postposition after
+# the source rather than a preposition before the target.
+2 जीबी गुणा 3	datasize	6000000000	6 गीगाबाइट
+10 जीबी भाग 4	datasize	2500000000	2.5 गीगाबाइट
+1 जीबी घटा 200 एमबी	datasize	800000000	0.8 गीगाबाइट
+2 जीबी से एमबी	datasize	2000000000	2,000 मेगाबाइट

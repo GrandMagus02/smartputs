@@ -1,0 +1,40 @@
+# What a comparison returns. Registering this kind is what turns
+# `1000메가바이트 = 1기가바이트` from an unresolvable expression into `true`.
+#
+# `true` and `false` are not translated, and that is this file's finding
+# rather than an oversight it hides: the kind ships no vocabulary at all,
+# so `formatValue` degrades to the unit key in every language. A Korean
+# engine answering "true" is what the code does today, and a row asserting
+# it is what makes a later `boolean/locale/ko` a visible diff here.
+# input	kind	canonical	formatted
+1000메가바이트 = 1기가바이트	boolean	1	true
+1킬로미터 > 999미터	boolean	1	true
+1킬로미터 < 999미터	boolean	0	false
+1미터 = 100센티미터	boolean	1	true
+2 > 1	boolean	1	true
+1 >= 1	boolean	1	true
+1 <= 0	boolean	0	false
+5 != 4	boolean	1	true
+-5킬로미터 < 0킬로미터	boolean	1	true
+1.5킬로미터 = 1500미터	boolean	1	true
+# No space between a number and its unit, on either side of a comparison.
+1킬로그램 더하기 500그램 = 1.5킬로그램	boolean	1	true
+1킬로미터 빼기 250미터 = 750미터	boolean	1	true
+2킬로미터 곱하기 3 = 6킬로미터	boolean	1	true
+10킬로미터 나누기 4 = 2.5킬로미터	boolean	1	true
+# The particles, glued to the unit and stripped off it. On a bare quantity
+# the glue is harmless; a conversion needs the Latin alias underneath,
+# because a particle stuck to a Hangul unit does not separate from it.
+5킬로미터를 > 4킬로미터	boolean	1	true
+2km를 미터 = 2000m	boolean	1	true
+500m에서 킬로미터 = 0.5km	boolean	1	true
+# Sino-Korean numerals, counted in ten-thousands: 만 is one word for 10000.
+일 킬로미터 = 1000미터	boolean	1	true
+만 미터 = 10킬로미터	boolean	1	true
+# No number agreement anywhere. One unit word serves every count.
+1인치 = 2.54센티미터	boolean	1	true
+3피트 = 91.44센티미터	boolean	1	true
+1마일 > 1킬로미터	boolean	1	true
+2톤 = 2000킬로그램	boolean	1	true
+1헥타르 = 10000제곱미터	boolean	1	true
+1시간 != 60분	boolean	0	false

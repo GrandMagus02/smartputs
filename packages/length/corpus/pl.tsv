@@ -1,0 +1,49 @@
+# input	kind	canonical	formatted
+10 km	length	10000	10 kilometrów
+12 cali	length	0.3048	12 cali
+2 km w metrach	length	2000	2 000 metrów
+1 mila w kilometrach	length	1609.344	1,609344 kilometra
+10 m + 5 km	length	5010	5 010 metrów
+1 km - 250 m	length	750	0,75 kilometra
+10 km * 3	length	30000	30 kilometrów
+1 km / 4	length	250	0,25 kilometra
+-5 km	length	-5000	-5 kilometrów
+3 stopy w centymetrach	length	0.9144	91,44 centymetra
+jeden kilometr	length	1000	1 kilometr
+dwieście pięć kilometrów	length	205000	205 kilometrów
+1 500 mm w metrach	length	1.5	1,5 metra
+# The four plural categories on one unit, which English has two of. Polish
+# picks `few` for 2-4, `many` from 5 up, and the teens go to `many` however
+# they end.
+1 metr	length	1	1 metr
+2 metry	length	2	2 metry
+5 metrów	length	5	5 metrów
+12 metrów	length	12	12 metrów
+22 metry	length	22	22 metry
+25 metrów	length	25	25 metrów
+# The fractional category is the genitive *singular* — "1,5 metra", never
+# "1,5 metrów" — and it is a fifth word, not a reuse of one of the four above.
+1,5 km	length	1500	1,5 kilometra
+1,5 metra	length	1.5	1,5 metra
+# The feminine unit. `stopa` declines on a different pattern, and its `many`
+# form is a vowel-shifted bare stem rather than an -ów ending.
+1 stopa	length	0.3048	1 stopa
+2 stopy	length	0.6096	2 stopy
+5 stóp	length	1.524	5 stóp
+2 mile	length	3218.688	2 mile
+5 mil	length	8046.72	5 mil
+# Where Polish and Russian part company on the same number: `few` is the
+# nominative plural here ("2 metry") and the genitive singular there
+# ("2 метра"). Same category, different word.
+102 metry	length	102	102 metry
+# A decimal comma and a U+00A0 group separator — Ukrainian's pair rather than
+# German's.
+1 234 567 mm	length	1234.567	1 234 567 milimetrów
+# The word operators. "razy" stands alone; "podzielić przez" is two tokens
+# folded into one.
+2 km razy 3	length	6000	6 kilometrów
+10 km podzielić przez 4	length	2500	2,5 kilometra
+# Two more conversion prepositions beside "w": "na" and "do" both introduce a
+# target, and only "w" governs the locative that `selectForm` reads.
+2 km na metry	length	2000	2 000 metrów
+2 km do metrów	length	2000	2 000 metrów

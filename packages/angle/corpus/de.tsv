@@ -1,0 +1,41 @@
+# input	kind	canonical	formatted
+90 Grad	angle	1.570796326794896619231321692	90 Grad
+90 Grad in Radiant	angle	1.570796326794896619231321692	1,5707963267948966192313217 Radiant
+0,25 Umdrehungen in Grad	angle	1.570796326794896619231321692	90 Grad
+200 Gon in Grad	angle	3.141592653589793238462643383	180 Grad
+90 Grad + 90 Grad	angle	3.141592653589793238462643384	180 Grad
+1 Umdrehung - 90 Grad	angle	4.712388980384689857693965075	0,75 Umdrehungen
+45 Grad * 2	angle	1.570796326794896619231321692	90 Grad
+180 Grad / 4	angle	0.7853981633974483096156608458	45 Grad
+-90 Grad	angle	-1.570796326794896619231321692	-90 Grad
+1 Radiant in Grad	angle	1	57,295779513082320876798155 Grad
+eine Umdrehung	angle	6.283185307179586476925286767	1 Umdrehung
+zweihundert Gon	angle	3.141592653589793238462643383	200 Gon
+360 Grad in Umdrehungen	angle	6.283185307179586476925286767	1 Umdrehung
+1,5 Radiant	angle	1.5	1,5 Radiant
+# "." groups and "," is the decimal point, the reverse of English's pair.
+1.234.567 Grad	angle	21547.25898646883482793950141	1.234.567 Grad
+3 Umdrehungen in Grad	angle	18.8495559215387594307758603	1.080 Grad
+# Duden's rule for Maßangaben: a masculine or neuter measure noun stays
+# uninflected after a numeral, so `der Grad`, `der Radiant` and `das Gon` are
+# one word for every count.
+1 Grad	angle	0.01745329251994329576923690768	1 Grad
+2 Grad	angle	0.03490658503988659153847381537	2 Grad
+2 Radiant	angle	2	2 Radiant
+# `die Umdrehung` is feminine and takes its ordinary plural, so it is the one
+# unit here whose number axis moves at all.
+1 Umdrehung	angle	6.283185307179586476925286767	1 Umdrehung
+2 Umdrehungen	angle	12.56637061435917295385057353	2 Umdrehungen
+# The dative is read and never printed: "in Grad" and "zu Gon" govern it, and
+# German writes the measure noun bare in it, so `dat-one` and `dat-other`
+# repeat the nominative rather than adding a word.
+90 Grad zu Gon	angle	1.570796326794896619231321692	100 Gon
+# The word operators. "mal" stands alone; "geteilt durch" is
+# two tokens folded into one.
+45 Grad mal 2	angle	1.570796326794896619231321692	90 Grad
+180 Grad geteilt durch 4	angle	0.7853981633974483096156608458	45 Grad
+# A gap, recorded rather than fixed. "°" is the printed symbol of the degree
+# here — and in es, fr, it, nl, pt, pl, ru and uk — but it is punctuation
+# rather than a letter, so `lex` drops it and the sentence reads as a bare
+# number. The one printed form in this package that cannot be read back.
+90°	number	90	90

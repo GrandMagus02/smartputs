@@ -1,0 +1,40 @@
+# What a comparison returns. Registering this kind is what turns
+# `1000 एमबी = 1 जीबी` from an unresolvable expression into `true`.
+#
+# `true` and `false` are not translated, and that is this file's finding
+# rather than an oversight it hides: the kind ships no vocabulary at all,
+# so `formatValue` degrades to the unit key in every language. A Hindi
+# engine answering "true" is what the code does today, and a row asserting
+# it is what makes a later `boolean/locale/hi` a visible diff here.
+# input	kind	canonical	formatted
+1000 एमबी = 1 जीबी	boolean	1	true
+1 किमी > 999 मी	boolean	1	true
+1 किमी < 999 मी	boolean	0	false
+1 मी = 100 सेमी	boolean	1	true
+2 > 1	boolean	1	true
+1 >= 1	boolean	1	true
+1 <= 0	boolean	0	false
+5 != 4	boolean	1	true
+1 किग्रा + 500 ग्राम = 1.5 किग्रा	boolean	1	true
+1 किमी - 250 मी = 750 मी	boolean	1	true
+-5 किमी < 0 किमी	boolean	1	true
+एक किलोमीटर = 1000 मीटर	boolean	1	true
+# The reader is grouping-agnostic: Indian grouping in threes-then-twos and
+# Western grouping in threes are the same number, and both reach it.
+1,00,000 मीटर = 100 किमी	boolean	1	true
+1,234,567 मिमी = 12,34,567 मिमी	boolean	1	true
+# `लाख` as a magnitude word rather than a digit count.
+1 लाख मीटर = 100 किमी	boolean	1	true
+# Conversion is a postposition — it follows the target rather than
+# preceding it — and Hindi claims three of them.
+1 किमी में मीटर = 1000 मी	boolean	1	true
+2 किमी को मीटर = 2000 मी	boolean	1	true
+500 मी से किलोमीटर = 0.5 किमी	boolean	1	true
+# The one unit with a number axis: `फुट` for one and `फीट` above it.
+1 फुट = 30.48 सेमी	boolean	1	true
+3 फीट = 91.44 सेमी	boolean	1	true
+2 किमी गुणा 3 = 6 किमी	boolean	1	true
+10 किमी भाग 4 = 2.5 किमी	boolean	1	true
+1 इंच = 2.54 सेमी	boolean	1	true
+1 मील > 1 किमी	boolean	1	true
+1 घंटा != 60 मिनट	boolean	0	false

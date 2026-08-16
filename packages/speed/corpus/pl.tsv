@@ -1,0 +1,41 @@
+# input	kind	canonical	formatted
+120 kph	speed	33.33333333333333333333333334	120 km/h
+100 kph w mph	speed	27.77777777777777777777777778	62,137119223733396961743418 mph
+60 mph w kph	speed	26.8224	96,56064 km/h
+1 knot w kph	speed	0.5144444444444444444444444444	1,852 km/h
+10 mps w kph	speed	10	36 km/h
+50 kph + 50 kph	speed	27.77777777777777777777777778	100 km/h
+100 kph - 20 kph	speed	22.22222222222222222222222222	80 km/h
+30 kph * 2	speed	16.66666666666666666666666667	60 km/h
+100 kph / 4	speed	6.944444444444444444444444445	25 km/h
+-10 kph	speed	-2.777777777777777777777777778	-10 km/h
+100 km / 2 h	speed	13.88888888888888888888888889	13,888888888888888888888889 m/s
+jeden kph	speed	0.2777777777777777777777777778	1 km/h
+3,6 kph w mps	speed	1	1 m/s
+# The group separator is U+00A0 and the decimal mark is a comma.
+1 234 kph	speed	342.7777777777777777777777778	1 234 km/h
+# "razy" is bare; `over` is "podzielić" and needs "przez" after it.
+30 kph razy 2	speed	16.66666666666666666666666667	60 km/h
+100 kph podzielić przez 4	speed	6.944444444444444444444444445	25 km/h
+# Four plural categories on one unit, which English has two of. `few` takes
+# 2-4, `many` from 5 up, and the teens go to `many` however they end.
+1 węzeł	speed	0.5144444444444444444444444444	1 węzeł
+2 węzły	speed	1.028888888888888888888888889	2 węzły
+5 węzłów	speed	2.572222222222222222222222222	5 węzłów
+12 węzłów	speed	6.173333333333333333333333333	12 węzłów
+22 węzły	speed	11.31777777777777777777777778	22 węzły
+# The fractional category is the genitive *singular* — "1,5 węzła" — and it
+# is a fifth word, not a reuse of one of the four above. Polish `few` is the
+# nominative plural here; Russian fills the same cell with a genitive
+# singular, which is why "2 węzły" and "2 узла" are not the same shape.
+1,5 węzła	speed	0.7716666666666666666666666666	1,5 węzła
+# A conversion target is locative after "w", and the result is a fraction, so
+# what comes back is the nominative-other cell rather than either locative
+# one. The case the preposition governs is read and thrown away.
+100 kph w węzłach	speed	27.77777777777777777777777778	53,995680345572354211663067 węzła
+# The diacritic-free spelling. węzeł carries ę and ł and its genitive plural
+# carries ó as well — three corrections, past what the fuzzy pass will apply
+# — so the stripped forms are listed as aliases. They read and never print.
+5 wezlow	speed	2.572222222222222222222222222	5 węzłów
+# The bridge, in Polish words.
+100 kilometrów / 2 godziny	speed	13.88888888888888888888888889	13,888888888888888888888889 m/s

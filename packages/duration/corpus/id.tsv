@@ -1,0 +1,36 @@
+# input	kind	canonical	formatted
+2 minggu	duration	1209600	2 minggu
+30 jam - 30 menit	duration	106200	29,5 jam
+90 menit ke jam	duration	5400	1,5 jam
+1 hari ke jam	duration	86400	24 jam
+1 minggu ke hari	duration	604800	7 hari
+500 ms + 500 ms	duration	1	1.000 milidetik
+2 jam * 3	duration	21600	6 jam
+1 hari / 4	duration	21600	0,25 hari
+-2 jam	duration	-7200	-2 jam
+1 jam ke detik	duration	3600	3.600 detik
+3600 detik ke jam	duration	3600	1 jam
+45 menit	duration	2700	45 menit
+1,5 jam ke menit	duration	5400	90 menit
+2 hari + 12 jam	duration	216000	2,5 hari
+# "." groups and "," is the decimal point, the pair Indonesian inherited from
+# Dutch.
+86.400 detik ke hari	duration	86400	1 hari
+100000 detik	duration	100000	100.000 detik
+# No plural at all: `forms` has a single `other` key per unit, so one and five
+# and a half take the same word, and there is no `one` for the printer to
+# choose.
+1 jam	duration	3600	1 jam
+5 jam	duration	18000	5 jam
+1 detik	duration	1	1 detik
+5 detik	duration	5	5 detik
+1,5 jam	duration	5400	1,5 jam
+# No `id-cardinals.ts` exists in core, so "satu jam" does not parse and this
+# is the one file here with no spelled-cardinal row. The gap is core's rather
+# than this vocabulary's.
+#
+# The word operators, which do exist.
+2 jam kali 3	duration	21600	6 jam
+1 hari bagi 4	duration	21600	0,25 hari
+# Two prepositions introduce a conversion target.
+1 minggu dalam hari	duration	604800	7 hari

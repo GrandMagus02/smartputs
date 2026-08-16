@@ -1,4 +1,4 @@
-import { Decimal, decimalRatios, defineKind, deriveValue } from "@smartput/core";
+import { Decimal, decimalRatios, defineKind, deriveValue } from "@smartput/kind";
 import { TEMPDELTA_UNITS, TEMPERATURE_UNITS, type TemperatureUnit } from "./units";
 
 export type { TempDeltaUnit, TemperatureUnit } from "./units";

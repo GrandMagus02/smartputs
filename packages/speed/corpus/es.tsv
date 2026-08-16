@@ -1,0 +1,33 @@
+# input	kind	canonical	formatted
+120 kph	speed	33.33333333333333333333333334	120km/h
+100 kph en mph	speed	27.77777777777777777777777778	62,137119223733396961743418mi/h
+60 mph en kph	speed	26.8224	96,56064km/h
+1 knot en kph	speed	0.5144444444444444444444444444	1,852km/h
+10 mps en kph	speed	10	36km/h
+50 kph + 50 kph	speed	27.77777777777777777777777778	100km/h
+100 kph - 20 kph	speed	22.22222222222222222222222222	80km/h
+30 kph * 2	speed	16.66666666666666666666666667	60km/h
+100 kph / 4	speed	6.944444444444444444444444445	25km/h
+-10 kph	speed	-2.777777777777777777777777778	-10km/h
+100 km / 2 h	speed	13.88888888888888888888888889	13,888888888888888888888889m/s
+un kph	speed	0.2777777777777777777777777778	1km/h
+3,6 kph en mps	speed	1	1m/s
+# "." groups and "," is the decimal point.
+1.234 kph	speed	342.7777777777777777777777778	1.234km/h
+# "por" is `times` and "entre" is `over`, both bare words. Spanish spends its
+# division on a preposition that means "between" and declares no verb beside
+# it, so "dividido entre" — the shape a speaker reaches for first — does not
+# parse at all: "dividido" is a word this locale has never heard of.
+30 kph por 2	speed	16.66666666666666666666666667	60km/h
+100 kph entre 4	speed	6.944444444444444444444444445	25km/h
+# "a" is the second conversion preposition beside "en".
+100 kph a mph	speed	27.77777777777777777777777778	62,137119223733396961743418mi/h
+# Two categories, and the fraction takes the plural: "1,5 nudos", never
+# "1,5 nudo". French decides the opposite way about the same number.
+1 nudo	speed	0.5144444444444444444444444444	1 nudo
+2 nudos	speed	1.028888888888888888888888889	2 nudos
+1,5 nudos	speed	0.7716666666666666666666666666	1,5 nudos
+veinte nudos	speed	10.28888888888888888888888889	20 nudos
+5 nudos en kph	speed	2.572222222222222222222222222	9,26km/h
+# The bridge, in Spanish words.
+100 kilómetros / 2 horas	speed	13.88888888888888888888888889	13,888888888888888888888889m/s

@@ -1,0 +1,41 @@
+# input	kind	canonical	formatted
+120 kph	speed	33.33333333333333333333333334	120 किमी/घंटा
+100 kph में mph	speed	27.77777777777777777777777778	62.137119223733396961743418 मील/घंटा
+60 mph में kph	speed	26.8224	96.56064 किमी/घंटा
+1 knot में kph	speed	0.5144444444444444444444444444	1.852 किमी/घंटा
+10 mps में kph	speed	10	36 किमी/घंटा
+50 kph + 50 kph	speed	27.77777777777777777777777778	100 किमी/घंटा
+100 kph - 20 kph	speed	22.22222222222222222222222222	80 किमी/घंटा
+30 kph * 2	speed	16.66666666666666666666666667	60 किमी/घंटा
+100 kph / 4	speed	6.944444444444444444444444445	25 किमी/घंटा
+-10 kph	speed	-2.777777777777777777777777778	-10 किमी/घंटा
+100 किलोमीटर / 2 घंटे	speed	13.88888888888888888888888889	13.888888888888888888888889 मी/सेकंड
+एक kph	speed	0.2777777777777777777777777778	1 किमी/घंटा
+3.6 kph में mps	speed	1	1 मी/सेकंड
+# Hindi's separators are English's — comma for groups, point for the decimal
+# — so only the grouping *rule* separates the two, and only on the way out.
+1,234 kph	speed	342.7777777777777777777777778	1,234 किमी/घंटा
+# Reading is grouping-agnostic: the Indian form below reaches `Decimal` as
+# the same digits an international one would. Writing is not — `formatNumber`
+# groups in fixed threes and prints "1,234,567" where a Hindi page writes
+# "12,34,567". A recorded core gap, not a corpus error.
+12,34,567 mps	speed	1234567	1,234,567 मी/सेकंड
+# The operators are bare words, and a conversion is a postposition: में and
+# को both mark it, and से — the third — is what the metre-per-second symbol
+# had to be spelled around.
+30 kph गुणा 2	speed	16.66666666666666666666666667	60 किमी/घंटा
+100 kph भाग 4	speed	6.944444444444444444444444445	25 किमी/घंटा
+100 kph को mph	speed	27.77777777777777777777777778	62.137119223733396961743418 मील/घंटा
+# लाख is read as a magnitude word and lands on 100000; only its printed
+# grouping is subject to the gap above.
+एक लाख kph	speed	27777.77777777777777777777778	100,000 किमी/घंटा
+# The knot does not inflect: one word for both categories.
+1 नॉट	speed	0.5144444444444444444444444444	1 नॉट
+5 नॉट	speed	2.572222222222222222222222222	5 नॉट
+1.5 नॉट	speed	0.7716666666666666666666666666	1.5 नॉट
+# The printed symbols read back. Both halves of मी/सेकंड and किमी/घंटा are
+# aliases their own kinds index, so the slash computes and the sentence
+# returns a speed. मी/से — how a physics text writes the first one — could
+# not: से is a conversion keyword and `lex` claims it before any unit does.
+5 मी/सेकंड	speed	5	5 मी/सेकंड
+100 किमी/घंटा	speed	27.77777777777777777777777778	27.777777777777777777777778 मी/सेकंड

@@ -1,0 +1,40 @@
+# input	kind	canonical	formatted
+30 usd	money	27.27272727272727272727272727	$30.00
+2 यूरो	money	2	€2.00
+100 डॉलर को यूरो	money	90.90909090909090909090909091	€90.91
+5 यूरो जोड़ 5 यूरो	money	10	€10.00
+30 डॉलर घटा 10 यूरो	money	17.27272727272727272727272727	$19.00
+2 यूरो गुणा 3	money	6	€6.00
+10 यूरो भाग 4	money	2.5	€2.50
+-5 यूरो	money	-5	-€5.00
+दो यूरो	money	2	€2.00
+(1 usd / 3) * 3	money	0.909090909090909090909090909	$1.00
+1.5 यूरो	money	1.5	€1.50
+1000 यूरो	money	1000	€1,000.00
+# The reader is grouping-agnostic: the Indian grouping and the Western one
+# are the same number to it, and neither comma survives into the amount.
+12,34,567 uah को यूरो	money	27133.34065934065934065934066	€27,133.34
+1,234,567 uah को यूरो	money	27133.34065934065934065934066	€27,133.34
+# A known gap, recorded rather than worked around. The writer groups in
+# fixed threes: `numberSymbols` reduces a language to two characters, group
+# and decimal, so the "12,34,567" an Indian reader expects comes back as
+# "1,234,567".
+1234567 यूरो	money	1234567	€1,234,567.00
+# लाख is the magnitude word for a hundred thousand, and it is a word rather
+# than a grouping — it reads where the grouping above does not print.
+एक लाख यूरो	money	100000	€100,000.00
+# Three postpositions introduce a target, where a European language would
+# use one preposition.
+100 डॉलर में यूरो	money	90.90909090909090909090909091	€90.91
+100 डॉलर से यूरो	money	90.90909090909090909090909091	€90.91
+# The Hindi words, and the oblique plural -ओं that a postposition would
+# govern. Both read; `money` prints the currency sign and neither.
+5 डॉलर	money	4.545454545454545454545454546	$5.00
+5 डॉलरों	money	4.545454545454545454545454546	$5.00
+3 पाउंड	money	3.566333808844507845934379457	£3.00
+5 स्टर्लिंग	money	5.943889681407513076557299095	£5.00
+1000 येन	money	5.882352941176470588235294118	¥1,000
+# The nuqta is a spelling: फ़्रैंक and फ्रैंक are the same word typed on two
+# keyboards.
+5 फ़्रैंक	money	5.31914893617021276595744681	CHF5.00
+5 फ्रैंक	money	5.31914893617021276595744681	CHF5.00

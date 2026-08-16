@@ -1,0 +1,42 @@
+# input	kind	canonical	formatted
+1 كيبيبايت إلى بايت	datasize	1024	1,024 بايتًا
+1 غيغابايت إلى ميغابايت	datasize	1000000000	1,000 ميغابايت
+1 غيبيبايت إلى ميبيبايت	datasize	1073741824	1,024 ميبيبايتًا
+1 ميبيبايت إلى كيلوبايت	datasize	1048576	1,048.576 كيلوبايت
+1024 بايت إلى كيبيبايت	datasize	1024	1 كيبيبايت
+500 ميغابايت + 500 ميغابايت	datasize	1000000000	1,000 ميغابايت
+1 غيغابايت - 200 ميغابايت	datasize	800000000	0.8 غيغابايت
+2 غيغابايت * 3	datasize	6000000000	6 غيغابايتات
+1 تيرابايت / 4	datasize	250000000000	0.25 تيرابايت
+-1 غيغابايت	datasize	-1000000000	-1 غيغابايت
+واحد غيغابايت	datasize	1000000000	1 غيغابايت
+مئتان وخمسة ميغابايت	datasize	205000000	205 ميغابايتات
+# Six plural categories, the most any language in this set has, and each of
+# them a different word. CLDR's Arabic rule: 0 zero, 1 one, 2 two, 3-10 few,
+# 11-99 many, and everything else — 100, and every fraction — other.
+0 بايت	datasize	0	0 بايت
+1 بايت	datasize	1	1 بايت
+2 بايت	datasize	2	2 بايتان
+3 بايت	datasize	3	3 بايتات
+11 بايت	datasize	11	11 بايتًا
+100 بايت	datasize	100	100 بايت
+1.5 بايت	datasize	1.5	1.5 بايت
+# The digits and separators are Latin. `ar` resolves to a `latn` numbering
+# system with "," for groups and "." for the decimal, so an Arabic sentence
+# reads and prints its numbers left to right inside right-to-left text. The
+# category comes off that result and off nothing typed: 1,234,567 lands in
+# `many` because its last two digits do, and so does the 1,024 the first row
+# of this file converts to.
+1,234,567 بايت	datasize	1234567	1,234,567 بايتًا
+# The Latin unit spellings read where the Arabic ones print, so a sentence can
+# be half in each script.
+1 gb إلى mb	datasize	1000000000	1,000 ميغابايت
+# في is both "in" and "times" in Arabic, and it is claimed as the conversion
+# preposition; ضرب is what is left to say "multiplied". قسمة على is the
+# two-token division, hanging off على as `keywords.by`.
+2 غيغابايت في ميغابايت	datasize	2000000000	2,000 ميغابايت
+2 غيغابايت ضرب 3	datasize	6000000000	6 غيغابايتات
+10 غيغابايت قسمة على 4	datasize	2500000000	2.5 غيغابايت
+# جيجابايت is the Egyptian spelling of the same prefix, with ج where the
+# Levant writes غ. It reads; the غ spelling prints.
+5 جيجابايت	datasize	5000000000	5 غيغابايتات

@@ -1,0 +1,38 @@
+# input	kind	canonical	formatted
+1インチをポイント	measure	1	72ポイント
+72ポイントをインチ	measure	1	1インチ
+6pcをインチ	measure	1	1インチ
+1インチをミリメートル	measure	1	25.4ミリメートル
+1インチをpx	measure	1	96ピクセル
+96pxをインチ	measure	1	1インチ
+2インチ + 36ポイント	measure	2.5	2.5インチ
+1インチ - 12ポイント	measure	0.8333333333333333333333333333	0.83333333333333333333333333インチ
+3インチ * 2	measure	6	6インチ
+1インチ / 4	measure	0.25	0.25インチ
+-2インチ	measure	-2	-2インチ
+1pcをポイント	measure	0.1666666666666666666666666667	12ポイント
+10ミリメートルをセンチメートル	measure	0.3937007874015748031496062992	1センチメートル
+一インチ	measure	1	1インチ
+十二ポイント	measure	0.1666666666666666666666666667	12ポイント
+# The separators are English's, and there is no space between the number and
+# the unit on input or output.
+25.4ミリメートルをインチ	measure	1	1インチ
+1,440ポイントをインチ	measure	20	20インチ
+1234567ピクセル	measure	12860.07291666666666666666667	1,234,567ピクセル
+# No number agreement anywhere, and every unit word is a katakana loan —
+# パイカ and ピクセル are spelled out where Chinese leaves both in Latin.
+1インチ	measure	1	1インチ
+5インチ	measure	5	5インチ
+1.5インチ	measure	1.5	1.5インチ
+1パイカ	measure	0.1666666666666666666666666667	1パイカ
+2パイカをポイント	measure	0.3333333333333333333333333333	24ポイント
+# The conversion keywords are case particles glued to the preceding word:
+# を marks the object, から the source.
+2インチからミリメートル	measure	2	50.8ミリメートル
+# The word operators need whitespace around them even though Japanese is
+# written without any. The particles above do not.
+3インチ 掛ける 2	measure	6	6インチ
+1インチ 割る 4	measure	0.25	0.25インチ
+10ミリメートル 足す 1インチ	measure	1.393700787401574803149606299	35.4ミリメートル
+# The myriad, as in Chinese: 万 is a magnitude word rather than ten thousands.
+一万ピクセル	measure	104.1666666666666666666666667	10,000ピクセル

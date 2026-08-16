@@ -1,0 +1,39 @@
+# input	kind	canonical	formatted
+2 l	volume	2	2 liter
+2 l ke ml	volume	2	2.000 mililiter
+1 gal ke liter	volume	3.785411784	3,785411784 liter
+1 pint ke ml	volume	0.473176473	473,176473 mililiter
+500 ml + 500 ml	volume	1	1.000 mililiter
+2 l - 250 ml	volume	1.75	1,75 liter
+3 l * 4	volume	12	12 liter
+1 l / 4	volume	0.25	0,25 liter
+-2 l	volume	-2	-2 liter
+1 gal ke pint	volume	3.785411784	8 pint
+# "." groups and "," is the decimal point — the Dutch pair, which is where
+# Indonesian orthography got it.
+1.500 ml ke liter	volume	1.5	1,5 liter
+1,5 l	volume	1.5	1,5 liter
+1.234.567 ml	volume	1234.567	1.234.567 mililiter
+# Indonesian marks no plural at all, so every unit has one printed form and 1
+# and 5 take the same word. Reduplication is the language's plural and it is
+# not what a numeral triggers: "5 liter", never "5 liter-liter".
+1 liter	volume	1	1 liter
+5 liter	volume	5	5 liter
+2 galon	volume	7.570823568	2 galon
+5 galon	volume	18.92705892	5 galon
+2 mililiter	volume	0.002	2 mililiter
+# No spelled cardinals. `@smartput/core` ships a `<lang>-cardinals` file for
+# fourteen of the fifteen non-English languages here and none for `id`, so
+# "satu liter" does not parse and this corpus records digits only. The row
+# that would prove it is the one that cannot be written.
+1000 liter	volume	1000	1.000 liter
+# No one-token word for the cubic metre either, so the symbol is printed.
+2 m3	volume	2000	2m³
+# "dalam" is the second conversion preposition beside "ke".
+2 l dalam ml	volume	2	2.000 mililiter
+# "kali" is `times` and also "occasion"; "bagi" is a bare `over` needing no
+# particle after it. "kurang" is `minus` and is the same word as "less".
+2 l kali 3	volume	6	6 liter
+10 l bagi 4	volume	2.5	2,5 liter
+2 l tambah 500 ml	volume	2.5	2,5 liter
+2 l kurang 250 ml	volume	1.75	1,75 liter

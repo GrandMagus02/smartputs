@@ -1,4 +1,4 @@
-import { aliasesFor, defineVocabulary } from "@smartput/core";
+import { aliasesFor, defineVocabulary } from "@smartput/kind";
 import { POWER_UNITS, type PowerUnit } from "../units";
 
 /**

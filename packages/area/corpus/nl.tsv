@@ -1,0 +1,36 @@
+# input	kind	canonical	formatted
+3 m * 4 m	area	12	12 m²
+1 hectare in m2	area	10000	10.000 m²
+1 acre in m2	area	4046.8564224	4.046,8564224 m²
+2 km2 in hectare	area	2000000	200 hectare
+5000 cm2 in m2	area	0.5	0,5 m²
+10 m2 + 5 m2	area	15	15 m²
+1 hectare - 2500 m2	area	7500	0,75 hectare
+3 m2 * 4	area	12	12 m²
+100 m2 / 4	area	25	25 m²
+-5 m2	area	-5	-5 m²
+2 sqkm in m2	area	2000000	2.000.000 m²
+1 m2 in cm2	area	1	10.000 cm²
+twee hectare	area	20000	2 hectare
+1 km * 1 km	area	1000000	1.000.000 m²
+12 m2	area	12	12 m²
+# Dutch has the two CLDR categories and spends neither: after a numeral a
+# measure noun stays bare, so `one` and `other` are one string and nothing
+# moves on the number axis. The direct opposite of German's feminine `die
+# Meile` next door in `@smartput/length`.
+1 hectare	area	10000	1 hectare
+2 hectare	area	20000	2 hectare
+1,5 hectare	area	15000	1,5 hectare
+# Dutch names the squared units in one token, so they read — and they still
+# print as symbols, because the vocabulary gives them no `forms`. Reading and
+# printing are separate decisions.
+1 vierkantemeter	area	1	1 m²
+2 vierkantekilometer	area	2000000	2 km²
+# "." groups and "," is the decimal point.
+1.500 m2	area	1500	1.500 m²
+# Two words for times, one two-token word for over.
+10 m2 maal 3	area	30	30 m²
+10 m2 keer 3	area	30	30 m²
+100 m2 gedeeld door 4	area	25	25 m²
+# "naar" is the second conversion preposition, beside "in".
+1 acre naar hectare	area	4046.8564224	0,40468564224 hectare

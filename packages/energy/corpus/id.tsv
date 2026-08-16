@@ -1,0 +1,40 @@
+# input	kind	canonical	formatted
+1 kwh ke joule	energy	3600000	3.600.000 joule
+2 kW * 3 jam	energy	21600000	21.600.000 joule
+1 kwh / 1 jam	power	1000	1.000 watt
+1 kwh / 1 kW	duration	3600	3.600 detik
+1 kcal ke joule	energy	4184	4.184 joule
+500 J + 500 J	energy	1000	1.000 joule
+1 kJ - 250 J	energy	750	0,75 kilojoule
+1 kJ / 4	energy	250	0,25 kilojoule
+-1 kwh	energy	-3600000	-1kWh
+1000 cal ke kcal	energy	4184	1 kilokalori
+# There is no spelled-cardinal row in this file and there cannot be one:
+# Indonesian is the only language of the seventeen with no cardinals table in
+# `@smartput/core`, so "satu kilojoule" does not parse.
+#
+# "." groups and "," is the decimal, the pair Indonesian took from Dutch.
+1.234.567 J	energy	1234567	1.234.567 joule
+2,5 kwh	energy	9000000	2,5kWh
+# No plural at all. The `forms` table is one key wide — `other` and nothing
+# else — so 1, 5 and 1,5 print the same word.
+1 joule	energy	1	1 joule
+5 joule	energy	5	5 joule
+1,5 joule	energy	1.5	1,5 joule
+# The calorie's Indonesian name and its two local abbreviations, all reading
+# onto one printed form.
+1 kalori	energy	4.184	1 kalori
+5 kal	energy	20.92	5 kalori
+5 kkal	energy	20920	5 kilokalori
+# The units with no Indonesian word carry no `forms`, so they print on the
+# symbol branch — which in this language joins the symbol to the number with
+# no space, on output as on input.
+5 BTU	energy	5275.2792631	5BTU
+1 kWh	energy	3600000	1kWh
+# The word operators, all of them bare.
+2 kJ kali 3	energy	6000	6 kilojoule
+10 kJ bagi 4	energy	2500	2,5 kilojoule
+500 J tambah 500 J	energy	1000	1.000 joule
+1 kJ kurang 250 J	energy	750	0,75 kilojoule
+# "dalam" is the second conversion preposition beside "ke".
+2 kWh dalam joule	energy	7200000	7.200.000 joule

@@ -27,7 +27,7 @@
           "level": "error",
           "options": {
             "paths": {
-              "decimal.js": "Import Decimal from \"@smartput/core\" (or, inside packages/core, from \"./decimal\") instead of \"decimal.js\" directly. A raw import bypasses the Decimal.set({ precision: 28, ... }) configuration that packages/core/src/decimal.ts applies as a module-load side effect, silently running at decimal.js's ~20-digit default and producing wrong numbers with no error."
+              "decimal.js": "Import Decimal from \"@smartput/kind\" (or \"@smartput/core\", which re-exports it; inside packages/kind, from \"./decimal\") instead of \"decimal.js\" directly. A raw import bypasses the Decimal.set({ precision: 28, ... }) configuration that packages/kind/src/decimal.ts applies as a module-load side effect, silently running at decimal.js's ~20-digit default and producing wrong numbers with no error."
             }
           }
         }
@@ -48,7 +48,7 @@
       }
     },
     {
-      "includes": ["packages/core/src/decimal.ts"],
+      "includes": ["packages/kind/src/decimal.ts"],
       "linter": {
         "rules": {
           "style": {

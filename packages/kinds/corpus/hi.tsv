@@ -1,0 +1,44 @@
+# input	kind	canonical	formatted
+#
+# The aggregator's corpus, so the rows range across the set rather than drill
+# one kind: the bridges between two kinds, and the comparisons that need
+# `boolean` registered beside the kind being compared. Each bridge owner names
+# its operands by id string rather than importing them, so a signature whose
+# operands are unregistered is unreachable rather than a build error.
+3 मीटर * 4 मीटर	area	12	12 मी²
+100 किमी / 2 घंटे	speed	13.88888888888888888888888889	13.888888888888888888888889 मी/सेकंड
+2 किलोवाट * 3 घंटे	energy	21600000	21,600,000 जूल
+1 kwh / 1 घंटा	power	1000	1,000 वाट
+500 एमबी / 20 सेकंड	datarate	200000000	200 एमबीपीएस
+100 mbps * 1 मिनट	datasize	750000000	750,000,000 बाइट
+120 बीपीएम में ms	duration	0.5	500 मिलीसेकंड
+1000 एमबी = 1 जीबी	boolean	1	true
+1 मील > 1 किमी	boolean	1	true
+212 F में C	temperature	100	100°C
+30 C - 20 C	tempdelta	10	10°C
+50 + 20%	number	60	60
+1 किबिबाइट में बाइट	datasize	1024	1,024 बाइट
+90 डिग्री में रेडियन	angle	1.570796326794896619231321692	1.5707963267948966192313217 रेडियन
+1 गैलन में लीटर	volume	3.785411784	3.785411784 लीटर
+-5 किमी	length	-5000	-5 किलोमीटर
+# The reader is grouping-agnostic: Indian grouping puts the separators in
+# different places and the two spellings read as the same number. The writer
+# is not — it groups in fixed threes and cannot yet produce Indian grouping,
+# so "12,34,567" goes in and "1,234,567" comes back. A gap in core's number
+# formatting, pinned here rather than worked around.
+1,234,567 मिमी	length	1234.567	1,234,567 मिलीमीटर
+12,34,567 मिमी	length	1234.567	1,234,567 मिलीमीटर
+# लाख is a magnitude word in its own right, a hundred thousand rather than a
+# hundred of a thousand.
+एक लाख मीटर	length	100000	100,000 मीटर
+दो सौ पांच किलोमीटर	length	205000	205 किलोमीटर
+# Conversion is a postposition — the target word comes first and में, को or से
+# follows the source.
+2 किमी को मीटर	length	2000	2,000 मीटर
+2 किमी से मीटर	length	2000	2,000 मीटर
+# The word operators, both single tokens.
+2 किमी गुणा 3	length	6000	6 किलोमीटर
+10 किमी भाग 4	length	2500	2.5 किलोमीटर
+# No form to select — every unit prints one word at every number — and a
+# decimal point where the European languages above put a comma.
+1 किग्रा + 500 ग्राम	mass	1500	1.5 किलोग्राम

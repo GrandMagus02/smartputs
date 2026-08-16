@@ -1,0 +1,44 @@
+# input	kind	canonical	formatted
+100mbps	datarate	100000000	100Mbps
+1gbps到mbps	datarate	1000000000	1,000Mbps
+500MB / 20秒	datarate	200000000	200Mbps
+100mbps * 1分钟	datasize	750000000	750,000,000B
+1分钟 * 100mbps	datasize	750000000	750,000,000B
+1GB / 100mbps	duration	80	80秒
+100mbps + 50mbps	datarate	150000000	150Mbps
+200mbps - 50mbps	datarate	150000000	150Mbps
+2mbps * 3	datarate	6000000	6Mbps
+1gbps / 4	datarate	250000000	0.25Gbps
+-10mbps	datarate	-10000000	-10Mbps
+8000bps到kbps	datarate	8000	8kbps
+二百mbps	datarate	200000000	200Mbps
+# No space between the number and the unit, on input or output. `Printer`'s
+# `gap` is empty for this language, which is what makes the round trip hold: the
+# engine reads back its own "1,000Gbps" byte for byte.
+1tbps到gbps	datarate	1000000000000	1,000Gbps
+# No number agreement of any kind, so 1 and 5 take the same word and so do 1 and
+# 80 seconds. The separators are English's — "," for groups, "." for the
+# decimal.
+1 byte	datasize	1	1B
+5 byte	datasize	5	5B
+125MB / 1gbps	duration	1	1秒
+1,234,567bps	datarate	1234567	1,234,567bps
+1.5gbps	datarate	1500000000	1.5Gbps
+# The myriad. Chinese counts in ten-thousands, so 万 is a magnitude word in its
+# own right and 一万 is one of them, not ten of a thousand.
+一万bps	datarate	10000	10,000bps
+# 兆 standing alone after a number is a *file size* — 「这个文件20兆」 — and the
+# alias index has no kind in its key, so `datasize` owns it. The broadband sense
+# 「100兆宽带」 never stands alone, so this kind loses nothing.
+100兆	datasize	100000000	100MB
+# The word operators need whitespace around them even though Chinese is written
+# without any: 乘 and 除以 are matched as separate tokens, and "2mbps乘3" does
+# not parse. The symbol operators above have no such requirement, and neither do
+# the conversion keywords below.
+2mbps 乘 3	datarate	6000000	6Mbps
+10gbps 除以 4	datarate	2500000000	2.5Gbps
+# 换算 is a verb rather than a preposition and 为 is a third word again; both
+# introduce a target on their own, and neither needs the whitespace the word
+# operators above do.
+1gbps换算mbps	datarate	1000000000	1,000Mbps
+1gbps为mbps	datarate	1000000000	1,000Mbps

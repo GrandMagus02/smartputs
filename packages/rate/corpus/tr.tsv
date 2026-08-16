@@ -1,0 +1,41 @@
+# input	kind	canonical	formatted
+30 usd	money	27.27272727272727272727272727	$30,00
+2 euro	money	2	€2,00
+100 dolar çevir euro	money	90.90909090909090909090909091	€90,91
+5 euro artı 5 euro	money	10	€10,00
+30 dolar eksi 10 euro	money	17.27272727272727272727272727	$19,00
+2 euro çarpı 3	money	6	€6,00
+10 euro bölü 4	money	2.5	€2,50
+-5 euro	money	-5	-€5,00
+iki euro	money	2	€2,00
+(1 usd / 3) * 3	money	0.909090909090909090909090909	$1,00
+# "." groups and "," carries the decimal.
+1,5 euro	money	1.5	€1,50
+1.000,50 euro	money	1000.5	€1.000,50
+1.234.567 uah çevir euro	money	27133.34065934065934065934066	€27.133,34
+1000 euro	money	1000	€1.000,00
+# One printed form per currency and no number axis at all: Turkish marks
+# plurality on the noun only when no numeral is present, so "5 dolar" is the
+# grammatical form and "5 dolarlar" is the one a foreigner writes. Both read.
+5 dolar	money	4.545454545454545454545454546	$5,00
+5 dolarlar	money	4.545454545454545454545454546	$5,00
+# The case suffixes come off the same way. A quantity may arrive dative or
+# ablative and still be a quantity.
+5 euroya	money	5	€5,00
+5 dolardan	money	4.545454545454545454545454546	$5,00
+# The dotless i. Turkish case-folds "I" to "ı" and "İ" to "i", so the two
+# upper-case spellings of "sterlin" are different words in this language and
+# have to reach the same currency anyway.
+5 STERLİN	money	5.943889681407513076557299095	£5,00
+5 STERLIN	money	5.943889681407513076557299095	£5,00
+# Conversion is a verb rather than a preposition, and it is read as an infix
+# — "dolar çevir euro" — not in the postfix position Turkish word order
+# would put it. It has an ASCII spelling for a keyboard without ç, and "to"
+# is claimed alongside it.
+100 dolar cevir euro	money	90.90909090909090909090909091	€90,91
+100 dolar to euro	money	90.90909090909090909090909091	€90,91
+# "avro" is the Turkish Language Association's spelling of the euro; "euro"
+# is what is printed on the note. Both read.
+2 avro	money	2	€2,00
+5 frank	money	5.31914893617021276595744681	CHF5,00
+1000 yen	money	5.882352941176470588235294118	¥1.000

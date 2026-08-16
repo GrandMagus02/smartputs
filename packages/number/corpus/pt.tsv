@@ -1,0 +1,36 @@
+# input	kind	canonical	formatted
+1 + 1	number	2	2
+10 - 4	number	6	6
+6 * 7	number	42	42
+10 / 4	number	2.5	2,5
+-5	number	-5	-5
+(1 + 2) * 3	number	9	9
+100 / 3	number	33.33333333333333333333333333	33,333333333333333333333333
+# "." groups and "," marks the decimal.
+1.500	number	1500	1.500
+0,1 + 0,2	number	0.3	0,3
+# "e" joins every part of a Portuguese cardinal, not just the last two, which
+# is what makes these runs of words where Italian and German write one token.
+vinte e um	number	21	21
+duzentos e cinco	number	205	205
+novecentos e noventa e nove	number	999	999
+mil e trinta e dois	number	1032	1.032
+# "cem" stands alone, "cento" stands in front of something smaller.
+cem	number	100	100
+cento e um	number	101	101
+# The irregular hundred, and the two national spellings of 16 — Brazilian
+# dezesseis and European dezasseis — which both have to read.
+quinhentos	number	500	500
+dezesseis	number	16	16
+dezasseis	number	16	16
+# 1 declines for gender with no noun here to agree with.
+um	number	1	1
+uma	number	1	1
+zero	number	0	0
+# Word operators. "por" is claimed for times, so "dividido por" is two
+# operators in a row and does not parse; division is "sobre" or a bare
+# "dividido".
+6 vezes 7	number	42	42
+6 por 7	number	42	42
+10 sobre 4	number	2.5	2,5
+10 dividido 4	number	2.5	2,5

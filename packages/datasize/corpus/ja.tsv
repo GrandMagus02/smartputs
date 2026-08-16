@@ -1,0 +1,40 @@
+# input	kind	canonical	formatted
+1KiBをB	datasize	1024	1,024B
+1GBをMB	datasize	1000000000	1,000MB
+1GiBをMiB	datasize	1073741824	1,024MiB
+1TBをGB	datasize	1000000000000	1,000GB
+1MiBをkB	datasize	1048576	1,048.576kB
+1024BをKiB	datasize	1024	1KiB
+500MB + 500MB	datasize	1000000000	1,000MB
+1GB - 200MB	datasize	800000000	0.8GB
+2GB * 3	datasize	6000000000	6GB
+1TB / 4	datasize	250000000000	0.25TB
+-1GB	datasize	-1000000000	-1GB
+一ギガバイト	datasize	1000000000	1GB
+二百五メガバイト	datasize	205000000	205MB
+# No number agreement, and no space between the number and the unit — on
+# input or on output, which is what makes the round trip hold. The separators
+# are English's: "," for groups, "." for the decimal.
+1B	datasize	1	1B
+5B	datasize	5	5B
+1.5GB	datasize	1500000000	1.5GB
+1,234,567B	datasize	1234567	1,234,567B
+# The katakana names read and the Latin symbols print, which is a claim about
+# register and not about the lexer. Seven of the nine words survive ICU's
+# Japanese dictionary whole; テラバイト and キビバイト come back cut in two, so
+# spelling the decimal family would print 「1.5ギガバイト」 beside 「2TB」 —
+# one kind in two registers, with the choice made by a dictionary.
+5ギガバイト	datasize	5000000000	5GB
+512メガバイト	datasize	512000000	512MB
+# The myriad. Japanese counts in ten-thousands, so 万 is a magnitude word in
+# its own right and 一万 is one of them, not ten of a thousand.
+一万バイト	datasize	10000	10,000B
+# を and から are case particles, glued to the word they mark rather than
+# standing between words, and both introduce a conversion target.
+2GBからMB	datasize	2000000000	2,000MB
+# The word operators do stand alone and take whitespace. かける and 掛ける are
+# the same operator in two orthographies, kana and kanji.
+2GB かける 3	datasize	6000000000	6GB
+2GB 掛ける 3	datasize	6000000000	6GB
+10GB わる 4	datasize	2500000000	2.5GB
+100MB 足す 100MB	datasize	200000000	200MB

@@ -1,0 +1,36 @@
+# input	kind	canonical	formatted
+1 kW in W	power	1000	1.000 watt
+1 MW in kW	power	1000000	1.000 chilowatt
+2,5 kW	power	2500	2,5 chilowatt
+500 W + 500 W	power	1000	1.000 watt
+2 kW - 500 W	power	1500	1,5 chilowatt
+3 kW * 2	power	6000	6 chilowatt
+1 MW / 4	power	250000	0,25 megawatt
+-1 kW	power	-1000	-1 chilowatt
+1000 W in kW	power	1000	1 chilowatt
+un chilowatt	power	1000	1 chilowatt
+duecentocinque chilowatt	power	205000	205 chilowatt
+1 hp in W	power	745.69987158227022	745,69987158227022 watt
+100 hp in kW	power	74569.987158227022	74,569987158227022 chilowatt
+# "." groups and "," is the decimal point.
+1.234.567 W	power	1234567	1.234.567 watt
+1.500.000 W in MW	power	1500000	1,5 megawatt
+# Italian borrows these units whole and leaves them invariant: watt is watt at
+# 1, at 5 and at 1,5. No unit in this table has a number axis.
+1 watt	power	1	1 watt
+5 watt	power	5	5 watt
+1,5 chilowatt	power	1500	1,5 chilowatt
+# The kilowatt is spelled with ch. The k spelling reads and never prints.
+1 kilowatt	power	1000	1 chilowatt
+# The horsepower is symbol-only here, and the default template sets a symbol
+# tight against the number.
+1 hp	power	745.69987158227022	1hp
+# "per" is times, so division is "diviso" and it stands alone — no "da" after
+# it, unlike French's "divisé par".
+2 kW per 3	power	6000	6 chilowatt
+1 MW diviso 4	power	250000	0,25 megawatt
+# "a" beside "in".
+2 kW a watt	power	2000	2.000 watt
+# The word operators.
+500 W più 500 W	power	1000	1.000 watt
+2 kW meno 500 W	power	1500	1,5 chilowatt

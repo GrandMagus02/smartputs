@@ -1,0 +1,64 @@
+# input	kind	canonical	formatted
+#
+# The clock is 2026-01-15T12:00:00Z — a Thursday — and the engine zone is UTC,
+# the same pinning `corpus/en.tsv` records. `canonical` is epoch nanoseconds for
+# a datetime and canonical seconds for a duration. `formatted` follows
+# "YYYY-MM-DD HH:MM <zone symbol>", with midnight whenever the input named no
+# time of day — and it is never translated, because the kind's format hook
+# builds it from Temporal fields rather than from ICU.
+
+# datetime — recognition. An ISO date is the one date syntax every locale
+# shares; a bare clock time takes its date from the pinned clock.
+2026-03-01	datetime	1772323200000000000	2026-03-01 00:00 UTC
+9:30	datetime	1768469400000000000	2026-01-15 09:30 UTC
+
+# The date reader is chrono-node in its English configuration, whichever locale
+# formats the answer, so "오늘", "내일" and "2026년 3월 1일" all throw while their
+# English spellings read under a Korean engine. A known gap, recorded here
+# rather than worked around: `chrono-bridge.ts` says as much where it spells
+# `to|as|in` in English.
+next friday	datetime	1769126400000000000	2026-01-23 00:00 UTC
+1 March 2026	datetime	1772323200000000000	2026-03-01 00:00 UTC
+
+# datetime + duration. No space between the number and the unit, on input and
+# on output both, which is what makes the round trip hold.
+2026-03-01 + 3일간	datetime	1772582400000000000	2026-03-04 00:00 UTC
+2026-03-01 - 1주	datetime	1771718400000000000	2026-02-22 00:00 UTC
+9:30 + 90분	datetime	1768474800000000000	2026-01-15 11:00 UTC
+# February is 28 days long in 2026; the addition is calendar arithmetic, not
+# 86400 seconds.
+2026-02-28 + 1 d	datetime	1772323200000000000	2026-03-01 00:00 UTC
+
+# datetime - datetime is a duration, and the duration is what carries Korean.
+# There is no number agreement anywhere, so "1일간" and "2일간" are the same word.
+2026-01-16 - 2026-01-15	duration	86400	1일간
+2026-01-17 - 2026-01-15	duration	172800	2일간
+# `durationValue` reports the largest unit it fills, so 45 days is weeks. "."
+# decimals and "," groups — the English pair.
+2026-03-01 - 2026-01-15	duration	3888000	6.4285714285714285714285714주
+1000일간	duration	86400000	1,000일간
+# The word operators need whitespace around them even though Korean glues its
+# particles; "*" and "/" do not.
+2주 곱하기 3	duration	3628800	6주
+6시간 나누기 2	duration	10800	3시간
+-5분	duration	-300	-5분
+
+# Zone conversion. The particle glues to what precedes it and needs no space:
+# 을 and 를 are the object marker's two forms, 에서 the source, and core maps
+# all three onto the one keyword.
+15:00을 도쿄	datetime	1768489200000000000	2026-01-16 00:00 JST
+15:00를 도쿄	datetime	1768489200000000000	2026-01-16 00:00 JST
+15:00에서 도쿄	datetime	1768489200000000000	2026-01-16 00:00 JST
+# The particle stripper reaches the zone word too, so a target may carry its own
+# particle: 도쿄로 is "to Tokyo" and 런던에서 "from London".
+15:00을 도쿄로	datetime	1768489200000000000	2026-01-16 00:00 JST
+2026-07-01을 런던에서	datetime	1782864000000000000	2026-07-01 01:00 London
+15:00을 인도	datetime	1768489200000000000	2026-01-15 20:30 IST
+15:00을 뉴질랜드	datetime	1768489200000000000	2026-01-16 04:00 NZ
+
+# Nothing below is a date. These rows are the accept-gate's regression guard
+# (plan ruling R4): if a chrono upgrade starts claiming them, they fail loudly.
+10 km + 5 km	length	15000	15킬로미터
+20 C	temperature	20	20°C
+5분	duration	300	5분
+

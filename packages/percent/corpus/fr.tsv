@@ -1,0 +1,37 @@
+# input	kind	canonical	formatted
+20%	percent	0.2	20 %
+20 pourcent	percent	0.2	20 %
+50 + 20%	number	60	60
+50 - 10%	number	45	45
+20% de 50	number	10	10
+10% + 5%	percent	0.15	15 %
+100% - 40%	percent	0.6	60 %
+50 * 10%	percent	5	500 %
+10% / 2	percent	0.05	5 %
+-10%	percent	-0.1	-10 %
+dix pourcent	percent	0.1	10 %
+soixante-quinze pourcent	percent	0.75	75 %
+0,5 en pourcentage	percent	0.5	50 %
+5 / 50 en pourcentage	percent	0.1	10 %
+# The group separator French prints is U+202F, the narrow no-break space, and
+# the decimal point is ",". The input here is typed with an ordinary space: all
+# three space characters are read, one is written.
+2,5%	percent	0.025	2,5 %
+1 000%	percent	10	1 000 %
+1234%	percent	12.34	1 234 %
+100 * 20%	percent	20	2 000 %
+# The vigesimal cardinals — ninety is "four-twenty-ten".
+quatre-vingt-dix pourcent	percent	0.9	90 %
+# `fr.ts` overrides `renderQuantity` to put one space before every label, symbol
+# included. That space is French typography, not a formatting accident, and it
+# is why this file's output differs from `it.tsv`'s by a byte on every row.
+20 %	percent	0.2	20 %
+# The fused spelling and its plural both read; French prescribes the two-word
+# "pour cent", which cannot be a token and is not claimed.
+20 pourcents	percent	0.2	20 %
+# "remise" is the `off` keyword: what is left after the discount.
+20% remise 50	number	40	40
+# "divisé par" is two tokens, `over` and `by`; "fois" is one.
+50 fois 10%	percent	5	500 %
+10% divisé par 2	percent	0.05	5 %
+0,5 vers pourcentage	percent	0.5	50 %

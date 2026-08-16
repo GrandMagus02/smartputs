@@ -1,0 +1,41 @@
+# input	kind	canonical	formatted
+10 km	length	10000	10 Kilometer
+12 Zoll	length	0.3048	12 Zoll
+2 km in Metern	length	2000	2.000 Meter
+1 Meile in Kilometern	length	1609.344	1,609344 Kilometer
+10 m + 5 km	length	5010	5.010 Meter
+1 km - 250 m	length	750	0,75 Kilometer
+10 km * 3	length	30000	30 Kilometer
+1 km / 4	length	250	0,25 Kilometer
+-5 km	length	-5000	-5 Kilometer
+3 Fuß in Zentimetern	length	0.9144	91,44 Zentimeter
+ein Kilometer	length	1000	1 Kilometer
+zweihundertfünf Kilometer	length	205000	205 Kilometer
+# The separators are English's, swapped. "." groups the thousands and "," is
+# the decimal point, on input and on output alike — 1.500 mm is a thousand
+# five hundred of them, not one and a half.
+1.500 mm in Metern	length	1.5	1,5 Meter
+1,5 km	length	1500	1,5 Kilometer
+1.234.567 mm	length	1234.567	1.234.567 Millimeter
+# Duden's rule for Maßangaben: a masculine or neuter measure noun does not
+# inflect after a numeral. "2 Meter", never "2 Metern" — the number axis is
+# dead on seven of the eight units here.
+2 Meter	length	2	2 Meter
+21 Meter	length	21	21 Meter
+# `die Meile` is the one feminine unit, so it is the one unit whose plural
+# moves. A fraction above zero is CLDR `other` in German, so 0,5 takes the
+# plural too — the opposite of the Slavic genitive singular next door.
+2 Meilen	length	3218.688	2 Meilen
+0,5 Meile	length	804.672	0,5 Meilen
+# The dative is read, never printed. "in Metern" governs the target, but the
+# answer is a bare quantity and comes back nominative: "2.000 Meter".
+5 km zu Metern	length	5000	5.000 Meter
+# `compoundSplitter` reads the head of a right-headed Germanic compound, so
+# an unlisted word ending in the unit still lands. `Zentimeter` is listed
+# exactly and wins at weight 0, which is what stops it collapsing to `meter`.
+10 Zentimeter	length	0.1	10 Zentimeter
+3 Laufmeter	length	3	3 Meter
+# The word operators. "mal" stands alone; "geteilt durch" is two tokens
+# folded into one, the way English folds "divided by".
+2 km mal 3	length	6000	6 Kilometer
+10 km geteilt durch 4	length	2500	2,5 Kilometer

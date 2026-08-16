@@ -1,0 +1,68 @@
+# input	kind	canonical	formatted
+#
+# The clock is 2026-01-15T12:00:00Z — a Thursday — and the engine zone is UTC,
+# the same pinning `corpus/en.tsv` records. `canonical` is epoch nanoseconds for
+# a datetime and canonical seconds for a duration. `formatted` follows
+# "YYYY-MM-DD HH:MM <zone symbol>", with midnight whenever the input named no
+# time of day — and it is never translated, because the kind's format hook
+# builds it from Temporal fields rather than from ICU.
+
+# datetime — recognition. An ISO date is the one date syntax every locale
+# shares; a bare clock time takes its date from the pinned clock.
+2026-03-01	datetime	1772323200000000000	2026-03-01 00:00 UTC
+9:30	datetime	1768469400000000000	2026-01-15 09:30 UTC
+
+# The date reader is chrono-node in its English configuration, whichever locale
+# formats the answer, so "आज", "कल" and "1 मार्च 2026" all throw while their
+# English spellings read under a Hindi engine. A known gap, recorded here rather
+# than worked around: `chrono-bridge.ts` says as much where it spells
+# `to|as|in` in English.
+next friday	datetime	1769126400000000000	2026-01-23 00:00 UTC
+1 March 2026	datetime	1772323200000000000	2026-03-01 00:00 UTC
+
+# datetime + duration, with the duration spelled in Hindi.
+2026-03-01 + 3 दिन	datetime	1772582400000000000	2026-03-04 00:00 UTC
+2026-03-01 - 1 सप्ताह	datetime	1771718400000000000	2026-02-22 00:00 UTC
+9:30 + 90 मिनट	datetime	1768474800000000000	2026-01-15 11:00 UTC
+# February is 28 days long in 2026; the addition is calendar arithmetic, not
+# 86400 seconds.
+2026-02-28 + 1 d	datetime	1772323200000000000	2026-03-01 00:00 UTC
+
+# datetime - datetime is a duration, and the duration is what carries Hindi.
+2026-01-17 - 2026-01-15	duration	172800	2 दिन
+# `durationValue` reports the largest unit it fills, so 45 days is weeks. The
+# decimal separator is "." and the group separator "," — the English pair, not
+# the European one.
+2026-03-01 - 2026-01-15	duration	3888000	6.4285714285714285714285714 सप्ताह
+1000 दिन	duration	86400000	1,000 दिन
+# The reader is grouping-agnostic, and this is Indian grouping: "1,234,567"
+# would be the same number to it. The writer is not — it groups in fixed threes
+# and cannot yet produce the Indian shape, so what goes in as 12,34,567 comes
+# back as 1,234,567. A recorded core gap, not a corpus error.
+12,34,567 दिन	duration	106666588800	1,234,567 दिन
+# The hour is the one duration unit here with a number axis: "घंटा" for one and
+# "घंटे" from two up. The day and the week are invariant.
+2026-01-15 12:00 - 2026-01-15 11:00	duration	3600	1 घंटा
+2026-01-15 14:00 - 2026-01-15 12:00	duration	7200	2 घंटे
+2 सप्ताह गुणा 3	duration	3628800	6 सप्ताह
+6 घंटे भाग 2	duration	10800	3 घंटे
+-5 मिनट	duration	-300	-5 मिनट
+
+# Zone conversion. The keyword is a postposition and follows the zone in
+# ordinary Hindi; core takes it in front, and all three of its words work.
+15:00 में टोक्यो	datetime	1768489200000000000	2026-01-16 00:00 JST
+15:00 को टोक्यो	datetime	1768489200000000000	2026-01-16 00:00 JST
+15:00 से टोक्यो	datetime	1768489200000000000	2026-01-16 00:00 JST
+# July, so London is on BST and the same zone that reads +00:00 in January
+# reads +01:00 here. Only a date-aware kind can tell the two apart.
+2026-07-01 में लंदन	datetime	1782864000000000000	2026-07-01 01:00 London
+# The engine zone is UTC, so India's own half-hour offset still has to be
+# applied rather than assumed.
+15:00 में भारत	datetime	1768489200000000000	2026-01-15 20:30 IST
+
+# Nothing below is a date. These rows are the accept-gate's regression guard
+# (plan ruling R4): if a chrono upgrade starts claiming them, they fail loudly.
+10 km + 5 km	length	15000	15 किलोमीटर
+20 C	temperature	20	20°C
+5 मिनट	duration	300	5 मिनट
+

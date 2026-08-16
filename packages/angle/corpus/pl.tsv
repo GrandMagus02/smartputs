@@ -1,0 +1,40 @@
+# input	kind	canonical	formatted
+90 stopni	angle	1.570796326794896619231321692	90 stopni
+90 stopni w radianach	angle	1.570796326794896619231321692	1,5707963267948966192313217 radiana
+0,25 obrotu w stopniach	angle	1.570796326794896619231321692	90 stopni
+200 gradów w stopniach	angle	3.141592653589793238462643383	180 stopni
+90 stopni + 90 stopni	angle	3.141592653589793238462643384	180 stopni
+1 obrót - 90 stopni	angle	4.712388980384689857693965075	0,75 obrotu
+180 stopni / 4	angle	0.7853981633974483096156608458	45 stopni
+-90 stopni	angle	-1.570796326794896619231321692	-90 stopni
+1 radian w stopniach	angle	1	57,295779513082320876798155 stopnia
+jeden obrót	angle	6.283185307179586476925286767	1 obrót
+dwieście gradów	angle	3.141592653589793238462643383	200 gradów
+360 stopni w obrotach	angle	6.283185307179586476925286767	1 obrót
+1,5 radiana	angle	1.5	1,5 radiana
+# The four plural categories, which English has two of. Polish picks `few` for
+# 2-4, `many` from 5 up, and the teens go to `many` however they end.
+1 stopień	angle	0.01745329251994329576923690768	1 stopień
+2 stopnie	angle	0.03490658503988659153847381537	2 stopnie
+5 stopni	angle	0.08726646259971647884618453842	5 stopni
+12 stopni	angle	0.2094395102393195492308428922	12 stopni
+22 stopnie	angle	0.3839724354387525069232119691	22 stopnie
+# The fractional category is the genitive *singular* — "1,5 stopnia", never
+# "1,5 stopni" — and it is a fifth word, not a reuse of one of the four above.
+1,5 stopnia	angle	0.02617993877991494365385536153	1,5 stopnia
+# Where Polish and Russian part company on the same number: `few` is the
+# nominative plural here ("102 stopnie") and the genitive singular there
+# ("102 градуса"). Same category, different word.
+102 stopnie	angle	1.780235837034216168462164584	102 stopnie
+# A U+00A0 group separator on the way out, read from a plain space on the
+# way in.
+1 234 567 stopni	angle	21547.25898646883482793950141	1 234 567 stopni
+# The word operators. "razy" stands alone; "podzielić przez" is two tokens
+# folded into one.
+45 stopni razy 2	angle	1.570796326794896619231321692	90 stopni
+180 stopni podzielić przez 4	angle	0.7853981633974483096156608458	45 stopni
+# "na" and "do" are two more conversion prepositions beside "w", and all three
+# introduce the same target: the result carries a magnitude of its own, so the
+# form comes off the nominative axis and the locative is never reached here.
+90 stopni na radiany	angle	1.570796326794896619231321692	1,5707963267948966192313217 radiana
+90 stopni do radianów	angle	1.570796326794896619231321692	1,5707963267948966192313217 radiana

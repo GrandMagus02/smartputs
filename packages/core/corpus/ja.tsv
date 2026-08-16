@@ -1,0 +1,41 @@
+# input	kind	canonical	formatted
+10キロメートル	length	10000	10キロメートル
+1キログラム + 500グラム	mass	1500	1.5キログラム
+30時間 - 30分	duration	106200	29.5時間
+1キロメートル / 4	length	250	0.25キロメートル
+(1 + 2) * 3	number	9	9
+-5キロメートル	length	-5000	-5キロメートル
+212華氏を摂氏	temperature	100	100°C
+30摂氏 - 20摂氏	tempdelta	10	10°C
+50 + 20%	number	60	60
+1キロバイトをバイト	datasize	1000	1,000B
+3メートル * 4メートル	area	12	12平方メートル
+100キロメートル / 2時間	speed	13.88888888888888888888888889	13.888888888888888888888889m/s
+1,234,567ミリメートル	length	1234.567	1,234,567ミリメートル
+1.5キロメートル	length	1500	1.5キロメートル
+# No number agreement of any kind: Japanese marks plurality nowhere, so a unit
+# here has one printed form or none at all, and 1 and 5 take the same word.
+# The separators are English's — "," for groups, "." for the decimal.
+1メートル	length	1	1メートル
+5メートル	length	5	5メートル
+# No space between number and unit, on input or output, which is what makes
+# the round trip hold: the engine reads back its own "2,000メートル" exactly.
+# The units are katakana loans and the conversion markers are the case
+# particles を (accusative, the source) and から ("from"), written glued to the
+# word they mark.
+2キロメートルをメートル	length	2000	2,000メートル
+2キロメートルからメートル	length	2000	2,000メートル
+# Neither the radian nor the byte carries a Japanese form, only a symbol, so
+# those two come back in Latin letters inside an otherwise katakana file.
+90度を弧度	angle	1.570796326794896619231321692	1.5707963267948966192313217rad
+# The myriad. Japanese counts in ten-thousands, so 万 is its own magnitude word
+# and 一万 is one of them rather than ten of a thousand.
+一万メートル	length	10000	10,000メートル
+二百五グラム	mass	205	205グラム
+一キロメートル	length	1000	1キロメートル
+# The word operators need whitespace around them even though Japanese is
+# written without any: かける, 割る and プラス are matched as separate tokens,
+# and "2キロメートルかける3" does not parse.
+2キロメートル かける 3	length	6000	6キロメートル
+10キロメートル 割る 4	length	2500	2.5キロメートル
+2キロメートル プラス 500メートル	length	2500	2.5キロメートル

@@ -1,0 +1,37 @@
+# input	kind	canonical	formatted
+30 usd	money	27.27272727272727272727272727	$30,00
+2 euro	money	2	€2,00
+100 dollar in euro	money	90.90909090909090909090909091	€90,91
+5 euro plus 5 euro	money	10	€10,00
+30 dollar minus 10 euro	money	17.27272727272727272727272727	$19,00
+2 euro maal 3	money	6	€6,00
+10 euro gedeeld door 4	money	2.5	€2,50
+-5 euro	money	-5	-€5,00
+twee euro	money	2	€2,00
+(1 usd / 3) * 3	money	0.909090909090909090909090909	$1,00
+# "." groups and "," carries the decimal, the same pair Indonesian inherited
+# from this language.
+1,5 euro	money	1.5	€1,50
+1.000,50 euro	money	1000.5	€1.000,50
+1.234.567 uah in euro	money	27133.34065934065934065934066	€27.133,34
+1000 euro	money	1000	€1.000,00
+# The count does not move the noun: "dollar" after 1, after 2 and after 5.
+1 dollar	money	0.9090909090909090909090909091	$1,00
+2 dollar	money	1.818181818181818181818181818	$2,00
+5 dollar	money	4.545454545454545454545454546	$5,00
+# The plural exists and is read, and the form the vocabulary would print is
+# the singular anyway. Both spellings land on the same currency, which is
+# what these four rows say.
+3 pond	money	3.566333808844507845934379457	£3,00
+5 ponden	money	5.943889681407513076557299095	£5,00
+5 frank	money	5.31914893617021276595744681	CHF5,00
+10 franken	money	10.63829787234042553191489362	CHF10,00
+# The Dutch spelling of the hryvnia, borrowed through Russian rather than
+# from Ukrainian.
+100 grivna	money	2.197802197802197802197802198	₴100,00
+# A currency with no minor unit, grouped the Dutch way.
+1000 yen	money	5.882352941176470588235294118	¥1.000
+# "in" and "naar" both introduce a target; multiplication has two words and
+# division is two tokens.
+100 dollar naar euro	money	90.90909090909090909090909091	€90,91
+2 euro keer 3	money	6	€6,00

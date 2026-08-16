@@ -1,0 +1,37 @@
+# input	kind	canonical	formatted
+2 l	volume	2	2 litros
+2 l em ml	volume	2	2.000 mililitros
+1 gal em l	volume	3.785411784	3,785411784 litros
+1 pinta em ml	volume	0.473176473	473,176473 mililitros
+500 ml + 500 ml	volume	1	1.000 mililitros
+2 l - 250 ml	volume	1.75	1,75 litro
+3 l * 4	volume	12	12 litros
+1 l / 4	volume	0.25	0,25 litro
+-2 l	volume	-2	-2 litros
+1 gal em pintas	volume	3.785411784	8 pintas
+um litro	volume	1	1 litro
+duzentos e cinco litros	volume	205	205 litros
+# "." groups and "," is the decimal point.
+1.500 ml em litros	volume	1.5	1,5 litro
+1,5 l	volume	1.5	1,5 litro
+1.234.567 ml	volume	1234.567	1.234.567 mililitros
+# A fraction takes the *singular* — "1,5 litro", "0,25 litro". Portuguese
+# sides with French here and against Spanish and Italian, which is two Iberian
+# grammars disagreeing about the same number in the same table.
+1 litro	volume	1	1 litro
+2 litros	volume	2	2 litros
+0,5 l	volume	0.5	0,5 litro
+# The nasal plural. `galão`/`galões` is a stem change no stripper could
+# derive, and the unaccented spelling is read back onto the accented one.
+1 galão	volume	3.785411784	1 galão
+2 galões	volume	7.570823568	2 galões
+# `quartilho` is the European word for the pint and `pinta` is what prints.
+2 quartilhos	volume	0.946352946	2 pintas
+# No one-token word for the cubic metre, so the symbol is printed instead.
+2 m3	volume	2000	2m³
+# "para" is the second conversion preposition beside "em". "por" is claimed by
+# `times`, so Portuguese division is "sobre" — "dividido por" cannot parse,
+# being two operators in a row.
+2 l para ml	volume	2	2.000 mililitros
+2 l por 3	volume	6	6 litros
+10 l sobre 4	volume	2.5	2,5 litros

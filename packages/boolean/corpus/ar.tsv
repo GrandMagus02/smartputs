@@ -1,0 +1,49 @@
+# What a comparison returns. Registering this kind is what turns
+# `1000 ميغابايت = 1 غيغابايت` from an unresolvable expression into `true`.
+#
+# `true` and `false` are not translated, and that is this file's finding
+# rather than an oversight it hides: the kind ships no vocabulary at all,
+# so `formatValue` degrades to the unit key in every language. An Arabic
+# engine answering "true" is what the code does today, and a row asserting
+# it is what makes a later `boolean/locale/ar` a visible diff here.
+#
+# Every numeral below is Latin. Arabic-Indic digits do not read — they are
+# dropped rather than refused, and the quantity silently defaults to 1 — so
+# a row written with them would record a wrong answer that looks right.
+# input	kind	canonical	formatted
+1000 ميغابايت = 1 غيغابايت	boolean	1	true
+1 كم > 999 م	boolean	1	true
+1 كم < 999 م	boolean	0	false
+1 م = 100 سم	boolean	1	true
+2 > 1	boolean	1	true
+1 >= 1	boolean	1	true
+1 <= 0	boolean	0	false
+5 != 4	boolean	1	true
+1 كغ + 500 غ = 1.5 كغ	boolean	1	true
+1 كم - 250 م = 750 م	boolean	1	true
+-5 كم < 0 كم	boolean	1	true
+1 كم إلى متر = 1000 م	boolean	1	true
+واحد كيلومتر = 1000 متر	boolean	1	true
+# The six plural categories, read rather than written: 0 zero, 1 one, 2 two,
+# 3-10 few, 11-99 many, else other. Only Arabic types six different words
+# for one unit.
+0 متر = 0 سم	boolean	1	true
+1 متر = 100 سم	boolean	1	true
+2 متران = 200 سم	boolean	1	true
+3 أمتار = 300 سم	boolean	1	true
+11 مترًا = 1100 سم	boolean	1	true
+100 متر = 10000 سم	boolean	1	true
+# `أمتار` above and `أقدام` below are broken plurals: the stem is rewritten
+# rather than suffixed, which is why a `few` form cannot be derived from
+# the singular the way an -s or an -ów could.
+3 أقدام = 91.44 سم	boolean	1	true
+# Latin digits with a comma group and a dot decimal, inside a right-to-left
+# sentence — the English pair, in the one language that reads the other way.
+1,500 م = 1.5 كم	boolean	1	true
+# `في` is both "in" and "times", and it is claimed for the conversion, so
+# `ضرب` is what multiplication is left with.
+2 كم في متر = 2000 م	boolean	1	true
+2 كم ضرب 3 = 6 كم	boolean	1	true
+# Division is two tokens: the noun `قسمة` and `على` as `keywords.by`.
+10 كم قسمة على 4 = 2.5 كم	boolean	1	true
+1 ميل > 1 كم	boolean	1	true

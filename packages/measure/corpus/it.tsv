@@ -1,0 +1,34 @@
+# input	kind	canonical	formatted
+1 pollice in pt	measure	1	72 punti
+72 pt in pollici	measure	1	1 pollice
+6 pc in pollici	measure	1	1 pollice
+1 pollice in mm	measure	1	25,4 millimetri
+1 pollice in px	measure	1	96 pixel
+96 px in pollici	measure	1	1 pollice
+2 pollici + 36 pt	measure	2.5	2,5 pollici
+1 pollice - 12 pt	measure	0.8333333333333333333333333333	0,83333333333333333333333333 pollici
+3 pollici * 2	measure	6	6 pollici
+1 pollice / 4	measure	0.25	0,25 pollici
+-2 pollici	measure	-2	-2 pollici
+1 pc in pt	measure	0.1666666666666666666666666667	12 punti
+10 mm in cm	measure	0.3937007874015748031496062992	1 centimetro
+un pollice	measure	1	1 pollice
+dodici punti	measure	0.1666666666666666666666666667	12 punti
+# "." groups and "," is the decimal point.
+25,4 mm in pollici	measure	1	1 pollice
+1.440 pt in pollici	measure	20	20 pollici
+1.234.567 px	measure	12860.07291666666666666666667	1.234.567 pixel
+# A fraction takes the plural, as in Spanish and against French.
+1,5 pollici	measure	1.5	1,5 pollici
+0,5 pollici	measure	0.5	0,5 pollici
+# `pica` has a broken plural — `piche`, not `pica`+s — and `pixel` is the one
+# unlisted-for-number word in the table: the loan keeps its English shape and
+# does not move between 1 and 5.
+2 piche in punti	measure	0.3333333333333333333333333333	24 punti
+1 pixel	measure	0.01041666666666666666666666667	1 pixel
+5 pixel	measure	0.05208333333333333333333333335	5 pixel
+# "per" is times, so "diviso" divides on its own — no "per" after it.
+3 pollici per 2	measure	6	6 pollici
+1 pollice diviso 4	measure	0.25	0,25 pollici
+# "a" is the second conversion preposition beside "in".
+2 pollici a millimetri	measure	2	50,8 millimetri

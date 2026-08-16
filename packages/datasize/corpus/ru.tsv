@@ -1,0 +1,43 @@
+# input	kind	canonical	formatted
+1 киб в б	datasize	1024	1 024 байта
+1 гб в мб	datasize	1000000000	1 000 мегабайт
+1 гиб в миб	datasize	1073741824	1 024 мебибайта
+1024 б в киб	datasize	1024	1 кибибайт
+500 мб + 500 мб	datasize	1000000000	1 000 мегабайт
+1 гб - 200 мб	datasize	800000000	0,8 гигабайта
+2 гб * 3	datasize	6000000000	6 гигабайт
+1 тб / 4	datasize	250000000000	0,25 терабайта
+-1 гб	datasize	-1000000000	-1 гигабайт
+один гигабайт	datasize	1000000000	1 гигабайт
+двести пять мегабайт	datasize	205000000	205 мегабайт
+# The four plural categories on the byte. `many` is the genitive plural and in
+# Russian that is a bare stem with a zero ending — "5 байт", the same shape as
+# the nominative singular and not a longer word. Zero and the teens land there
+# too.
+1 байт	datasize	1	1 байт
+2 байта	datasize	2	2 байта
+5 байт	datasize	5	5 байт
+11 байт	datasize	11	11 байт
+0 байт	datasize	0	0 байт
+# 21 is `one` and takes the singular, where Polish next door sends every -1
+# above twenty to the genitive plural.
+21 байт	datasize	21	21 байт
+# `few` is the genitive *singular* here — "102 байта" — and Polish writes the
+# nominative plural in the same cell ("102 bajty"). Same category, different
+# word.
+102 байта	datasize	102	102 байта
+# The fractional category reuses that genitive singular rather than adding a
+# fifth word, which is where Russian and Polish agree on a form and disagree
+# about how many forms there are.
+1,5 ГБ	datasize	1500000000	1,5 гигабайта
+1 миб в кб	datasize	1048576	1 048,576 килобайта
+# A decimal comma, and U+00A0 for the groups. The row is typed with an
+# ordinary space and comes back with the no-break one.
+1 234 567 байт	datasize	1234567	1 234 567 байт
+# Both word operators are two tokens, and both hang off "на" as `keywords.by`
+# — the same preposition that means "onto" and never means "in".
+2 ГБ умножить на 3	datasize	6000000000	6 гигабайт
+10 ГБ разделить на 4	datasize	2500000000	2,5 гигабайта
+# Two more prepositions introduce a target beside "в".
+2 ГБ до МБ	datasize	2000000000	2 000 мегабайт
+2 ГБ у МБ	datasize	2000000000	2 000 мегабайт

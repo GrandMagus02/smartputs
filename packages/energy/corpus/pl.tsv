@@ -1,0 +1,47 @@
+# input	kind	canonical	formatted
+1 kwh w dżulach	energy	3600000	3 600 000 dżuli
+2 kW * 3 godziny	energy	21600000	21 600 000 dżuli
+1 kwh / 1 godzina	power	1000	1 000 watów
+500 J + 500 J	energy	1000	1 000 dżuli
+1 kJ - 250 J	energy	750	0,75 kilodżula
+1 kJ / 4	energy	250	0,25 kilodżula
+-1 kwh	energy	-3600000	-1 kilowatogodzina
+jeden kilodżul	energy	1000	1 kilodżul
+# A decimal comma and a U+00A0 group separator, the pair Polish shares with
+# Ukrainian and Russian rather than with German.
+1 234 567 J	energy	1234567	1 234 567 dżuli
+2,5 kwh	energy	9000000	2,5 kilowatogodziny
+# The four plural categories on one unit, where English has two. `few` takes
+# 2-4, `many` from 5 up, and the teens go to `many` however they end.
+1 dżul	energy	1	1 dżul
+2 dżule	energy	2	2 dżule
+5 dżuli	energy	5	5 dżuli
+12 dżuli	energy	12	12 dżuli
+# 21 is where Polish leaves its Slavic neighbours: it counts by the genitive
+# plural, and every -1 above twenty goes the same way, while Ukrainian and
+# Russian agree 21 with the singular.
+21 dżuli	energy	21	21 dżuli
+# The fractional row is a genitive **singular**, a fifth word no integer count
+# can reach.
+1,5 dżula	energy	1.5	1,5 dżula
+# The watt-hour family, which English, Russian and Arabic all leave to the
+# symbol because none of them has a single token for it. Polish fuses it into
+# one feminine noun on the paradigm of "godzina", so it declines and prints.
+1 kilowatogodzina	energy	3600000	1 kilowatogodzina
+2 kilowatogodziny	energy	7200000	2 kilowatogodziny
+5 kilowatogodzin	energy	18000000	5 kilowatogodzin
+# "kaloria" is feminine in -ia, and its genitive plural keeps the -i rather
+# than dropping to a bare stem. The international "cal" is not an alias in
+# Polish at all — it is the ordinary word for the inch, which
+# `@smartput/length/locale/pl` both reads and prints — so the calorie is
+# reachable here only by its Polish name.
+1 kaloria	energy	4.184	1 kaloria
+5 kalorii	energy	20.92	5 kalorii
+# BTU is a borrowed initialism Polish leaves invariant, so it carries no
+# `forms` and prints on the symbol branch, which this language spaces.
+5 BTU	energy	5275.2792631	5 BTU
+# The word operators. "razy" stands alone; "podzielić przez" is two tokens.
+2 kJ razy 3	energy	6000	6 kilodżuli
+10 kJ podzielić przez 4	energy	2500	2,5 kilodżula
+# "na" is one of four conversion prepositions beside the "w" generation emits.
+2 kWh na dżule	energy	7200000	7 200 000 dżuli

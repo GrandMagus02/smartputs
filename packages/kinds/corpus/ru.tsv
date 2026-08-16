@@ -1,0 +1,51 @@
+# input	kind	canonical	formatted
+#
+# The aggregator's corpus, so the rows range across the set rather than drill
+# one kind: the bridges between two kinds, and the comparisons that need
+# `boolean` registered beside the kind being compared. Each bridge owner names
+# its operands by id string rather than importing them, so a signature whose
+# operands are unregistered is unreachable rather than a build error.
+#
+# In Russian they answer a second question too: a bridge resolves on a
+# signature, and a signature is reached through whichever language's words got
+# there. `500 мб / 20 с` proves the datasize÷duration bridge is reachable from
+# Cyrillic.
+3 м * 4 м	area	12	12м²
+100 км / 2 ч	speed	13.88888888888888888888888889	13,888888888888888888888889м/с
+2 кВт * 3 ч	energy	21600000	21 600 000 джоулей
+1 kwh / 1 кВт	duration	3600	3 600 секунд
+500 мб / 20 с	datarate	200000000	200Мбит
+100 мбит * 1 мин	datasize	750000000	750 000 000 байт
+500 мс в бпм	tempo	120	120бпм
+1000 мб = 1 гб	boolean	1	true
+20% от 50	number	10	10
+(1 + 2) * 3	number	9	9
+-5 км	length	-5000	-5 километров
+# Four plural categories, on a kind that is not a length. 21 takes the
+# singular and 11 does not, which is the rule no two-form language can state.
+1 байт	datasize	1	1 байт
+2 байта	datasize	2	2 байта
+5 байт	datasize	5	5 байт
+11 байт	datasize	11	11 байт
+21 байт	datasize	21	21 байт
+# The category is read off the result: 1024 ends in 4 and lands in few.
+1 киб в б	datasize	1024	1 024 байта
+# The fractional category is the genitive singular, a fifth word rather than a
+# reuse of one of the four above.
+1 кг + 500 г	mass	1500	1,5 килограмма
+# 102 is the genitive singular here and the nominative plural in Polish: same
+# category, different word.
+102 метра	length	102	102 метра
+# The group separator printed is U+00A0, and the reader takes a plain space
+# for it — the first row is typed with U+0020.
+1 234 567 мм	length	1234.567	1 234 567 миллиметров
+250 мл + 1 л	volume	1.25	1 250 миллилитров
+# The locative the conversion preposition "в" governs is read and never
+# printed — "в мегабайтах" in, and whichever form the result's own category
+# picks out.
+2 гб в мегабайтах	datasize	2000000000	2 000 мегабайт
+# Both word operators are two tokens, and both hang off "на" as `keywords.by`.
+3 кг умножить на 4	mass	12000	12 килограммов
+2 км разделить на 4	length	500	0,5 километра
+# A spelled cardinal.
+тысяча тридцать два	number	1032	1 032

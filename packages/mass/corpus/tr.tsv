@@ -1,0 +1,47 @@
+# input	kind	canonical	formatted
+1 kg + 500 g	mass	1500	1,5 kilogram
+3 libre	mass	1360.77711	3 libre
+1 t çevir kilogram	mass	1000000	1.000 kilogram
+16 ons çevir libre	mass	453.59237	1 libre
+1 kg çevir gram	mass	1000	1.000 gram
+2 kg - 500 g	mass	1500	1,5 kilogram
+3 kg * 4	mass	12000	12 kilogram
+1 t / 8	mass	125000	0,125 ton
+-2 kg	mass	-2000	-2 kilogram
+500 mg çevir gram	mass	0.5	0,5 gram
+bir kilogram	mass	1000	1 kilogram
+iki yüz beş kilogram	mass	205000	205 kilogram
+2,5 ton çevir kilogram	mass	2500000	2.500 kilogram
+1 libre çevir ons	mass	453.59237	16 ons
+# "." groups and "," is the decimal point, German's pair.
+1.500 g çevir kilogram	mass	1500	1,5 kilogram
+1,5 kg	mass	1500	1,5 kilogram
+1.234.567 mg	mass	1234.567	1.234.567 miligram
+# Turkish does not pluralise after a numeral, so every unit here has exactly
+# one printed form and no number axis at all — the smallest `forms` table of
+# the seventeen. "1 kilogram", "5 kilogram", "1,5 kilogram", all the same word.
+1 kilogram	mass	1000	1 kilogram
+5 kilogram	mass	5000	5 kilogram
+1,5 kilogram	mass	1500	1,5 kilogram
+2 ton	mass	2000000	2 ton
+# A conversion is not a preposition here: the target takes a case suffix and
+# the sentence hangs off the verb "çevir". "to" is claimed beside it because
+# Turkish writing borrows it.
+2 kg to gram	mass	2000	2.000 gram
+# The suffix stripper. Turkish agglutinates case and plural onto the unit word,
+# and none of these endings is listed as an alias — the stripper takes them off
+# and the bare stem is what matches.
+10 kilograma	mass	10000	10 kilogram
+10 gramdan	mass	10	10 gram
+10 kilogramlar	mass	10000	10 kilogram
+# The dotless i. `toLocaleLowerCase("tr")` sends "I" to "ı" and "İ" to "i", so
+# a Turkish engine has to fold both spellings of a capitalised unit onto the
+# one alias. No other language in this set has a case fold that moves a
+# letter's identity.
+10 KİLOGRAM	mass	10000	10 kilogram
+10 KILOGRAM	mass	10000	10 kilogram
+5 TON	mass	5000000	5 ton
+# The operators are all bare words, none of them two-token.
+2 kg çarpı 3	mass	6000	6 kilogram
+10 kg bölü 4	mass	2500	2,5 kilogram
+10 g artı 5 kg	mass	5010	5.010 gram

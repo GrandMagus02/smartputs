@@ -1,0 +1,37 @@
+# input	kind	canonical	formatted
+30 usd	money	27.27272727272727272727272727	$30,00
+2 euro	money	2	€2,00
+100 dolar ke euro	money	90.90909090909090909090909091	€90,91
+5 euro tambah 5 euro	money	10	€10,00
+30 dolar kurang 10 euro	money	17.27272727272727272727272727	$19,00
+2 euro kali 3	money	6	€6,00
+10 euro bagi 4	money	2.5	€2,50
+-5 euro	money	-5	-€5,00
+(1 usd / 3) * 3	money	0.909090909090909090909090909	$1,00
+# "." groups and "," carries the decimal — the pair Indonesian took from
+# Dutch along with half its financial vocabulary.
+1,5 euro	money	1.5	€1,50
+1.000,50 euro	money	1000.5	€1.000,50
+1.234.567 uah ke euro	money	27133.34065934065934065934066	€27.133,34
+1000 euro	money	1000	€1.000,00
+# Indonesian marks no plural, so one word covers every count and there is no
+# second form to read. Every row above and below uses the same noun the
+# vocabulary would print.
+5 dolar	money	4.545454545454545454545454546	$5,00
+5 franc	money	5.31914893617021276595744681	CHF5,00
+5 zloty	money	1.168224299065420560747663552	zł5,00
+100 hryvnia	money	2.197802197802197802197802198	₴100,00
+1000 yen	money	5.882352941176470588235294118	¥1.000
+# The pound is borrowed twice: as the bare English noun and as the one-token
+# compound Indonesian writes for the sterling.
+5 pound	money	5.943889681407513076557299095	£5,00
+5 poundsterling	money	5.943889681407513076557299095	£5,00
+# "ke" and "dalam" both introduce a target.
+100 dolar dalam euro	money	90.90909090909090909090909091	€90,91
+# The English plural still reads. Recognition is many-to-one even where the
+# language itself has nothing to recognise.
+2 euros	money	2	€2,00
+# One row this file cannot carry, and the reason it is missing rather than
+# forgotten: Indonesian is the only language here with no cardinals in
+# `@smartput/core`, so there is no spelled-number row anywhere above — "satu
+# euro" does not parse at all.

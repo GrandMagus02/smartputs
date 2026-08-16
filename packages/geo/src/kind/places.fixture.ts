@@ -280,17 +280,23 @@ export const COUNTRIES: readonly CountryRow[] = [
   // The four-word alias, and the only row that can state the walk's bound: the
   // trie is offered at most four words, so this claims whole and a five-word
   // alias would be dead data.
-  country("ae", "are", "United Arab Emirates", ["emirates", "federation of arab emirates"], {
-    capital: "Abu Dhabi",
-    currency: "AED",
-    phone: "971",
-    population: 9_630_959,
-    area: 82_880,
-    lat: 24.45118,
-    lon: 54.39696,
-    zone: "Asia/Dubai",
-    geonameId: 290_557,
-  }),
+  country(
+    "ae",
+    "are",
+    "United Arab Emirates",
+    ["emirates", "federation of arab emirates"],
+    {
+      capital: "Abu Dhabi",
+      currency: "AED",
+      phone: "971",
+      population: 9_630_959,
+      area: 82_880,
+      lat: 24.45118,
+      lon: 54.39696,
+      zone: "Asia/Dubai",
+      geonameId: 290_557,
+    },
+  ),
   country("pl", "pol", "Poland", ["polska"], {
     capital: "Warsaw",
     currency: "PLN",

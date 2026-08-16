@@ -1,4 +1,4 @@
-import { Decimal, decimalRatios, defineKind } from "@smartput/core";
+import { Decimal, decimalRatios, defineKind } from "@smartput/kind";
 import { DEFAULT_DPI, MEASURE_UNITS, type StaticMeasureUnit } from "./units";
 
 export type { MeasureUnit, StaticMeasureUnit } from "./units";

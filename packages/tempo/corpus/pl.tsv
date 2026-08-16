@@ -1,0 +1,39 @@
+# input	kind	canonical	formatted
+120 bpm	tempo	120	120 bpm
+120 bpm w ms	duration	0.5	500 milisekund
+500 ms w bpm	tempo	120	120 bpm
+1 s w bpm	tempo	60	60 bpm
+2 Hz w bpm	tempo	120	120 bpm
+120 bpm w Hz	tempo	120	2 herce
+120 bpm + 8 bpm	tempo	128	128 bpm
+140 bpm - 20 bpm	tempo	120	120 bpm
+60 bpm * 2	tempo	120	120 bpm
+120 bpm / 2	tempo	60	60 bpm
+-10 bpm	tempo	-10	-10 bpm
+sto dwadzieścia bpm	tempo	120	120 bpm
+174 bpm	tempo	174	174 bpm
+# "uderzeń" — beats — reads a tempo and never prints one: the unit carries no
+# forms, so the symbol is all it can emit.
+120 uderzeń	tempo	120	120 bpm
+# "na" is a second conversion preposition beside "w", and "we" and "do" are two
+# more.
+120 bpm na milisekundy	duration	0.5	500 milisekund
+# "razy" is one token; division is two, "podzielić" then "przez".
+60 bpm razy 2	tempo	120	120 bpm
+120 bpm podzielić przez 2	tempo	60	60 bpm
+# The four plural categories on one unit. Polish picks `few` for 2-4, `many`
+# from 5 up, and the teens go to `many` however they end.
+1 Hz	tempo	60	1 herc
+2 Hz	tempo	120	2 herce
+5 Hz	tempo	300	5 herców
+12 Hz	tempo	720	12 herców
+# `few` is the nominative plural here and the genitive singular in Russian: 102
+# herce against 102 герца. Same category, different word.
+102 Hz	tempo	6120	102 herce
+# The fractional category is the genitive *singular* — "1,5 herca" — a fifth
+# word rather than a reuse of one of the four above, and the same shape appears
+# on the second when the tempo is halved.
+1,5 Hz	tempo	90	1,5 herca
+120 bpm w sekundy	duration	0.5	0,5 sekundy
+# A decimal comma and a U+00A0 group separator.
+1 200 bpm	tempo	1200	1 200 bpm

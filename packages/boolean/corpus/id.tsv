@@ -1,0 +1,42 @@
+# What a comparison returns. Registering this kind is what turns
+# `1000 MB = 1 GB` from an unresolvable expression into `true`.
+#
+# `true` and `false` are not translated, and that is this file's finding
+# rather than an oversight it hides: the kind ships no vocabulary at all,
+# so `formatValue` degrades to the unit key in every language. An Indonesian
+# engine answering "true" is what the code does today, and a row asserting
+# it is what makes a later `boolean/locale/id` a visible diff here.
+# input	kind	canonical	formatted
+1000 MB = 1 GB	boolean	1	true
+1 km > 999 m	boolean	1	true
+1 km < 999 m	boolean	0	false
+1 m = 100 cm	boolean	1	true
+2 > 1	boolean	1	true
+1 >= 1	boolean	1	true
+1 <= 0	boolean	0	false
+5 != 4	boolean	1	true
+1 kg + 500 g = 1,5 kg	boolean	1	true
+1 km - 250 m = 750 m	boolean	1	true
+10 km * 3 = 30 km	boolean	1	true
+1 km / 4 = 250 m	boolean	1	true
+-5 km < 0 km	boolean	1	true
+1 km ke meter = 1000 m	boolean	1	true
+2 km dalam meter = 2000 m	boolean	1	true
+# No spelled-cardinal row, and the absence is the finding: Indonesian is the
+# one language here with no cardinals in core, so "satu kilometer" throws
+# where "ein Kilometer" and "un kilómetro" read.
+#
+# The decimal comma and the group dot, borrowed from Dutch along with the
+# spelling reform that dropped the rest of it.
+1,5 km = 1500 m	boolean	1	true
+1.500 m = 1,5 km	boolean	1	true
+# No plural anywhere. Every unit has exactly one form, so a count of one and
+# a count of five are typed with the same word.
+2 km kali 3 = 6 km	boolean	1	true
+10 km bagi 4 = 2,5 km	boolean	1	true
+1 inci = 2,54 cm	boolean	1	true
+3 kaki = 91,44 cm	boolean	1	true
+5 mil > 8 km	boolean	1	true
+2 ton = 2000 kg	boolean	1	true
+1 galon > 3 liter	boolean	1	true
+1 jam != 60 menit	boolean	0	false

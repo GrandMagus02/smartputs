@@ -1,11 +1,11 @@
-import type { EvalCtx, Value } from "@smartput/core";
+import type { EvalCtx, Value } from "@smartput/kind";
 import {
   Decimal,
   DivideByZeroError,
   decimalRatios,
   defineKind,
   deriveValue,
-} from "@smartput/core";
+} from "@smartput/kind";
 import { TEMPO_UNITS } from "./units";
 
 export type { TempoUnit } from "./units";

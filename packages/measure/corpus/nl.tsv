@@ -1,0 +1,40 @@
+# input	kind	canonical	formatted
+1 duim in pt	measure	1	72 punt
+72 pt in duim	measure	1	1 inch
+6 pc in duim	measure	1	1 inch
+1 duim in mm	measure	1	25,4 millimeter
+1 duim in px	measure	1	96 pixels
+96 px in duim	measure	1	1 inch
+2 duim + 36 pt	measure	2.5	2,5 inch
+1 duim - 12 pt	measure	0.8333333333333333333333333333	0,83333333333333333333333333 inch
+3 duim * 2	measure	6	6 inch
+1 duim / 4	measure	0.25	0,25 inch
+-2 duim	measure	-2	-2 inch
+1 pc in pt	measure	0.1666666666666666666666666667	12 punt
+10 mm in cm	measure	0.3937007874015748031496062992	1 centimeter
+een duim	measure	1	1 inch
+twaalf punten	measure	0.1666666666666666666666666667	12 punt
+# "." groups and "," is the decimal point, the Dutch pair.
+25,4 mm in duim	measure	1	1 inch
+1.440 pt in duim	measure	20	20 inch
+1.234.567 px	measure	12860.07291666666666666666667	1.234.567 pixels
+# `duim` and `duimen` read; `inch` is what prints. Both words are current —
+# `inch` on sight, `duim` in carpentry — and `inch` is the symbol too,
+# because the Dutch abbreviation is a double prime `lex` cannot read.
+2 duimen	measure	2	2 inch
+# Five of the six units stay singular after a numeral, so `one` and `other`
+# are the same word. `pixel` is the exception, and not an arbitrary one: a
+# pixel is a thing you count rather than a magnitude you measure out, and
+# Dutch marks that difference.
+1 punt	measure	0.01388888888888888888888888889	1 punt
+5 punten	measure	0.06944444444444444444444444444	5 punt
+1 pixel	measure	0.01041666666666666666666666667	1 pixel
+5 pixels	measure	0.05208333333333333333333333335	5 pixels
+2 pica's in punten	measure	0.3333333333333333333333333333	24 punt
+# "maal" and "keer" both multiply; "gedeeld door" is two tokens folded into
+# one.
+3 duim maal 2	measure	6	6 inch
+3 duim keer 2	measure	6	6 inch
+1 duim gedeeld door 4	measure	0.25	0,25 inch
+# "naar" is the second conversion preposition beside "in".
+100 px naar mm	measure	1.041666666666666666666666667	26,458333333333333333333333 millimeter

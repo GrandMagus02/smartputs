@@ -1,0 +1,42 @@
+# input	kind	canonical	formatted
+30 usd	money	27.27272727272727272727272727	$30,00
+2 евро	money	2	€2,00
+100 долларов в евро	money	90.90909090909090909090909091	€90,91
+5 евро плюс 5 евро	money	10	€10,00
+30 долларов минус 10 евро	money	17.27272727272727272727272727	$19,00
+2 евро умножить на 3	money	6	€6,00
+10 евро разделить на 4	money	2.5	€2,50
+-5 евро	money	-5	-€5,00
+два евро	money	2	€2,00
+(1 usd / 3) * 3	money	0.909090909090909090909090909	$1,00
+# Russian groups with U+00A0 and puts the decimal on ",".
+1,5 евро	money	1.5	€1,50
+1 000,50 евро	money	1000.5	€1 000,50
+1 000 000 uah в евро	money	21978.02197802197802197802198	€21 978,02
+# The four plural categories, and the two rows that show they are not a
+# count of digits: 21 takes the singular and 11 does not, because the
+# category is read off the last digit unless the last two are a teen.
+1 доллар	money	0.9090909090909090909090909091	$1,00
+2 доллара	money	1.818181818181818181818181818	$2,00
+5 долларов	money	4.545454545454545454545454546	$5,00
+11 долларов	money	10	$11,00
+21 доллар	money	19.09090909090909090909090909	$21,00
+# `few` is the genitive *singular* here — "2 доллара" — where Polish uses the
+# nominative plural for the same category, and the fractional row reuses that
+# same word rather than adding a fifth.
+1,5 доллара	money	1.363636363636363636363636364	$1,50
+# The feminine one. Its nominative plural and its genitive singular coincide,
+# so "2 иены" is one spelling doing two jobs, and its genitive plural is the
+# bare stem with no ending at all.
+2 иены	money	0.01176470588235294117647058824	¥2
+5 иен	money	0.02941176470588235294117647059	¥5
+# The borrowed "buck", which is what a price is quoted in out loud. It reads
+# and would never be printed.
+5 баксов	money	4.545454545454545454545454546	$5,00
+# The hryvnia's genitive plural takes a fill vowel rather than an ending, and
+# the zloty is adjectival in Russian as in Polish.
+100 гривен	money	2.197802197802197802197802198	₴100,00
+5 злотых	money	1.168224299065420560747663552	zł5,00
+# "до" introduces a target beside "в", which is the preposition every row
+# above uses.
+100 долларов до евро	money	90.90909090909090909090909091	€90,91

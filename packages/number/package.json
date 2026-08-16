@@ -111,6 +111,7 @@
     }
   },
   "dependencies": {
+    "@smartput/kind": "workspace:*",
     "@smartput/shared": "workspace:*"
   },
   "peerDependencies": {

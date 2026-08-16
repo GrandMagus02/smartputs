@@ -1,0 +1,37 @@
+# input	kind	canonical	formatted
+2 l	volume	2	2 litres
+2 l en ml	volume	2	2 000 millilitres
+1 gal en l	volume	3.785411784	3,785411784 litres
+1 pinte en ml	volume	0.473176473	473,176473 millilitres
+500 ml + 500 ml	volume	1	1 000 millilitres
+2 l - 250 ml	volume	1.75	1,75 litre
+3 l * 4	volume	12	12 litres
+1 l / 4	volume	0.25	0,25 litre
+-2 l	volume	-2	-2 litres
+1 gal en pintes	volume	3.785411784	8 pintes
+un litre	volume	1	1 litre
+deux cent cinq litres	volume	205	205 litres
+quatre-vingt-dix litres	volume	90	90 litres
+# The group separator on the way out is U+202F, a narrow no-break space, and
+# an ordinary space is accepted on the way in.
+1 500 ml en litres	volume	1.5	1,5 litre
+1 234 567 ml	volume	1234.567	1 234 567 millilitres
+# French `one` swallows every fraction below two, so the singular is what a
+# decimal prints — "1,5 litre", "0,25 litre", "1,75 litre". Spanish, Italian
+# and Portuguese are split on this exact number; only Portuguese agrees.
+1,5 l	volume	1.5	1,5 litre
+0,5 l	volume	0.5	0,5 litre
+1,99 l	volume	1.99	1,99 litre
+# And the moment the count reaches two the plural is back, including on a
+# result nobody typed.
+10 l divisé par 4	volume	2.5	2,5 litres
+2 litres	volume	2	2 litres
+2 pintes	volume	0.946352946	2 pintes
+# No one-token word for the cubic metre, so the symbol is printed instead —
+# with a space, because this language's `renderQuantity` always writes one.
+2 m3	volume	2000	2 m³
+# "vers" is the second conversion preposition beside "en". "fois" stands
+# alone; "multiplié par" and "divisé par" are two tokens folded into one.
+2 l vers ml	volume	2	2 000 millilitres
+2 l fois 3	volume	6	6 litres
+2 l multiplié par 3	volume	6	6 litres

@@ -1,0 +1,41 @@
+# input	kind	canonical	formatted
+1千瓦到瓦特	power	1000	1,000W
+1MW到kW	power	1000000	1,000kW
+2.5千瓦	power	2500	2.5kW
+500瓦 + 500瓦	power	1000	1,000W
+2千瓦 - 500瓦	power	1500	1.5kW
+3千瓦 * 2	power	6000	6kW
+1MW / 4	power	250000	0.25MW
+-1千瓦	power	-1000	-1kW
+1000瓦到千瓦	power	1000	1kW
+二百零五千瓦	power	205000	205kW
+1马力到瓦特	power	745.69987158227022	745.69987158227022W
+100马力到千瓦	power	74569.987158227022	74.569987158227022kW
+1,234,567瓦	power	1234567	1,234,567W
+# No number agreement of any kind, and no space between the number and the
+# unit on either side of the round trip.
+1瓦特	power	1	1W
+5瓦特	power	5	5W
+# The four SI units carry a symbol and no `forms` entry, so what comes back is
+# the international symbol rather than any Chinese word — 千瓦 reads and "kW"
+# prints. 马力 is the one unit with a form of its own, and the only Chinese
+# word this table ever writes.
+1马力	power	745.69987158227022	1马力
+5hp	power	3728.4993579113511	5马力
+# The megawatt and the gigawatt have no Chinese spelling at all here, only the
+# Latin symbol, which is what a Chinese datasheet prints for them.
+1GW到MW	power	1000000000	1,000MW
+# The myriad. Chinese counts in ten-thousands, so 万 is a magnitude word in its
+# own right and 一万 is one of them, not ten of a thousand.
+一万瓦	power	10000	10,000W
+# The word operators need whitespace around them even though Chinese is written
+# without any: 乘 and 除以 are matched as separate tokens, and "2千瓦乘3" does
+# not parse. The symbol operators above have no such requirement.
+2千瓦 乘 3	power	6000	6kW
+1MW 除以 4	power	250000	0.25MW
+500瓦 加 500瓦	power	1000	1,000W
+# 换算 and 转换 are verbs rather than prepositions, and 为 is a third
+# preposition beside 到. All three introduce a target on their own, with no
+# space.
+2千瓦换算瓦特	power	2000	2,000W
+2千瓦为瓦特	power	2000	2,000W

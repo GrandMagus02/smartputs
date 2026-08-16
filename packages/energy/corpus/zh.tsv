@@ -1,0 +1,43 @@
+# input	kind	canonical	formatted
+1kwh到焦耳	energy	3600000	3,600,000J
+2千瓦 乘 3小时	energy	21600000	21,600,000J
+1kwh / 1小时	power	1000	1,000W
+1千卡到J	energy	4184	4,184J
+500J + 500J	energy	1000	1,000J
+1kJ - 250J	energy	750	0.75kJ
+1kJ / 4	energy	250	0.25kJ
+-1kwh	energy	-3600000	-1kWh
+1,234,567J	energy	1234567	1,234,567J
+2.5kwh	energy	9000000	2.5kWh
+# No number agreement of any kind: Chinese marks plurality nowhere on a noun,
+# so a unit that has a word has exactly one, and 1, 5 and 1.5 take it alike.
+# The separators are English's — "," for groups, "." for the decimal.
+1卡路里	energy	4.184	1卡路里
+5卡路里	energy	20.92	5卡路里
+1.5卡路里	energy	6.276	1.5卡路里
+# No space between the number and the unit, on input or output. `Printer`'s
+# `gap` is empty for this language, which is what makes the round trip hold:
+# the engine reads back its own "1,234,567J" byte for byte.
+5千卡	energy	20920	5千卡
+5BTU	energy	5275.2792631	5BTU
+1kWh	energy	3600000	1kWh
+# The joule family reads its Chinese words and prints the SI symbol. 焦 and 焦耳
+# come back from the segmenter whole; 千焦 and 兆焦 do not, so rather than print
+# a word for one prefix and a symbol for the others, all three print the
+# symbol.
+1焦耳	energy	1	1J
+5焦	energy	5	5J
+1.5焦耳	energy	1.5	1.5J
+# The myriad. Chinese counts in ten-thousands, so 万 is a magnitude word in its
+# own right and 一万 is one of them, not ten of a thousand.
+一万焦耳	energy	10000	10,000J
+# The word operators need whitespace around them even though Chinese is
+# written without any: 乘 and 除以 are matched as separate tokens, and
+# "2kJ乘3" does not parse. The symbol operators above have no such requirement.
+2kJ 乘 3	energy	6000	6kJ
+10kJ 除以 4	energy	2500	2.5kJ
+500J 加 500J	energy	1000	1,000J
+# 换算 is a verb rather than a preposition and introduces a target on its own,
+# and 为 is a fourth spelling beside it and 到.
+2kWh换算焦耳	energy	7200000	7,200,000J
+2kWh为J	energy	7200000	7,200,000J

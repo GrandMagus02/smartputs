@@ -1,0 +1,39 @@
+# input	kind	canonical	formatted
+1 + 1	number	2	2
+10 - 4	number	6	6
+6 * 7	number	42	42
+10 / 4	number	2.5	2,5
+-5	number	-5	-5
+(1 + 2) * 3	number	9	9
+100 / 3	number	33.33333333333333333333333333	33,333333333333333333333333
+# "." groups and "," marks the decimal. A dot in an argument is therefore a
+# grouping character and never a decimal point: "1.500" is fifteen hundred.
+1.500	number	1500	1.500
+0,1 + 0,2	number	0.3	0,3
+# 16 to 29 are fused into one word and carry an accent the parts did not:
+# dieciséis is diez y seis written closed up.
+dieciséis	number	16	16
+veintiuno	number	21	21
+# From 31 up the fusion stops and "y" appears as a word of its own. Nothing
+# below 30 is written with it.
+treinta y uno	number	31	31
+novecientos noventa y nueve	number	999	999
+# "cien" before nothing, "ciento" before a smaller number — one value, two
+# words, and only the position tells them apart.
+cien	number	100	100
+ciento uno	number	101	101
+# The irregular hundreds. "quinientos" is not "cinco cientos".
+doscientos cinco	number	205	205
+quinientos	number	500	500
+mil treinta y dos	number	1032	1.032
+# The numeral for 1 apocopates in front of a noun and there is no noun here,
+# so both spellings have to read back as the same value.
+uno	number	1	1
+un	number	1	1
+cero	number	0	0
+# Word operators. "por" is times and "entre" is over, so division is spoken
+# with "entre" and there is no reading of "por" that divides anything.
+10 más 5	number	15	15
+10 mas 5	number	15	15
+6 por 7	number	42	42
+10 entre 4	number	2.5	2,5

@@ -1,0 +1,38 @@
+# input	kind	canonical	formatted
+120bpm	tempo	120	120bpm
+120bpm到毫秒	duration	0.5	500毫秒
+500毫秒到bpm	tempo	120	120bpm
+1秒到bpm	tempo	60	60bpm
+2赫兹到bpm	tempo	120	120bpm
+120bpm到赫兹	tempo	120	2赫兹
+120bpm + 8bpm	tempo	128	128bpm
+140bpm - 20bpm	tempo	120	120bpm
+60bpm * 2	tempo	120	120bpm
+120bpm / 2	tempo	60	60bpm
+-10bpm	tempo	-10	-10bpm
+一百二十bpm	tempo	120	120bpm
+174bpm	tempo	174	174bpm
+# 拍 — a beat — reads a tempo and never prints one: the unit carries no forms,
+# so the symbol is all it can emit.
+120拍	tempo	120	120bpm
+# Four conversion keywords, two of them verbs — 换算 and 转换 — and none of them
+# needs a space around it.
+120bpm为毫秒	duration	0.5	500毫秒
+120bpm换算秒	duration	0.5	0.5秒
+# Word operators do need one on both sides, though Chinese writes no spaces:
+# "60bpm乘3" fails where this parses. The ASCII symbols have no such
+# requirement.
+60bpm 乘 3	tempo	180	180bpm
+120bpm 除以 2	tempo	60	60bpm
+120bpm 加 8bpm	tempo	128	128bpm
+# No number agreement anywhere, so 1 and 2 and a half take the same 赫兹, and one
+# hertz is sixty beats a minute rather than one.
+1赫兹	tempo	60	1赫兹
+2赫兹	tempo	120	2赫兹
+1.5赫兹	tempo	90	1.5赫兹
+# No space between the number and the unit, on input or output, which is what
+# makes the round trip hold. The separators are English's.
+1,200bpm	tempo	1200	1,200bpm
+# The myriad. Chinese counts in ten-thousands, so 万 is a magnitude word in its
+# own right and 一万 is one of them rather than ten of a thousand.
+一万bpm	tempo	10000	10,000bpm

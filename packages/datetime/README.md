@@ -74,7 +74,7 @@ graph as a triumph.
 
 | Import | Minified | Gzipped |
 | --- | --- | --- |
-| datetime root (no holiday data) | ≤ 144 kB | ≤ 50.8 kB |
+| datetime root (no holiday data) | ≤ 145 kB | ≤ 50.8 kB |
 | datetime/holiday (the opt-in cost) | ≤ 1579 kB | ≤ 288 kB |
 
 ---

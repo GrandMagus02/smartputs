@@ -1,0 +1,35 @@
+# input	kind	canonical	formatted
+20%	percent	0.2	20%
+20 percento	percent	0.2	20%
+50 + 20%	number	60	60
+50 - 10%	number	45	45
+20% di 50	number	10	10
+10% + 5%	percent	0.15	15%
+100% - 40%	percent	0.6	60%
+50 * 10%	percent	5	500%
+10% / 2	percent	0.05	5%
+-10%	percent	-0.1	-10%
+dieci percento	percent	0.1	10%
+venticinque percento	percent	0.25	25%
+centoventi percento	percent	1.2	120%
+0,5 in percentuale	percent	0.5	50%
+5 / 50 in percentuale	percent	0.1	10%
+# "." groups and "," is the decimal point.
+2,5%	percent	0.025	2,5%
+1.000%	percent	10	1.000%
+100 * 20%	percent	20	2.000%
+# The sign sits tight against the number here. Italian takes the default
+# template where French and German override it, which is the whole difference
+# between this file's output column and `fr.tsv`'s.
+20 percentuale	percent	0.2	20%
+20 percentuali	percent	0.2	20%
+# "per" is `times` and "diviso" is `over`, one token each.
+50 per 10%	percent	5	500%
+10% diviso 2	percent	0.05	5%
+# What Italian writes is "per cento", two tokens, and both fragments are claimed
+# elsewhere: "per" by `times` and "cento" by the cardinal 100. So the phrase
+# multiplies instead of naming the unit. A recorded gap — `it.test.ts` pins the
+# same wrong answer — and the reason the fused "percento" is listed at all.
+20 per cento	number	2000	2.000
+# Both `in` prepositions reach the conversion.
+0,5 a percentuale	percent	0.5	50%

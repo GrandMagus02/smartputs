@@ -1,0 +1,40 @@
+# input	kind	canonical	formatted
+1 بوصة إلى نقطة	measure	1	72 نقطة
+72 نقطة إلى بوصة	measure	1	1 بوصة
+6 pc إلى بوصة	measure	1	1 بوصة
+1 بوصة إلى مم	measure	1	25.4 مليمتر
+1 بوصة إلى px	measure	1	96 بكسلًا
+96 بكسل إلى بوصة	measure	1	1 بوصة
+2 بوصة + 36 نقطة	measure	2.5	2.5 بوصة
+1 بوصة - 12 نقطة	measure	0.8333333333333333333333333333	0.83333333333333333333333333 بوصة
+3 بوصة * 2	measure	6	6 بوصات
+1 بوصة / 4	measure	0.25	0.25 بوصة
+-2 بوصة	measure	-2	-2 بوصتان
+1 بيكا إلى نقطة	measure	0.1666666666666666666666666667	12 نقطة
+10 مم إلى سم	measure	0.3937007874015748031496062992	1 سنتيمتر
+واحد بوصة	measure	1	1 بوصة
+اثنا عشر نقطة	measure	0.1666666666666666666666666667	12 نقطة
+# Six plural categories, the most of any language here: 0 zero, 1 one, 2 two,
+# 3-10 few, 11-99 many, everything else other. The millimetre spells four
+# distinct words across those six: a bare singular for zero, one and other, a
+# dual, a broken plural, and an accusative singular carrying tanwīn for the
+# many band.
+0 مم	measure	0	0 مليمتر
+1 مم	measure	0.03937007874015748031496062992	1 مليمتر
+2 مم	measure	0.07874015748031496062992125984	2 مليمتران
+3 مم	measure	0.1181102362204724409448818898	3 مليمترات
+11 مم	measure	0.4330708661417322834645669291	11 مليمترًا
+100 مم	measure	3.937007874015748031496062992	100 مليمتر
+# The category is read off the *result*, not off what was typed: two
+# centimetres come back as twenty millimetres and take `many`.
+2 سم إلى مم	measure	0.7874015748031496062992125984	20 مليمترًا
+# Latin digits, and Latin separators inside right-to-left text: this locale
+# carries an explicit numberFormat of "," for groups and "." for the decimal
+# rather than deferring to Intl.
+1,440 نقطة إلى بوصة	measure	20	20 بوصة
+1234567 بكسل	measure	12860.07291666666666666666667	1,234,567 بكسلًا
+# "في" is both "in" and "times", and this language claims it as a conversion
+# preposition, so "ضرب" is what is left to multiply with.
+1 بوصة في نقطة	measure	1	72 نقطة
+3 بوصة ضرب 2	measure	6	6 بوصات
+1 بوصة قسمة على 4	measure	0.25	0.25 بوصة

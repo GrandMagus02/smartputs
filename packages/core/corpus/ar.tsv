@@ -1,0 +1,38 @@
+# input	kind	canonical	formatted
+1 كيلوغرام + 500 غرام	mass	1500	1.5 كيلوغرام
+30 ساعة - 30 دقيقة	duration	106200	29.5 ساعة
+2 كيلومتر إلى متر	length	2000	2,000 متر
+(1 + 2) * 3	number	9	9
+-5 كيلومتر	length	-5000	-5 كيلومترات
+212 فهرنهايت إلى مئوية	temperature	100	100 °C
+30 مئوية - 20 مئوية	tempdelta	10	10 °C
+20% من 50	number	10	10
+90 درجة إلى راديان	angle	1.570796326794896619231321692	1.5707963267948966192313217 راديان
+3 متر * 4 متر	area	12	12 م²
+100 كيلومتر / 2 ساعة	speed	13.88888888888888888888888889	13.888888888888888888888889 م/ث
+مئتان وخمسة غرام	mass	205	205 غرامات
+# Six plural categories, the most any language in this set has, and each of
+# them a different word. CLDR's Arabic rule: 0 zero, 1 one, 2 two, 3-10 few,
+# 11-99 many, and everything else — 100, and every fraction — other.
+0 متر	length	0	0 متر
+1 متر	length	1	1 متر
+2 متر	length	2	2 متران
+3 متر	length	3	3 أمتار
+11 متر	length	11	11 مترًا
+100 متر	length	100	100 متر
+1.5 متر	length	1.5	1.5 متر
+# The plural of متر is a broken plural — أمتار, an internal reshaping of the
+# stem rather than a suffix — and the category is read off the *result*, not
+# off anything typed: 10 lands in few and 1024 in many.
+10 كيلومتر	length	10000	10 كيلومترات
+1 كيبيبايت إلى بايت	datasize	1024	1,024 بايتًا
+# The digits and separators are Latin. `ar` resolves to a `latn` numbering
+# system with "," for groups and "." for the decimal, so an Arabic sentence
+# reads and prints its numbers left to right inside right-to-left text.
+1,500 مليمتر إلى متر	length	1.5	1.5 متر
+# في is both "in" and "times" and is claimed as the conversion preposition, so
+# ضرب is what is left to say "multiplied". قسمة على is the two-token division,
+# hanging off على as `keywords.by`.
+2 كيلومتر في متر	length	2000	2,000 متر
+2 كيلومتر ضرب 3	length	6000	6 كيلومترات
+10 كيلومتر قسمة على 4	length	2500	2.5 كيلومتر

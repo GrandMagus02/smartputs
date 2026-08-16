@@ -1,0 +1,36 @@
+# input	kind	canonical	formatted
+1 inci ke pt	measure	1	72 poin
+72 pt ke inci	measure	1	1 inci
+6 pc ke inci	measure	1	1 inci
+1 inci ke mm	measure	1	25,4 milimeter
+1 inci ke px	measure	1	96 piksel
+96 px ke inci	measure	1	1 inci
+2 inci + 36 pt	measure	2.5	2,5 inci
+1 inci - 12 pt	measure	0.8333333333333333333333333333	0,83333333333333333333333333 inci
+3 inci * 2	measure	6	6 inci
+1 inci / 4	measure	0.25	0,25 inci
+-2 inci	measure	-2	-2 inci
+1 pc ke pt	measure	0.1666666666666666666666666667	12 poin
+10 mm ke cm	measure	0.3937007874015748031496062992	1 sentimeter
+# There is no spelled-cardinal row here: Indonesian is the one language in
+# this set with no `id-cardinals.ts` in core, so "satu inci" throws rather
+# than reading as one.
+#
+# "." groups and "," is the decimal point, the Dutch pair Indonesian
+# inherited.
+25,4 mm ke inci	measure	1	1 inci
+1.440 pt ke inci	measure	20	20 inci
+1.234.567 piksel	measure	12860.07291666666666666666667	1.234.567 piksel
+# No plural at all — every unit carries `other` alone, which is the smallest
+# `forms` table a vocabulary in this package can have.
+1 inci	measure	1	1 inci
+5 inci	measure	5	5 inci
+1 poin	measure	0.01388888888888888888888888889	1 poin
+12 poin	measure	0.1666666666666666666666666667	12 poin
+1,5 inci	measure	1.5	1,5 inci
+# The operators are bare words, none of them two-token.
+3 inci kali 2	measure	6	6 inci
+1 inci bagi 4	measure	0.25	0,25 inci
+# "dalam" is the second conversion preposition beside "ke".
+1 inci dalam mm	measure	1	25,4 milimeter
+2 sentimeter ke milimeter	measure	0.7874015748031496062992125984	20 milimeter

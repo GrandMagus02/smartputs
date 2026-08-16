@@ -1,0 +1,49 @@
+# input	kind	canonical	formatted
+1英寸到磅	measure	1	72磅
+72磅到英寸	measure	1	1英寸
+6pc到英寸	measure	1	1英寸
+1英寸到毫米	measure	1	25.4毫米
+1英寸到px	measure	1	96px
+96px到英寸	measure	1	1英寸
+2英寸 + 36磅	measure	2.5	2.5英寸
+1英寸 - 12磅	measure	0.8333333333333333333333333333	0.83333333333333333333333333英寸
+3英寸 * 2	measure	6	6英寸
+1英寸 / 4	measure	0.25	0.25英寸
+-2英寸	measure	-2	-2英寸
+1pc到磅	measure	0.1666666666666666666666666667	12磅
+10毫米到厘米	measure	0.3937007874015748031496062992	1厘米
+一英寸	measure	1	1英寸
+十二磅	measure	0.1666666666666666666666666667	12磅
+# The separators are English's — "," for groups, "." for the decimal.
+25.4毫米到英寸	measure	1	1英寸
+1,440磅到英寸	measure	20	20英寸
+1234567px	measure	12860.07291666666666666666667	1,234,567px
+# No number agreement of any kind, and no space between the number and the
+# unit on input or output. `Printer`'s `gap` is empty for this language,
+# which is what makes the round trip hold: the engine reads back its own
+# "1,234,567px" byte for byte.
+1,234,567px	measure	12860.07291666666666666666667	1,234,567px
+1英寸	measure	1	1英寸
+5英寸	measure	5	5英寸
+1.5英寸	measure	1.5	1.5英寸
+1吋	measure	1	1英寸
+10公分到毫米	measure	3.937007874015748031496062992	100毫米
+# `pc` and `px` carry a symbol and no `forms` at all. 派卡 and 像素 are the
+# real Chinese words, and ICU's dictionary cuts both in two — 像 + 素 — so
+# `lex` can never produce either and neither is listed even as an alias. The
+# Latin abbreviation is what reads, what prints, and what a Chinese
+# stylesheet writes anyway.
+5px	measure	0.05208333333333333333333333335	5px
+5pc	measure	0.8333333333333333333333333333	5pc
+# The myriad. Chinese counts in ten-thousands, so 万 is a magnitude word in
+# its own right.
+一万px	measure	104.1666666666666666666666667	10,000px
+# The word operators need whitespace around them even though Chinese is
+# written without any: "3英寸乘2" does not parse. The symbol operators above
+# have no such requirement, and neither do the conversion keywords.
+3英寸 乘 2	measure	6	6英寸
+1英寸 除以 4	measure	0.25	0.25英寸
+# 换算 and 转换 are verbs rather than prepositions, and both introduce a
+# target on their own; 为 is the short form.
+2英寸换算毫米	measure	2	50.8毫米
+2英寸为毫米	measure	2	50.8毫米

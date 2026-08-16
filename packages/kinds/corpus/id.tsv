@@ -1,0 +1,40 @@
+# input	kind	canonical	formatted
+#
+# The aggregator's corpus, so the rows range across the set rather than drill
+# one kind: the bridges between two kinds, and the comparisons that need
+# `boolean` registered beside the kind being compared. Each bridge owner names
+# its operands by id string rather than importing them, so a signature whose
+# operands are unregistered is unreachable rather than a build error.
+3 m * 4 m	area	12	12m²
+100 km / 2 jam	speed	13.88888888888888888888888889	13,888888888888888888888889m/s
+2 kw * 3 jam	energy	21600000	21.600.000 joule
+1 kwh / 1 jam	power	1000	1.000 watt
+1 kwh / 1 kw	duration	3600	3.600 detik
+500 mb / 20 detik	datarate	200000000	200Mbps
+100 mbps * 1 menit	datasize	750000000	750.000.000 byte
+120 bpm ke ms	duration	0.5	500 milidetik
+1000 mb = 1 gb	boolean	1	true
+1 mil > 1 km	boolean	1	true
+212 F ke C	temperature	100	100°C
+30 C - 20 C	tempdelta	10	10°C
+20% dari 50	number	10	10
+(1 + 2) * 3	number	9	9
+1 kib ke b	datasize	1024	1.024 byte
+90 derajat ke radian	angle	1.570796326794896619231321692	1,5707963267948966192313217 radian
+-5 km	length	-5000	-5 kilometer
+# "." groups and "," separates the decimal — the Dutch pair, from the language
+# Indonesian took its orthography from.
+1.500 m ke km	length	1500	1,5 kilometer
+250 ml + 1 liter	volume	1.25	1.250 mililiter
+# No plural anywhere in the set: the same "kilogram" at 1,5 and at 12, the
+# same "jam" at 1,5 and at 29,5.
+1 kg + 500 g	mass	1500	1,5 kilogram
+30 jam - 30 menit	duration	106200	29,5 jam
+1 jam + 30 menit	duration	5400	1,5 jam
+# "dalam" is the second conversion preposition beside "ke".
+2 km dalam meter	length	2000	2.000 meter
+# The word operators, both single tokens.
+3 kg kali 4	mass	12000	12 kilogram
+2 km bagi 4	length	500	0,5 kilometer
+# No spelled-cardinal row: Indonesian is the one language in this set with no
+# `<lang>-cardinals.ts` in core, so "satu kilometer" does not parse at all.

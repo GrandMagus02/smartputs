@@ -1,0 +1,43 @@
+# input	kind	canonical	formatted
+1 kW w watach	power	1000	1 000 watów
+1 MW w kilowatach	power	1000000	1 000 kilowatów
+2,5 kW	power	2500	2,5 kilowata
+500 watów + 500 watów	power	1000	1 000 watów
+2 kW - 500 watów	power	1500	1,5 kilowata
+3 kW * 2	power	6000	6 kilowatów
+1 MW / 4	power	250000	0,25 megawata
+-1 kW	power	-1000	-1 kilowat
+1000 watów w kilowatach	power	1000	1 kilowat
+jeden kilowat	power	1000	1 kilowat
+dwieście pięć kilowatów	power	205000	205 kilowatów
+1 hp w watach	power	745.69987158227022	745,69987158227022 wata
+# The four plural categories on one unit, which English has two of. Polish
+# picks `few` for 2-4, `many` from 5 up, and the teens go to `many` however
+# they end.
+1 wat	power	1	1 wat
+2 waty	power	2	2 waty
+5 watów	power	5	5 watów
+12 watów	power	12	12 watów
+22 waty	power	22	22 waty
+# The fractional category is the genitive singular — "1,5 wata", never "1,5
+# watów" — and it is a fifth word, not a reuse of one of the four above.
+1,5 wata	power	1.5	1,5 wata
+# "w" is the conversion preposition, so the symbol W cannot also be an alias:
+# the watt's alias list is the only one in the seventeen with no symbol in it,
+# and a bare "100 W" does not parse. The word is what you type.
+100 watów	power	100	100 watów
+# The symbol is what prints for the horsepower, which has no Polish word here,
+# and Polish sets a symbol off with a space where English sets it tight.
+1 hp	power	745.69987158227022	1 hp
+# "razy" stands alone; "pomnożyć" and "podzielić" are both two tokens hanging
+# off "przez".
+2 kW razy 3	power	6000	6 kilowatów
+2 kW pomnożyć przez 3	power	6000	6 kilowatów
+1 MW podzielić przez 4	power	250000	0,25 megawata
+# "na" beside "w" and "do". The locative "w watach" at the top of this file and
+# the accusative "na waty" here are both read off the loc- and nom- axes of
+# `forms`; neither is ever printed, because the answer is a fresh nominative.
+2 kW na waty	power	2000	2 000 watów
+# A U+00A0 group separator, and a decimal comma — Ukrainian's pair rather than
+# German's.
+1 234 567 watów	power	1234567	1 234 567 watów

@@ -1,0 +1,39 @@
+# input	kind	canonical	formatted
+20%	percent	0.2	20 %
+20 percent	percent	0.2	20 %
+50 + 20%	number	60	60
+50 - 10%	number	45	45
+10% + 5%	percent	0.15	15 %
+100% - 40%	percent	0.6	60 %
+50 * 10%	percent	5	500 %
+10% / 2	percent	0.05	5 %
+-10%	percent	-0.1	-10 %
+yirmi percent	percent	0.2	20 %
+0,5 to %	percent	0.5	50 %
+5 / 50 to %	percent	0.1	10 %
+# "." groups and "," is the decimal point.
+2,5%	percent	0.025	2,5 %
+1.000%	percent	10	1.000 %
+100 * 20%	percent	20	2.000 %
+# Turkish adds no word to this unit and the Latin aliases are the whole of what
+# a user types. The word is "yüzde", the locative of "hundred", and it stands in
+# front of the number — "yüzde 20" — where an alias is a label a count is
+# followed by, so there is no seam it fits through. `tr.ts` records the finding.
+#
+# Turkish writes the sign in front of the number too — "%20" — and this engine
+# prints "20 %", because nothing in a vocabulary can move it and "%20" is not
+# readable back. `tr.ts` pins both halves; the space itself is SI's, the same
+# change German makes.
+20 pct	percent	0.2	20 %
+20 PCT	percent	0.2	20 %
+# The conversion is the verb "çevir", not a preposition, and it follows what it
+# converts.
+0,5 çevir %	percent	0.5	50 %
+# The word operators, each one token.
+50 çarpı 10%	percent	5	500 %
+10% bölü 2	percent	0.05	5 %
+10% artı 5%	percent	0.15	15 %
+100% eksi 40%	percent	0.6	60 %
+# There is no `of` keyword in this language, so the "20% of 50" row every other
+# file carries has no Turkish spelling and is absent rather than invented.
+1.000.000%	percent	10000	1.000.000 %

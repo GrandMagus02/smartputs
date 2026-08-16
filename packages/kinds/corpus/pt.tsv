@@ -1,0 +1,42 @@
+# input	kind	canonical	formatted
+#
+# The aggregator's corpus, so the rows range across the set rather than drill
+# one kind: the bridges between two kinds, and the comparisons that need
+# `boolean` registered beside the kind being compared. Each bridge owner names
+# its operands by id string rather than importing them, so a signature whose
+# operands are unregistered is unreachable rather than a build error.
+3 m * 4 m	area	12	12m²
+100 km / 2 h	speed	13.88888888888888888888888889	13,888888888888888888888889m/s
+2 kw * 3 h	energy	21600000	21.600.000 joules
+1 kwh / 1 h	power	1000	1.000 watts
+1 kwh / 1 kw	duration	3600	3.600 segundos
+500 mb / 20 s	datarate	200000000	200Mbps
+100 mbps * 1 min	datasize	750000000	750.000.000 bytes
+120 bpm em ms	duration	0.5	500 milissegundos
+1000 mb = 1 gb	boolean	1	true
+1 milha > 1 km	boolean	1	true
+212 F em C	temperature	100	100°C
+30 C - 20 C	tempdelta	10	10°C
+20% de 50	number	10	10
+(1 + 2) * 3	number	9	9
+1 kib em b	datasize	1024	1.024 bytes
+-5 km	length	-5000	-5 quilômetros
+# "." groups and "," separates the decimal.
+1.500 m em km	length	1500	1,5 quilômetro
+250 ml + 1 l	volume	1.25	1.250 mililitros
+# A fraction takes the *singular* — "1,5 quilograma", "1,5 hora" — which is
+# French's rule and not Spanish's. Two Iberian languages disagreeing about
+# the same number.
+1 kg + 500 g	mass	1500	1,5 quilograma
+1 hora + 30 minutos	duration	5400	1,5 hora
+# European spelling in, Brazilian spelling out: `quilómetro` is an alias and
+# `quilômetro` is what prints.
+1 quilómetro em metros	length	1000	1.000 metros
+# "por" is already times, so "dividido por" would be two operators in a row.
+# Portuguese division is "sobre".
+3 kg vezes 4	mass	12000	12 quilogramas
+2 km sobre 4	length	500	0,5 quilômetro
+# "para" is the second conversion preposition beside "em".
+2 km para metros	length	2000	2.000 metros
+# A spelled cardinal with the copulative "e" between every place.
+mil e trinta e dois	number	1032	1.032

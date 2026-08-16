@@ -1,0 +1,41 @@
+# input	kind	canonical	formatted
+1 kib en b	datasize	1024	1 024 octets
+1 gb en mb	datasize	1000000000	1 000 mégaoctets
+1 gib en mib	datasize	1073741824	1 024 mébioctets
+1 mib en kb	datasize	1048576	1 048,576 kilooctets
+1024 o en kio	datasize	1024	1 kibioctet
+500 mo + 500 mo	datasize	1000000000	1 000 mégaoctets
+1 go - 200 mo	datasize	800000000	0,8 gigaoctet
+2 go * 3	datasize	6000000000	6 gigaoctets
+1 to / 4	datasize	250000000000	0,25 téraoctet
+-1 go	datasize	-1000000000	-1 gigaoctet
+un gigaoctet	datasize	1000000000	1 gigaoctet
+quatre-vingt-dix mégaoctets	datasize	90000000	90 mégaoctets
+# The one language in this set that does not borrow the English word. An octet
+# is eight bits by definition where a byte is eight bits by convention, and
+# French says the former: o, ko, Mo, Go, To for the decimal family and Kio,
+# Mio, Gio, Tio for the binary one. The Latin spellings still read — "1 gb en
+# mb" above lands — and nothing prints them back.
+1 octet	datasize	1	1 octet
+1 kilooctet	datasize	1000	1 kilooctet
+5 Ko	datasize	5000	5 kilooctets
+# The printed group separator is U+202F, a narrow no-break space, and not the
+# ASCII space the eye reads it as. The reader is the looser half: the second
+# row below is typed with an ordinary space and comes back with the narrow
+# one.
+1234567 octets	datasize	1234567	1 234 567 octets
+1 048,576 ko	datasize	1048576	1 048,576 kilooctets
+# French `one` swallows every fraction below two, so the singular is what a
+# decimal prints: "1,5 gigaoctet", "0,8 gigaoctet", "0,25 téraoctet". Spanish
+# and Italian print plurals in the same cells.
+1,5 Go	datasize	1500000000	1,5 gigaoctet
+2 octets	datasize	2	2 octets
+# The word operators. "fois" stands alone; "multiplié par" and "divisé par"
+# are two tokens each, the second hanging off `keywords.by`.
+2 Go fois 3	datasize	6000000000	6 gigaoctets
+2 Go multiplié par 3	datasize	6000000000	6 gigaoctets
+10 Go divisé par 4	datasize	2500000000	2,5 gigaoctets
+100 Mo plus 100 Mo	datasize	200000000	200 mégaoctets
+1 Go moins 200 Mo	datasize	800000000	0,8 gigaoctet
+# "vers" is the second preposition that introduces a target, beside "en".
+2 Go vers Mo	datasize	2000000000	2 000 mégaoctets

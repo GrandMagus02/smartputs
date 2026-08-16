@@ -1,0 +1,44 @@
+# input	kind	canonical	formatted
+#
+# The aggregator's corpus, so the rows range across the set rather than drill
+# one kind: the bridges between two kinds, and the comparisons that need
+# `boolean` registered beside the kind being compared. Each bridge owner names
+# its operands by id string rather than importing them, so a signature whose
+# operands are unregistered is unreachable rather than a build error.
+3メートル * 4メートル	area	12	12平方メートル
+100km / 2時間	speed	13.88888888888888888888888889	13.888888888888888888888889m/s
+2キロワット * 3時間	energy	21600000	21,600,000J
+1kwh / 1時間	power	1000	1,000W
+500mb / 20秒	datarate	200000000	200Mbps
+100mbps * 1分	datasize	750000000	750,000,000B
+120bpm を ms	duration	0.5	500ms
+# Spaced, alone among the rows here, and against this file's own convention.
+# Unspaced, `1000mb` is four digits and two letters, which is also the Dutch
+# postal format `#### @@` with its space optional — so @smartput/geo's postal
+# literal claims the token as a place and the datasize reading is gone.
+1000 mb = 1 gb	boolean	1	true
+1マイル > 1km	boolean	1	true
+212F を C	temperature	100	100°C
+30C - 20C	tempdelta	10	10°C
+(1 + 2) * 3	number	9	9
+1kib を b	datasize	1024	1,024B
+-5km	length	-5000	-5キロメートル
+# No number agreement, and no space between the number and the unit.
+1メートル	length	1	1メートル
+5メートル	length	5	5メートル
+1kg + 500グラム	mass	1500	1.5キログラム
+1時間 + 30分	duration	5400	1.5時間
+# The unit words are katakana loans, and they mix freely with the Latin
+# symbols in the same sentence.
+1,234,567ミリメートル	length	1234.567	1,234,567ミリメートル
+250ミリリットル + 1リットル	volume	1.25	1,250ミリリットル
+# The case particle glues straight onto the unit word with no space, in either
+# script, and the conversion still separates.
+2キロメートルをメートル	length	2000	2,000メートル
+2kmをメートル	length	2000	2,000メートル
+# The word operators need whitespace around them even though Japanese is
+# written without any.
+2km かける 3	length	6000	6キロメートル
+10km わる 4	length	2500	2.5キロメートル
+# A spelled cardinal, in kanji numerals.
+千三十二	number	1032	1,032

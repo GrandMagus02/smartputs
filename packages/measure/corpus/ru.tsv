@@ -1,0 +1,40 @@
+# input	kind	canonical	formatted
+1 дюйм в пунктах	measure	1	72 пункта
+72 пункта в дюймах	measure	1	1 дюйм
+6 пик в дюймах	measure	1	1 дюйм
+1 дюйм в мм	measure	1	25,4 миллиметра
+96 пикселей в дюймах	measure	1	1 дюйм
+2 дюйма + 36 пунктов	measure	2.5	2,5 дюйма
+1 дюйм - 12 пунктов	measure	0.8333333333333333333333333333	0,83333333333333333333333333 дюйма
+3 дюйма * 2	measure	6	6 дюймов
+1 дюйм / 4	measure	0.25	0,25 дюйма
+-2 дюйма	measure	-2	-2 дюйма
+1 пика в пунктах	measure	0.1666666666666666666666666667	12 пунктов
+10 мм в см	measure	0.3937007874015748031496062992	1 сантиметр
+один дюйм	measure	1	1 дюйм
+двенадцать пунктов	measure	0.1666666666666666666666666667	12 пунктов
+# A decimal comma, and a U+00A0 group separator on the way out.
+25,4 мм в дюймах	measure	1	1 дюйм
+1234567 px	measure	12860.07291666666666666666667	1 234 567 пикселей
+# The four categories. 21 is singular and 11 is not — the rule reads the last
+# two digits, not the last one.
+1 пункт	measure	0.01388888888888888888888888889	1 пункт
+2 пункта	measure	0.02777777777777777777777777778	2 пункта
+5 пунктов	measure	0.06944444444444444444444444444	5 пунктов
+11 пунктов	measure	0.1527777777777777777777777778	11 пунктов
+21 пункт	measure	0.2916666666666666666666666667	21 пункт
+# `other`, the fractional category, is the genitive singular, and for a hard
+# masculine that is the same word `few` uses. Polish spells the two apart.
+1,5 дюйма	measure	1.5	1,5 дюйма
+# `пика` is feminine: nominative plural and genitive singular coincide, and
+# the genitive plural is the bare stem with no ending at all.
+2 пики	measure	0.3333333333333333333333333333	2 пики
+5 пик	measure	0.8333333333333333333333333333	5 пик
+# Three prepositions introduce a conversion target, and none of the cases they
+# govern survives into the answer: "в пунктах" is locative and "до мм"
+# genitive, and both come back nominative.
+1 дюйм до мм	measure	1	25,4 миллиметра
+# Both operators are two tokens, hanging off "на" — the same word `keywords.by`
+# claims for "divided by".
+3 дюйма умножить на 2	measure	6	6 дюймов
+1 дюйм разделить на 4	measure	0.25	0,25 дюйма

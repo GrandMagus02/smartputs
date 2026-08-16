@@ -1,0 +1,37 @@
+# input	kind	canonical	formatted
+120bpm	tempo	120	120bpm
+120bpm을 ms	duration	0.5	500밀리초
+120bpm을 초	duration	0.5	0.5초
+500ms를 bpm	tempo	120	120bpm
+1s를 bpm	tempo	60	60bpm
+2Hz를 bpm	tempo	120	120bpm
+120bpm을 Hz	tempo	120	2헤르츠
+120bpm + 8bpm	tempo	128	128bpm
+140bpm - 20bpm	tempo	120	120bpm
+60bpm * 2	tempo	120	120bpm
+120bpm / 2	tempo	60	60bpm
+-10bpm	tempo	-10	-10bpm
+백이십bpm	tempo	120	120bpm
+174bpm	tempo	174	174bpm
+# Three conversion particles — 을 and 를 for the accusative, 에서 for the
+# ablative — each glued to the word before it.
+120bpm를 밀리초	duration	0.5	500밀리초
+120bpm에서 초	duration	0.5	0.5초
+# A particle glued to a *Hangul* unit does not separate: "1초를 bpm" fails where
+# the Latin "1s를 bpm" above parses. Spacing it off is the other way through.
+1초 를 bpm	tempo	60	60bpm
+# Word operators take a space on both sides, though Korean glues the particles.
+60bpm 곱하기 2	tempo	120	120bpm
+120bpm 나누기 2	tempo	60	60bpm
+# No number agreement anywhere, so 1 and 2 and a half take the same 헤르츠, and
+# one hertz is sixty beats a minute rather than one.
+1Hz	tempo	60	1헤르츠
+2Hz	tempo	120	2헤르츠
+1.5Hz	tempo	90	1.5헤르츠
+# A glued Hangul unit is fine on a bare quantity; it is only the conversion that
+# needs the particle loose.
+120헤르츠	tempo	7200	120헤르츠
+# No space between the number and the unit, on input or output. The separators
+# are English's, and 만 is a magnitude word in its own right.
+1,200bpm	tempo	1200	1,200bpm
+1만bpm	tempo	10000	10,000bpm

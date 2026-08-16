@@ -1,0 +1,72 @@
+# input	kind	canonical	formatted
+#
+# The clock is 2026-01-15T12:00:00Z — a Thursday — and the engine zone is UTC,
+# the same pinning `corpus/en.tsv` records. `canonical` is epoch nanoseconds for
+# a datetime and canonical seconds for a duration. `formatted` follows
+# "YYYY-MM-DD HH:MM <zone symbol>", with midnight whenever the input named no
+# time of day — and it is never translated, because the kind's format hook
+# builds it from Temporal fields rather than from ICU.
+#
+# Every numeral below is Latin. Arabic-Indic digits do not reach the reader —
+# they are dropped silently and the quantity defaults to 1 — so a row written
+# with them would record a wrong answer that looks like a right one.
+
+# datetime — recognition. An ISO date is the one date syntax every locale
+# shares; a bare clock time takes its date from the pinned clock.
+2026-03-01	datetime	1772323200000000000	2026-03-01 00:00 UTC
+9:30	datetime	1768469400000000000	2026-01-15 09:30 UTC
+
+# The date reader is chrono-node in its English configuration, whichever locale
+# formats the answer, so "غدا" and "1 مارس 2026" throw while their English
+# spellings read under an Arabic engine. A known gap, recorded here rather than
+# worked around: `chrono-bridge.ts` says as much where it spells `to|as|in` in
+# English. "اليوم" is worse than a throw and is deliberately not a row below:
+# the article stripper reaches the day unit, so Arabic for "today" comes back as
+# a one-day duration rather than as a date.
+next friday	datetime	1769126400000000000	2026-01-23 00:00 UTC
+1 March 2026	datetime	1772323200000000000	2026-03-01 00:00 UTC
+
+# datetime + duration, with the duration spelled in Arabic.
+2026-03-01 + 3 أيام	datetime	1772582400000000000	2026-03-04 00:00 UTC
+2026-03-01 - 1 أسبوع	datetime	1771718400000000000	2026-02-22 00:00 UTC
+9:30 + 90 دقيقة	datetime	1768474800000000000	2026-01-15 11:00 UTC
+# February is 28 days long in 2026; the addition is calendar arithmetic, not
+# 86400 seconds.
+2026-02-28 + 1 d	datetime	1772323200000000000	2026-03-01 00:00 UTC
+
+# A date difference is the one place this kind can state a plural category: the
+# result is a duration, and the number is whatever the two dates make it. All
+# six Arabic categories, without a single hand-written quantity — and the
+# category is read off the *result*, so the unit it lands on is what picks the
+# word.
+2026-01-15 - 2026-01-15	duration	0	0 ثانية
+2026-01-15 12:00 - 2026-01-15 11:00	duration	3600	1 ساعة
+2026-01-17 - 2026-01-15	duration	172800	2 يومان
+2026-01-20 - 2026-01-15	duration	432000	5 أيام
+2026-01-15 23:00 - 2026-01-15 12:00	duration	39600	11 ساعة
+# `durationValue` reports the largest unit it fills, so 45 days is weeks, and
+# the fraction is `other`. A Latin decimal point on the first, a Latin group
+# separator on the second, both inside a right-to-left string.
+2026-03-01 - 2026-01-15	duration	3888000	6.4285714285714285714285714 أسبوع
+1000 يوم	duration	86400000	1,000 يوم
+# "في" is both "in" and "times", and the keyword table claims it for the
+# conversion preposition — so "ضرب" is what is left to spell multiplication.
+2 أسبوع ضرب 3	duration	3628800	6 أسابيع
+6 ساعات قسمة 2	duration	10800	3 ساعات
+-5 دقائق	duration	-300	-5 دقائق
+
+# Zone conversion. "إلى" keeps the instant and relabels the wall clock; "الى"
+# is the same word written without the hamza, and "في" the third.
+15:00 إلى طوكيو	datetime	1768489200000000000	2026-01-16 00:00 JST
+15:00 الى طوكيو	datetime	1768489200000000000	2026-01-16 00:00 JST
+15:00 في اليابان	datetime	1768489200000000000	2026-01-16 00:00 JST
+# July, so London is on BST and the same zone that reads +00:00 in January
+# reads +01:00 here. Only a date-aware kind can tell the two apart.
+2026-07-01 إلى لندن	datetime	1782864000000000000	2026-07-01 01:00 London
+
+# Nothing below is a date. These rows are the accept-gate's regression guard
+# (plan ruling R4): if a chrono upgrade starts claiming them, they fail loudly.
+10 km + 5 km	length	15000	15 كيلومترًا
+20 C	temperature	20	20 °C
+5 دقائق	duration	300	5 دقائق
+

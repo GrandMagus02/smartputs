@@ -1,0 +1,37 @@
+# input	kind	canonical	formatted
+2週間	duration	1209600	2週間
+30時間 - 30分	duration	106200	29.5時間
+90分を時間	duration	5400	1.5時間
+1日を時間	duration	86400	24時間
+1週間を日	duration	604800	7日
+500ms + 500ms	duration	1	1,000ms
+2時間 * 3	duration	21600	6時間
+1日 / 4	duration	21600	0.25日
+-2時間	duration	-7200	-2時間
+1時間を秒	duration	3600	3,600秒
+3600秒を時間	duration	3600	1時間
+1.5時間を分	duration	5400	90分
+2日 + 12時間	duration	216000	2.5日
+100,000秒	duration	100000	100,000秒
+一時間	duration	3600	1時間
+二百五分	duration	12300	205分
+# The myriad. Japanese counts in ten-thousands, so 万 is a magnitude word in
+# its own right and 一万 is one of them, not ten of a thousand.
+一万秒	duration	10000	10,000秒
+# No number agreement anywhere, and no `forms` table at all: every unit prints
+# through its symbol. 1 and 5 take the same word, and there is no space
+# between the number and the unit on either side — which is what makes the
+# round trip hold, the engine reading back its own "3,600秒" byte for byte.
+1時間	duration	3600	1時間
+5時間	duration	18000	5時間
+# The case particles を and から are glued to the unit word and separate from
+# it anyway.
+2時間から分	duration	7200	120分
+# 日間 reads and 日 prints; 週 reads and 週間 prints.
+1日間	duration	86400	1日
+1週	duration	604800	1週間
+# The word operators need whitespace around them even though Japanese is
+# written without any. The symbol operators above have no such requirement.
+2時間 かける 3	duration	21600	6時間
+1日 わる 4	duration	21600	0.25日
+10分 足す 5時間	duration	18600	310分

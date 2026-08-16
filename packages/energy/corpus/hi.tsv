@@ -1,0 +1,45 @@
+# input	kind	canonical	formatted
+1 kwh में जूल	energy	3600000	3,600,000 जूल
+2 kW * 3 घंटे	energy	21600000	21,600,000 जूल
+1 kwh / 1 घंटा	power	1000	1,000 वाट
+500 J + 500 J	energy	1000	1,000 जूल
+1 kJ - 250 J	energy	750	0.75 किलोजूल
+1 kJ / 4	energy	250	0.25 किलोजूल
+-1 kwh	energy	-3600000	-1 किलोवाट·घंटा
+एक किलोजूल	energy	1000	1 किलोजूल
+दो सौ जूल	energy	200	200 जूल
+# लाख is a magnitude word of its own — a hundred thousand, one step Hindi has
+# that the western scale does not.
+एक लाख जूल	energy	100000	100,000 जूल
+# The reader is grouping-agnostic: the Indian pattern and the western one are
+# one number to it, because a group separator is dropped rather than counted.
+# **The writer is not.** It groups in fixed threes and has no way yet to emit
+# "12,34,567" — a recorded gap in `@smartput/core`, and these two rows are
+# where it shows, two spellings going in and one coming back out.
+12,34,567 जूल	energy	1234567	1,234,567 जूल
+1,234,567 जूल	energy	1234567	1,234,567 जूल
+2.5 kwh	energy	9000000	2.5 किलोवाट·घंटा
+# No number agreement. Hindi marks no plural after a numeral, so both `forms`
+# rows hold one word and 1, 5 and 1.5 print alike.
+1 जूल	energy	1	1 जूल
+5 जूल	energy	5	5 जूल
+1.5 जूल	energy	1.5	1.5 जूल
+# The calorie's plural is an alias the vocabulary reads and never writes back.
+1 कैलोरी	energy	4.184	1 कैलोरी
+5 कैलोरियाँ	energy	20.92	5 कैलोरी
+# बीटीयू is a Devanagari transcription of the initialism, and it declares
+# `forms`, so it prints as a word rather than falling back to a symbol.
+5 बीटीयू	energy	5275.2792631	5 बीटीयू
+# The watt-hour family ships the interpunct notation, and U+00B7 is a spelling
+# of `*`: this reaches the resolver as किलोवाट, `*`, घंटा and comes back
+# through the power x duration signature, landing on joules rather than on the
+# unit it was printed from.
+1 किलोवाट·घंटा	energy	3600000	3,600,000 जूल
+# The word operators, all of them bare.
+2 kJ गुणा 3	energy	6000	6 किलोजूल
+10 kJ भाग 4	energy	2500	2.5 किलोजूल
+500 J जोड़ 500 J	energy	1000	1,000 जूल
+1 kJ घटा 250 J	energy	750	0.75 किलोजूल
+# A conversion hangs off a postposition rather than a preposition — में, को
+# and से all introduce the target.
+2 किलोजूल को जूल	energy	2000	2,000 जूल

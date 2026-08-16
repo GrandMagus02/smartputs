@@ -1,0 +1,37 @@
+# input	kind	canonical	formatted
+120 kph	speed	33.33333333333333333333333334	120 km/h
+100 kph en mph	speed	27.77777777777777777777777778	62,137119223733396961743418 mi/h
+60 mph en kph	speed	26.8224	96,56064 km/h
+1 knot en kph	speed	0.5144444444444444444444444444	1,852 km/h
+10 mps en kph	speed	10	36 km/h
+50 kph + 50 kph	speed	27.77777777777777777777777778	100 km/h
+100 kph - 20 kph	speed	22.22222222222222222222222222	80 km/h
+30 kph * 2	speed	16.66666666666666666666666667	60 km/h
+100 kph / 4	speed	6.944444444444444444444444445	25 km/h
+-10 kph	speed	-2.777777777777777777777777778	-10 km/h
+100 km / 2 h	speed	13.88888888888888888888888889	13,888888888888888888888889 m/s
+un kph	speed	0.2777777777777777777777777778	1 km/h
+3,6 kph en mps	speed	1	1 m/s
+# The group separator on output is U+202F, the narrow no-break space, not the
+# ordinary one. Never a byte anyone typed — this column came out of the
+# printer.
+20000 kph	speed	5555.555555555555555555555556	20 000 km/h
+# "fois" is bare; `over` is "divisé" and needs "par" after it.
+30 kph fois 2	speed	16.66666666666666666666666667	60 km/h
+100 kph divisé par 4	speed	6.944444444444444444444444445	25 km/h
+# "vers" is the second conversion preposition beside "en".
+100 kph vers mph	speed	27.77777777777777777777777778	62,137119223733396961743418 mi/h
+# Vigesimal: ninety is spelled four-twenties-ten.
+quatre-vingt-dix kph	speed	25	90 km/h
+# French `one` swallows every fraction below two, so the unit stays singular
+# where Spanish and Italian pluralise it. The second row is the proof: a
+# plural goes in and a singular comes out.
+1 nœud	speed	0.5144444444444444444444444444	1 nœud
+2 nœuds	speed	1.028888888888888888888888889	2 nœuds
+1,5 nœud	speed	0.7716666666666666666666666666	1,5 nœud
+1,5 nœuds	speed	0.7716666666666666666666666666	1,5 nœud
+# The ligature is optional on input and obligatory on output.
+1 noeud	speed	0.5144444444444444444444444444	1 nœud
+5 nd	speed	2.572222222222222222222222222	5 nœuds
+# The bridge, in French words.
+100 kilomètres / 2 heures	speed	13.88888888888888888888888889	13,888888888888888888888889 m/s

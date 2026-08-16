@@ -1,0 +1,40 @@
+# input	kind	canonical	formatted
+1 kg + 500 g	mass	1500	1,5 chilogrammi
+3 libbre	mass	1360.77711	3 libbre
+1 t in chilogrammi	mass	1000000	1.000 chilogrammi
+16 once in libbre	mass	453.59237	1 libbra
+1 kg in grammi	mass	1000	1.000 grammi
+2 kg - 500 g	mass	1500	1,5 chilogrammi
+3 kg * 4	mass	12000	12 chilogrammi
+1 t / 8	mass	125000	0,125 tonnellate
+-2 kg	mass	-2000	-2 chilogrammi
+500 mg in grammi	mass	0.5	0,5 grammi
+un chilogrammo	mass	1000	1 chilogrammo
+duecentocinque chilogrammi	mass	205000	205 chilogrammi
+2,5 tonnellate in chilogrammi	mass	2500000	2.500 chilogrammi
+1 libbra in once	mass	453.59237	16 once
+# "." groups and "," is the decimal point, the inverse of English, in both
+# directions.
+1.500 g in chilogrammi	mass	1500	1,5 chilogrammi
+1.234.567 mg	mass	1234.567	1.234.567 milligrammi
+# Italian pluralises a fraction — "1,5 chilogrammi". Portuguese and French,
+# with the same digits, print the singular.
+1,5 kg	mass	1500	1,5 chilogrammi
+0,5 grammi	mass	0.5	0,5 grammi
+# `oncia` / `once`: a -cia feminine whose plural drops the i. The plural is
+# spelled exactly like the French *singular* `once`, which is why neither
+# vocabulary can be derived from the other.
+1 oncia	mass	28.349523125	1 oncia
+2 once	mass	56.69904625	2 once
+1 libbra	mass	453.59237	1 libbra
+2 libbre	mass	907.18474	2 libbre
+# Italian spells the prefix with `ch`: `chilogrammo`, never `kilogrammo`. The
+# `k` spelling reads, because this vocabulary lists it, and never prints.
+1 kilogrammo in grammi	mass	1000	1.000 grammi
+2 chili	mass	2000	2 chilogrammi
+# The word operators. "per" is `times` — the same surface Italian says a
+# percentage with — and "diviso" stands alone, needing no "by" after it.
+2 kg per 3	mass	6000	6 chilogrammi
+10 kg diviso 4	mass	2500	2,5 chilogrammi
+# "a" is the second conversion preposition, beside "in".
+2 kg a grammi	mass	2000	2.000 grammi

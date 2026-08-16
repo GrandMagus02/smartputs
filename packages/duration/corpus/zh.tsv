@@ -1,0 +1,37 @@
+# input	kind	canonical	formatted
+2周	duration	1209600	2周
+30小时 - 30分钟	duration	106200	29.5小时
+90分钟到小时	duration	5400	1.5小时
+1天到小时	duration	86400	24小时
+500毫秒 + 500毫秒	duration	1	1,000毫秒
+2小时 * 3	duration	21600	6小时
+1天 / 4	duration	21600	0.25天
+-2小时	duration	-7200	-2小时
+1小时到秒	duration	3600	3,600秒
+3600秒到小时	duration	3600	1小时
+1.5小时到分钟	duration	5400	90分钟
+2天 + 12小时	duration	216000	2.5天
+100,000秒	duration	100000	100,000秒
+1,234,567毫秒	duration	1234.567	1,234,567毫秒
+# The myriad. Chinese counts in ten-thousands, so 万 is a magnitude word in
+# its own right and 一万 is one of them, not ten of a thousand.
+一小时	duration	3600	1小时
+一万秒	duration	10000	10,000秒
+二百零五小时	duration	738000	205小时
+# No number agreement of any kind, and no space between the number and the
+# unit on either side, which is what makes the round trip hold: the engine
+# reads back its own "3,600秒" byte for byte. The separators are English's.
+1小时	duration	3600	1小时
+5小时	duration	18000	5小时
+# 换算 and 为 are verbs rather than prepositions, and each introduces a target
+# on its own.
+2小时换算分钟	duration	7200	120分钟
+1周为天	duration	604800	7天
+# 到 needs the space that 为 does not: glued to 周 it is read as the word 周到
+# instead of a unit and a keyword.
+1周 到 天	duration	604800	7天
+# The word operators need whitespace around them even though Chinese is
+# written without any. The symbol operators above have no such requirement.
+2小时 乘 3	duration	21600	6小时
+1天 除以 4	duration	21600	0.25天
+10分钟 加 5小时	duration	18600	310分钟

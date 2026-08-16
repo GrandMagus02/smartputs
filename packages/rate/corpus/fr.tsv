@@ -1,0 +1,42 @@
+# input	kind	canonical	formatted
+30 usd	money	27.27272727272727272727272727	$30,00
+2 euros	money	2	€2,00
+100 dollars en euros	money	90.90909090909090909090909091	€90,91
+5 euros plus 5 euros	money	10	€10,00
+30 dollars moins 10 euros	money	17.27272727272727272727272727	$19,00
+2 euros fois 3	money	6	€6,00
+10 euros divisé par 4	money	2.5	€2,50
+-5 euros	money	-5	-€5,00
+deux euros	money	2	€2,00
+(1 usd / 3) * 3	money	0.909090909090909090909090909	$1,00
+# French puts the decimal on "," and groups with U+202F, the narrow no-break
+# space — not the ordinary one, and not the U+00A0 Ukrainian uses. Every
+# formatted string below with four digits in it carries that character.
+#
+# And the fraction takes the *singular*: French's `one` category swallows
+# every value below two, so it is "1,5 euro" here and "1,5 euros" in Spanish
+# for the same amount.
+1,5 euro	money	1.5	€1,50
+1234567 uah en euros	money	27133.34065934065934065934066	€27 133,34
+1000 euros	money	1000	€1 000,00
+# All three spaces are read back, so a user may type what the formatter
+# printed, what their keyboard makes, or what a spreadsheet pasted.
+1 000,50 euros	money	1000.5	€1 000,50
+1 000,50 euros	money	1000.5	€1 000,50
+1 000,50 euros	money	1000.5	€1 000,50
+# A currency with no minor unit still gets the narrow space.
+1000 yens	money	5.882352941176470588235294118	¥1 000
+# The vigesimal cardinal: ninety is "four-twenty-ten", one token joined by
+# hyphens rather than three words.
+quatre-vingt-dix euros	money	90	€90,00
+# "en" and "vers" both introduce a target; multiply has a one-word form and
+# a two-token one, and division only ever has the two-token one.
+100 dollars vers euros	money	90.90909090909090909090909091	€90,91
+2 euros multiplié par 3	money	6	€6,00
+# The words French coined rather than borrowed. "livre" is also
+# @smartput/mass's word for the pound, which is the same collision English
+# has and is left standing for the same reason.
+3 livres	money	3.566333808844507845934379457	£3,00
+5 francs	money	5.31914893617021276595744681	CHF5,00
+100 hryvnias	money	2.197802197802197802197802198	₴100,00
+5 zlotys	money	1.168224299065420560747663552	zł5,00

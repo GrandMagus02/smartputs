@@ -1,0 +1,39 @@
+# input	kind	canonical	formatted
+90 градусов	angle	1.570796326794896619231321692	90 градусов
+90 градусов в радианах	angle	1.570796326794896619231321692	1,5707963267948966192313217 радиана
+0,25 оборота в градусах	angle	1.570796326794896619231321692	90 градусов
+200 градов в градусах	angle	3.141592653589793238462643383	180 градусов
+90 градусов + 90 градусов	angle	3.141592653589793238462643384	180 градусов
+1 оборот - 90 градусов	angle	4.712388980384689857693965075	0,75 оборота
+180 градусов / 4	angle	0.7853981633974483096156608458	45 градусов
+-90 градусов	angle	-1.570796326794896619231321692	-90 градусов
+1 радиан в градусах	angle	1	57,295779513082320876798155 градуса
+один оборот	angle	6.283185307179586476925286767	1 оборот
+двести градов	angle	3.141592653589793238462643383	200 градов
+360 градусов в оборотах	angle	6.283185307179586476925286767	1 оборот
+# The four plural categories. 21 is singular and 11 is not: Russian reads the
+# last digit unless the last two are a teen.
+1 градус	angle	0.01745329251994329576923690768	1 градус
+2 градуса	angle	0.03490658503988659153847381537	2 градуса
+5 градусов	angle	0.08726646259971647884618453842	5 градусов
+11 градусов	angle	0.1919862177193762534616059845	11 градусов
+21 градус	angle	0.3665191429188092111539750614	21 градус
+# The fractional category is the genitive *singular*, and for this unit it is
+# the same word `few` takes — which is exactly why Polish, where the two are
+# different words, is the file that proves the categories are distinct.
+1,5 градуса	angle	0.02617993877991494365385536153	1,5 градуса
+# The radian is the unit where the genitive plural collapses back onto the
+# nominative singular: "1 радиан" and "5 радиан" are one word, and only the
+# `few` form in between separates them.
+1 радиан	angle	1	1 радиан
+2 радиана	angle	2	2 радиана
+5 радиан	angle	5	5 радиан
+# A U+00A0 group separator on the way out, read from a plain space on the
+# way in.
+1 234 567 градусов	angle	21547.25898646883482793950141	1 234 567 градусов
+# Both word operators are two tokens, and both hang off "на" as `keywords.by`.
+45 градусов умножить на 2	angle	1.570796326794896619231321692	90 градусов
+180 градусов разделить на 4	angle	0.7853981633974483096156608458	45 градусов
+# "до" is a second conversion preposition beside "в", and it lands on the same
+# form "в" does: the result has a magnitude, so the nominative axis decides.
+90 градусов до радианов	angle	1.570796326794896619231321692	1,5707963267948966192313217 радиана

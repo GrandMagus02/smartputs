@@ -1,0 +1,50 @@
+# input	kind	canonical	formatted
+1 kwh إلى جول	energy	3600000	3,600,000 جول
+2 كيلوواط * 3 ساعات	energy	21600000	21,600,000 جول
+1 kwh / 1 ساعة	power	1000	1,000 واط
+500 جول + 500 جول	energy	1000	1,000 جول
+1 كيلوجول - 250 جول	energy	750	0.75 كيلوجول
+1 كيلوجول / 4	energy	250	0.25 كيلوجول
+-1 kwh	energy	-3600000	-1 كيلوواط·ساعة
+واحد كيلوجول	energy	1000	1 كيلوجول
+مئتان جول	energy	200	200 جول
+# The digits and separators are Latin. `ar` resolves to a `latn` numbering
+# system with "," for groups and "." for the decimal, so an Arabic sentence
+# reads and prints its numbers left to right inside right-to-left text.
+1,500 جول إلى كيلوجول	energy	1500	1.5 كيلوجول
+2.5 kwh	energy	9000000	2.5 كيلوواط·ساعة
+# Six plural categories, the most any language in this set has. CLDR's Arabic
+# rule: 0 zero, 1 one, 2 two, 3-10 few, 11-99 many, and every fraction other.
+# `two` is a dual — a suffix on the noun, not a second word — and `many` is an
+# accusative **singular** with tanwīn, not a plural.
+0 جول	energy	0	0 جول
+1 جول	energy	1	1 جول
+2 جول	energy	2	2 جولان
+3 جول	energy	3	3 جولات
+11 جول	energy	11	11 جولًا
+1.5 جول	energy	1.5	1.5 جول
+# The category is read off the *result* and off nothing that was typed: 10 is
+# few, 3 is few, and 30 is many. ضرب is the word for "multiplied", because في
+# is spoken for — see below.
+10 جول	energy	10	10 جولات
+10 جول ضرب 3	energy	30	30 جولًا
+# سعرة is feminine and ends in tāʾ marbūṭa, which changes two rows. The dual
+# replaces the ة rather than suffixing it, and the accusative tanwīn on a ة
+# carries no alif — so the `many` form is spelled exactly like the singular,
+# where جولًا above is not.
+2 سعرة	energy	8.368	2 سعرتان
+11 سعرة	energy	46.024	11 سعرة
+# BTU has no Arabic word at all: the phrase is three words and the
+# abbreviation is dotted, and neither can be one token. The Latin initialism
+# is what ships, and with no `forms` it prints on the symbol branch.
+5 btu	energy	5275.2792631	5 btu
+# في is both "in" and "times" in Arabic and it is claimed as the conversion
+# preposition, so ضرب above is what is left to say "multiplied". Division is
+# two tokens, hanging off على as `keywords.by`.
+2 كيلوجول في جول	energy	2000	2,000 جول
+10 كيلوجول قسمة على 4	energy	2500	2.5 كيلوجول
+# The watt-hour family ships the interpunct notation, which is correct Arabic
+# and is also arithmetic: U+00B7 is a spelling of `*`, so this reaches the
+# resolver as كيلوواط, `*`, ساعة and comes back through the power x duration
+# signature — landing on joules rather than on the unit it was printed from.
+1 كيلوواط·ساعة	energy	3600000	3,600,000 جول

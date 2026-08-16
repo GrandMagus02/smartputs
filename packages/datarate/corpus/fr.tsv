@@ -1,0 +1,43 @@
+# input	kind	canonical	formatted
+100 mbps	datarate	100000000	100 Mbps
+1 gbps en mbps	datarate	1000000000	1 000 Mbps
+500 Mo / 20 s	datarate	200000000	200 Mbps
+100 mbps * 1 min	datasize	750000000	750 000 000 octets
+1 min * 100 mbps	datasize	750000000	750 000 000 octets
+1 Go / 100 mbps	duration	80	80 secondes
+100 mbps + 50 mbps	datarate	150000000	150 Mbps
+200 mbps - 50 mbps	datarate	150000000	150 Mbps
+2 mbps * 3	datarate	6000000	6 Mbps
+1 gbps / 4	datarate	250000000	0,25 Gbps
+-10 mbps	datarate	-10000000	-10 Mbps
+8000 bps en kbps	datarate	8000	8 kbps
+# The vigesimal cardinals: ninety is "four-twenty-ten", spelled as one
+# hyphenated word.
+quatre-vingt-dix mégabits	datarate	90000000	90 Mbps
+# The group separator printed is U+202F, the narrow no-break space. The reader
+# takes an ordinary space for it, and takes the U+202F it prints back — the
+# second row is written with the character the first row is not.
+1 234 567 bps	datarate	1234567	1 234 567 bps
+12 345 bps	datarate	12345	12 345 bps
+1,5 gbps	datarate	1500000000	1,5 Gbps
+# French `one` swallows every count below two, zero included, so the noun after
+# 0 and after 1,5 is the **singular**. Spanish and Italian put both of those in
+# the plural — the sharpest disagreement in this package's fifteen tables. The
+# noun itself is `octet` rather than "byte", down to the symbols Mo, Go, To: a
+# French page writes a size in octets and a rate in bits, and the two words are
+# what keeps the factor of 8 visible.
+0 octet	datasize	0	0 octet
+2 octets	datasize	2	2 octets
+1,5 Go	datasize	1500000000	1,5 gigaoctet
+# `multiplié` and `divisé` both hang off `par` as `by`, two tokens folded
+# into one.
+2 mbps multiplié par 3	datarate	6000000	6 Mbps
+10 gbps divisé par 4	datarate	2500000000	2,5 Gbps
+# "mégas" is what a French speaker calls a megabit per second.
+100 mégas	datarate	100000000	100 Mbps
+# `vers` beside `en` as a second conversion preposition.
+1 gbps vers mbps	datarate	1000000000	1 000 Mbps
+# "mégabit" and "mégaoctet" name two kinds, and the factor of 8 between them
+# is the one the bridge signatures write out.
+100 mégabit	datarate	100000000	100 Mbps
+100 mégaoctet	datasize	100000000	100 mégaoctets

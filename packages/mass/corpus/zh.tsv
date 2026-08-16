@@ -1,0 +1,46 @@
+# input	kind	canonical	formatted
+10公斤	mass	10000	10千克
+3磅	mass	1360.77711	3磅
+1吨到千克	mass	1000000	1,000千克
+16盎司到磅	mass	453.59237	1磅
+1千克到克	mass	1000	1,000克
+10克 + 5千克	mass	5010	5,010克
+1千克 - 250克	mass	750	0.75千克
+10千克 * 3	mass	30000	30千克
+1吨 / 8	mass	125000	0.125吨
+-2千克	mass	-2000	-2千克
+500毫克到克	mass	0.5	0.5克
+1.5千克	mass	1500	1.5千克
+1,234,567毫克	mass	1234.567	1,234,567毫克
+1,500克到千克	mass	1500	1.5千克
+1000千克到吨	mass	1000000	1吨
+# No number agreement of any kind: Chinese marks plurality nowhere on a noun,
+# so every unit here has exactly one printed form and 1 and 5 take the same
+# word. The separators are English's — "," for groups, "." for the decimal.
+1克	mass	1	1克
+5克	mass	5	5克
+# No space between the number and the unit, on input or output. `Printer`'s
+# `gap` is empty for this language, which is what makes the round trip hold:
+# the engine reads back its own "2,000克" byte for byte.
+2千克为克	mass	2000	2,000克
+# 公斤 and 公吨 are the everyday words and 千克 and 吨 are the printed ones —
+# two spellings per unit, and only one of each pair on the way out.
+2公吨	mass	2000000	2吨
+# The myriad. Chinese counts in ten-thousands, so 万 is a magnitude word in its
+# own right and 一万 is one of them, not ten of a thousand.
+一万克	mass	10000	10,000克
+# A spelled cardinal has to reach the kilogram through 公斤, because 千克 opens
+# with 千 — the numeral reader takes the "thousand" and leaves 克 behind, and
+# "二百零五千克" does not parse at all.
+一公斤	mass	1000	1千克
+二百零五公斤	mass	205000	205千克
+# The word operators need whitespace around them even though Chinese is
+# written without any: 乘 and 除以 are matched as separate tokens, and
+# "2千克乘3" does not parse. The symbol operators above have no such
+# requirement.
+2千克 乘 3	mass	6000	6千克
+10千克 除以 4	mass	2500	2.5千克
+10克 加 5千克	mass	5010	5,010克
+# 换算 and 转换 are verbs rather than prepositions, and both introduce a target
+# on their own.
+2千克换算克	mass	2000	2,000克

@@ -1,0 +1,42 @@
+# input	kind	canonical	formatted
+3 متر * 4 متر	area	12	12 م²
+1 هكتار إلى م2	area	10000	10,000 م²
+1 أكر إلى م2	area	4046.8564224	4,046.8564224 م²
+2 كم2 إلى هكتار	area	2000000	200 هكتار
+5000 سم2 إلى م2	area	0.5	0.5 م²
+10 م2 + 5 م2	area	15	15 م²
+1 هكتار - 2500 م2	area	7500	0.75 هكتار
+3 م2 * 4	area	12	12 م²
+100 م2 / 4	area	25	25 م²
+-5 م2	area	-5	-5 م²
+1 م2 إلى سم2	area	1	10,000 سم²
+1 كم * 1 كم	area	1000000	1,000,000 م²
+مئتان وخمسة هكتار	area	2050000	205 هكتارات
+# Six plural categories, the most any language in this set has, and one of them
+# a dual — a suffix on the noun rather than a separate word. CLDR's Arabic
+# rule: 0 zero, 1 one, 2 two, 3-10 few, 11-99 many, and everything else — 100,
+# and every fraction — other.
+0 هكتار	area	0	0 هكتار
+1 هكتار	area	10000	1 هكتار
+2 هكتار	area	20000	2 هكتاران
+3 هكتار	area	30000	3 هكتارات
+11 هكتار	area	110000	11 هكتارًا
+100 هكتار	area	1000000	100 هكتار
+1.5 هكتار	area	15000	1.5 هكتار
+# `many` is not a plural at all — "11 هكتارًا" above is an accusative singular
+# with tanwīn — and the dual is a suffix on the noun rather than a word beside
+# it. The second declined unit carries the same six categories, and the
+# category is read off the *result*, never off anything typed.
+2 أكر	area	8093.7128448	2 أكران
+# The digits and separators are Latin. `ar` resolves to a `latn` numbering
+# system with "," for groups and "." for the decimal, so an Arabic sentence
+# reads and prints its numbers left to right inside right-to-left text. An area
+# conversion reaches the group separator almost at once — a hectare is 10,000
+# m².
+1,500 م2	area	1500	1,500 م²
+# في is both "in" and "times", and it is claimed as a conversion preposition,
+# so ضرب is what is left to say "multiplied". قسمة على is the two-token
+# division, hanging off على as `keywords.by`.
+2 هكتار في م2	area	20000	20,000 م²
+10 م2 ضرب 3	area	30	30 م²
+100 م2 قسمة على 4	area	25	25 م²

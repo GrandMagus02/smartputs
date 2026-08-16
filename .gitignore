@@ -1,6 +1,7 @@
 node_modules/
 dist/
 .size-tmp/
+.publish/
 *.tsbuildinfo
 .DS_Store
 .env*

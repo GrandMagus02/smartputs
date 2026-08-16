@@ -1,0 +1,39 @@
+# input	kind	canonical	formatted
+2 Wochen	duration	1209600	2 Wochen
+30 Stunden - 30 Minuten	duration	106200	29,5 Stunden
+90 Minuten in Stunden	duration	5400	1,5 Stunden
+1 Tag in Stunden	duration	86400	24 Stunden
+500 ms + 500 ms	duration	1	1.000 Millisekunden
+2 Stunden * 3	duration	21600	6 Stunden
+-2 Stunden	duration	-7200	-2 Stunden
+1 Stunde in Sekunden	duration	3600	3.600 Sekunden
+3600 Sekunden in Stunden	duration	3600	1 Stunde
+45 Minuten	duration	2700	45 Minuten
+1,5 Stunden in Minuten	duration	5400	90 Minuten
+2 Tage + 12 Stunden	duration	216000	2,5 Tage
+eine Stunde	duration	3600	1 Stunde
+hundert Sekunden	duration	100	100 Sekunden
+1 Std	duration	3600	1 Stunde
+# "." groups and "," is the decimal point, which is English's pair the other
+# way round on both counts.
+86.400 Sekunden in Tagen	duration	86400	1 Tag
+# Five of the six units are feminine and take the same -n plural; `der Tag` is
+# the one masculine noun, and the only one that pluralises on a bare -e.
+1 Sekunde	duration	1	1 Sekunde
+2 Sekunden	duration	2	2 Sekunden
+1 Tag	duration	86400	1 Tag
+5 Tage	duration	432000	5 Tage
+# The dative is read and never printed. "Tagen" is what a German writes after
+# "in", and it is a listed alias for exactly that reason; "Tage" is what comes
+# back out.
+1 Woche in Tagen	duration	604800	7 Tage
+# A fraction takes the plural here, where French takes the singular for the
+# same number.
+1 Tag / 4	duration	21600	0,25 Tage
+# The word operators. "mal" is one token and "geteilt durch" is two — the verb
+# and the preposition are separate words, and the preposition is `keywords.by`
+# rather than anything division owns.
+2 Stunden mal 3	duration	21600	6 Stunden
+1 Tag geteilt durch 4	duration	21600	0,25 Tage
+# Three prepositions introduce a conversion target, not one.
+1 Woche nach Stunden	duration	604800	168 Stunden

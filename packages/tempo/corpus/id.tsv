@@ -1,0 +1,34 @@
+# input	kind	canonical	formatted
+120 bpm	tempo	120	120bpm
+120 bpm ke ms	duration	0.5	500 milidetik
+500 ms ke bpm	tempo	120	120bpm
+1 detik ke bpm	tempo	60	60bpm
+2 Hz ke bpm	tempo	120	120bpm
+120 bpm ke Hz	tempo	120	2 hertz
+120 bpm + 8 bpm	tempo	128	128bpm
+140 bpm - 20 bpm	tempo	120	120bpm
+60 bpm * 2	tempo	120	120bpm
+120 bpm / 2	tempo	60	60bpm
+-10 bpm	tempo	-10	-10bpm
+174 bpm	tempo	174	174bpm
+# There is no spelled cardinal row in this file, and there is no other language
+# here it could be missing from: Indonesian is the one core language with no
+# cardinal table, so "satu bpm" does not parse.
+#
+# "ketukan" — a beat — reads a tempo and never prints one: the unit carries no
+# forms, so the symbol is all it can emit.
+120 ketukan	tempo	120	120bpm
+# "dalam" is the second conversion preposition beside "ke".
+120 bpm dalam milidetik	duration	0.5	500 milidetik
+# Both operators are single tokens between the operands.
+60 bpm kali 2	tempo	120	120bpm
+120 bpm bagi 2	tempo	60	60bpm
+# No plural at all. One `other` form covers every count, on the hertz and on the
+# second alike, so 1 and 2 and a half take the same word.
+1 Hz	tempo	60	1 hertz
+2 Hz	tempo	120	2 hertz
+1,5 Hz	tempo	90	1,5 hertz
+120 bpm ke detik	duration	0.5	0,5 detik
+# A dot groups and a comma decimals — the Dutch pair, and the one thing the
+# spelling of this language kept.
+1.200 bpm	tempo	1200	1.200bpm

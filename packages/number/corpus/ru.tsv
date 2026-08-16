@@ -1,0 +1,37 @@
+# input	kind	canonical	formatted
+1 + 1	number	2	2
+10 - 4	number	6	6
+6 * 7	number	42	42
+10 / 4	number	2.5	2,5
+-5	number	-5	-5
+(1 + 2) * 3	number	9	9
+100 / 3	number	33.33333333333333333333333333	33,333333333333333333333333
+# The decimal is a comma and the group separator is U+00A0, which is not the
+# space read on the way in.
+1 500	number	1500	1 500
+0,1 + 0,2	number	0.3	0,3
+1 500 + 500	number	2000	2 000
+# Four plural categories and nothing on this kind to spend them on: with no
+# noun beside the count there is no form to select, so what is left of Russian
+# grammar here is the numeral itself, which declines for gender at 1 and 2 and
+# nowhere else.
+один	number	1	1
+одна	number	1	1
+одно	number	1	1
+два	number	2	2
+две	number	2	2
+# The hundreds are their own words rather than compositions, and "тысяча"
+# takes a feminine "одна" in front of it where "миллион" takes "один".
+двести пять	number	205	205
+пятьсот	number	500	500
+девятьсот девяносто девять	number	999	999
+двадцать один	number	21	21
+одна тысяча тридцать два	number	1032	1 032
+десять тысяч	number	10000	10 000
+один миллион	number	1000000	1 000 000
+ноль	number	0	0
+# Word operators. Both of them are two tokens hanging off "на", which this
+# language claims as `by` — so a bare "на" divides nothing and multiplies
+# nothing on its own.
+6 умножить на 7	number	42	42
+10 разделить на 4	number	2.5	2,5

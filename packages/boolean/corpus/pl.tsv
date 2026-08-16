@@ -1,0 +1,47 @@
+# What a comparison returns. Registering this kind is what turns
+# `1000 MB = 1 GB` from an unresolvable expression into `true`.
+#
+# `true` and `false` are not translated, and that is this file's finding
+# rather than an oversight it hides: the kind ships no vocabulary at all,
+# so `formatValue` degrades to the unit key in every language. A Polish
+# engine answering "true" is what the code does today, and a row asserting
+# it is what makes a later `boolean/locale/pl` a visible diff here.
+# input	kind	canonical	formatted
+1000 MB = 1 GB	boolean	1	true
+1 km > 999 m	boolean	1	true
+1 km < 999 m	boolean	0	false
+1 m = 100 cm	boolean	1	true
+1 >= 1	boolean	1	true
+1 <= 0	boolean	0	false
+5 != 4	boolean	1	true
+1 kg + 500 g = 1,5 kg	boolean	1	true
+1 km - 250 m = 750 m	boolean	1	true
+-5 km < 0 km	boolean	1	true
+2 km w metrach = 2000 m	boolean	1	true
+jeden kilometr = 1000 metrów	boolean	1	true
+# The four plural categories on one unit, read rather than written. Polish
+# picks `few` for 2-4, `many` from 5 up, and the teens go to `many` however
+# they end.
+1 metr = 100 cm	boolean	1	true
+2 metry = 200 cm	boolean	1	true
+5 metrów = 500 cm	boolean	1	true
+12 metrów = 1200 cm	boolean	1	true
+22 metry = 2200 cm	boolean	1	true
+# The fractional category is the genitive *singular* — "1,5 metra", never
+# "1,5 metrów" — and it is a fifth word, not a reuse of one of the four.
+1,5 metra = 150 cm	boolean	1	true
+# The feminine unit, whose `many` form is a vowel-shifted bare stem rather
+# than an -ów ending.
+2 stopy = 60,96 cm	boolean	1	true
+5 stóp = 152,4 cm	boolean	1	true
+# A decimal comma and a U+00A0 group separator. A dot is not a separator
+# here, which is where Polish parts company with German and Dutch.
+1 500 mm = 1,5 m	boolean	1	true
+# "na" beside "w": Polish claims four prepositions for a conversion
+# target, and only "w" governs the locative that `selectForm` reads.
+2 km na metry = 2000 m	boolean	1	true
+# The word operators. "razy" stands alone; "podzielić przez" is two tokens
+# folded into one.
+2 km razy 3 = 6 km	boolean	1	true
+10 km podzielić przez 4 = 2,5 km	boolean	1	true
+1 cal = 2,54 cm	boolean	1	true

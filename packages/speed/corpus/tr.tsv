@@ -1,0 +1,39 @@
+# input	kind	canonical	formatted
+120 kph	speed	33.33333333333333333333333334	120 km/sa
+100 kph çevir mph	speed	27.77777777777777777777777778	62,137119223733396961743418 mil/sa
+60 mph çevir kph	speed	26.8224	96,56064 km/sa
+1 knot çevir kph	speed	0.5144444444444444444444444444	1,852 km/sa
+10 mps çevir kph	speed	10	36 km/sa
+50 kph + 50 kph	speed	27.77777777777777777777777778	100 km/sa
+100 kph - 20 kph	speed	22.22222222222222222222222222	80 km/sa
+30 kph * 2	speed	16.66666666666666666666666667	60 km/sa
+100 kph / 4	speed	6.944444444444444444444444445	25 km/sa
+-10 kph	speed	-2.777777777777777777777777778	-10 km/sa
+100 km / 2 saat	speed	13.88888888888888888888888889	13,888888888888888888888889 m/s
+bir kph	speed	0.2777777777777777777777777778	1 km/sa
+3,6 kph çevir mps	speed	1	1 m/s
+# "." groups and "," is the decimal point, German's pair.
+1.234 kph	speed	342.7777777777777777777777778	1.234 km/sa
+# The operators are all bare words, none of them two-token.
+30 kph çarpı 2	speed	16.66666666666666666666666667	60 km/sa
+100 kph bölü 4	speed	6.944444444444444444444444445	25 km/sa
+# A conversion is not a preposition: the sentence hangs off the verb "çevir".
+# "to" is claimed beside it because Turkish writing borrows it.
+100 kph to mph	speed	27.77777777777777777777777778	62,137119223733396961743418 mil/sa
+# Turkish does not pluralise after a numeral, so the knot has exactly one
+# printed form and no number axis at all. 1, 5 and 1,5 take the same word.
+1 knot	speed	0.5144444444444444444444444444	1 knot
+5 knot	speed	2.572222222222222222222222222	5 knot
+1,5 knot	speed	0.7716666666666666666666666666	1,5 knot
+# The suffix stripper. Dative, ablative and plural endings agglutinate onto
+# the unit and none of them is an alias; the stripper takes them off and the
+# bare stem matches.
+10 knota	speed	5.144444444444444444444444444	10 knot
+10 knotlar	speed	5.144444444444444444444444444	10 knot
+# Case folding, and then the dotless i. `toLocaleLowerCase("tr")` sends "I"
+# to "ı" and "İ" to "i", so both spellings of a capitalised unit have to fold
+# onto the one alias. No other language in this set has a fold that moves a
+# letter's identity.
+100 KPH	speed	27.77777777777777777777777778	100 km/sa
+1 MİL / 1 DAKİKA	speed	26.8224	26,8224 m/s
+1 MIL / 1 DAKIKA	speed	26.8224	26,8224 m/s

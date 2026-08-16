@@ -1,0 +1,49 @@
+# input	kind	canonical	formatted
+1 кг + 500 г	mass	1500	1,5 килограмма
+3 фунта	mass	1360.77711	3 фунта
+1 т в килограммах	mass	1000000	1 000 килограммов
+16 унций в фунтах	mass	453.59237	1 фунт
+1 кг в граммах	mass	1000	1 000 граммов
+2 кг - 500 г	mass	1500	1,5 килограмма
+3 кг * 4	mass	12000	12 килограммов
+1 т / 8	mass	125000	0,125 тонны
+-2 кг	mass	-2000	-2 килограмма
+500 мг в граммах	mass	0.5	0,5 грамма
+один килограмм	mass	1000	1 килограмм
+двести пять килограммов	mass	205000	205 килограммов
+2,5 тонны в килограммах	mass	2500000	2 500 килограммов
+1 фунт в унциях	mass	453.59237	16 унций
+1 500 г в килограммах	mass	1500	1,5 килограмма
+# The four plural categories on one unit, which English has two of. 21 is
+# singular in Russian and 11 is not, and neither follows from the other.
+1 килограмм	mass	1000	1 килограмм
+2 килограмма	mass	2000	2 килограмма
+5 килограммов	mass	5000	5 килограммов
+11 килограммов	mass	11000	11 килограммов
+21 килограмм	mass	21000	21 килограмм
+# The fractional category is the genitive *singular*, which for a masculine
+# unit is spelled like the `few` form and for a feminine one is not.
+1,5 кг	mass	1500	1,5 килограмма
+1,5 килограмма	mass	1500	1,5 килограмма
+1,5 тонны	mass	1500000	1,5 тонны
+# `тонна` is feminine: its nominative plural and its genitive singular coincide
+# ("2 тонны", "1,5 тонны") while its genitive plural is a bare stem. `унция` is
+# the -ия feminine beside it, and its genitive plural ends in -й rather than
+# stripping to nothing, so the two feminines do not share one paradigm either.
+1 тонна	mass	1000000	1 тонна
+2 тонны	mass	2000000	2 тонны
+5 тонн	mass	5000000	5 тонн
+2 унции	mass	56.69904625	2 унции
+5 унций	mass	141.747615625	5 унций
+# Where Russian and Polish part company on the same number: `few` is the
+# genitive singular here ("102 килограмма") and the nominative plural there
+# ("102 kilogramy"). Same category, different word.
+102 килограмма	mass	102000	102 килограмма
+# A decimal comma and a U+00A0 group separator.
+1 234 567 мг	mass	1234.567	1 234 567 миллиграммов
+# Both word operators are two tokens: "на" is `keywords.by`, and it is what
+# both "умножить на" and "разделить на" hang off.
+2 кг умножить на 3	mass	6000	6 килограммов
+10 кг разделить на 4	mass	2500	2,5 килограмма
+# "до" is the second conversion preposition, beside "в".
+2 кг до граммов	mass	2000	2 000 граммов

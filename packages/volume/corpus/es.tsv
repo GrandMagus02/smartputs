@@ -1,0 +1,37 @@
+# input	kind	canonical	formatted
+2 l	volume	2	2 litros
+2 l en ml	volume	2	2.000 mililitros
+1 gal en l	volume	3.785411784	3,785411784 litros
+1 pinta en ml	volume	0.473176473	473,176473 mililitros
+500 ml + 500 ml	volume	1	1.000 mililitros
+2 l - 250 ml	volume	1.75	1,75 litros
+3 l * 4	volume	12	12 litros
+1 l / 4	volume	0.25	0,25 litros
+-2 l	volume	-2	-2 litros
+1 gal en pintas	volume	3.785411784	8 pintas
+un litro	volume	1	1 litro
+doscientos cinco litros	volume	205	205 litros
+# "." groups and "," is the decimal point, the inverse of English's pair.
+1.500 ml en litros	volume	1.5	1,5 litros
+1,5 l	volume	1.5	1,5 litros
+1.234.567 ml	volume	1234.567	1.234.567 mililitros
+# Two categories, and a fraction takes the *plural* — "1,5 litros", "0,5
+# litros". French says the singular for the same number, which is the one
+# place these two Romance grammars disagree outright.
+1 litro	volume	1	1 litro
+2 litros	volume	2	2 litros
+0,5 l	volume	0.5	0,5 litros
+# The two genders. `el galón` carries an accent that its plural drops, and
+# `la pinta` is feminine; neither is a suffix a stripper could add.
+1 galón	volume	3.785411784	1 galón
+2 galones	volume	7.570823568	2 galones
+2 pintas	volume	0.946352946	2 pintas
+# Spanish has no one-token word for the cubic metre, so the unit has no
+# `forms` at all and printing falls through to the symbol — glued, because
+# `defaultRenderQuantity` puts no gap before a bare symbol.
+2 m3	volume	2000	2m³
+# "a" is the second conversion preposition beside "en"; "por" is `times` and
+# "entre" is `over`, which is why Spanish division cannot be said with "por".
+2 l a ml	volume	2	2.000 mililitros
+2 l por 3	volume	6	6 litros
+10 l entre 4	volume	2.5	2,5 litros

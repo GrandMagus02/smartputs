@@ -1,0 +1,32 @@
+# input	kind	canonical	formatted
+20%	percent	0.2	20 %
+20 procent	percent	0.2	20 %
+50 + 20%	number	60	60
+50 - 10%	number	45	45
+20% van 50	number	10	10
+10% + 5%	percent	0.15	15 %
+100% - 40%	percent	0.6	60 %
+50 * 10%	percent	5	500 %
+10% / 2	percent	0.05	5 %
+-10%	percent	-0.1	-10 %
+tien procent	percent	0.1	10 %
+vijfentwintig procent	percent	0.25	25 %
+honderdtwintig procent	percent	1.2	120 %
+0,5 in procent	percent	0.5	50 %
+5 / 50 in procent	percent	0.1	10 %
+# "." groups and "," is the decimal point — the same pair Indonesian borrowed.
+2,5%	percent	0.025	2,5 %
+1.000%	percent	10	1.000 %
+100 * 20%	percent	20	2.000 %
+# A Dutch measure noun does not pluralise after a numeral: "20 procent", never
+# "20 procenten". The free plural is read all the same, and the suffix stripper
+# does not take -en off in this language, so it is listed rather than derived.
+20 procenten	percent	0.2	20 %
+# `nl.ts` overrides `renderQuantity` to set the symbol off from the number, as
+# German and French do and Italian does not.
+20 %	percent	0.2	20 %
+# Two words for `times`, and "gedeeld door" is two tokens.
+50 maal 10%	percent	5	500 %
+50 keer 10%	percent	5	500 %
+10% gedeeld door 2	percent	0.05	5 %
+0,5 naar procent	percent	0.5	50 %

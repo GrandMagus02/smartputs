@@ -1,0 +1,39 @@
+# input	kind	canonical	formatted
+100 mbps	datarate	100000000	100 Mbit
+1 gbit çevir mbit	datarate	1000000000	1.000 Mbit
+500 MB / 20 s	datarate	200000000	200 Mbit
+100 mbit * 1 min	datasize	750000000	750.000.000 bayt
+1 min * 100 mbit	datasize	750000000	750.000.000 bayt
+1 GB / 100 mbit	duration	80	80 saniye
+100 mbit + 50 mbit	datarate	150000000	150 Mbit
+200 mbit - 50 mbit	datarate	150000000	150 Mbit
+2 mbit * 3	datarate	6000000	6 Mbit
+1 gbit / 4	datarate	250000000	0,25 Gbit
+-10 mbit	datarate	-10000000	-10 Mbit
+8000 bit çevir kbit	datarate	8000	8 kbit
+iki yüz megabit	datarate	200000000	200 Mbit
+# "." groups and "," marks the decimal.
+1.234.567 bit	datarate	1234567	1.234.567 bit
+1,5 gbit	datarate	1500000000	1,5 Gbit
+# No number axis anywhere in this engine: `bayt` and `saniye` each have exactly
+# one printed form, and the "80 saniye" in the spine above is the same word a
+# count of one would print. Turkish marks number on the numeral, not the noun.
+1 bayt	datasize	1	1 bayt
+5 bayt	datasize	5	5 bayt
+# The dotless i. Turkish uppercases `i` to `İ` and `ı` to `I`, so both castings
+# of the same word have to fold onto one key — a locale-blind `toLowerCase`
+# turns "KILOBIT" into "kilobit" and "KİLOBİT" into "ki̇lobi̇t".
+10 KİLOBİT	datarate	10000	10 kbit
+10 KILOBIT	datarate	10000	10 kbit
+# The case suffixes are stripped rather than listed: the ablative `-ten` and the
+# plural `-ler` are read off a unit the vocabulary only knows bare.
+5 mbitten	datarate	5000000	5 Mbit
+5 mbitler	datarate	5000000	5 Mbit
+# The word operators stand alone — there is no `by` in this language's keywords
+# for a second token to hang off.
+2 mbit çarpı 3	datarate	6000000	6 Mbit
+10 gbit bölü 4	datarate	2500000000	2,5 Gbit
+# "megabit" and "megabayt" are one letter apart and name two kinds, and the
+# factor of 8 between them is the one the bridge signatures write out.
+100 megabit	datarate	100000000	100 Mbit
+100 megabayt	datasize	100000000	100 megabayt

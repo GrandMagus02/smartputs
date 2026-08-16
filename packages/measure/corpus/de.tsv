@@ -1,0 +1,39 @@
+# input	kind	canonical	formatted
+1 Zoll in pt	measure	1	72 Punkt
+72 pt in Zoll	measure	1	1 Zoll
+6 pc in Zoll	measure	1	1 Zoll
+1 Zoll in mm	measure	1	25,4 Millimeter
+1 Zoll in px	measure	1	96 Pixel
+96 px in Zoll	measure	1	1 Zoll
+2 Zoll + 36 pt	measure	2.5	2,5 Zoll
+1 Zoll - 12 pt	measure	0.8333333333333333333333333333	0,83333333333333333333333333 Zoll
+3 Zoll * 2	measure	6	6 Zoll
+1 Zoll / 4	measure	0.25	0,25 Zoll
+-2 Zoll	measure	-2	-2 Zoll
+1 pc in pt	measure	0.1666666666666666666666666667	12 Punkt
+10 mm in cm	measure	0.3937007874015748031496062992	1 Zentimeter
+ein Zoll	measure	1	1 Zoll
+zwölf Punkt	measure	0.1666666666666666666666666667	12 Punkt
+# The separators are English's, swapped. "." groups the thousands and "," is
+# the decimal point, on input and on output alike — 1.440 pt is a thousand
+# four hundred and forty of them, twenty inches, not one and a bit.
+25,4 mm in Zoll	measure	1	1 Zoll
+1.440 pt in Zoll	measure	20	20 Zoll
+1.234.567 px	measure	12860.07291666666666666666667	1.234.567 Pixel
+# Duden's rule for Maßangaben: a measure noun does not inflect after a
+# numeral. All six units here are masculine or neuter, so `nom-one` and
+# `nom-other` are the same word on every one of them and the number axis is
+# dead across the whole table. The real plural `Punkte` still reads.
+1 Punkt	measure	0.01388888888888888888888888889	1 Punkt
+12 Punkt	measure	0.1666666666666666666666666667	12 Punkt
+12 Punkte	measure	0.1666666666666666666666666667	12 Punkt
+5 Zentimeter	measure	1.968503937007874015748031496	5 Zentimeter
+# The dative is read, never printed. "in Millimetern" governs the target and
+# `dat-other` spells it out, but the answer is a bare quantity and comes back
+# nominative.
+1 Zoll in Millimetern	measure	1	25,4 Millimeter
+5 Zentimetern	measure	1.968503937007874015748031496	5 Zentimeter
+# The word operators. "mal" stands alone; "geteilt durch" is two tokens
+# folded into one, the way English folds "divided by".
+3 Zoll mal 2	measure	6	6 Zoll
+1 Zoll geteilt durch 4	measure	0.25	0,25 Zoll

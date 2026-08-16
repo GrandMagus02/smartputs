@@ -1,4 +1,4 @@
-import { BOOLEAN_KIND, type Value } from "@smartput/core";
+import { BOOLEAN_KIND, type Value } from "@smartput/kind";
 import { booleanValue, truthOf } from "./boolean";
 
 /**

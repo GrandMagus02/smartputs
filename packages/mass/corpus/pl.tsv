@@ -1,0 +1,57 @@
+# input	kind	canonical	formatted
+1 kg + 500 g	mass	1500	1,5 kilograma
+3 funty	mass	1360.77711	3 funty
+1 t w kilogramach	mass	1000000	1 000 kilogramów
+16 uncji w funtach	mass	453.59237	1 funt
+1 kg w gramach	mass	1000	1 000 gramów
+2 kg - 500 g	mass	1500	1,5 kilograma
+3 kg * 4	mass	12000	12 kilogramów
+1 t / 8	mass	125000	0,125 tony
+-2 kg	mass	-2000	-2 kilogramy
+500 mg w gramach	mass	0.5	0,5 grama
+jeden kilogram	mass	1000	1 kilogram
+dwieście pięć kilogramów	mass	205000	205 kilogramów
+2,5 tony w kilogramach	mass	2500000	2 500 kilogramów
+1 funt w uncjach	mass	453.59237	16 uncji
+1 500 g w kilogramach	mass	1500	1,5 kilograma
+# The four plural categories on one unit, which English has two of. Polish
+# picks `few` for 2-4, `many` from 5 up, and 21 goes to `many` — where
+# Ukrainian, on the same number, prints its nominative singular.
+1 kilogram	mass	1000	1 kilogram
+2 kilogramy	mass	2000	2 kilogramy
+5 kilogramów	mass	5000	5 kilogramów
+21 kilogramów	mass	21000	21 kilogramów
+22 kilogramy	mass	22000	22 kilogramy
+# The fractional category is the genitive *singular* — "1,5 kilograma", never
+# "1,5 kilogramów" — and it is a fifth word, not a reuse of one of the four.
+1,5 kg	mass	1500	1,5 kilograma
+1,5 kilograma	mass	1500	1,5 kilograma
+# `tona` is feminine, so its genitive plural is the **bare stem** where the
+# masculine grams take -ów, and its `few` and `other` cells land on one
+# spelling from two directions: a nominative plural and a genitive singular.
+2 tony	mass	2000000	2 tony
+5 ton	mass	5000000	5 ton
+# `uncja` is a -ja feminine, the paradigm where the genitive singular, the
+# genitive plural and the locative singular all collapse onto "uncji" — one
+# string standing for three cells, and the nominative plural the only one that
+# breaks out of it.
+1 uncja	mass	28.349523125	1 uncja
+2 uncje	mass	56.69904625	2 uncje
+5 uncji	mass	141.747615625	5 uncji
+1,5 uncji	mass	42.5242846875	1,5 uncji
+5 funtów	mass	2267.96185	5 funtów
+# Where Polish and Russian part company on the same number: `few` is the
+# nominative plural here ("102 kilogramy") and the genitive singular there
+# ("102 килограмма"). Same category, different word.
+102 kilogramy	mass	102000	102 kilogramy
+# A decimal comma and a U+00A0 group separator — Ukrainian's pair rather than
+# German's.
+1 234 567 mg	mass	1234.567	1 234 567 miligramów
+# The word operators. "razy" stands alone; "podzielić przez" is two tokens
+# folded into one.
+2 kg razy 3	mass	6000	6 kilogramów
+10 kg podzielić przez 4	mass	2500	2,5 kilograma
+# Two more conversion prepositions beside "w": "na" and "do" both introduce a
+# target, and only "w" governs the locative that `selectForm` reads.
+2 kg na gramy	mass	2000	2 000 gramów
+2 kg do gramów	mass	2000	2 000 gramów

@@ -1,0 +1,36 @@
+# input	kind	canonical	formatted
+120bpm	tempo	120	120bpm
+120bpmをms	duration	0.5	500ms
+120bpmを秒	duration	0.5	0.5秒
+500msをbpm	tempo	120	120bpm
+1秒をbpm	tempo	60	60bpm
+2ヘルツをbpm	tempo	120	120bpm
+120bpmをヘルツ	tempo	120	2ヘルツ
+120bpm + 8bpm	tempo	128	128bpm
+140bpm - 20bpm	tempo	120	120bpm
+60bpm * 2	tempo	120	120bpm
+120bpm / 2	tempo	60	60bpm
+-10bpm	tempo	-10	-10bpm
+百二十bpm	tempo	120	120bpm
+174bpm	tempo	174	174bpm
+# 拍 — a beat — reads a tempo and never prints one: the unit carries no forms,
+# so the symbol is all it can emit.
+120拍	tempo	120	120bpm
+# The conversion keywords are case particles glued to the source word, を for
+# the accusative and から for the ablative, and neither takes a space.
+500msからbpm	tempo	120	120bpm
+# Word operators do take one on both sides, though Japanese writes no spaces.
+60bpm かける 2	tempo	120	120bpm
+120bpm 割る 2	tempo	60	60bpm
+# No number agreement anywhere, so 1 and 2 and a half take the same ヘルツ, and
+# one hertz is sixty beats a minute rather than one.
+1ヘルツ	tempo	60	1ヘルツ
+2ヘルツ	tempo	120	2ヘルツ
+1.5ヘルツ	tempo	90	1.5ヘルツ
+# A minute per beat is one beat a minute. The reciprocal lands on 1 exactly when
+# the period is the unit tempo is already counted in.
+1分をbpm	tempo	1	1bpm
+# No space between the number and the unit, on input or output. The separators
+# are English's, and 万 is a magnitude word in its own right.
+1,200bpm	tempo	1200	1,200bpm
+一万bpm	tempo	10000	10,000bpm

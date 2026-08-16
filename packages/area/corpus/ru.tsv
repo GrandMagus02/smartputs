@@ -1,0 +1,36 @@
+# input	kind	canonical	formatted
+3 м * 4 м	area	12	12м²
+1 гектар в м2	area	10000	10 000м²
+1 акр в м2	area	4046.8564224	4 046,8564224м²
+2 км2 в гектарах	area	2000000	200 гектаров
+5000 см2 в м2	area	0.5	0,5м²
+10 м2 + 5 м2	area	15	15м²
+1 гектар - 2500 м2	area	7500	0,75 гектара
+3 м2 * 4	area	12	12м²
+100 м2 / 4	area	25	25м²
+-5 м2	area	-5	-5м²
+2 км2 в м2	area	2000000	2 000 000м²
+1 м2 в см2	area	1	10 000см²
+два гектара	area	20000	2 гектара
+1 км * 1 км	area	1000000	1 000 000м²
+12 м2	area	12	12м²
+# Four plural categories, and the same numbers land differently than in Polish
+# next door. 21 is singular here and `many` there; 11 is `many` in both.
+1 гектар	area	10000	1 гектар
+2 гектара	area	20000	2 гектара
+5 гектаров	area	50000	5 гектаров
+11 гектаров	area	110000	11 гектаров
+21 гектар	area	210000	21 гектар
+# `few` is the genitive singular in Russian and the nominative plural in
+# Polish: "2 гектара" against "2 hektary". Same category, different word — and
+# here `few` and the fractional `other` coincide.
+1,5 гектара	area	15000	1,5 гектара
+# The Cyrillic abbreviation, which Russian writes on a land register and which
+# `units.ts` knows nothing about.
+100 га	area	1000000	100 гектаров
+# A decimal comma and a U+00A0 group separator, with the symbol set tight
+# against the number.
+1 500 м2	area	1500	1 500м²
+# Both operators are two-token and both hang off "на".
+10 м2 умножить на 3	area	30	30м²
+100 м2 разделить на 4	area	25	25м²

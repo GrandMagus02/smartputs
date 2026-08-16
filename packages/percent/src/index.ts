@@ -4,7 +4,7 @@ import {
   defineKind,
   deriveValue,
   NUMBER_KIND,
-} from "@smartput/core";
+} from "@smartput/kind";
 import { PERCENT_UNITS } from "./units";
 
 export type { PercentUnit } from "./units";

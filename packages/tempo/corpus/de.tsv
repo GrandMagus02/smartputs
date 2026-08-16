@@ -1,0 +1,33 @@
+# input	kind	canonical	formatted
+120 bpm	tempo	120	120 bpm
+120 bpm in ms	duration	0.5	500 Millisekunden
+120 bpm in Sekunden	duration	0.5	0,5 Sekunden
+500 ms in bpm	tempo	120	120 bpm
+1 s in bpm	tempo	60	60 bpm
+2 Hz in bpm	tempo	120	120 bpm
+120 bpm in Hz	tempo	120	2 Hertz
+120 bpm + 8 bpm	tempo	128	128 bpm
+140 bpm - 20 bpm	tempo	120	120 bpm
+60 bpm * 2	tempo	120	120 bpm
+120 bpm / 2	tempo	60	60 bpm
+-10 bpm	tempo	-10	-10 bpm
+einhundertzwanzig bpm	tempo	120	120 bpm
+174 bpm	tempo	174	174 bpm
+# "Schlag" and "Schläge" read a tempo and neither one prints. `bpm` carries no
+# forms, so the symbol is the only string this unit can emit.
+120 Schläge	tempo	120	120 bpm
+1 Schlag	tempo	1	1 bpm
+# Hertz is invariant — four form keys, both numbers and the dative, one word —
+# and one hertz is sixty beats a minute rather than one.
+1 Hz	tempo	60	1 Hertz
+2 Hz	tempo	120	2 Hertz
+# A dot groups and a comma decimals, so "1.200" is twelve hundred.
+1.200 bpm	tempo	1200	1.200 bpm
+0,5 Hz	tempo	30	0,5 Hertz
+1,5 Hz	tempo	90	1,5 Hertz
+# Division is two tokens, "geteilt" then "durch"; multiplication is one.
+60 bpm mal 2	tempo	120	120 bpm
+120 bpm geteilt durch 2	tempo	60	60 bpm
+# Three conversion prepositions where English has one.
+120 bpm zu ms	duration	0.5	500 Millisekunden
+120 bpm nach Millisekunden	duration	0.5	500 Millisekunden

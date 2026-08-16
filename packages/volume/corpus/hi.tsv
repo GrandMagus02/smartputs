@@ -1,0 +1,46 @@
+# input	kind	canonical	formatted
+2 लीटर	volume	2	2 लीटर
+2 लीटर में मिलीलीटर	volume	2	2,000 मिलीलीटर
+1 गैलन में लीटर	volume	3.785411784	3.785411784 लीटर
+1 पाइंट में मिलीलीटर	volume	0.473176473	473.176473 मिलीलीटर
+500 मिलीलीटर + 500 मिलीलीटर	volume	1	1,000 मिलीलीटर
+2 लीटर - 250 मिलीलीटर	volume	1.75	1.75 लीटर
+3 लीटर * 4	volume	12	12 लीटर
+1 लीटर / 4	volume	0.25	0.25 लीटर
+-2 लीटर	volume	-2	-2 लीटर
+एक लीटर	volume	1	1 लीटर
+दो सौ पाँच लीटर	volume	205	205 लीटर
+1500 मिलीलीटर में लीटर	volume	1.5	1.5 लीटर
+1.5 लीटर	volume	1.5	1.5 लीटर
+# Hindi's separators are English's — comma for groups, point for the decimal —
+# so only the grouping *rule* separates the two, and only on the way out.
+#
+# Reading is grouping-agnostic: `parseNumber` strips the separator wherever it
+# falls, so the Indian form below and the international one on the next line
+# reach `Decimal` as the same digits.
+12,34,567 मिलीलीटर	volume	1234.567	1,234,567 मिलीलीटर
+1,234,567 मिलीलीटर	volume	1234.567	1,234,567 मिलीलीटर
+# Writing is not. `formatNumber` groups in fixed periods of three and
+# `NumberFormatSpec` carries no grouping rule, so this engine prints
+# "100,000" where a Hindi page writes "1,00,000". Recorded rather than worked
+# around — the same gap `core/src/locale/hi.ts` documents at length.
+#
+# लाख is read as a magnitude word and lands on 100000 millilitres, which is a
+# hundred litres; only its printed grouping is subject to the gap above.
+एक लाख मिलीलीटर	volume	100	100,000 मिलीलीटर
+# No unit here moves on the number axis: the four that have words at all are
+# consonant-final masculine loans that do not inflect after a numeral.
+1 लीटर	volume	1	1 लीटर
+5 लीटर	volume	5	5 लीटर
+# The short form Hindi actually writes, and the second spelling of the pint.
+2 ली	volume	2	2 लीटर
+1 पिंट	volume	0.473176473	1 पाइंट
+# `घनमीटर` is one token and is read, but the unit carries no `forms`, so the
+# answer comes back as the symbol.
+2 घनमीटर	volume	2000	2 मी³
+# The operators are bare words, and a conversion is a postposition *after* the
+# target rather than a preposition before it — में, को and से all mark it.
+2 लीटर को मिलीलीटर	volume	2	2,000 मिलीलीटर
+2 लीटर से मिलीलीटर	volume	2	2,000 मिलीलीटर
+2 लीटर गुणा 3	volume	6	6 लीटर
+10 लीटर भाग 4	volume	2.5	2.5 लीटर

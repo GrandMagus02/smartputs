@@ -1,0 +1,39 @@
+# input	kind	canonical	formatted
+1 + 1	number	2	2
+10 - 4	number	6	6
+6 * 7	number	42	42
+10 / 4	number	2.5	2.5
+-5	number	-5	-5
+(1 + 2) * 3	number	9	9
+100 / 3	number	33.33333333333333333333333333	33.333333333333333333333333
+# The digits and the separators are Latin. `ar` here resolves to a `latn`
+# numbering system with "," for groups and "." for the decimal — English's
+# pair, inside right-to-left text.
+1,500	number	1500	1,500
+0.1 + 0.2	number	0.3	0.3
+1,500 + 500	number	2000	2,000
+# Six plural categories, the most any language in this set has, and not one of
+# them reachable on this kind: there is no noun beside a bare count for them to
+# inflect. What Arabic does bring here is the numeral's own morphology.
+واحد	number	1	1
+واحدة	number	1	1
+اثنان	number	2	2
+اثنتان	number	2	2
+صفر	number	0	0
+# The units come before the tens, joined by و: "واحد وعشرون" is one-and-twenty,
+# the order German uses and the reverse of English.
+واحد وعشرون	number	21	21
+تسعمئة وتسعة وتسعون	number	999	999
+# The teens are two words, not a compound.
+ستة عشر	number	16	16
+# Hundreds and thousands. "مئتان" is the dual of مئة rather than "two hundred",
+# and "عشرة آلاف" counts thousands with the broken plural آلاف.
+مئتان وخمسة	number	205	205
+خمسمئة	number	500	500
+ألف واثنان وثلاثون	number	1032	1,032
+عشرة آلاف	number	10000	10,000
+# Word operators. "في" is claimed as a conversion preposition, so ضرب is what
+# is left to multiply with, and division has two spellings.
+10 زائد 5	number	15	15
+6 ضرب 7	number	42	42
+10 قسمة 4	number	2.5	2.5

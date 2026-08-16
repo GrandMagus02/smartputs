@@ -1,0 +1,38 @@
+# input	kind	canonical	formatted
+120 bpm	tempo	120	120 bpm
+120 bpm çevir ms	duration	0.5	500 milisaniye
+500 ms çevir bpm	tempo	120	120 bpm
+1 sn çevir bpm	tempo	60	60 bpm
+2 Hz çevir bpm	tempo	120	120 bpm
+120 bpm çevir Hz	tempo	120	2 hertz
+120 bpm + 8 bpm	tempo	128	128 bpm
+140 bpm - 20 bpm	tempo	120	120 bpm
+60 bpm * 2	tempo	120	120 bpm
+120 bpm / 2	tempo	60	60 bpm
+-10 bpm	tempo	-10	-10 bpm
+yüz yirmi bpm	tempo	120	120 bpm
+174 bpm	tempo	174	174 bpm
+# "vuruş" reads a tempo and never prints one: the unit carries no forms, so the
+# symbol is all it can emit. "vurus" without the cedilla lands on the same word.
+120 vuruş	tempo	120	120 bpm
+1 vurus	tempo	1	1 bpm
+# A conversion is a verb between the two operands, not a preposition before the
+# target — "120 bpm çevir Hz" and never "Hz çevir 120 bpm". The dative on the
+# target is a suffix rather than a token, so the stripper takes it off.
+120 bpm çevir milisaniyeye	duration	0.5	500 milisaniye
+# The accusative on the *source* comes off the same way.
+120 vuruşu çevir Hz	tempo	120	2 hertz
+# Both operators are single tokens and both follow the left operand.
+60 bpm çarpı 2	tempo	120	120 bpm
+120 bpm bölü 2	tempo	60	60 bpm
+# The dotless i: uppercase "I" folds to "ı" and "İ" to "i", so an all-caps unit
+# still lands.
+120 HERTZ	tempo	7200	120 hertz
+# One printed form per unit and no number axis at all — the same "hertz" for
+# one, for two and for a half.
+1 Hz	tempo	60	1 hertz
+2 Hz	tempo	120	2 hertz
+1,5 Hz	tempo	90	1,5 hertz
+120 bpm çevir saniye	duration	0.5	0,5 saniye
+# A dot groups and a comma decimals.
+1.200 bpm	tempo	1200	1.200 bpm

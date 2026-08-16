@@ -1,0 +1,35 @@
+# input	kind	canonical	formatted
+120 bpm	tempo	120	120 bpm
+120 bpm in ms	duration	0.5	500 milliseconden
+500 ms in bpm	tempo	120	120 bpm
+1 s in bpm	tempo	60	60 bpm
+2 Hz in bpm	tempo	120	120 bpm
+120 bpm in Hz	tempo	120	2 hertz
+120 bpm + 8 bpm	tempo	128	128 bpm
+140 bpm - 20 bpm	tempo	120	120 bpm
+60 bpm * 2	tempo	120	120 bpm
+120 bpm / 2	tempo	60	60 bpm
+-10 bpm	tempo	-10	-10 bpm
+honderdtwintig bpm	tempo	120	120 bpm
+174 bpm	tempo	174	174 bpm
+# "slag" and "slagen" read a tempo and neither prints one: the unit carries no
+# forms, so the symbol is all it can emit.
+120 slagen	tempo	120	120 bpm
+1 slag	tempo	1	1 bpm
+# "naar" is the second conversion preposition beside "in".
+120 bpm naar milliseconden	duration	0.5	500 milliseconden
+# Two words for times, one for divide, and the divide takes "door" after it.
+60 bpm maal 2	tempo	120	120 bpm
+60 bpm keer 2	tempo	120	120 bpm
+120 bpm gedeeld door 2	tempo	60	60 bpm
+# Hertz keeps one shape in both numbers, and one of them is sixty beats a minute
+# rather than one.
+1 Hz	tempo	60	1 hertz
+2 Hz	tempo	120	2 hertz
+# A dot groups and a comma decimals.
+1.200 bpm	tempo	1200	1.200 bpm
+1,5 Hz	tempo	90	1,5 hertz
+# The second does move on the number axis where the hertz does not, and a
+# fraction takes the plural.
+60 bpm in seconden	duration	1	1 seconde
+120 bpm in seconden	duration	0.5	0,5 seconden

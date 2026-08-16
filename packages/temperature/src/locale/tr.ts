@@ -1,4 +1,4 @@
-import { aliasesFor, defineVocabulary, type Vocabulary } from "@smartput/core";
+import { aliasesFor, defineVocabulary, type Vocabulary } from "@smartput/kind";
 import {
   TEMPDELTA_UNITS,
   TEMPERATURE_UNITS,

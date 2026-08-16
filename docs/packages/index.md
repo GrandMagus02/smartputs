@@ -5,7 +5,7 @@ description: Every published package, what it is, what it costs, and what it dep
 
 # Packages
 
-36 packages, one page each. Every table on those pages is read from
+37 packages, one page each. Every table on those pages is read from
 the source it describes — the manifest's `exports`, the kind's `UnitTable`,
 the rows of `check-size.ts` — so none of them can drift from the code without
 the build noticing.
@@ -20,6 +20,7 @@ table — is its own package so that not importing it is possible.
 | Package | What it is |
 | --- | --- |
 | [`@smartput/core`](/packages/core) | The engine: normalize, tokenize, parse, solve, eval, print. |
+| [`@smartput/kind`](/packages/kind) | The layer a kind and a language are written in, with no engine in it. |
 | [`@smartput/kinds`](/packages/kinds) | Every built-in kind, its vocabulary, and the two barrels over them. |
 | [`@smartput/shared`](/packages/shared) | The micro path: one parser, one algebra, one value-class factory. |
 

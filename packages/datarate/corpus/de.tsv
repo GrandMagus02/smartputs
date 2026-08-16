@@ -1,0 +1,41 @@
+# input	kind	canonical	formatted
+100 mbps	datarate	100000000	100 Mbit
+1 gbit in mbit	datarate	1000000000	1.000 Mbit
+500 MB / 20 s	datarate	200000000	200 Mbit
+100 Mbit * 1 min	datasize	750000000	750.000.000 Byte
+1 min * 100 Mbit	datasize	750000000	750.000.000 Byte
+1 GB / 100 Mbit	duration	80	80 Sekunden
+100 Mbit + 50 Mbit	datarate	150000000	150 Mbit
+200 Mbit - 50 Mbit	datarate	150000000	150 Mbit
+2 Mbit * 3	datarate	6000000	6 Mbit
+1 Gbit / 4	datarate	250000000	0,25 Gbit
+-10 Mbit	datarate	-10000000	-10 Mbit
+8000 bit in kbit	datarate	8000	8 kbit
+1 Tbit in Gbit	datarate	1000000000000	1.000 Gbit
+einhundert Megabit	datarate	100000000	100 Mbit
+# "." groups and "," marks the decimal, the pair English has the other way
+# round. Both appear on input and on output.
+1.234.567 bit	datarate	1234567	1.234.567 bit
+1,5 Gbit	datarate	1500000000	1,5 Gbit
+1,5 Gbit in Mbit	datarate	1500000000	1.500 Mbit
+# `Byte` is a neuter measure noun and does not move after a numeral: the
+# `nom-other` form is the singular word, so three quarters of a billion of them
+# are still "Byte". The `dat-other` "Bytes" the vocabulary carries is read and
+# never printed — `in` governs the dative and the renderer still reaches for the
+# nominative.
+1 GB in Bytes	datasize	1000000000	1.000.000.000 Byte
+# "Mega" standing alone is the German noun for a megabit per second, and the
+# only word in this table a German speaker would say out loud.
+100 Mega	datarate	100000000	100 Mbit
+# The word operators. `mal` stands alone; `geteilt`/`dividiert` are `over` and
+# take `durch` as `by`, two tokens folded into one.
+2 Mbit mal 3	datarate	6000000	6 Mbit
+10 Gbit geteilt durch 4	datarate	2500000000	2,5 Gbit
+10 Gbit dividiert durch 4	datarate	2500000000	2,5 Gbit
+# `nach` beside `in` as a second conversion preposition.
+1 Gbit nach Mbit	datarate	1000000000	1.000 Mbit
+# "Megabit" and "Megabyte" are one letter apart and name two kinds. These two
+# rows are the pair that would catch a vocabulary letting one fold onto the
+# other — and the factor of 8 between them is the one `index.ts` writes out.
+100 Megabit	datarate	100000000	100 Mbit
+100 Megabyte	datasize	100000000	100 Megabyte

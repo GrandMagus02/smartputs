@@ -1,0 +1,38 @@
+# input	kind	canonical	formatted
+1 kib in b	datasize	1024	1.024 Byte
+1 gb in mb	datasize	1000000000	1.000 Megabyte
+1 gib in mib	datasize	1073741824	1.024 Mebibyte
+1 tb in gb	datasize	1000000000000	1.000 Gigabyte
+1 mib in kb	datasize	1048576	1.048,576 Kilobyte
+1024 b in kib	datasize	1024	1 Kibibyte
+500 mb + 500 mb	datasize	1000000000	1.000 Megabyte
+1 gb - 200 mb	datasize	800000000	0,8 Gigabyte
+2 gb * 3	datasize	6000000000	6 Gigabyte
+1 tb / 4	datasize	250000000000	0,25 Terabyte
+-1 gb	datasize	-1000000000	-1 Gigabyte
+ein Gigabyte	datasize	1000000000	1 Gigabyte
+zweihundertfünf Megabyte	datasize	205000000	205 Megabyte
+# German groups with "." and takes "," for the decimal, the exact inverse of
+# English. "1.500 Byte" is fifteen hundred bytes, not one and a half.
+1.500 Byte	datasize	1500	1.500 Byte
+1,5 GB	datasize	1500000000	1,5 Gigabyte
+1234567 Byte	datasize	1234567	1.234.567 Byte
+# The unit noun does not move on the number axis. Byte and its prefixed
+# compounds are neuter and invariant after a numeral, so 1, 2 and 5 take the
+# same word and the nominative half of the table is two identical rows.
+1 Byte	datasize	1	1 Byte
+2 Byte	datasize	2	2 Byte
+5 Byte	datasize	5	5 Byte
+# The dative plural is real German — "in Bytes" — and this vocabulary reads it
+# without ever printing it. A counted quantity is nominative, and a conversion
+# target always arrives counted.
+1 GB in Bytes	datasize	1000000000	1.000.000.000 Byte
+# Two more prepositions introduce a target beside "in", and neither changes
+# what comes back.
+2 GB nach MB	datasize	2000000000	2.000 Megabyte
+2 GB zu MB	datasize	2000000000	2.000 Megabyte
+# The word operators. "mal" stands alone; "geteilt durch" and "dividiert
+# durch" are two tokens each, the second hanging off `keywords.by`.
+2 GB mal 3	datasize	6000000000	6 Gigabyte
+10 GB geteilt durch 4	datasize	2500000000	2,5 Gigabyte
+1 GB dividiert durch 2	datasize	500000000	0,5 Gigabyte

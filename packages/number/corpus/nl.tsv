@@ -1,0 +1,37 @@
+# input	kind	canonical	formatted
+1 + 1	number	2	2
+10 - 4	number	6	6
+6 * 7	number	42	42
+10 / 4	number	2.5	2,5
+-5	number	-5	-5
+(1 + 2) * 3	number	9	9
+100 / 3	number	33.33333333333333333333333333	33,333333333333333333333333
+# "." groups and "," marks the decimal — the Dutch pair, which Indonesian
+# inherited and English inverts.
+1.500	number	1500	1.500
+0,1 + 0,2	number	0.3	0,3
+1.500 + 500	number	2000	2.000
+# One word per cardinal, with the units before the tens and "en" between them:
+# eenentwintig is one-and-twenty, the same order German uses. The trema on
+# tweeëntwintig is not decoration — it marks the seam, so the "ee" of twee and
+# the "e" of en are not read across it as one vowel.
+eenentwintig	number	21	21
+tweeëntwintig	number	22	22
+drieëndertig	number	33	33
+# The compounding runs the whole way up, so a four-digit cardinal is still one
+# token.
+tweehonderdvijf	number	205	205
+duizendtweeëndertig	number	1032	1.032
+negenhonderdnegenennegentig	number	999	999
+# The accented "één" is the numeral 1; the bare "een" is the indefinite
+# article doing double duty, and both have to read back as 1.
+één	number	1	1
+een	number	1	1
+één miljoen	number	1000000	1.000.000
+nul	number	0	0
+# Word operators. Dutch has two words for times and one two-token division.
+10 plus 5	number	15	15
+10 minus 4	number	6	6
+6 maal 7	number	42	42
+6 keer 7	number	42	42
+10 gedeeld door 4	number	2.5	2,5

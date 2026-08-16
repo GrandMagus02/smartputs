@@ -1,0 +1,38 @@
+# input	kind	canonical	formatted
+20 C	temperature	20	20°C
+0 C 到 F	temperature	0	32°F
+212 F 换算 C	temperature	100	100°C
+100 C 转换 K	temperature	100	373.15K
+0 K 为 C	temperature	-273.15	-273.15°C
+10 C + 5 C	temperature	15	15°C
+30 C - 20 C	tempdelta	10	10°C
+5 F - 3 F	tempdelta	1.11111111111111111111111111	2°F
+(30 C - 20 C) 乘 2	tempdelta	20	20°C
+(30 C - 20 C) 除以 4	tempdelta	2.5	2.5°C
+-5 C	temperature	-5	-5°C
+二十 C	temperature	20	20°C
+36.6 C	temperature	36.6	36.6°C
+12345 C	temperature	12345	12,345°C
+1234.5 K	temperature	961.35	1,234.5K
+# No space between the number and the unit, on input or output, which is what
+# makes the round trip hold: the engine reads back its own "20°C" byte for
+# byte.
+20C	temperature	20	20°C
+20摄氏	temperature	20	20°C
+300开	temperature	26.85	300K
+# No number agreement of any kind, so 1 and 300 take the same word — and a
+# scale would have had no number axis in any case.
+1摄氏	temperature	1	1°C
+300摄氏	temperature	300	300°C
+# The myriad. Chinese counts in ten-thousands, so 万 is a magnitude word and
+# 一万 is one of them, not ten of a thousand.
+一万 K	temperature	9726.85	10,000K
+# The word operators need whitespace around them even though Chinese is written
+# without any: "20摄氏乘3" does not parse. A conversion keyword needs none —
+# 到 below is glued to both sides.
+20摄氏到华氏	temperature	20	68°F
+98.6华氏 到 C	temperature	37	37°C
+# 换算 and 转换 are verbs rather than prepositions, and both introduce a target
+# on their own; 到 and 为 are the two that read as prepositions.
+20 C 换算 K	temperature	20	293.15K
+20摄氏 为 华氏	temperature	20	68°F

@@ -1,0 +1,48 @@
+# input	kind	canonical	formatted
+90度	angle	1.570796326794896619231321692	90度
+200グラードを度	angle	3.141592653589793238462643383	180度
+0.25回転を度	angle	1.570796326794896619231321692	90度
+90度 + 90度	angle	3.141592653589793238462643384	180度
+1回転 - 90度	angle	4.712388980384689857693965075	0.75回転
+180度 / 4	angle	0.7853981633974483096156608458	45度
+-90度	angle	-1.570796326794896619231321692	-90度
+1radを度	angle	1	57.295779513082320876798155度
+360度を回転	angle	6.283185307179586476925286767	1回転
+1,234,567度	angle	21547.25898646883482793950141	1,234,567度
+# No number agreement of any kind: Japanese marks plurality nowhere, so every
+# unit has one printed form and 1, 5 and 1.5 take the same word. The
+# separators are English's — "," for groups, "." for the decimal.
+1度	angle	0.01745329251994329576923690768	1度
+5度	angle	0.08726646259971647884618453842	5度
+1.5度	angle	0.02617993877991494365385536153	1.5度
+# No space between number and unit, on input or output, which is what makes
+# the round trip hold: the engine reads back its own "1,080度" exactly.
+3回転を度	angle	18.8495559215387594307758603	1,080度
+# The radian is read in Japanese and written in Latin. ラジアン is what
+# Japanese calls it and ICU cuts the word into ラジ + アン, so it can be
+# neither printed nor usefully listed; 弧度 is the formal alternative and
+# survives segmentation, so it reads. With no `forms` to fall back on the unit
+# renders through its symbol, and "rad" round-trips because a Latin run has no
+# character of a declared script.
+2 rad	angle	2	2rad
+90度を弧度	angle	1.570796326794896619231321692	1.5707963267948966192313217rad
+# The units that do have a Japanese word are katakana loans and native
+# compounds alike.
+100グラード	angle	1.570796326794896619231321692	100グラード
+2回転	angle	12.56637061435917295385057353	2回転
+# から is the second conversion marker beside を — "from" against the
+# accusative — and both are case particles written glued to the word they
+# mark.
+360度から回転	angle	6.283185307179586476925286767	1回転
+# The myriad. Japanese counts in ten-thousands, so 万 is its own magnitude
+# word and 一万 is one of them rather than ten of a thousand.
+一万度	angle	174.5329251994329576923690768	10,000度
+二百グラード	angle	3.141592653589793238462643383	200グラード
+一回転	angle	6.283185307179586476925286767	1回転
+# The word operators need whitespace around them even though Japanese is
+# written without any: かける and 割る are matched as separate tokens, and
+# "2回転かける3" does not parse.
+2回転 かける 3	angle	37.69911184307751886155172059	6回転
+180度 割る 4	angle	0.7853981633974483096156608458	45度
+# The katakana operator beside the native one — both are ordinary Japanese.
+90度 プラス 90度	angle	3.141592653589793238462643384	180度

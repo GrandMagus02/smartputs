@@ -1,0 +1,37 @@
+# input	kind	canonical	formatted
+120 бпм	tempo	120	120бпм
+120 бпм в мс	duration	0.5	500 миллисекунд
+500 мс в бпм	tempo	120	120бпм
+1 с в бпм	tempo	60	60бпм
+2 Гц в бпм	tempo	120	120бпм
+120 бпм в Гц	tempo	120	2 герца
+120 бпм + 8 бпм	tempo	128	128бпм
+140 бпм - 20 бпм	tempo	120	120бпм
+60 бпм * 2	tempo	120	120бпм
+120 бпм / 2	tempo	60	60бпм
+-10 бпм	tempo	-10	-10бпм
+сто двадцать бпм	tempo	120	120бпм
+174 бпм	tempo	174	174бпм
+# "ударов" — beats — reads a tempo and never prints one: the unit carries no
+# forms, so the symbol is all it can emit.
+120 ударов	tempo	120	120бпм
+# Both operators are two tokens, and both hang off the same "на".
+60 бпм умножить на 2	tempo	120	120бпм
+120 бпм разделить на 2	tempo	60	60бпм
+# The four plural categories on one unit. `герц` is a hard-stem masculine with a
+# zero-ending genitive plural, so `one` and `many` are the same word and only
+# `few` differs — 1 герц, 5 герц, 2 герца.
+1 Гц	tempo	60	1 герц
+2 Гц	tempo	120	2 герца
+5 Гц	tempo	300	5 герц
+11 Гц	tempo	660	11 герц
+21 Гц	tempo	1260	21 герц
+# `few` is the genitive singular here and the nominative plural in Polish: 102
+# герца against 102 herce. Same category, different word.
+102 Гц	tempo	6120	102 герца
+# The fractional category is the genitive singular, the same word `few` takes,
+# and the second behaves the same way when the tempo is halved.
+1,5 Гц	tempo	90	1,5 герца
+120 бпм в секунды	duration	0.5	0,5 секунды
+# A decimal comma and a U+00A0 group separator.
+1 200 бпм	tempo	1200	1 200бпм

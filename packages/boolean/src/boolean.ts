@@ -5,7 +5,7 @@ import {
   defineKind,
   type Kind,
   type Value,
-} from "@smartput/core";
+} from "@smartput/kind";
 
 export { BOOLEAN_KIND, BOOLEAN_UNIT };
 

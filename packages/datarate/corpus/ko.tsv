@@ -1,0 +1,43 @@
+# input	kind	canonical	formatted
+100mbps	datarate	100000000	100Mbps
+1gbps를 mbps	datarate	1000000000	1,000Mbps
+500MB / 20초	datarate	200000000	200Mbps
+100mbps * 1분	datasize	750000000	750,000,000바이트
+1분 * 100mbps	datasize	750000000	750,000,000바이트
+1GB / 100mbps	duration	80	80초
+100mbps + 50mbps	datarate	150000000	150Mbps
+200mbps - 50mbps	datarate	150000000	150Mbps
+2mbps * 3	datarate	6000000	6Mbps
+1gbps / 4	datarate	250000000	0.25Gbps
+-10mbps	datarate	-10000000	-10Mbps
+8000bps를 kbps	datarate	8000	8kbps
+이백mbps	datarate	200000000	200Mbps
+# No space between the number and the unit, on input or output, and no number
+# agreement of any kind: 1 and 5 take the same word.
+1바이트	datasize	1	1바이트
+5바이트	datasize	5	5바이트
+# The particles are bound morphemes, welded to the noun in front of them. After
+# a Latin alias the boundary is visible and 를 lexes as a token of its own, so
+# the conversion above parses with or without the space. After a Hangul unit it
+# does not: "2메가비트를 비트" has no boundary to lex at and is rejected — the
+# consequence `@smartput/core/locale/ko` records. A *bare* quantity is fine
+# either way, because `particleStripper` peels the ending off the unit word.
+1gbps를mbps	datarate	1000000000	1,000Mbps
+1gbps에서 mbps	datarate	1000000000	1,000Mbps
+5메가비트를	datarate	5000000	5Mbps
+# The myriad. Korean counts in ten-thousands, so 만 is a magnitude word in its
+# own right and 일만 is one of them, not ten of a thousand. The separators
+# printed are English's — "," for groups, and the "." in the "0.25Gbps" above.
+일만bps	datarate	10000	10,000bps
+1,234,567bps	datarate	1234567	1,234,567bps
+# The Hangul transcriptions of the borrowed nouns. "메가비트" and "메가바이트"
+# name two kinds, and the factor of 8 between them is the one the bridge
+# signatures write out.
+100비트	datarate	100	100bps
+100메가비트	datarate	100000000	100Mbps
+100메가바이트	datasize	100000000	100메가바이트
+# The word operators need whitespace around them even though Korean glues its
+# particles: "2mbps곱하기3" does not parse. The symbol operators above have no
+# such requirement, and neither do the particles.
+2mbps 곱하기 3	datarate	6000000	6Mbps
+10gbps 나누기 4	datarate	2500000000	2.5Gbps

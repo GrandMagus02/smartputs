@@ -5,32 +5,128 @@ import {
   createEngine,
   type Engine,
   type Kind,
+  type Language,
   type LiteralMatch,
   type LiteralMatcher,
+  type Locale,
   type MatchCtx,
   NoCandidateError,
   UnitParseError,
+  type Vocabulary,
 } from "@smartput/core";
+import { arabic as coreAr } from "@smartput/core/locale/ar";
+import { german as coreDe } from "@smartput/core/locale/de";
 import { english as coreEn } from "@smartput/core/locale/en";
+import { spanish as coreEs } from "@smartput/core/locale/es";
+import { french as coreFr } from "@smartput/core/locale/fr";
+import { hindi as coreHi } from "@smartput/core/locale/hi";
+import { indonesian as coreId } from "@smartput/core/locale/id";
+import { italian as coreIt } from "@smartput/core/locale/it";
+import { japanese as coreJa } from "@smartput/core/locale/ja";
+import { korean as coreKo } from "@smartput/core/locale/ko";
+import { dutch as coreNl } from "@smartput/core/locale/nl";
+import { polish as corePl } from "@smartput/core/locale/pl";
+import { portuguese as corePt } from "@smartput/core/locale/pt";
+import { russian as coreRu } from "@smartput/core/locale/ru";
+import { turkish as coreTr } from "@smartput/core/locale/tr";
 import { ukrainian as coreUk } from "@smartput/core/locale/uk";
+import { chinese as coreZh } from "@smartput/core/locale/zh";
 import { date } from "@smartput/date";
 import { dateRange } from "@smartput/date-range";
 import { datetime } from "@smartput/datetime";
+import datetimeAr from "@smartput/datetime/locale/ar";
+import datetimeDe from "@smartput/datetime/locale/de";
 import datetimeEn from "@smartput/datetime/locale/en";
+import datetimeEs from "@smartput/datetime/locale/es";
+import datetimeFr from "@smartput/datetime/locale/fr";
+import datetimeHi from "@smartput/datetime/locale/hi";
+import datetimeId from "@smartput/datetime/locale/id";
+import datetimeIt from "@smartput/datetime/locale/it";
+import datetimeJa from "@smartput/datetime/locale/ja";
+import datetimeKo from "@smartput/datetime/locale/ko";
+import datetimeNl from "@smartput/datetime/locale/nl";
+import datetimePl from "@smartput/datetime/locale/pl";
+import datetimePt from "@smartput/datetime/locale/pt";
+import datetimeRu from "@smartput/datetime/locale/ru";
+import datetimeTr from "@smartput/datetime/locale/tr";
+import datetimeUk from "@smartput/datetime/locale/uk";
+import datetimeZh from "@smartput/datetime/locale/zh";
 import { datetimeRange } from "@smartput/datetime-range";
 import { BUILTIN_KINDS } from "@smartput/kinds";
+import BUILTIN_AR from "@smartput/kinds/locale/ar";
+import BUILTIN_DE from "@smartput/kinds/locale/de";
 import BUILTIN_EN from "@smartput/kinds/locale/en";
+import BUILTIN_ES from "@smartput/kinds/locale/es";
+import BUILTIN_FR from "@smartput/kinds/locale/fr";
+import BUILTIN_HI from "@smartput/kinds/locale/hi";
+import BUILTIN_ID from "@smartput/kinds/locale/id";
+import BUILTIN_IT from "@smartput/kinds/locale/it";
+import BUILTIN_JA from "@smartput/kinds/locale/ja";
+import BUILTIN_KO from "@smartput/kinds/locale/ko";
+import BUILTIN_NL from "@smartput/kinds/locale/nl";
+import BUILTIN_PL from "@smartput/kinds/locale/pl";
+import BUILTIN_PT from "@smartput/kinds/locale/pt";
+import BUILTIN_RU from "@smartput/kinds/locale/ru";
+import BUILTIN_TR from "@smartput/kinds/locale/tr";
 import BUILTIN_UK from "@smartput/kinds/locale/uk";
+import BUILTIN_ZH from "@smartput/kinds/locale/zh";
 import { length } from "@smartput/length";
 import lengthEn from "@smartput/length/locale/en";
 import { measure } from "@smartput/measure";
+import measureAr from "@smartput/measure/locale/ar";
+import measureDe from "@smartput/measure/locale/de";
 import measureEn from "@smartput/measure/locale/en";
+import measureEs from "@smartput/measure/locale/es";
+import measureFr from "@smartput/measure/locale/fr";
+import measureHi from "@smartput/measure/locale/hi";
+import measureId from "@smartput/measure/locale/id";
+import measureIt from "@smartput/measure/locale/it";
+import measureJa from "@smartput/measure/locale/ja";
+import measureKo from "@smartput/measure/locale/ko";
+import measureNl from "@smartput/measure/locale/nl";
+import measurePl from "@smartput/measure/locale/pl";
+import measurePt from "@smartput/measure/locale/pt";
+import measureRu from "@smartput/measure/locale/ru";
+import measureTr from "@smartput/measure/locale/tr";
 import measureUk from "@smartput/measure/locale/uk";
+import measureZh from "@smartput/measure/locale/zh";
 import { number } from "@smartput/number";
+import numberAr from "@smartput/number/locale/ar";
+import numberDe from "@smartput/number/locale/de";
 import numberEn from "@smartput/number/locale/en";
+import numberEs from "@smartput/number/locale/es";
+import numberFr from "@smartput/number/locale/fr";
+import numberHi from "@smartput/number/locale/hi";
+import numberId from "@smartput/number/locale/id";
+import numberIt from "@smartput/number/locale/it";
+import numberJa from "@smartput/number/locale/ja";
+import numberKo from "@smartput/number/locale/ko";
+import numberNl from "@smartput/number/locale/nl";
+import numberPl from "@smartput/number/locale/pl";
+import numberPt from "@smartput/number/locale/pt";
+import numberRu from "@smartput/number/locale/ru";
+import numberTr from "@smartput/number/locale/tr";
 import numberUk from "@smartput/number/locale/uk";
+import numberZh from "@smartput/number/locale/zh";
 import { RANGE_KINDS } from "@smartput/range";
 import { money, snapshot } from "@smartput/rate";
+import moneyAr from "@smartput/rate/locale/ar";
+import moneyDe from "@smartput/rate/locale/de";
+import moneyEn from "@smartput/rate/locale/en";
+import moneyEs from "@smartput/rate/locale/es";
+import moneyFr from "@smartput/rate/locale/fr";
+import moneyHi from "@smartput/rate/locale/hi";
+import moneyId from "@smartput/rate/locale/id";
+import moneyIt from "@smartput/rate/locale/it";
+import moneyJa from "@smartput/rate/locale/ja";
+import moneyKo from "@smartput/rate/locale/ko";
+import moneyNl from "@smartput/rate/locale/nl";
+import moneyPl from "@smartput/rate/locale/pl";
+import moneyPt from "@smartput/rate/locale/pt";
+import moneyRu from "@smartput/rate/locale/ru";
+import moneyTr from "@smartput/rate/locale/tr";
+import moneyUk from "@smartput/rate/locale/uk";
+import moneyZh from "@smartput/rate/locale/zh";
 import { time } from "@smartput/time";
 import { timeRange } from "@smartput/time-range";
 import { Glob } from "bun";
@@ -60,6 +156,19 @@ import type { CityRow } from "./types";
 const geo = definePlace({ countries: COUNTRIES, cities: CITIES, admin1: ADMIN1 });
 
 /**
+ * The country names as an English vocabulary, for the engines below that read
+ * English and nothing else — and for `speaking` when the language it is handed
+ * is English.
+ *
+ * A `place` no language has spoken for is indexed by the registry's R2 pass
+ * under its own unit keys, which are the alpha-2 codes — so without this,
+ * "10 km" would be ambiguous with Comoros. Hoisted to a constant rather than
+ * called at each engine because a `Vocabulary` is frozen data: one table, read
+ * many times.
+ */
+const PLACES = placeVocabulary(COUNTRIES);
+
+/**
  * Geo and the two kinds its own op needs. Deliberately not the engine `full`
  * builds: the two disagree about "tokyo", and which of them is right depends
  * entirely on what else is loaded — see "tokyo" below.
@@ -68,10 +177,7 @@ const places = createEngine({
   // `lengthEn` because this engine replays `packages/geo/corpus/kind/en.tsv`,
   // whose distance rows record spelled answers ("878.399 kilometres"), and
   // length's words are a vocabulary now rather than a field on the kind.
-  // `placeVocabulary(COUNTRIES)` because a country's names are one too — and because a `place` no
-  // language has spoken for is indexed under its own unit keys, which are the
-  // alpha-2 codes, and "10 km" would be ambiguous with Comoros.
-  locales: [composeLocale(coreEn, [lengthEn, placeVocabulary(COUNTRIES)])],
+  locales: [composeLocale(coreEn, [lengthEn, PLACES])],
   kinds: [number, length, geo],
 });
 
@@ -82,19 +188,210 @@ const places = createEngine({
 const TEST_NOW = 1_768_478_400_000;
 const TEST_ZONE = "UTC";
 
-/** Everything a real consumer registers at once, which is where a name that
- * belongs to two kinds actually has to be decided. */
-const full = createEngine({
-  locales: [
-    composeLocale(coreEn, [...BUILTIN_EN, placeVocabulary(COUNTRIES), datetimeEn]),
-  ],
-  kinds: [...BUILTIN_KINDS, datetime, geo],
-  now: () => TEST_NOW,
-  timeZone: TEST_ZONE,
+// ---- the seventeen languages ----
+
+/**
+ * The rate snapshot every money engine here is built against, so the rows are
+ * arithmetic rather than a live quote.
+ *
+ * Every currency `@smartput/currency` knows a rate for, and not the two the
+ * English and Ukrainian tables need, for the reason `@smartput/rate`'s own
+ * corpus test gives: a language's word for the franc or the zloty cannot be
+ * read back if the franc has no rate, because `MissingRateError` arrives before
+ * the vocabulary is ever consulted. The figures are that file's, copied so the
+ * two nets replay the same rows against the same arithmetic.
+ */
+const rates = snapshot("EUR", "2026-08-04", {
+  USD: 1.1,
+  GBP: 0.8412,
+  JPY: 170,
+  CHF: 0.94,
+  PLN: 4.28,
+  UAH: 45.5,
+  CAD: 1.5,
+  AUD: 1.68,
+  SEK: 11.2,
+  NOK: 11.7,
+  CZK: 24.8,
 });
 
+/**
+ * One language's ingredients, in the order the engines below take them.
+ *
+ * A tuple rather than seventeen object literals, and a tuple rather than a bare
+ * list of ids: which language file meets which vocabularies is the seam a
+ * broken vocabulary breaks at, and every corpus test in the repo keeps it on
+ * the page for that reason. Deriving the engines from the id — a map from
+ * `"de"` to five dynamic imports — would read shorter and hide it.
+ *
+ * The built-in half is already an array: `BUILTIN_DE` is every built-in kind's
+ * German words. The other four are the vocabularies of the packages whose
+ * corpora need an engine `@smartput/kinds` does not build — `datetime`,
+ * `measure`, `number` and `money`.
+ */
+type LanguageRow = readonly [
+  id: string,
+  language: Language,
+  builtins: readonly Vocabulary[],
+  datetime: Vocabulary,
+  number: Vocabulary,
+  measure: Vocabulary,
+  money: Vocabulary,
+];
+
+/**
+ * Every language this repository publishes a vocabulary in, which since the
+ * fifteen-language milestone is every language every kind package publishes.
+ *
+ * The list is the registry the net below is generated from: a language added to
+ * `@smartput/kinds` and left out here would leave its corpora unreplayed, and
+ * the discovery check turns that into a failure rather than a silence.
+ */
+const LANGUAGES: readonly LanguageRow[] = [
+  ["ar", coreAr, BUILTIN_AR, datetimeAr, numberAr, measureAr, moneyAr],
+  ["de", coreDe, BUILTIN_DE, datetimeDe, numberDe, measureDe, moneyDe],
+  ["en", coreEn, BUILTIN_EN, datetimeEn, numberEn, measureEn, moneyEn],
+  ["es", coreEs, BUILTIN_ES, datetimeEs, numberEs, measureEs, moneyEs],
+  ["fr", coreFr, BUILTIN_FR, datetimeFr, numberFr, measureFr, moneyFr],
+  ["hi", coreHi, BUILTIN_HI, datetimeHi, numberHi, measureHi, moneyHi],
+  ["id", coreId, BUILTIN_ID, datetimeId, numberId, measureId, moneyId],
+  ["it", coreIt, BUILTIN_IT, datetimeIt, numberIt, measureIt, moneyIt],
+  ["ja", coreJa, BUILTIN_JA, datetimeJa, numberJa, measureJa, moneyJa],
+  ["ko", coreKo, BUILTIN_KO, datetimeKo, numberKo, measureKo, moneyKo],
+  ["nl", coreNl, BUILTIN_NL, datetimeNl, numberNl, measureNl, moneyNl],
+  ["pl", corePl, BUILTIN_PL, datetimePl, numberPl, measurePl, moneyPl],
+  ["pt", corePt, BUILTIN_PT, datetimePt, numberPt, measurePt, moneyPt],
+  ["ru", coreRu, BUILTIN_RU, datetimeRu, numberRu, measureRu, moneyRu],
+  ["tr", coreTr, BUILTIN_TR, datetimeTr, numberTr, measureTr, moneyTr],
+  ["uk", coreUk, BUILTIN_UK, datetimeUk, numberUk, measureUk, moneyUk],
+  ["zh", coreZh, BUILTIN_ZH, datetimeZh, numberZh, measureZh, moneyZh],
+];
+
+/**
+ * One language's locale, with the gazetteer composed into it.
+ *
+ * One locale and not two, and the `locale` argument to `placeVocabulary` is why
+ * that is possible. A country's words are its *names* and the names are the
+ * data's, so the function produces the vocabulary its table implies in whatever
+ * language that table is in — and `@smartput/geo`'s own `live()` door passes
+ * `language.id` for exactly this: a caller asks the provider for `lang: "fr"`
+ * and composes the answer into their French locale. This package's fixture is
+ * the English table, so what these engines install is English names *declared
+ * as* the language's own. That is the shape a French consumer's engine has, and
+ * it is the only shape that leaves the question this file asks isolated.
+ *
+ * The alternative was tried and does not hold, and it is worth recording why,
+ * because it is what the Ukrainian entries did while English and Ukrainian were
+ * the only two languages here: composing the English vocabulary into a second
+ * `composeLocale(coreEn, [PLACES])` beside the language's own installs the
+ * English *language*, not just its place names, and `buildKeywords` folds every
+ * installed language's connectives into one table. English "to" is a keyword
+ * and French "to" is the téraoctet, so under the two-locale engine
+ * `packages/datasize/corpus/fr.tsv`'s "1 to / 4" stops parsing — with the
+ * gazetteer removed and the second locale kept, identically so. Six thousand
+ * city names were never what broke it, and a net that reported them as the
+ * cause would be worse than no net.
+ *
+ * What survives from that arrangement is the claim it was there to make. The
+ * names go into the same alias index as the language's units, folded under the
+ * language's own casing rules, in front of the same destructive fold. If six
+ * thousand of them could shadow a German, a Japanese or a Cyrillic unit word,
+ * this is where it shows — and the question is sharper away from English rather
+ * than softer. Essen is a city of half a million and the German for eating;
+ * Turkish folds a dotless i where nothing else does; and every Cyrillic corpus
+ * in the repo now reads its rows with six thousand Latin proper nouns in the
+ * index beside its units.
+ */
+function speaking(language: Language, vocabularies: readonly Vocabulary[]): Locale[] {
+  const places = language === coreEn ? PLACES : placeVocabulary(COUNTRIES, language.id);
+  return [composeLocale(language, [...vocabularies, places])];
+}
+
+/**
+ * One shape of registration, built in all seventeen languages and keyed by id.
+ *
+ * Four of these below, one per engine any corpus in the repo needs, because the
+ * alternative — a `Suite` literal per file — is 357 of them.
+ */
+function engineTable(build: (row: LanguageRow) => Engine): ReadonlyMap<string, Engine> {
+  return new Map(LANGUAGES.map((row) => [row[0], build(row)]));
+}
+
+/** Narrowed through a function for the reason `matcherOf` below is: an index
+ * lookup is `Engine | undefined`, and a missing language here is a wiring
+ * error rather than a corpus that fails. */
+function engineFor(table: ReadonlyMap<string, Engine>, id: string): Engine {
+  const engine = table.get(id);
+  if (engine === undefined) throw new Error(`no engine for "${id}"`);
+  return engine;
+}
+
+/**
+ * Every built-in kind and the gazetteer, which is the pairing the per-package
+ * corpora were never read against: each of them proves its rows with two or
+ * three kinds registered, and this asks whether the answer survives the other
+ * sixteen plus six thousand city names — in every language that states them.
+ */
+const BUILTINS = engineTable(([id, language, builtins]) =>
+  createEngine({
+    locales: speaking(language, builtins),
+    kinds: [...BUILTIN_KINDS, geo],
+    format: id,
+  }),
+);
+
+/**
+ * The same plus `datetime`, whose corpora are the only ones here that pin a
+ * clock: a kind whose values are instants is a corpus over `now`, so both it
+ * and the zone have to be fixed or "9:30" would mean a different thing
+ * tomorrow.
+ */
+const DATETIMES = engineTable(([id, language, builtins, datetimeWords]) =>
+  createEngine({
+    locales: speaking(language, [...builtins, datetimeWords]),
+    kinds: [...BUILTIN_KINDS, datetime, geo],
+    format: id,
+    now: () => TEST_NOW,
+    timeZone: TEST_ZONE,
+  }),
+);
+
+/**
+ * `measure` gets its own table because it is not in `BUILTIN_KINDS` at all —
+ * its mm/cm aliases collide with `length`, so the roster leaves it out and a
+ * consumer who wants it registers it without them. Geo is still in front.
+ */
+const MEASURES = engineTable(([id, language, , , numberWords, measureWords]) =>
+  createEngine({
+    locales: speaking(language, [numberWords, measureWords]),
+    kinds: [number, measure, geo],
+    format: id,
+  }),
+);
+
+/**
+ * Money and the rates it converts through, which is the one table here whose
+ * output half is not a translation: `money`'s format hook renders through
+ * `@smartput/currency`, so every language prints a sign and an amount and only
+ * the *input* half — "5 доларів", "خمسة دولارات", "5 달러를" — is the language.
+ */
+const RATES = engineTable(([id, language, , , , , moneyWords]) =>
+  createEngine({
+    locales: speaking(language, [moneyWords]),
+    kinds: [number, money, geo],
+    format: id,
+    rates,
+  }),
+);
+
+/** Everything a real consumer registers at once, which is where a name that
+ * belongs to two kinds actually has to be decided. The English row of the
+ * datetime table rather than a fourth hand-built engine, so the ambiguity rows
+ * below and `packages/datetime/corpus/en.tsv` cannot drift apart. */
+const full = engineFor(DATETIMES, "en");
+
 /** The same, with geo left out — the control for every "registering geo costs
- * nothing" claim below. No `placeVocabulary(COUNTRIES)` either: a vocabulary for a kind the
+ * nothing" claim below. No `PLACES` either: a vocabulary for a kind the
  * registry never registered is a wiring error, and the control has no place
  * kind to speak for. */
 const without = createEngine({
@@ -106,7 +403,7 @@ const without = createEngine({
 
 const registry = buildRegistry(
   [number, length, geo],
-  [composeLocale(coreEn, [lengthEn, placeVocabulary(COUNTRIES)])],
+  [composeLocale(coreEn, [lengthEn, PLACES])],
 );
 const matchCtx: MatchCtx = {
   locale: "en",
@@ -370,7 +667,8 @@ interface Suite {
   /** Repo-relative, so the discovery check below can compare paths directly. */
   readonly file: string;
   readonly engine: Engine;
-  /** en-complete.tsv records completions, so it is replayed through complete(). */
+  /** The two `-complete.tsv` tables record completions rather than evaluations,
+   * so they are replayed through `complete()`. */
   readonly completion?: true;
   /**
    * The `kinds` narrowing the owning package's own corpus test passes.
@@ -387,8 +685,6 @@ interface Suite {
   readonly kinds?: readonly string[];
 }
 
-const rates = snapshot("EUR", "2026-08-04", { USD: 1.1, UAH: 45.5 });
-
 /**
  * The six range-milestone kinds, registered together the way a consumer would.
  *
@@ -400,9 +696,7 @@ const rates = snapshot("EUR", "2026-08-04", { USD: 1.1, UAH: 45.5 });
  * exposed input the milestone shipped.
  */
 const ranges = createEngine({
-  locales: [
-    composeLocale(coreEn, [...BUILTIN_EN, placeVocabulary(COUNTRIES), datetimeEn]),
-  ],
+  locales: [composeLocale(coreEn, [...BUILTIN_EN, PLACES, datetimeEn])],
   kinds: [
     ...BUILTIN_KINDS,
     datetime,
@@ -429,17 +723,17 @@ const ranges = createEngine({
  * about either.
  */
 const selections = createEngine({
-  locales: [composeLocale(coreEn, [...BUILTIN_EN, placeVocabulary(COUNTRIES)])],
+  locales: [composeLocale(coreEn, [...BUILTIN_EN, PLACES])],
   kinds: [...BUILTIN_KINDS, ...RANGE_KINDS, geo],
 });
 
 /**
  * The kind packages whose corpora are replayed as a set, one entry per package
- * and two files each.
+ * and seventeen files each.
  *
  * Written out rather than globbed so that a package appearing here is a
  * decision: `measure` is deliberately absent (it is not in `BUILTIN_KINDS`) and
- * gets its own pair below, and a kind package added later shows up as a
+ * gets its own engine table above, and a kind package added later shows up as a
  * discovery-check failure instead of being swept in with an engine nobody chose
  * for it.
  */
@@ -464,137 +758,58 @@ const BUILTIN_CORPORA = [
 ] as const;
 
 /**
- * Every built-in kind and the gazetteer, which is the pairing the per-package
- * corpora were never read against: each of them proves its rows with two or
- * three kinds registered, and this asks whether the answer survives the other
- * fifteen plus six thousand city names.
+ * Every corpus a language carries, generated from the language table rather
+ * than listed.
+ *
+ * Twenty-one files per language: the engine's own corpus, the seventeen
+ * built-in kinds', and one each for the three packages that need an engine
+ * `@smartput/kinds` does not build. Listing 357 suites by hand would be a
+ * transcription exercise whose only failure mode is a typo, and the discovery
+ * check below already turns a file this generator misses into a red test.
+ *
+ * That is the whole question this file asks, now asked seventeen times over:
+ * `@smartput/mass` proves "3 lbs" reads with `number` and `mass` registered,
+ * and only here does it have to survive sixteen other kinds and six thousand
+ * city names as well — and only here does "3 كيلوغرامات" have to.
  */
-const builtins = createEngine({
-  locales: [composeLocale(coreEn, [...BUILTIN_EN, placeVocabulary(COUNTRIES)])],
-  kinds: [...BUILTIN_KINDS, geo],
-});
-
-/**
- * The same in Ukrainian, and two locales for the reason the core `uk` entry
- * gives: the places vocabulary is English, `composeLocale` refuses a vocabulary
- * whose locale is not its language's, and `format: "uk"` pins the output while
- * the city names stay readable. If six thousand of them could shadow a
- * Ukrainian unit word, this is where it shows.
- */
-const builtinsUk = createEngine({
-  locales: [
-    composeLocale(coreUk, BUILTIN_UK),
-    composeLocale(coreEn, [placeVocabulary(COUNTRIES)]),
-  ],
-  kinds: [...BUILTIN_KINDS, geo],
-  format: "uk",
-});
+const LANGUAGE_SUITES: readonly Suite[] = LANGUAGES.flatMap(([id]) => [
+  { file: `packages/core/corpus/${id}.tsv`, engine: engineFor(BUILTINS, id) },
+  ...BUILTIN_CORPORA.map((pkg) => ({
+    file: `packages/${pkg}/corpus/${id}.tsv`,
+    engine: engineFor(BUILTINS, id),
+  })),
+  { file: `packages/datetime/corpus/${id}.tsv`, engine: engineFor(DATETIMES, id) },
+  { file: `packages/measure/corpus/${id}.tsv`, engine: engineFor(MEASURES, id) },
+  { file: `packages/rate/corpus/${id}.tsv`, engine: engineFor(RATES, id) },
+]);
 
 const SUITES: readonly Suite[] = [
-  {
-    file: "packages/core/corpus/en.tsv",
-    engine: createEngine({
-      locales: [composeLocale(coreEn, [...BUILTIN_EN, placeVocabulary(COUNTRIES)])],
-      kinds: [...BUILTIN_KINDS, geo],
-    }),
-  },
+  ...LANGUAGE_SUITES,
+  // The two completion tables, listed by hand because they are the only two
+  // corpora in the repo replayed through `complete()` rather than `evaluate()`
+  // — a row is a fragment and the first row it offers — and because
+  // `@smartput/core` writes them in English and Ukrainian alone, so there is no
+  // per-language shape for the generator above to take.
   {
     file: "packages/core/corpus/en-complete.tsv",
-    engine: createEngine({
-      locales: [composeLocale(coreEn, [...BUILTIN_EN, placeVocabulary(COUNTRIES)])],
-      kinds: [...BUILTIN_KINDS, geo],
-    }),
+    engine: engineFor(BUILTINS, "en"),
     completion: true,
-  },
-  // Ukrainian, through the same net. The engine installs two locales because
-  // the places vocabulary is English and `composeLocale` refuses a vocabulary
-  // whose locale is not its language's — which is the point rather than an
-  // obstacle: recognition is many-locale and generation is one, so `format`
-  // pins the output to Ukrainian while the city names stay readable. If six
-  // thousand of them could shadow a Ukrainian unit, this is where it shows.
-  {
-    file: "packages/core/corpus/uk.tsv",
-    engine: createEngine({
-      locales: [
-        composeLocale(coreUk, BUILTIN_UK),
-        composeLocale(coreEn, [placeVocabulary(COUNTRIES)]),
-      ],
-      kinds: [...BUILTIN_KINDS, geo],
-      format: "uk",
-    }),
   },
   {
     file: "packages/core/corpus/uk-complete.tsv",
-    engine: createEngine({
-      locales: [
-        composeLocale(coreUk, BUILTIN_UK),
-        composeLocale(coreEn, [placeVocabulary(COUNTRIES)]),
-      ],
-      kinds: [...BUILTIN_KINDS, geo],
-      format: "uk",
-    }),
+    engine: engineFor(BUILTINS, "uk"),
     completion: true,
   },
-  { file: "packages/datetime/corpus/en.tsv", engine: full },
-  {
-    file: "packages/rate/corpus/en.tsv",
-    engine: createEngine({
-      locales: [composeLocale(coreEn, [placeVocabulary(COUNTRIES)])],
-      kinds: [number, money, geo],
-      rates,
-    }),
-  },
   { file: "packages/geo/corpus/kind/en.tsv", engine: places },
-  // The range milestone's five. `date` and `time` carry their owning corpus
-  // test's narrowing; the three range kinds win outright and take none.
+  // The range milestone's six, English-only because their corpora are. `date`
+  // and `time` carry their owning corpus test's narrowing; the three range
+  // kinds win outright and take none.
   { file: "packages/date/corpus/en.tsv", engine: ranges, kinds: ["date", "duration"] },
   { file: "packages/time/corpus/en.tsv", engine: ranges, kinds: ["time", "duration"] },
   { file: "packages/date-range/corpus/en.tsv", engine: ranges },
   { file: "packages/time-range/corpus/en.tsv", engine: ranges },
   { file: "packages/datetime-range/corpus/en.tsv", engine: ranges },
   { file: "packages/range/corpus/en.tsv", engine: selections },
-  // Every built-in kind's own corpus, in both languages, through the engine a
-  // consumer builds rather than the narrow one the owning package tests with.
-  // That is the whole question this file asks: `@smartput/mass` proves "3 lbs"
-  // reads with `number` and `mass` registered, and only here does it have to
-  // survive fifteen other kinds and six thousand city names as well.
-  ...BUILTIN_CORPORA.flatMap((pkg) => [
-    { file: `packages/${pkg}/corpus/en.tsv`, engine: builtins },
-    { file: `packages/${pkg}/corpus/uk.tsv`, engine: builtinsUk },
-  ]),
-  // `measure` gets its own pair because it is not in `BUILTIN_KINDS` at all —
-  // its mm/cm aliases collide with `length`, so the roster leaves it out and a
-  // consumer who wants it registers it without them. Geo is still in front.
-  {
-    file: "packages/measure/corpus/en.tsv",
-    engine: createEngine({
-      locales: [composeLocale(coreEn, [numberEn, measureEn, placeVocabulary(COUNTRIES)])],
-      kinds: [number, measure, geo],
-    }),
-  },
-  {
-    file: "packages/measure/corpus/uk.tsv",
-    engine: createEngine({
-      locales: [
-        composeLocale(coreUk, [numberUk, measureUk]),
-        composeLocale(coreEn, [placeVocabulary(COUNTRIES)]),
-      ],
-      kinds: [number, measure, geo],
-      format: "uk",
-    }),
-  },
-  {
-    file: "packages/rate/corpus/uk.tsv",
-    engine: createEngine({
-      locales: [
-        composeLocale(coreUk),
-        composeLocale(coreEn, [placeVocabulary(COUNTRIES)]),
-      ],
-      kinds: [number, money, geo],
-      format: "uk",
-      rates,
-    }),
-  },
 ];
 
 /**

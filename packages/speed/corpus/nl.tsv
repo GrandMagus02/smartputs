@@ -1,0 +1,34 @@
+# input	kind	canonical	formatted
+120 kph	speed	33.33333333333333333333333334	120 km/u
+100 kph in mph	speed	27.77777777777777777777777778	62,137119223733396961743418 mph
+60 mph in kph	speed	26.8224	96,56064 km/u
+1 knot in kph	speed	0.5144444444444444444444444444	1,852 km/u
+10 mps in kph	speed	10	36 km/u
+50 kph + 50 kph	speed	27.77777777777777777777777778	100 km/u
+100 kph - 20 kph	speed	22.22222222222222222222222222	80 km/u
+30 kph * 2	speed	16.66666666666666666666666667	60 km/u
+100 kph / 4	speed	6.944444444444444444444444445	25 km/u
+-10 kph	speed	-2.777777777777777777777777778	-10 km/u
+100 km / 2 h	speed	13.88888888888888888888888889	13,888888888888888888888889 m/s
+een kph	speed	0.2777777777777777777777777778	1 km/u
+3,6 kph in mps	speed	1	1 m/s
+# "." groups and "," is the decimal point.
+1.234 kph	speed	342.7777777777777777777777778	1.234 km/u
+# Two words for `times`, and `over` needs "door" after it.
+30 kph maal 2	speed	16.66666666666666666666666667	60 km/u
+30 kph keer 2	speed	16.66666666666666666666666667	60 km/u
+100 kph gedeeld door 4	speed	6.944444444444444444444444445	25 km/u
+# "naar" is the second conversion preposition beside "in".
+100 kph naar mph	speed	27.77777777777777777777777778	62,137119223733396961743418 mph
+# The hour in the symbol is "u", not "h": Dutch abbreviates *uur*, and the
+# symbol reads back as arithmetic over a length and a duration.
+120 km/u	speed	33.33333333333333333333333333	33,333333333333333333333333 m/s
+# knoop/knopen is the one unit in this translation that moves on the number
+# axis. Every Dutch length unit in `@smartput/length` prints one form for
+# both categories — "5 mijl", "5 meter" — and the knot is the exception.
+1 knoop	speed	0.5144444444444444444444444444	1 knoop
+2 knopen	speed	1.028888888888888888888888889	2 knopen
+1,5 knopen	speed	0.7716666666666666666666666666	1,5 knopen
+twintig knopen	speed	10.28888888888888888888888889	20 knopen
+# The bridge, in Dutch words.
+100 kilometer / 2 uur	speed	13.88888888888888888888888889	13,888888888888888888888889 m/s

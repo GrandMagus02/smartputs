@@ -1,0 +1,37 @@
+# input	kind	canonical	formatted
+3 metre * 4 metre	area	12	12 metrekare
+1 hektar çevir m2	area	10000	10.000 metrekare
+1 akre çevir m2	area	4046.8564224	4.046,8564224 metrekare
+2 km2 çevir hektar	area	2000000	200 hektar
+5000 cm2 çevir m2	area	0.5	0,5 metrekare
+10 m2 + 5 m2	area	15	15 metrekare
+1 hektar - 2500 m2	area	7500	0,75 hektar
+3 m2 * 4	area	12	12 metrekare
+100 m2 / 4	area	25	25 metrekare
+-5 m2	area	-5	-5 metrekare
+1 m2 çevir cm2	area	1	10.000 santimetrekare
+1 km * 1 km	area	1000000	1.000.000 metrekare
+12 m2	area	12	12 metrekare
+yüz yirmi metrekare	area	120	120 metrekare
+# Turkish does not pluralise after a numeral, so every unit here has exactly
+# one printed form and no number axis at all.
+1 metrekare	area	1	1 metrekare
+2 metrekare	area	2	2 metrekare
+1,5 metrekare	area	1.5	1,5 metrekare
+2 kilometrekare	area	2000000	2 kilometrekare
+1 hektar	area	10000	1 hektar
+# A conversion is not a preposition here: the rows above hang off the verb
+# "çevir", which stands before the target rather than after it. And Turkish
+# agglutinates, so the suffix stripper is what takes a case ending off a unit
+# word no alias lists.
+10 metrekareye	area	10	10 metrekare
+# The dotless i. `toLocaleLowerCase("tr")` sends "I" to "ı" and "İ" to "i", so
+# a Turkish engine has to fold both spellings of a capitalised unit onto the
+# one alias. No other language in this set has a case fold that moves a
+# letter's identity.
+2 KİLOMETREKARE	area	2000000	2 kilometrekare
+2 KILOMETREKARE	area	2000000	2 kilometrekare
+# "." groups and "," is the decimal point, German's pair.
+1.500 m2	area	1500	1.500 metrekare
+10 m2 çarpı 3	area	30	30 metrekare
+100 m2 bölü 4	area	25	25 metrekare

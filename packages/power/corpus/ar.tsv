@@ -1,0 +1,41 @@
+# input	kind	canonical	formatted
+1 كيلوواط إلى واط	power	1000	1,000 واط
+1 ميغاواط إلى كيلوواط	power	1000000	1,000 كيلوواط
+2.5 كيلوواط	power	2500	2.5 كيلوواط
+500 واط + 500 واط	power	1000	1,000 واط
+2 كيلوواط - 500 واط	power	1500	1.5 كيلوواط
+3 كيلوواط * 2	power	6000	6 كيلوواطات
+1 ميغاواط / 4	power	250000	0.25 ميغاواط
+-1 كيلوواط	power	-1000	-1 كيلوواط
+1000 واط إلى كيلوواط	power	1000	1 كيلوواط
+مئتان وخمسة كيلوواط	power	205000	205 كيلوواطات
+100 حصان إلى كيلوواط	power	74569.987158227022	74.569987158227022 كيلوواط
+# Six plural categories, the most any language in this set has. CLDR's Arabic
+# rule: 0 zero, 1 one, 2 two, 3-10 few, 11-99 many, and everything else — every
+# fraction included — other. The watt spells them with four words: zero, one
+# and other all take the bare noun, and the dual, the sound plural and the
+# accusative singular are each their own.
+0 واط	power	0	0 واط
+1 واط	power	1	1 واط
+2 واط	power	2	2 واطان
+3 واط	power	3	3 واطات
+11 واط	power	11	11 واطًا
+1.5 واط	power	1.5	1.5 واط
+# The horsepower runs the same six, and its `few` is a broken plural: أحصنة
+# reshapes the stem rather than suffixing it, so no stripper could derive it.
+3 حصان	power	2237.09961474681066	3 أحصنة
+11 حصان	power	8202.69858740497242	11 حصانًا
+# The category is read off the result, not off anything typed. 10 lands in few
+# and 30 in many, and the operand that produced 30 was in neither.
+10 كيلوواط	power	10000	10 كيلوواطات
+10 كيلوواط * 3	power	30000	30 كيلوواطًا
+# The digits and separators are Latin. `ar` resolves to a `latn` numbering
+# system with "," for groups and "." for the decimal, so an Arabic sentence
+# reads and prints its numbers left to right inside right-to-left text.
+1,500,000 واط إلى ميغاواط	power	1500000	1.5 ميغاواط
+# في is both "in" and "times" in Arabic, and it is claimed as the conversion
+# preposition; ضرب is what is left to say "multiplied". قسمة على is the
+# two-token division, hanging off على as `keywords.by`.
+2 كيلوواط في واط	power	2000	2,000 واط
+2 كيلوواط ضرب 3	power	6000	6 كيلوواطات
+1 ميغاواط قسمة على 4	power	250000	0.25 ميغاواط

@@ -1,0 +1,44 @@
+# input	kind	canonical	formatted
+1 kib w b	datasize	1024	1 024 bajty
+1 gb w mb	datasize	1000000000	1 000 megabajtów
+1 gib w mib	datasize	1073741824	1 024 mebibajty
+1024 b w kib	datasize	1024	1 kibibajt
+500 mb + 500 mb	datasize	1000000000	1 000 megabajtów
+1 gb - 200 mb	datasize	800000000	0,8 gigabajta
+2 gb * 3	datasize	6000000000	6 gigabajtów
+1 tb / 4	datasize	250000000000	0,25 terabajta
+-1 gb	datasize	-1000000000	-1 gigabajt
+jeden gigabajt	datasize	1000000000	1 gigabajt
+dwieście pięć megabajtów	datasize	205000000	205 megabajtów
+# The four plural categories on the byte, which English has two of. Polish
+# takes `few` for 2-4, `many` from 5 up, and sends the teens to `many` however
+# they end. Zero is `many` too.
+1 bajt	datasize	1	1 bajt
+2 bajty	datasize	2	2 bajty
+5 bajtów	datasize	5	5 bajtów
+12 bajtów	datasize	12	12 bajtów
+0 bajtów	datasize	0	0 bajtów
+# `many` reaches 21, and that is where Polish leaves Ukrainian rather than
+# Russian: "21 байт" there is the nominative singular, "21 bajtów" here is the
+# genitive plural. 22 is back in `few`.
+21 bajtów	datasize	21	21 bajtów
+22 bajty	datasize	22	22 bajty
+# And where Polish leaves Russian: `few` is a real nominative plural here
+# ("102 bajty") and the genitive singular there ("102 байта"). Same category,
+# different word.
+102 bajty	datasize	102	102 bajty
+# The fractional category is a fifth word, the genitive *singular* — "1,5
+# gigabajta", never "1,5 gigabajtów" — and it is reached by a conversion that
+# lands off a whole number as readily as by a typed decimal.
+1,5 GB	datasize	1500000000	1,5 gigabajta
+1 mib w kb	datasize	1048576	1 048,576 kilobajta
+# A decimal comma, and U+00A0 for the groups. The row is typed with an
+# ordinary space and comes back with the no-break one.
+1 234 567 bajtów	datasize	1234567	1 234 567 bajtów
+# The word operators. "razy" stands alone; "podzielić przez" is two tokens,
+# the second hanging off `keywords.by`.
+2 GB razy 3	datasize	6000000000	6 gigabajtów
+10 GB podzielić przez 4	datasize	2500000000	2,5 gigabajta
+# One more preposition introduces a target beside "w", and it does not
+# govern the locative that fills the other half of the table.
+2 GB na MB	datasize	2000000000	2 000 megabajtów

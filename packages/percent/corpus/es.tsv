@@ -1,0 +1,37 @@
+# input	kind	canonical	formatted
+20%	percent	0.2	20%
+20 porciento	percent	0.2	20%
+50 + 20%	number	60	60
+50 - 10%	number	45	45
+20% de 50	number	10	10
+10% + 5%	percent	0.15	15%
+100% - 40%	percent	0.6	60%
+50 * 10%	percent	5	500%
+10% / 2	percent	0.05	5%
+-10%	percent	-0.1	-10%
+diez porciento	percent	0.1	10%
+veinticinco porciento	percent	0.25	25%
+ciento veinte porciento	percent	1.2	120%
+0,5 en porcentaje	percent	0.5	50%
+5 / 50 en porcentaje	percent	0.1	10%
+# "." groups and "," is the decimal point.
+2,5%	percent	0.025	2,5%
+1.000%	percent	10	1.000%
+100 * 20%	percent	20	2.000%
+# "por" is `times` and "entre" is `over`, so the two symbol operators have word
+# spellings that are ordinary Spanish arithmetic.
+50 por 10%	percent	5	500%
+10% entre 2	percent	0.05	5%
+# What Spanish writes is "por ciento", two tokens, and both fragments are
+# claimed elsewhere: "por" by `times` and "ciento" by the cardinal 100. So the
+# phrase multiplies instead of naming the unit. A recorded gap — `es.test.ts`
+# pins the same wrong answer — and the reason all three one-token spellings
+# above are listed.
+20 por ciento	number	2000	2.000
+# "descuento" is the `off` keyword: what is left after the discount, not the
+# discount itself.
+20% descuento 50	number	40	40
+# Both `in` prepositions reach the conversion, and "porcentaje" is the noun a
+# target is typed with.
+0,5 a porcentaje	percent	0.5	50%
+20 porcentajes	percent	0.2	20%

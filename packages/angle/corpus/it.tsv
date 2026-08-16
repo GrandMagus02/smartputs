@@ -1,0 +1,35 @@
+# input	kind	canonical	formatted
+90 gradi	angle	1.570796326794896619231321692	90 gradi
+90 gradi in radianti	angle	1.570796326794896619231321692	1,5707963267948966192313217 radianti
+0,25 giri in gradi	angle	1.570796326794896619231321692	90 gradi
+200 gon in gradi	angle	3.141592653589793238462643383	180 gradi
+90 gradi + 90 gradi	angle	3.141592653589793238462643384	180 gradi
+1 giro - 90 gradi	angle	4.712388980384689857693965075	0,75 giri
+45 gradi * 2	angle	1.570796326794896619231321692	90 gradi
+180 gradi / 4	angle	0.7853981633974483096156608458	45 gradi
+-90 gradi	angle	-1.570796326794896619231321692	-90 gradi
+1 radiante in gradi	angle	1	57,295779513082320876798155 gradi
+un giro	angle	6.283185307179586476925286767	1 giro
+duecento gon	angle	3.141592653589793238462643383	200 gon
+360 gradi in giri	angle	6.283185307179586476925286767	1 giro
+1,5 radianti	angle	1.5	1,5 radianti
+# "." groups and "," is the decimal point.
+1.000 gradi	angle	17.45329251994329576923690768	1.000 gradi
+3 giri in gradi	angle	18.8495559215387594307758603	1.080 gradi
+# A fraction takes the **plural** — "1,5 gradi", "0,75 giri" — which is
+# Spanish's answer and the opposite of French's and Portuguese's for the same
+# number.
+1 grado	angle	0.01745329251994329576923690768	1 grado
+2 gradi	angle	0.03490658503988659153847381537	2 gradi
+1,5 gradi	angle	0.02617993877991494365385536153	1,5 gradi
+0,75 giri	angle	4.712388980384689857693965075	0,75 giri
+# `gon` is the one unit here that does not move: Italian borrows the symbol
+# whole and gives it no Italian plural, so `one` and `other` are one word.
+1 gon	angle	0.01570796326794896619231321692	1 gon
+2 gon	angle	0.03141592653589793238462643383	2 gon
+# The word operators, and the trap under them: "per" is `times`, so division
+# is the bare "diviso" with nothing after it to swallow.
+45 gradi per 2	angle	1.570796326794896619231321692	90 gradi
+180 gradi diviso 4	angle	0.7853981633974483096156608458	45 gradi
+# "a" is the second conversion preposition beside "in".
+90 gradi a radianti	angle	1.570796326794896619231321692	1,5707963267948966192313217 radianti

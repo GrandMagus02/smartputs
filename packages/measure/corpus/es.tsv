@@ -1,0 +1,32 @@
+# input	kind	canonical	formatted
+1 pulgada en pt	measure	1	72 puntos
+72 pt en pulgadas	measure	1	1 pulgada
+6 pc en pulgadas	measure	1	1 pulgada
+1 pulgada en mm	measure	1	25,4 milímetros
+1 pulgada en px	measure	1	96 píxeles
+96 px en pulgadas	measure	1	1 pulgada
+2 pulgadas + 36 pt	measure	2.5	2,5 pulgadas
+1 pulgada - 12 pt	measure	0.8333333333333333333333333333	0,83333333333333333333333333 pulgadas
+3 pulgadas * 2	measure	6	6 pulgadas
+1 pulgada / 4	measure	0.25	0,25 pulgadas
+-2 pulgadas	measure	-2	-2 pulgadas
+1 pc en pt	measure	0.1666666666666666666666666667	12 puntos
+10 mm en cm	measure	0.3937007874015748031496062992	1 centímetro
+una pulgada	measure	1	1 pulgada
+doce puntos	measure	0.1666666666666666666666666667	12 puntos
+# "." groups and "," is the decimal point.
+25,4 mm en pulgadas	measure	1	1 pulgada
+1.440 pt en pulgadas	measure	20	20 pulgadas
+1.234.567 px	measure	12860.07291666666666666666667	1.234.567 píxeles
+# A fraction takes the plural. "1,5 pulgadas", "0,5 pulgadas" — Spanish
+# agrees `one` with the count 1 and nothing else, which is the opposite of
+# what French does with the same numbers.
+1,5 pulgadas	measure	1.5	1,5 pulgadas
+0,5 pulgadas	measure	0.5	0,5 pulgadas
+1 punto	measure	0.01388888888888888888888888889	1 punto
+# "por" is times, so "entre" is what is left for division. A Spanish engine
+# cannot say "dividido por" for the same reason a Portuguese one cannot.
+3 pulgadas por 2	measure	6	6 pulgadas
+1 pulgada entre 4	measure	0.25	0,25 pulgadas
+# "a" is the second conversion preposition beside "en".
+2 pulgadas a milímetros	measure	2	50,8 milímetros

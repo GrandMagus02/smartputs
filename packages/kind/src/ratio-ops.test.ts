@@ -1,9 +1,9 @@
 import { expect, test } from "bun:test";
-import { Decimal } from "../decimal";
-import { DimensionMismatchError } from "../errors";
-import type { EvalCtx, Value } from "../types";
+import { Decimal } from "./decimal";
 import { defineKind, normalizeKind } from "./define";
+import { DimensionMismatchError } from "./errors";
 import { generateRatioOps, NUMBER_KIND, PERCENT_KIND } from "./ratio-ops";
+import type { EvalCtx, Value } from "./types";
 
 const keys = (k: Parameters<typeof generateRatioOps>[0]) =>
   generateRatioOps(k).map((s) => `${s.op}|${s.left}|${s.right}`);

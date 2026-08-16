@@ -1,0 +1,43 @@
+# input	kind	canonical	formatted
+1kwh를 줄	energy	3600000	3,600,000J
+2킬로와트 곱하기 3시간	energy	21600000	21,600,000J
+1kwh / 1시간	power	1000	1,000와트
+1kcal을 J	energy	4184	4,184J
+500J + 500J	energy	1000	1,000J
+1kJ - 250J	energy	750	0.75kJ
+1kJ / 4	energy	250	0.25kJ
+-1kwh	energy	-3600000	-1킬로와트시
+1,234,567J	energy	1234567	1,234,567J
+2.5kwh	energy	9000000	2.5킬로와트시
+# No number agreement and no space between the number and the unit, on input
+# or output. The separators are English's — "," for groups, "." for the
+# decimal — and 1, 5 and 1.5 take one and the same word.
+1칼로리	energy	4.184	1칼로리
+5칼로리	energy	20.92	5칼로리
+1.5칼로리	energy	6.276	1.5칼로리
+5킬로칼로리	energy	20920	5킬로칼로리
+# The Hangul loans read and the SI symbol prints: 줄 is an alias and not a
+# `forms` row, so the joule family comes back as J/kJ/MJ however it went in.
+1줄	energy	1	1J
+5줄	energy	5	5J
+5BTU	energy	5275.2792631	5BTU
+# 킬로와트시 is a Korean word for the watt-hour, one token and a `forms` row,
+# so this family prints in Hangul where Japanese and Chinese fall back to the
+# symbol — and the Latin alias lands on the same word.
+1킬로와트시	energy	3600000	1킬로와트시
+2킬로와트시	energy	7200000	2킬로와트시
+1kWh	energy	3600000	1킬로와트시
+# The word operators need whitespace around them. The symbol operators above
+# have no such requirement.
+2kJ 곱하기 3	energy	6000	6kJ
+10kJ 나누기 4	energy	2500	2.5kJ
+# Particle stripping. Korean glues its case particles to the unit word, none
+# of them is a listed alias, and the stripper takes them off. It works on a
+# bare quantity like these two; a *conversion* after a Hangul unit with a
+# glued particle does not separate, which is why the first row of this file
+# says "1kwh를 줄" in mixed script rather than "1킬로와트시를 줄".
+5줄을	energy	5	5J
+500킬로줄에서	energy	500000	500kJ
+# The myriad. Korean counts in ten-thousands, so 만 is a magnitude word in its
+# own right and 일만 is one of them, not ten of a thousand.
+일만 줄	energy	10000	10,000J

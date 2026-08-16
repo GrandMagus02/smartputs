@@ -1,0 +1,41 @@
+# input	kind	canonical	formatted
+1KiB到B	datasize	1024	1,024B
+1GB到MB	datasize	1000000000	1,000MB
+1GiB到MiB	datasize	1073741824	1,024MiB
+1TB到GB	datasize	1000000000000	1,000GB
+1MiB到kB	datasize	1048576	1,048.576kB
+1024B到KiB	datasize	1024	1KiB
+500MB + 500MB	datasize	1000000000	1,000MB
+1GB - 200MB	datasize	800000000	0.8GB
+2GB * 3	datasize	6000000000	6GB
+1TB / 4	datasize	250000000000	0.25TB
+-1GB	datasize	-1000000000	-1GB
+一GB	datasize	1000000000	1GB
+二百零五MB	datasize	205000000	205MB
+# No number agreement of any kind, and no space between the number and the
+# unit either — on input or on output, which is what makes the round trip
+# hold. The separators are English's: "," for groups, "." for the decimal.
+1B	datasize	1	1B
+5B	datasize	5	5B
+1.5GB	datasize	1500000000	1.5GB
+1,234,567B	datasize	1234567	1,234,567B
+# Every printed unit is a Latin symbol, and that is Chinese rather than a gap.
+# ICU's dictionary knows none of this kind's Han names — 字节 comes back as 字
+# then 节 — so a spelled form would print a size that does not read back, and
+# a Chinese product page writes 「1.5GB」 anyway.
+2GB换算MB	datasize	2000000000	2,000MB
+2GB为MB	datasize	2000000000	2,000MB
+# 兆 is the one Han word this kind can honestly claim: the SI prefix mega
+# standing alone with the unit understood, the way English says "megs".
+20兆	datasize	20000000	20MB
+5兆	datasize	5000000	5MB
+# The myriad. Chinese counts in ten-thousands, so 万 is a magnitude word in
+# its own right and 一万 is one of them, not ten of a thousand.
+一万B	datasize	10000	10,000B
+# The word operators need whitespace around them even though Chinese is
+# written without any: 乘 and 除以 are matched as separate tokens, and
+# "2GB乘3" does not parse. The symbol operators above have no such
+# requirement, and neither do the conversion verbs.
+2GB 乘 3	datasize	6000000000	6GB
+10GB 除以 4	datasize	2500000000	2.5GB
+100MB 加 100MB	datasize	200000000	200MB

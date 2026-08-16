@@ -1,0 +1,39 @@
+# What a comparison returns. Registering this kind is what turns
+# `1000 MB = 1 GB` from an unresolvable expression into `true`.
+#
+# `true` and `false` are not translated, and that is this file's finding
+# rather than an oversight it hides: the kind ships no vocabulary at all,
+# so `formatValue` degrades to the unit key in every language. A Spanish
+# engine answering "true" is what the code does today, and a row asserting
+# it is what makes a later `boolean/locale/es` a visible diff here.
+# input	kind	canonical	formatted
+1000 MB = 1 GB	boolean	1	true
+1 km > 999 m	boolean	1	true
+1 km < 999 m	boolean	0	false
+1 m = 100 cm	boolean	1	true
+2 > 1	boolean	1	true
+1 >= 1	boolean	1	true
+1 <= 0	boolean	0	false
+5 != 4	boolean	1	true
+1 kg + 500 g = 1,5 kg	boolean	1	true
+1 km - 250 m = 750 m	boolean	1	true
+-5 km < 0 km	boolean	1	true
+1 km en metros = 1000 m	boolean	1	true
+un kilómetro = 1000 metros	boolean	1	true
+dos mil metros = 2 km	boolean	1	true
+# The decimal comma and the group dot, the pair English reads backwards.
+1,5 km = 1500 m	boolean	1	true
+1.500 m = 1,5 km	boolean	1	true
+# "por" is times and "entre" is over, so neither operator is spelled with a
+# preposition the other could swallow.
+10 km por 3 = 30 km	boolean	1	true
+10 km entre 4 = 2,5 km	boolean	1	true
+# "a" beside "en": Spanish states a conversion target with either.
+2 km a metros = 2000 m	boolean	1	true
+# The units Spanish writes as its own nouns rather than borrowing.
+2 millas > 3 kilómetros	boolean	1	true
+1 pulgada = 2,54 cm	boolean	1	true
+3 pies = 91,44 cm	boolean	1	true
+1 milla = 1,609344 km	boolean	1	true
+1 hectárea = 10000 m2	boolean	1	true
+1 hora != 60 minutos	boolean	0	false

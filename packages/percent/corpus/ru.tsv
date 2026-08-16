@@ -1,0 +1,39 @@
+# input	kind	canonical	formatted
+20%	percent	0.2	20%
+20 процентов	percent	0.2	20%
+50 + 20%	number	60	60
+50 - 10%	number	45	45
+20% от 50	number	10	10
+10% + 5%	percent	0.15	15%
+100% - 40%	percent	0.6	60%
+50 * 10%	percent	5	500%
+10% / 2	percent	0.05	5%
+-10%	percent	-0.1	-10%
+десять процентов	percent	0.1	10%
+двадцать пять процентов	percent	0.25	25%
+0,5 в процентах	percent	0.5	50%
+5 / 50 в процентах	percent	0.1	10%
+# U+00A0 groups and "," is the decimal point; the input here is typed with an
+# ordinary space and the output comes back with the no-break one. Russian sets
+# the sign tight against the number, where Polish on the same two separators
+# sets it off.
+2,5%	percent	0.025	2,5%
+1 000%	percent	10	1 000%
+100 * 20%	percent	20	2 000%
+# The four categories, on the read side only. 21 takes the singular and 11 does
+# not, `few` is the genitive singular for 2-4, and the fractional row takes that
+# same genitive singular — four distinct words, one printed answer, because the
+# written form of this unit is the sign.
+1 процент	percent	0.01	1%
+2 процента	percent	0.02	2%
+5 процентов	percent	0.05	5%
+11 процентов	percent	0.11	11%
+21 процент	percent	0.21	21%
+1,5 процента	percent	0.015	1,5%
+# The abbreviation Russian technical writing uses, listed without its full stop
+# because a word token ends at the period.
+20 проц	percent	0.2	20%
+# Both word operators are two tokens, hanging off "на" as `by`.
+50 умножить на 10%	percent	5	500%
+10% разделить на 2	percent	0.05	5%
+0,5 до процентов	percent	0.5	50%

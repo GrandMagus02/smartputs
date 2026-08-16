@@ -1,0 +1,39 @@
+# input	kind	canonical	formatted
+90도	angle	1.570796326794896619231321692	90도
+90deg를 라디안	angle	1.570796326794896619231321692	1.5707963267948966192313217라디안
+0.25회전 을 도	angle	1.570796326794896619231321692	90도
+90도 + 90도	angle	3.141592653589793238462643384	180도
+1회전 - 90도	angle	4.712388980384689857693965075	0.75회전
+180도 / 4	angle	0.7853981633974483096156608458	45도
+-90도	angle	-1.570796326794896619231321692	-90도
+1rad를 도	angle	1	57.295779513082320876798155도
+360도 를 회전	angle	6.283185307179586476925286767	1회전
+1.5라디안	angle	1.5	1.5라디안
+1,234,567도	angle	21547.25898646883482793950141	1,234,567도
+# No number agreement of any kind, so every unit has one printed form and 1, 5
+# and 1.5 take the same word. The separators are English's, and there is no
+# space between the number and the unit on either side of the round trip.
+1도	angle	0.01745329251994329576923690768	1도
+5도	angle	0.08726646259971647884618453842	5도
+1.5도	angle	0.02617993877991494365385536153	1.5도
+-1.5회전	angle	-9.42477796076937971538793015	-1.5회전
+# The particles. Korean marks the source of a conversion with the accusative
+# 을/를 and the origin with 에서, all written glued to the unit word, and the
+# suffix stripper takes them off a bare quantity too.
+5도를	angle	0.08726646259971647884618453842	5도
+5도에서	angle	0.08726646259971647884618453842	5도
+# A conversion parses when the particle is its own token — which it is after a
+# Latin unit alias, the mixed-script spelling Korean technical writing uses.
+0.25turn를 도	angle	1.570796326794896619231321692	90도
+90deg에서 라디안	angle	1.570796326794896619231321692	1.5707963267948966192313217라디안
+# After a *Hangul* unit the glued particle does not separate, and the
+# conversion has to be written with a space before it. "360도를 회전" does not
+# parse; the spine row above is the same sentence that does.
+1회전 을 도	angle	6.283185307179586476925286767	360도
+# The myriad. Korean counts in ten-thousands, so 만 is its own magnitude word.
+만 도	angle	174.5329251994329576923690768	10,000도
+일 회전	angle	6.283185307179586476925286767	1회전
+이백 그라디안	angle	3.141592653589793238462643383	200그라디안
+# The operators are native Korean verbal nouns and stand as separate tokens.
+2회전 곱하기 3	angle	37.69911184307751886155172059	6회전
+180도 나누기 4	angle	0.7853981633974483096156608458	45도

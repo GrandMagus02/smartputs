@@ -1,0 +1,67 @@
+# input	kind	canonical	formatted
+#
+# The clock is 2026-01-15T12:00:00Z — a Thursday — and the engine zone is UTC,
+# the same pinning `corpus/en.tsv` records. `canonical` is epoch nanoseconds for
+# a datetime and canonical seconds for a duration. `formatted` follows
+# "YYYY-MM-DD HH:MM <zone symbol>", with midnight whenever the input named no
+# time of day — and it is never translated, because the kind's format hook
+# builds it from Temporal fields rather than from ICU.
+
+# datetime — recognition. An ISO date is the one date syntax every locale
+# shares; a bare clock time takes its date from the pinned clock.
+2026-03-01	datetime	1772323200000000000	2026-03-01 00:00 UTC
+9:30	datetime	1768469400000000000	2026-01-15 09:30 UTC
+
+# The date reader is chrono-node in its English configuration, whichever locale
+# formats the answer, so "dzisiaj", "jutro" and "1 marca 2026" all throw while
+# their English spellings read under a Polish engine. A known gap, recorded here
+# rather than worked around: `chrono-bridge.ts` says as much where it spells
+# `to|as|in` in English.
+next friday	datetime	1769126400000000000	2026-01-23 00:00 UTC
+1 March 2026	datetime	1772323200000000000	2026-03-01 00:00 UTC
+
+# datetime + duration, with the duration spelled in Polish.
+2026-03-01 + 3 dni	datetime	1772582400000000000	2026-03-04 00:00 UTC
+2026-03-01 - 1 tydzień	datetime	1771718400000000000	2026-02-22 00:00 UTC
+9:30 + 90 minut	datetime	1768474800000000000	2026-01-15 11:00 UTC
+# February is 28 days long in 2026; the addition is calendar arithmetic, not
+# 86400 seconds.
+2026-02-28 + 1 d	datetime	1772323200000000000	2026-03-01 00:00 UTC
+2026-03-01 + trzy dni	datetime	1772582400000000000	2026-03-04 00:00 UTC
+
+# A date difference is the one place this kind can state a plural category: the
+# result is a duration, and the number is whatever the two dates make it. All
+# four Polish categories, without a single hand-written quantity.
+2026-01-16 - 2026-01-15	duration	86400	1 dzień
+2026-01-17 - 2026-01-15	duration	172800	2 dni
+2026-01-20 - 2026-01-15	duration	432000	5 dni
+# `durationValue` reports the largest unit it fills, so 45 days is weeks — and
+# a fraction is `other`, the genitive singular, which is a fifth word rather
+# than a reuse of one of the four above.
+2026-03-01 - 2026-01-15	duration	3888000	6,4285714285714285714285714 tygodnia
+# A decimal comma and a U+00A0 group separator — the Ukrainian pair rather than
+# the German one.
+1000 dni	duration	86400000	1 000 dni
+2 tygodnie razy 3	duration	3628800	6 tygodni
+6 godzin podzielić przez 2	duration	10800	3 godziny
+-5 minut	duration	-300	-5 minut
+
+# Zone conversion. All four of core's Polish words for the keyword reach a
+# zone, and the case they govern is spelled into the alias list: "w" takes the
+# locative ("w Kijowie"), "do" the genitive ("do Kijowa"), and both are aliases
+# of the same unit.
+15:00 w kijowie	datetime	1768489200000000000	2026-01-15 17:00 Kyiv
+15:00 do kijowa	datetime	1768489200000000000	2026-01-15 17:00 Kyiv
+# "we" is the pre-consonant-cluster form of "w", and a separate keyword word.
+15:00 we francji	datetime	1768489200000000000	2026-01-15 16:00 CET
+# July, so London is on BST and the same zone that reads +00:00 in January
+# reads +01:00 here. Only a date-aware kind can tell the two apart.
+2026-07-01 w londynie	datetime	1782864000000000000	2026-07-01 01:00 London
+15:00 w kalkucie	datetime	1768489200000000000	2026-01-15 20:30 IST
+
+# Nothing below is a date. These rows are the accept-gate's regression guard
+# (plan ruling R4): if a chrono upgrade starts claiming them, they fail loudly.
+10 km + 5 km	length	15000	15 kilometrów
+20 C	temperature	20	20 °C
+5 minut	duration	300	5 minut
+

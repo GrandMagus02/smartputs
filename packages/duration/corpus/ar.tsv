@@ -1,0 +1,38 @@
+# input	kind	canonical	formatted
+30 ساعة - 30 دقيقة	duration	106200	29.5 ساعة
+90 دقيقة إلى ساعة	duration	5400	1.5 ساعة
+1 يوم إلى ساعة	duration	86400	24 ساعة
+1 أسبوع إلى يوم	duration	604800	7 أيام
+500 ms + 500 ms	duration	1	1,000 ms
+2 ساعة ضرب 3	duration	21600	6 ساعات
+1 يوم / 4	duration	21600	0.25 يوم
+-2 ساعة	duration	-7200	-2 ساعتان
+1 ساعة إلى ثانية	duration	3600	3,600 ثانية
+3600 ثانية إلى ساعة	duration	3600	1 ساعة
+2 يوم + 12 ساعة	duration	216000	2.5 يوم
+مئتان وخمسة يوم	duration	17712000	205 أيام
+# Six plural categories, the most any language in this set has, and يوم spells
+# each of them differently. CLDR's Arabic rule: 0 zero, 1 one, 2 two, 3-10
+# few, 11-99 many, and everything else — 100, and every fraction — other.
+0 يوم	duration	0	0 يوم
+1 يوم	duration	86400	1 يوم
+2 يوم	duration	172800	2 يومان
+3 يوم	duration	259200	3 أيام
+11 يوم	duration	950400	11 يومًا
+100 يوم	duration	8640000	100 يوم
+1.5 يوم	duration	129600	1.5 يوم
+# ساعة ends in tāʾ marbūṭa, which carries the accusative tanwīn as a bare mark
+# with no alif under it — so its `many` row is spelled exactly like its
+# singular, and only `two` and `few` are separate words.
+3 ساعة	duration	10800	3 ساعات
+11 ساعة	duration	39600	11 ساعة
+# أيام and أسابيع are broken plurals: the stem is re-arranged rather than
+# suffixed, and no rule could derive either from its singular.
+2 أسبوع	duration	1209600	2 أسبوعان
+3 أسبوع	duration	1814400	3 أسابيع
+# في is both "in" and "times", and it is claimed as a conversion preposition —
+# which is why ضرب above is what is left for multiply.
+1 يوم في ساعة	duration	86400	24 ساعة
+# The digits and separators are Latin. `ar` resolves to a `latn` numbering
+# system, so "," groups and "." is the decimal point inside right-to-left text.
+100000 ثانية	duration	100000	100,000 ثانية

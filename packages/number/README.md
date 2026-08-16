@@ -67,8 +67,12 @@ Type-only exports are erased and do not appear here.
 
 ## Dependencies
 
-- [`@smartput/core`](../core/README.md)
+- [`@smartput/kind`](../kind/README.md)
 - [`@smartput/shared`](../shared/README.md)
+
+### Optional peers
+
+- [`@smartput/core`](../core/README.md) — needed only by `@smartput/number` and its `/locale/*` entries, and `npm add` does not fetch it. Anyone reaching those has written `createEngine` and installed it already; the `/validate`, `/units` and `/class` entries never touch it.
 
 ## What it costs
 

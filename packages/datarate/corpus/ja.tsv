@@ -1,0 +1,42 @@
+# input	kind	canonical	formatted
+100mbps	datarate	100000000	100Mbps
+1gbpsをmbps	datarate	1000000000	1,000Mbps
+500MB / 20秒	datarate	200000000	200Mbps
+100mbps * 1分	datasize	750000000	750,000,000B
+1分 * 100mbps	datasize	750000000	750,000,000B
+1GB / 100mbps	duration	80	80秒
+100mbps + 50mbps	datarate	150000000	150Mbps
+200mbps - 50mbps	datarate	150000000	150Mbps
+2mbps * 3	datarate	6000000	6Mbps
+1gbps / 4	datarate	250000000	0.25Gbps
+-10mbps	datarate	-10000000	-10Mbps
+8000bpsをkbps	datarate	8000	8kbps
+二百mbps	datarate	200000000	200Mbps
+# No space between the number and the unit, on input or output, and no number
+# agreement of any kind: 1 and 5 take the same word.
+1バイト	datasize	1	1B
+5バイト	datasize	5	5B
+# The case particles are glued to the unit word and are the conversion keyword
+# themselves — を marks the object and から marks the source, and either one
+# introduces the target.
+1gbpsからmbps	datarate	1000000000	1,000Mbps
+# The myriad. Japanese counts in ten-thousands, so 万 is a magnitude word in its
+# own right and 一万 is one of them, not ten of a thousand. The separators
+# printed are English's — "," for groups, and the "." in the "0.25Gbps" above.
+一万bps	datarate	10000	10,000bps
+1,234,567bps	datarate	1234567	1,234,567bps
+# The katakana loans, which are what a Japanese page writes for the spelled-out
+# nouns. "メガビット" and "メガバイト" name two kinds, and the factor of 8 between
+# them is the one the bridge signatures write out.
+100ビット	datarate	100	100bps
+100メガビット	datarate	100000000	100Mbps
+100メガバイト	datasize	100000000	100MB
+# The word operators need whitespace around them even though Japanese is written
+# without any: "2mbpsかける3" does not parse. The symbol operators above have no
+# such requirement, and neither do the particles.
+2mbps かける 3	datarate	6000000	6Mbps
+10gbps わる 4	datarate	2500000000	2.5Gbps
+# Each operator has a kana spelling and a kanji one, and both are listed rather
+# than stripped down to a stem.
+200mbps ひく 50mbps	datarate	150000000	150Mbps
+200mbps 引く 50mbps	datarate	150000000	150Mbps

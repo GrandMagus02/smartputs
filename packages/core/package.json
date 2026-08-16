@@ -146,6 +146,7 @@
     }
   },
   "dependencies": {
+    "@smartput/kind": "workspace:*",
     "decimal.js": "^10.6.0"
   },
   "devDependencies": {

@@ -1,0 +1,41 @@
+# input	kind	canonical	formatted
+1 kwh in joule	energy	3600000	3.600.000 joule
+2 kW * 3 ore	energy	21600000	21.600.000 joule
+1 kwh / 1 ora	power	1000	1.000 watt
+1 kwh / 1 kW	duration	3600	3.600 secondi
+500 J + 500 J	energy	1000	1.000 joule
+2 kJ * 3	energy	6000	6 chilojoule
+1 kJ - 250 J	energy	750	0,75 chilojoule
+1 kJ / 4	energy	250	0,25 chilojoule
+-1 kwh	energy	-3600000	-1 chilowattora
+un chilojoule	energy	1000	1 chilojoule
+duecento joule	energy	200	200 joule
+# "." groups and "," is the decimal, the pair Italian shares with German.
+1.234.567 J	energy	1234567	1.234.567 joule
+2,5 kwh	energy	9000000	2,5 chilowattora
+# The joule is a foreign loan and Italian leaves those invariant, so its two
+# `forms` rows hold one word and no count moves it.
+1 joule	energy	1	1 joule
+2 joule	energy	2	2 joule
+# The calorie is a native noun and does decline, which is why the joule rows
+# above are worth having. A fraction takes the **plural** here — "1,5 calorie",
+# not "1,5 caloria" — the opposite of what French does with the same amount.
+1 caloria	energy	4.184	1 caloria
+2 calorie	energy	8.368	2 calorie
+1,5 calorie	energy	6.276	1,5 calorie
+# "chilo-" is how Italian spells the prefix, and it is what prints; the
+# international "kilo-" reads and never comes back out.
+1 kilowattora	energy	3600000	1 chilowattora
+2 chilowattora	energy	7200000	2 chilowattora
+# "wattora" is fused into one word, as in French and unlike English, Russian
+# and Arabic, so the watt-hour family has forms to print rather than a symbol.
+5 wattora	energy	18000	5 wattora
+# BTU declares `forms`, both of them the initialism itself.
+5 BTU	energy	5275.2792631	5 BTU
+# The word operators, and the trap in them: "per" is `times`, so "diviso per"
+# is two operators in a row and does not parse. Italian division is bare
+# "diviso", with no `by` word behind it.
+2 kJ per 3	energy	6000	6 chilojoule
+10 kJ diviso 4	energy	2500	2,5 chilojoule
+# "a" is the second conversion preposition beside the "in" generation emits.
+2 kWh a joule	energy	7200000	7.200.000 joule

@@ -1,0 +1,42 @@
+# input	kind	canonical	formatted
+30 usd	money	27.27272727272727272727272727	$30,00
+2 Euro	money	2	€2,00
+100 Dollar in Euro	money	90.90909090909090909090909091	€90,91
+5 Euro plus 5 Euro	money	10	€10,00
+30 Dollar minus 10 Euro	money	17.27272727272727272727272727	$19,00
+2 Euro mal 3	money	6	€6,00
+10 Euro geteilt durch 4	money	2.5	€2,50
+-5 Euro	money	-5	-€5,00
+zwei Euro	money	2	€2,00
+(1 usd / 3) * 3	money	0.909090909090909090909090909	$1,00
+# German groups with "." and puts the decimal on ",", so the string English
+# writes "1,000.50" is written here with the two marks swapped.
+1,5 Euro	money	1.5	€1,50
+1.000,50 Euro	money	1000.5	€1.000,50
+1.234.567 uah in Euro	money	27133.34065934065934065934066	€27.133,34
+# The currency noun does not move on the number axis: "Dollar" is the word
+# after 1, after 2 and after 5. Only the reader ever sees it — `money`
+# formats from the currency sign, never from a word — so what these three
+# rows pin is that all three readings land on the same unit.
+1 Dollar	money	0.9090909090909090909090909091	$1,00
+2 Dollar	money	1.818181818181818181818181818	$2,00
+5 Dollar	money	4.545454545454545454545454546	$5,00
+# The words that are German rather than borrowed, and the compound the
+# language builds instead of a two-word name: "Schweizerfranken" is one
+# token, which is what makes it an alias at all.
+3 Pfund	money	3.566333808844507845934379457	£3,00
+5 Franken	money	5.31914893617021276595744681	CHF5,00
+10 Schweizerfranken	money	10.63829787234042553191489362	CHF10,00
+100 Hrywnja	money	2.197802197802197802197802198	₴100,00
+# A currency with no minor unit, grouped the German way: no ",00" to add and
+# a "." between the thousands.
+1000 Yen	money	5.882352941176470588235294118	¥1.000
+# Two more prepositions introduce a conversion target beside the "in" every
+# row above uses, and neither is spelled the way English spells it.
+100 Dollar nach Euro	money	90.90909090909090909090909091	€90,91
+100 Dollar zu Euro	money	90.90909090909090909090909091	€90,91
+# Division is two tokens, and the first of them has a second spelling.
+10 Euro dividiert durch 4	money	2.5	€2,50
+# Letter case is not part of the alias index: German capitalises its nouns
+# and a lower-case one still reads.
+5 pfund	money	5.943889681407513076557299095	£5,00

@@ -1,0 +1,44 @@
+# input	kind	canonical	formatted
+2 l	volume	2	2 Liter
+2 l in ml	volume	2	2.000 Milliliter
+1 gal in l	volume	3.785411784	3,785411784 Liter
+1 Pint in ml	volume	0.473176473	473,176473 Milliliter
+500 ml + 500 ml	volume	1	1.000 Milliliter
+2 l - 250 ml	volume	1.75	1,75 Liter
+3 l * 4	volume	12	12 Liter
+1 l / 4	volume	0.25	0,25 Liter
+-2 l	volume	-2	-2 Liter
+1 gal in Pint	volume	3.785411784	8 Pint
+ein Liter	volume	1	1 Liter
+zweihundertfünf Liter	volume	205	205 Liter
+# The separators are English's, swapped. "." groups the thousands and "," is
+# the decimal point, on input and on output alike — 1.500 ml is fifteen
+# hundred of them, not one and a half.
+1.500 ml in Litern	volume	1.5	1,5 Liter
+1,5 l	volume	1.5	1,5 Liter
+1.234.567 ml	volume	1234.567	1.234.567 Milliliter
+# Duden's rule for Maßangaben: a masculine or neuter measure noun does not
+# inflect after a numeral. "2 Liter", never "2 Litern" — the number axis is
+# dead on four of the five units here.
+2 Liter	volume	2	2 Liter
+21 Liter	volume	21	21 Liter
+# `die Gallone` is the only feminine unit, so it is the only one whose plural
+# moves. A fraction above zero is CLDR `other` in German, so 0,5 takes the
+# plural too — the opposite of the Slavic genitive singular next door.
+2 Gallonen	volume	7.570823568	2 Gallonen
+0,5 Gallone	volume	1.892705892	0,5 Gallonen
+# The dative is read, never printed. "zu Millilitern" governs the target, but
+# the answer is a bare quantity and comes back nominative.
+2 l zu Millilitern	volume	2	2.000 Milliliter
+# The cubic metre is a single token in German, so it is the one language here
+# that prints the unit in words where `en` and `uk` fall back to the symbol
+# `m³`. `cbm` is the abbreviation an invoice carries.
+1,5 Kubikmeter	volume	1500	1,5 Kubikmeter
+2 cbm in Litern	volume	2000	2.000 Liter
+# `das Pint` is a neuter loan, and German prints neither its `-s` plural nor a
+# dative `-n` after a numeral.
+5 Pint	volume	2.365882365	5 Pint
+# The word operators. "mal" stands alone; "geteilt durch" is two tokens folded
+# into one, the way English folds "divided by".
+2 l mal 3	volume	6	6 Liter
+10 l geteilt durch 4	volume	2.5	2,5 Liter

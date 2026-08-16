@@ -51,7 +51,7 @@ Type-only exports are erased and do not appear here.
 
 ## Dependencies
 
-- [`@smartput/core`](../core/README.md)
+- [`@smartput/kind`](../kind/README.md)
 
 ## What it costs
 

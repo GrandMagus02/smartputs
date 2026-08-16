@@ -1,0 +1,35 @@
+# input	kind	canonical	formatted
+3 m * 4 m	area	12	12m²
+1 hectárea en m2	area	10000	10.000m²
+1 acre en m2	area	4046.8564224	4.046,8564224m²
+2 km2 en hectáreas	area	2000000	200 hectáreas
+5000 cm2 en m2	area	0.5	0,5m²
+10 m2 + 5 m2	area	15	15m²
+1 hectárea - 2500 m2	area	7500	0,75 hectáreas
+3 m2 * 4	area	12	12m²
+100 m2 / 4	area	25	25m²
+-5 m2	area	-5	-5m²
+2 sqkm en m2	area	2000000	2.000.000m²
+1 m2 en cm2	area	1	10.000cm²
+dos hectáreas	area	20000	2 hectáreas
+1 km * 1 km	area	1000000	1.000.000m²
+12 m2	area	12	12m²
+# The two categories and the boundary between them. Spanish puts a fraction in
+# the **plural** — "1,5 hectáreas" — which is where it parts company with
+# French and Portuguese on the identical noun.
+1 hectárea	area	10000	1 hectárea
+2 hectáreas	area	20000	2 hectáreas
+1,5 hectáreas	area	15000	1,5 hectáreas
+0,5 hectáreas	area	5000	0,5 hectáreas
+# "." groups and "," is the decimal point.
+1.500 m2	area	1500	1.500m²
+# "por" is times and "entre" is over, so neither operator is two-token and
+# neither borrows the other's word.
+10 m2 por 3	area	30	30m²
+100 m2 entre 4	area	25	25m²
+# The unaccented spelling is listed beside the accented one, because a keyboard
+# that cannot reach á is what most people type. Only the accented form prints.
+1 hectarea	area	10000	1 hectárea
+# "a" is the second conversion preposition, beside "en".
+1 acre a hectáreas	area	4046.8564224	0,40468564224 hectáreas
+ciento veinte m2	area	120	120m²

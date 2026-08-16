@@ -1,0 +1,33 @@
+# input	kind	canonical	formatted
+2주	duration	1209600	2주
+30시간 - 30분	duration	106200	29.5시간
+500밀리초 + 500밀리초	duration	1	1,000밀리초
+2시간 * 3	duration	21600	6시간
+1일간 / 4	duration	21600	0.25일간
+-2시간	duration	-7200	-2시간
+45분	duration	2700	45분
+2일간 + 12시간	duration	216000	2.5일간
+100,000초	duration	100000	100,000초
+# No number agreement: one `other` form per unit, so 1 and 5 take the same
+# word, and no space between the number and the unit.
+1시간	duration	3600	1시간
+5시간	duration	18000	5시간
+1밀리초	duration	0.001	1밀리초
+# A case particle glued to a Hangul unit does not separate — "2시간를" is read
+# as one unknown word. Glued to a **Latin** alias it does, which is the form
+# that works.
+2h를 분	duration	7200	120분
+1d를 시간	duration	86400	24시간
+1wk를 일간	duration	604800	7일간
+90min를 시간	duration	5400	1.5시간
+# Spacing the particle off the Hangul unit is the other way through.
+1시간 을 초	duration	3600	3,600초
+3600초 를 시간	duration	3600	1시간
+90분 을 시간	duration	5400	1.5시간
+1.5시간 을 분	duration	5400	90분
+1주 를 일간	duration	604800	7일간
+# 주일 reads and 주 prints.
+1주일	duration	604800	1주
+# The word operators need whitespace, as in Japanese and Chinese.
+10분 더하기 5시간	duration	18600	310분
+1일간 나누기 4	duration	21600	0.25일간

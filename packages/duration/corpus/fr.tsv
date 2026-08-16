@@ -1,0 +1,34 @@
+# input	kind	canonical	formatted
+2 semaines	duration	1209600	2 semaines
+30 heures - 30 minutes	duration	106200	29,5 heures
+1 jour en heures	duration	86400	24 heures
+500 ms + 500 ms	duration	1	1 000 millisecondes
+2 heures * 3	duration	21600	6 heures
+-2 heures	duration	-7200	-2 heures
+1 heure en secondes	duration	3600	3 600 secondes
+3600 secondes en heures	duration	3600	1 heure
+45 minutes	duration	2700	45 minutes
+2 jours + 12 heures	duration	216000	2,5 jours
+une heure	duration	3600	1 heure
+1 semaine	duration	604800	1 semaine
+# The vigesimal cardinals: ninety is "four twenties ten", one word with two
+# hyphens and three numerals inside it.
+quatre-vingt-dix minutes	duration	5400	90 minutes
+# The group separator is U+202F, a narrow no-break space, and it is what comes
+# back out.
+100000 secondes	duration	100000	100 000 secondes
+# French `one` swallows every fraction below two, so a fraction takes the
+# **singular** — the direct contradiction of Spanish and Italian, which take
+# the plural for the same number.
+90 minutes en heures	duration	5400	1,5 heure
+1,5 heure	duration	5400	1,5 heure
+1,5 jour	duration	129600	1,5 jour
+1 jour / 4	duration	21600	0,25 jour
+# The operators. "fois" is one token; "multiplié par" and "divisé par" are two,
+# the participle plus `keywords.by`.
+2 heures fois 3	duration	21600	6 heures
+2 heures multiplié par 3	duration	21600	6 heures
+1 jour divisé par 4	duration	21600	0,25 jour
+1,5 heure en minutes	duration	5400	90 minutes
+# Two prepositions introduce a conversion target.
+1 semaine vers jours	duration	604800	7 jours

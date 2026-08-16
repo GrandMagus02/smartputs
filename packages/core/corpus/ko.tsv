@@ -1,0 +1,40 @@
+# input	kind	canonical	formatted
+10킬로미터	length	10000	10킬로미터
+1킬로그램 + 500그램	mass	1500	1.5킬로그램
+30시간 - 30분	duration	106200	29.5시간
+1킬로미터 / 4	length	250	0.25킬로미터
+(1 + 2) * 3	number	9	9
+-5킬로미터	length	-5000	-5킬로미터
+212f를 섭씨	temperature	100	100°C
+30섭씨 - 20섭씨	tempdelta	10	10°C
+50 + 20%	number	60	60
+3미터 * 4미터	area	12	12제곱미터
+100킬로미터 / 2시간	speed	13.88888888888888888888888889	13.888888888888888888888889m/s
+1,234,567밀리미터	length	1234.567	1,234,567밀리미터
+# No number agreement of any kind, so a unit here has one printed form or none
+# at all, and 1 and 5 take the same word. The separators are English's, and
+# there is no space between the number and the unit on either side of the
+# round trip.
+1미터	length	1	1미터
+5미터	length	5	5미터
+# The particles. Korean marks the source of a conversion with the accusative
+# 을/를 and the origin with 에서, both written glued to the unit word, and the
+# suffix stripper takes them off a bare quantity too.
+5킬로미터를	length	5000	5킬로미터
+500미터에서	length	500	500미터
+# A conversion parses when the particle is its own token — which it is after a
+# Latin unit alias, the mixed-script spelling Korean technical writing uses.
+2km를 미터	length	2000	2,000미터
+90deg를 라디안	angle	1.570796326794896619231321692	1.5707963267948966192313217라디안
+1kib를 바이트	datasize	1024	1,024바이트
+# After a *Hangul* unit the glued particle does not separate and the
+# conversion has to be written with a space before it. "2킬로미터를 미터" does
+# not parse; the row below is the same sentence that does.
+2킬로미터 를 미터	length	2000	2,000미터
+# The myriad. Korean counts in ten-thousands, so 만 is its own magnitude word.
+만 미터	length	10000	10,000미터
+이백오 그램	mass	205	205그램
+# The operators are native Korean verbal nouns and stand as separate tokens.
+2킬로미터 곱하기 3	length	6000	6킬로미터
+10킬로미터 나누기 4	length	2500	2.5킬로미터
+1미터 더하기 50센티미터	length	1.5	1.5미터

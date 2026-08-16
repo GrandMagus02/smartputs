@@ -1,0 +1,47 @@
+# input	kind	canonical	formatted
+1 cal w punktach	measure	1	72 punkty
+72 punkty w calach	measure	1	1 cal
+6 pc w calach	measure	1	1 cal
+1 cal w mm	measure	1	25,4 milimetra
+96 pikseli w calach	measure	1	1 cal
+2 cale + 36 pt	measure	2.5	2,5 cala
+1 cal - 12 pt	measure	0.8333333333333333333333333333	0,83333333333333333333333333 cala
+3 cale * 2	measure	6	6 cali
+1 cal / 4	measure	0.25	0,25 cala
+-2 cale	measure	-2	-2 cale
+1 pika w punktach	measure	0.1666666666666666666666666667	12 punktów
+10 mm w cm	measure	0.3937007874015748031496062992	1 centymetr
+jeden cal	measure	1	1 cal
+dwanaście punktów	measure	0.1666666666666666666666666667	12 punktów
+# A decimal comma, and a U+00A0 group separator on the way out.
+25,4 mm w calach	measure	1	1 cal
+1234567 px	measure	12860.07291666666666666666667	1 234 567 pikseli
+# The four plural categories on one unit, which English has two of. Polish
+# picks `few` for 2-4, `many` from 5 up, and the teens go to `many` however
+# they end.
+1 punkt	measure	0.01388888888888888888888888889	1 punkt
+2 punkty	measure	0.02777777777777777777777777778	2 punkty
+5 punktów	measure	0.06944444444444444444444444444	5 punktów
+12 punktów	measure	0.1666666666666666666666666667	12 punktów
+22 punkty	measure	0.3055555555555555555555555556	22 punkty
+# The fractional category is the genitive *singular* — "1,5 cala", never
+# "1,5 cali" — a fifth word rather than a reuse of one of the four above.
+1,5 cala	measure	1.5	1,5 cala
+# `pika` is feminine: its `few` and `other` coincide, so the fraction and the
+# count of two print the same word, and its `many` is the bare stem rather
+# than an -ów ending. `piksel` is the soft stem, `piksele` where `punkt`
+# gives `punkty`.
+2 piki	measure	0.3333333333333333333333333333	2 piki
+5 pik	measure	0.8333333333333333333333333333	5 pik
+1,5 piki	measure	0.25	1,5 piki
+2 piksele	measure	0.02083333333333333333333333334	2 piksele
+# Where Polish and Russian part company on the same number: `few` is the
+# nominative plural here ("102 punkty") and the genitive singular there
+# ("102 пункта"). Same category, different word.
+102 punkty	measure	1.416666666666666666666666667	102 punkty
+# Four prepositions introduce a conversion target, and none of the cases they
+# govern survives into the answer: "w punktach" is locative and "na milimetry"
+# accusative, and both come back nominative.
+1 cal na milimetry	measure	1	25,4 milimetra
+3 cale razy 2	measure	6	6 cali
+1 cal podzielić przez 4	measure	0.25	0,25 cala

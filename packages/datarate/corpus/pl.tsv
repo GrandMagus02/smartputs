@@ -1,0 +1,41 @@
+# input	kind	canonical	formatted
+100 mbps	datarate	100000000	100 Mbit
+500 MB / 20 s	datarate	200000000	200 Mbit
+100 mbit * 1 min	datasize	750000000	750 000 000 bajtów
+1 min * 100 mbit	datasize	750000000	750 000 000 bajtów
+1 GB / 100 mbit	duration	80	80 sekund
+100 mbit + 50 mbit	datarate	150000000	150 Mbit
+200 mbit - 50 mbit	datarate	150000000	150 Mbit
+2 mbit * 3	datarate	6000000	6 Mbit
+1 gbit / 4	datarate	250000000	0,25 Gbit
+-10 mbit	datarate	-10000000	-10 Mbit
+8000 bit w kbit	datarate	8000	8 kbit
+dwieście megabitów	datarate	200000000	200 Mbit
+# A decimal comma and a U+00A0 group separator — Ukrainian's pair rather than
+# German's.
+1 234 567 bit	datarate	1234567	1 234 567 bit
+# The four plural categories, on the one kind in this engine that has forms.
+# Polish picks `few` for 2-4, `many` from 5 up, and the teens go to `many`
+# however they end. `few` is the nominative plural here and the genitive
+# singular in Russian: the same category, a different word.
+1 bajt	datasize	1	1 bajt
+2 bajty	datasize	2	2 bajty
+5 bajtów	datasize	5	5 bajtów
+12 bajtów	datasize	12	12 bajtów
+22 bajty	datasize	22	22 bajty
+# The fractional category is the genitive *singular* — "1,5 gigabajta", never
+# "1,5 gigabajtów" — and it is a fifth word, not a reuse of one of the four.
+1,5 GB	datasize	1500000000	1,5 gigabajta
+# The rate units decline on input and print one symbol whatever the count: no
+# Polish rate noun can be written as a single lexed token, so `Mbit` is what
+# comes back out of all of them.
+2 megabity	datarate	2000000	2 Mbit
+5 megabitów	datarate	5000000	5 Mbit
+# The word operators. `razy` stands alone; `podzielić przez` is two tokens
+# folded into one.
+2 mbit razy 3	datarate	6000000	6 Mbit
+10 gbit podzielić przez 4	datarate	2500000000	2,5 Gbit
+# "megabitów" and "megabajtów" are one letter apart and name two kinds, and the
+# factor of 8 between them is the one the bridge signatures write out.
+100 megabitów	datarate	100000000	100 Mbit
+100 megabajtów	datasize	100000000	100 megabajtów

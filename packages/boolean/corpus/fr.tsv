@@ -1,0 +1,43 @@
+# What a comparison returns. Registering this kind is what turns
+# `1000 Mo = 1 Go` from an unresolvable expression into `true`.
+#
+# `true` and `false` are not translated, and that is this file's finding
+# rather than an oversight it hides: the kind ships no vocabulary at all,
+# so `formatValue` degrades to the unit key in every language. A French
+# engine answering "true" is what the code does today, and a row asserting
+# it is what makes a later `boolean/locale/fr` a visible diff here.
+# input	kind	canonical	formatted
+1000 Mo = 1 Go	boolean	1	true
+1 km > 999 m	boolean	1	true
+1 km < 999 m	boolean	0	false
+1 m = 100 cm	boolean	1	true
+2 > 1	boolean	1	true
+1 >= 1	boolean	1	true
+1 <= 0	boolean	0	false
+5 != 4	boolean	1	true
+1 kg + 500 g = 1,5 kg	boolean	1	true
+1 km - 250 m = 750 m	boolean	1	true
+-5 km < 0 km	boolean	1	true
+1 km en mètres = 1000 m	boolean	1	true
+2 km vers mètres = 2000 m	boolean	1	true
+un kilomètre = 1000 mètres	boolean	1	true
+# The vigesimal cardinals: 90 is "four twenties ten" and reads as one word
+# run rather than a numeral.
+quatre-vingt-dix minutes > 1 heure	boolean	1	true
+# The decimal comma, and the two group separators French accepts on the way
+# in: U+00A0 above, U+202F below, which is the one the writer emits. A bare
+# "1 500 m" is ambiguous between the metre and the minute; "mm" is not.
+1,5 km = 1500 m	boolean	1	true
+1 500 mm = 1,5 m	boolean	1	true
+12 500 mm = 12,5 m	boolean	1	true
+# "divisé par" and "multiplié par" are two tokens folded into one; "fois"
+# stands alone.
+2 km fois 3 = 6 km	boolean	1	true
+10 km multiplié par 3 = 30 km	boolean	1	true
+10 km divisé par 4 = 2,5 km	boolean	1	true
+# The byte is an "octet" here, so every datasize symbol ends in o rather
+# than b — the one vocabulary where French declines to borrow.
+1 Go = 1000 Mo	boolean	1	true
+1 pouce = 2,54 cm	boolean	1	true
+3 pieds = 91,44 cm	boolean	1	true
+1 mile > 1 km	boolean	1	true

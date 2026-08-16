@@ -1,0 +1,41 @@
+# input	kind	canonical	formatted
+1kwhをジュール	energy	3600000	3,600,000J
+2キロワット かける 3時間	energy	21600000	21,600,000J
+1kwh / 1時間	power	1000	1,000W
+1kcalをJ	energy	4184	4,184J
+500J + 500J	energy	1000	1,000J
+1kJ - 250J	energy	750	0.75kJ
+1kJ / 4	energy	250	0.25kJ
+-1kwh	energy	-3600000	-1kWh
+1,234,567J	energy	1234567	1,234,567J
+2.5kwh	energy	9000000	2.5kWh
+# No number agreement and no space between the number and the unit, on input
+# or output. The separators are English's — "," for groups, "." for the
+# decimal — and 1, 5 and 1.5 take one and the same word.
+1カロリー	energy	4.184	1カロリー
+5カロリー	energy	20.92	5カロリー
+1.5カロリー	energy	6.276	1.5カロリー
+5キロカロリー	energy	20920	5キロカロリー
+# The katakana loans read and the SI symbol prints. ジュール is an alias and
+# not a `forms` row, so the joule family comes back as J/kJ/MJ however it went
+# in.
+1ジュール	energy	1	1J
+5ジュール	energy	5	5J
+5BTU	energy	5275.2792631	5BTU
+# キロワット時 fuses the loan with 時 into one token, so the watt-hour is a
+# readable word here where English, Russian and Arabic have only a compound.
+# It is an alias and not a `forms` row, so it still prints the symbol.
+1キロワット時	energy	3600000	1kWh
+1kWh	energy	3600000	1kWh
+# The myriad. Japanese counts in ten-thousands, so 万 is a magnitude word in
+# its own right and 一万 is one of them, not ten of a thousand.
+一万ジュール	energy	10000	10,000J
+二百ジュール	energy	200	200J
+# The word operators need whitespace around them even though Japanese is
+# written without any. The symbol operators above have no such requirement.
+2kJ かける 3	energy	6000	6kJ
+10kJ わる 4	energy	2500	2.5kJ
+500J 足す 500J	energy	1000	1,000J
+# A conversion is marked by a case particle glued to the unit rather than by a
+# preposition before the target: を and から both do it.
+2kWhからJ	energy	7200000	7,200,000J

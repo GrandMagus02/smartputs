@@ -1,0 +1,31 @@
+# input	kind	canonical	formatted
+2 semanas	duration	1209600	2 semanas
+30 horas - 30 minutos	duration	106200	29,5 horas
+1 dia em horas	duration	86400	24 horas
+500 ms + 500 ms	duration	1	1.000 milissegundos
+2 horas * 3	duration	21600	6 horas
+-2 horas	duration	-7200	-2 horas
+1 hora em segundos	duration	3600	3.600 segundos
+3600 segundos em horas	duration	3600	1 hora
+45 minutos	duration	2700	45 minutos
+2 dias + 12 horas	duration	216000	2,5 dias
+uma hora	duration	3600	1 hora
+duzentos e cinco segundos	duration	205	205 segundos
+1,5 horas em minutos	duration	5400	90 minutos
+# "." groups and "," is the decimal point.
+86.400 segundos em dias	duration	86400	1 dia
+# A fraction takes the **singular**, as in French and against Spanish and
+# Italian. Two Iberian languages, opposite answers to the same number.
+90 minutos em horas	duration	5400	1,5 hora
+1,5 horas	duration	5400	1,5 hora
+1 dia / 4	duration	21600	0,25 dia
+# "por" is times here as well as in Spanish, so "dividido por" cannot parse —
+# two operators in a row. Division is "sobre", or "dividido" standing bare.
+2 horas vezes 3	duration	21600	6 horas
+2 horas por 3	duration	21600	6 horas
+1 dia sobre 4	duration	21600	0,25 dia
+1 dia dividido 4	duration	21600	0,25 dia
+# Two prepositions introduce a conversion target.
+1 semana para dias	duration	604800	7 dias
+1 hora	duration	3600	1 hora
+5 horas	duration	18000	5 horas

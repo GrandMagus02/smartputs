@@ -1,0 +1,33 @@
+# input	kind	canonical	formatted
+3 m * 4 m	area	12	12m²
+1 ettaro in m2	area	10000	10.000m²
+1 acro in m2	area	4046.8564224	4.046,8564224m²
+2 km2 in ettari	area	2000000	200 ettari
+5000 cm2 in m2	area	0.5	0,5m²
+10 m2 + 5 m2	area	15	15m²
+1 ettaro - 2500 m2	area	7500	0,75 ettari
+3 m2 * 4	area	12	12m²
+100 m2 / 4	area	25	25m²
+-5 m2	area	-5	-5m²
+2 sqkm in m2	area	2000000	2.000.000m²
+1 m2 in cm2	area	1	10.000cm²
+due ettari	area	20000	2 ettari
+1 km * 1 km	area	1000000	1.000.000m²
+12 m2	area	12	12m²
+# Both named units are Italian nouns rather than loans, and both take the
+# -o/-i plural: `ettaro`/`ettari`, `acro`/`acri`. A fraction takes the plural,
+# as in Spanish and against French.
+1 ettaro	area	10000	1 ettaro
+2 ettari	area	20000	2 ettari
+1,5 ettari	area	15000	1,5 ettari
+1 acro	area	4046.8564224	1 acro
+2 acri	area	8093.7128448	2 acri
+# "." groups and "," is the decimal point.
+1.500 m2	area	1500	1.500m²
+# "per" is times, so "diviso" stands bare — Italian has no two-token operator
+# here and could not build one out of "per" anyway.
+10 m2 per 3	area	30	30m²
+100 m2 diviso 4	area	25	25m²
+# "a" is the second conversion preposition, beside "in".
+1 acro a ettari	area	4046.8564224	0,40468564224 ettari
+centoventi m2	area	120	120m²

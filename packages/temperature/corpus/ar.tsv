@@ -1,0 +1,38 @@
+# input	kind	canonical	formatted
+20 C	temperature	20	20 °C
+0 C إلى F	temperature	0	32 °F
+212 F الى C	temperature	100	100 °C
+100 C في K	temperature	100	373.15 K
+0 K إلى C	temperature	-273.15	-273.15 °C
+10 C + 5 C	temperature	15	15 °C
+30 C - 20 C	tempdelta	10	10 °C
+5 F - 3 F	tempdelta	1.11111111111111111111111111	2 °F
+(30 C - 20 C) ضرب 2	tempdelta	20	20 °C
+(30 C - 20 C) قسمة 4	tempdelta	2.5	2.5 °C
+-5 C	temperature	-5	-5 °C
+عشرون C	temperature	20	20 °C
+# A space before the degree sign, and Latin digits with a Latin "," for groups
+# and "." for the decimal, sitting inside a right-to-left sentence. The number
+# is the one part of an Arabic reading that does not change direction.
+36.6 C	temperature	36.6	36.6 °C
+1234.5 K	temperature	961.35	1,234.5 K
+12345 C	temperature	12345	12,345 °C
+# The scale name only. Every Arabic temperature phrase is two tokens — درجة
+# مئوية, degree plus the agreeing adjective — and a word token ends at a space,
+# so درجة is left out of the vocabulary and the adjective carries the unit.
+20 مئوية	temperature	20	20 °C
+20 مئوي	temperature	20	20 °C
+20 سيلسيوس	temperature	20	20 °C
+300 كلفن	temperature	26.85	300 K
+# Hamza spellings come in pairs: the analyzer folds أ toward the plain alif, so
+# it can strip a hamza the reader typed but never invent one they did not.
+0 C الى F	temperature	0	32 °F
+# The dual. Arabic counts two of a thing with its own form, and كلفنان is that
+# form for the kelvin — a category no other language here declares.
+2 كلفنان	temperature	-271.15	2 K
+300 كلفنات	temperature	26.85	300 K
+98.6 فهرنهايت إلى C	temperature	37	37 °C
+20 مئوية إلى فهرنهايت	temperature	20	68 °F
+# في is both "in" and "times" and is claimed for the conversion, which leaves
+# ضرب as the word for multiply and تقسيم beside قسمة for divide.
+(30 C - 20 C) تقسيم على 8	tempdelta	1.25	1.25 °C

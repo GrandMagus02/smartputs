@@ -1,0 +1,40 @@
+# input	kind	canonical	formatted
+100 mbps	datarate	100000000	100 ميغابت
+500 ميغابايت / 20 ث	datarate	200000000	200 ميغابت
+100 ميغابت * 1 د	datasize	750000000	750,000,000 بايت
+1 د * 100 ميغابت	datasize	750000000	750,000,000 بايت
+1 غيغابايت / 100 ميغابت	duration	80	80 ثانية
+100 ميغابت + 50 ميغابت	datarate	150000000	150 ميغابت
+200 ميغابت - 50 ميغابت	datarate	150000000	150 ميغابت
+2 ميغابت * 3	datarate	6000000	6 ميغابت
+1 غيغابت / 4	datarate	250000000	0.25 غيغابت
+-10 ميغابت	datarate	-10000000	-10 ميغابت
+8000 بت إلى كيلوبت	datarate	8000	8 كيلوبت
+مئتان ميغابت	datarate	200000000	200 ميغابت
+# Six plural categories, the most any language in this set has, and each of them
+# a different word. CLDR's Arabic rule: 0 zero, 1 one, 2 two, 3-10 few, 11-99
+# many, and everything else — 100, and every fraction — other.
+0 بايت	datasize	0	0 بايت
+1 بايت	datasize	1	1 بايت
+2 بايت	datasize	2	2 بايتان
+3 بايت	datasize	3	3 بايتات
+11 بايت	datasize	11	11 بايتًا
+100 بايت	datasize	100	100 بايت
+# The digits and separators are Latin. `ar` resolves to a `latn` numbering
+# system with "," for groups and "." for the decimal, so an Arabic sentence
+# reads and prints its numbers left to right inside right-to-left text — the
+# "0.25 غيغابت" in the spine above is the same fact on the way out.
+1,234,567 بت	datarate	1234567	1,234,567 بت
+# في is both "in" and "times" in Arabic, and it is claimed as the conversion
+# preposition; ضرب is what is left to say "multiplied". قسمة على is the
+# two-token division, hanging off على as `by`.
+1 غيغابت في ميغابت	datarate	1000000000	1,000 ميغابت
+2 ميغابت ضرب 3	datarate	6000000	6 ميغابت
+10 غيغابت قسمة على 4	datarate	2500000000	2.5 غيغابت
+# The Egyptian spelling of the prefix uses ج where the Levant uses غ. Both read;
+# one prints.
+2 ميجابت	datarate	2000000	2 ميغابت
+# "ميغابت" and "ميغابايت" differ by one syllable and name two kinds, and the
+# factor of 8 between them is the one the bridge signatures write out.
+100 ميغابت	datarate	100000000	100 ميغابت
+100 ميغابايت	datasize	100000000	100 ميغابايت

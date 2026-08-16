@@ -1,0 +1,42 @@
+# input	kind	canonical	formatted
+10 км	length	10000	10 километров
+12 дюймов	length	0.3048	12 дюймов
+2 км в метрах	length	2000	2 000 метров
+1 миля в километрах	length	1609.344	1,609344 километра
+10 м + 5 км	length	5010	5 010 метров
+1 км - 250 м	length	750	0,75 километра
+10 км * 3	length	30000	30 километров
+1 км / 4	length	250	0,25 километра
+-5 км	length	-5000	-5 километров
+3 фута в сантиметрах	length	0.9144	91,44 сантиметра
+один километр	length	1000	1 километр
+двести пять километров	length	205000	205 километров
+1 500 мм в метрах	length	1.5	1,5 метра
+# The four plural categories on one unit, which English has two of. 21 is
+# singular in Russian and 11 is not, and neither follows from the other.
+1 метр	length	1	1 метр
+2 метра	length	2	2 метра
+5 метров	length	5	5 метров
+11 метров	length	11	11 метров
+21 метр	length	21	21 метр
+# The fractional category is the genitive *singular*, which for a masculine
+# unit is spelled like the `few` form and for a feminine one is not.
+1,5 км	length	1500	1,5 километра
+1,5 метра	length	1.5	1,5 метра
+1,5 мили	length	2414.016	1,5 мили
+# The feminine unit: nominative plural and genitive singular coincide
+# ("2 мили", "1,5 мили") while the genitive plural is a bare stem.
+2 мили	length	3218.688	2 мили
+5 миль	length	8046.72	5 миль
+# Where Russian and Polish part company on the same number: `few` is the
+# genitive singular here ("102 метра") and the nominative plural there
+# ("102 metry"). Same category, different word.
+102 метра	length	102	102 метра
+# A decimal comma and a U+00A0 group separator.
+1 234 567 мм	length	1234.567	1 234 567 миллиметров
+# Both word operators are two tokens: "на" is `keywords.by`, and it is what
+# both "умножить на" and "разделить на" hang off.
+2 км умножить на 3	length	6000	6 километров
+10 км разделить на 4	length	2500	2,5 километра
+# "до" is the second conversion preposition, beside "в".
+2 км до метров	length	2000	2 000 метров

@@ -1,0 +1,40 @@
+# input	kind	canonical	formatted
+3米 * 4米	area	12	12平方米
+1公顷到平方米	area	10000	10,000平方米
+1英亩到平方米	area	4046.8564224	4,046.8564224平方米
+2平方公里到公顷	area	2000000	200公顷
+5000cm2到m2	area	0.5	0.5平方米
+10m2 + 5m2	area	15	15平方米
+1公顷 - 2500m2	area	7500	0.75公顷
+3m2 * 4	area	12	12平方米
+100m2 / 4	area	25	25平方米
+-5m2	area	-5	-5平方米
+2km2到m2	area	2000000	2,000,000平方米
+1公里 * 1公里	area	1000000	1,000,000平方米
+12m2	area	12	12平方米
+# No number agreement anywhere: one category, so 1 and 5 and 1.5 take the same
+# word.
+1平方米	area	1	1平方米
+5平方米	area	5	5平方米
+1.5平方米	area	1.5	1.5平方米
+2平方公里	area	2000000	2平方公里
+1公顷	area	10000	1公顷
+# The square centimetre is the one unit in this package with no `forms`, and
+# ICU rather than Chinese decides it: `Intl.Segmenter` cuts 平方厘米 into 平方
+# and 厘米, so the word cannot be read back and is not printed. It renders
+# through its Latin symbol instead, which a Chinese page sets anyway.
+1m2到cm2	area	1	10,000cm²
+# No space between the number and the unit, on input or output. The separators
+# are English's.
+1,500m2	area	1500	1,500平方米
+# 平米 is the colloquial reading of the square metre. It reads and is never
+# printed.
+100平米	area	100	100平方米
+# The myriad. Chinese counts in ten-thousands, so 万 is a magnitude word in its
+# own right and 一万 is one of them rather than ten of a thousand.
+一万平方米	area	10000	10,000平方米
+# The word operators need whitespace around them even though Chinese is
+# written without any; 到 and 换算 do not.
+10m2 乘 3	area	30	30平方米
+100m2 除以 4	area	25	25平方米
+2公顷换算平方米	area	20000	20,000平方米

@@ -1,0 +1,44 @@
+# input	kind	canonical	formatted
+#
+# The aggregator's corpus, so the rows range across the set rather than drill
+# one kind: the bridges between two kinds, and the comparisons that need
+# `boolean` registered beside the kind being compared. Each bridge owner names
+# its operands by id string rather than importing them, so a signature whose
+# operands are unregistered is unreachable rather than a build error.
+3미터 * 4미터	area	12	12제곱미터
+100km / 2시간	speed	13.88888888888888888888888889	13.888888888888888888888889m/s
+2킬로와트 * 3시간	energy	21600000	21,600,000J
+1kwh / 1시간	power	1000	1,000와트
+500mb / 20초	datarate	200000000	200Mbps
+100mbps * 1분	datasize	750000000	750,000,000바이트
+500ms 를 bpm	tempo	120	120bpm
+# Spaced, alone among the rows here, and against this file's own convention.
+# Unspaced, `1000mb` is four digits and two letters, which is also the Dutch
+# postal format `#### @@` with its space optional — so @smartput/geo's postal
+# literal claims the token as a place and the datasize reading is gone.
+1000 mb = 1 gb	boolean	1	true
+1마일 > 1km	boolean	1	true
+212F 를 C	temperature	100	100°C
+30C - 20C	tempdelta	10	10°C
+(1 + 2) * 3	number	9	9
+1kib 를 b	datasize	1024	1,024바이트
+90도 를 라디안	angle	1.570796326794896619231321692	1.5707963267948966192313217라디안
+-5km	length	-5000	-5킬로미터
+# No number agreement, and no space between the number and the unit.
+1미터	length	1	1미터
+5미터	length	5	5미터
+1kg + 500그램	mass	1500	1.5킬로그램
+1시간 + 30분	duration	5400	1.5시간
+# A particle glued to a Hangul unit word is stripped off a bare quantity —
+# 를 here is the object marker, not a conversion.
+5킬로미터를	length	5000	5킬로미터
+500미터에서	length	500	500미터
+# A conversion after a glued particle does separate when the unit is written
+# in Latin, and does not when it is written in Hangul: `2킬로미터를 미터` is
+# not readable, so the mixed-script spelling is what a corpus can record.
+2km를 미터	length	2000	2,000미터
+# The word operators need whitespace around them.
+2km 곱하기 3	length	6000	6킬로미터
+10km 나누기 4	length	2500	2.5킬로미터
+# A spelled cardinal, in Sino-Korean.
+천삼십이	number	1032	1,032

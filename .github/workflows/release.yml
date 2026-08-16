@@ -1,0 +1,115 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+  # Re-runnable by hand: publishing skips versions the registry already has, so
+  # a run that died between the tag push and the last package can be finished
+  # without inventing new version numbers.
+  workflow_dispatch:
+    inputs:
+      publish_only:
+        description: Publish the versions already in the manifests, without computing a new release
+        type: boolean
+        default: false
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+permissions:
+  contents: write # commit the versions and changelogs, push tags, cut releases
+  id-token: write # npm provenance
+
+jobs:
+  release:
+    name: version · changelog · publish
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # The whole history and every tag: the bump is computed from the
+          # commits since a package's last tag, and a shallow clone has neither.
+          fetch-depth: 0
+          persist-credentials: true
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org
+
+      - run: bun install --frozen-lockfile
+
+      # The same gate CI runs, run again here against the merge result: a green
+      # pull request plus a green main are not the same claim.
+      - name: Check
+        run: bun run check
+
+      - name: Package size
+        run: bun run pack-size
+
+      - name: Work out the release
+        id: plan
+        run: |
+          bun run scripts/release.ts --json > /tmp/plan.json
+          cat /tmp/plan.json
+          {
+            echo "count=$(bun -e 'console.log((await Bun.file("/tmp/plan.json").json()).length)')"
+            echo "names=$(bun -e 'console.log((await Bun.file("/tmp/plan.json").json()).map(p => p.name).join(","))')"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Nothing to release
+        if: steps.plan.outputs.count == '0' && !inputs.publish_only
+        run: echo "No releasable commits since the last tags."
+
+      - name: Write versions and changelogs
+        if: steps.plan.outputs.count != '0' && !inputs.publish_only
+        run: bun run scripts/release.ts
+
+      - name: Commit, tag and push
+        if: steps.plan.outputs.count != '0' && !inputs.publish_only
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add packages/*/package.json packages/*/CHANGELOG.md
+          git commit -m "chore(release): publish ${{ steps.plan.outputs.count }} package(s) [skip ci]"
+          bun -e '
+            const plans = await Bun.file("/tmp/plan.json").json();
+            for (const p of plans) console.log(`${p.name}@${p.to}`);
+          ' | while read -r tag; do git tag -a "$tag" -m "$tag"; done
+          git push --follow-tags origin HEAD:main
+
+      # `--ci` reads NPM_TOKEN instead of prompting, and publishes in dependency
+      # order, skipping anything the registry already has.
+      - name: Publish to npm
+        if: steps.plan.outputs.count != '0' || inputs.publish_only
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          if [ "${{ inputs.publish_only }}" = "true" ]; then
+            bun run scripts/publish.ts --ci --skip-checks
+          else
+            bun run scripts/publish.ts --ci --skip-checks --only "${{ steps.plan.outputs.names }}"
+          fi
+
+      - name: Cut GitHub releases
+        if: steps.plan.outputs.count != '0' && !inputs.publish_only
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          bun -e '
+            const plans = await Bun.file("/tmp/plan.json").json();
+            for (const p of plans) console.log(`${p.name}\t${p.to}\t${p.dir}`);
+          ' | while IFS=$'\t' read -r name version dir; do
+            # The section the release script just prepended is the release note.
+            CHANGELOG="$dir/CHANGELOG.md" bun -e '
+              const text = await Bun.file(process.env.CHANGELOG).text();
+              const sections = text.split(/^## /m).slice(1);
+              console.log(sections.length ? `## ${sections[0].trim()}` : "");
+            ' > /tmp/notes.md
+            gh release create "$name@$version" --title "$name@$version" --notes-file /tmp/notes.md
+          done

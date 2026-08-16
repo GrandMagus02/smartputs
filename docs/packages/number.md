@@ -24,7 +24,7 @@ engine](/packages/shared).
 
 <SpEvaluate
   model-value="(1 + 2) * 3"
-  :examples="['(1 + 2) * 3', '1,500', '2^10']" />
+  :examples="['(1 + 2) * 3', '1,500', 'twenty two + 5']" />
 
 ## Installing
 
@@ -90,8 +90,12 @@ only an upper bound reports a vanished graph as a triumph.
 
 ## Dependencies
 
-- [`@smartput/core`](/packages/core)
+- [`@smartput/kind`](/packages/kind)
 - [`@smartput/shared`](/packages/shared)
+
+### Optional peers
+
+- [`@smartput/core`](/packages/core) — needed only by `@smartput/number` and its `/locale/*` entries, and `npm add` does not fetch it. Anyone reaching those has written `createEngine` and installed it already; the `/validate`, `/units` and `/class` entries never touch it.
 
 ## See also
 

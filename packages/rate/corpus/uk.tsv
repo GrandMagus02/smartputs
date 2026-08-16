@@ -19,9 +19,11 @@
 1 000 uah	money	21.97802197802197802197802198	₴1 000,00
 1,5 eur	money	1.5	€1,50
 1 000 000 uah в eur	money	21978.02197802197802197802198	€21 978,02
-# No vocabulary is composed into this engine at all — `composeLocale(uk)`
-# with nothing after it — so every code above is reached through the kind's
-# own unit keys. That is the same claim `en.tsv` makes, and it is what says
-# the money kind is language-free: `грн` is not readable here, and adding it
-# would be `@smartput/rate/locale/uk`'s job rather than the table's.
+# Every code above is reached through the kind's own unit keys rather than
+# through a word, which is the same claim `en.tsv` makes and is what says the
+# money kind is language-free: the engine these rows run on now composes
+# `@smartput/rate/locale/uk`, and not one of them needs it. The words that
+# vocabulary adds — "доларів", "гривень", "грн" — are the fifteen newer
+# tables' subject, and the reason this file did not need them is that the
+# codes were never language in the first place.
 45,5 uah в eur	money	1	€1,00

@@ -1,0 +1,42 @@
+# input	kind	canonical	formatted
+90 درجة	angle	1.570796326794896619231321692	90 درجة
+90 درجة إلى راديان	angle	1.570796326794896619231321692	1.5707963267948966192313217 راديان
+0.25 دورة إلى درجة	angle	1.570796326794896619231321692	90 درجة
+90 درجة + 90 درجة	angle	3.141592653589793238462643384	180 درجة
+1 دورة - 90 درجة	angle	4.712388980384689857693965075	0.75 دورة
+180 درجة / 4	angle	0.7853981633974483096156608458	45 درجة
+-90 درجة	angle	-1.570796326794896619231321692	-90 درجة
+1 راديان إلى درجة	angle	1	57.295779513082320876798155 درجة
+360 درجة إلى دورة	angle	6.283185307179586476925286767	1 دورة
+مئتان غراد	angle	3.141592653589793238462643383	200 غراد
+# Six plural categories, the most any language in this set has. CLDR's Arabic
+# rule: 0 zero, 1 one, 2 two, 3-10 few, 11-99 many, and everything else — 100
+# and up, and every fraction — other.
+0 راديان	angle	0	0 راديان
+1 راديان	angle	1	1 راديان
+2 راديان	angle	2	2 راديانان
+3 راديان	angle	3	3 راديانات
+11 راديان	angle	11	11 راديانًا
+1.5 راديان	angle	1.5	1.5 راديان
+# The degree spends four of its six cells on one word: درجة is what Arabic
+# writes at 1 and at 11, and at 0 and 100 besides, and only the dual درجتان
+# and the sound plural درجات are separate. Six categories does not mean six words — it means
+# six cells, and a repeated cell here is the language rather than an
+# unfinished table.
+1 درجة	angle	0.01745329251994329576923690768	1 درجة
+2 درجة	angle	0.03490658503988659153847381537	2 درجتان
+3 درجة	angle	0.05235987755982988730771072305	3 درجات
+11 درجة	angle	0.1919862177193762534616059845	11 درجة
+# The category is read off the *result*, not off anything typed: nothing in
+# this sentence is a 2, and the answer is the dual.
+1 دورة + 1 دورة	angle	12.56637061435917295385057353	2 دورتان
+# The digits and separators are Latin. `ar` resolves to a `latn` numbering
+# system with "," for groups and "." for the decimal, so an Arabic sentence
+# reads and prints its numbers left to right inside right-to-left text.
+1,234 درجة	angle	21.53736296961002697923834408	1,234 درجة
+# في is both "in" and "times" in Arabic, and it is claimed as the conversion
+# preposition; ضرب is what is left to say "multiplied". قسمة على is the
+# two-token division, hanging off على as `keywords.by`.
+90 درجة في راديان	angle	1.570796326794896619231321692	1.5707963267948966192313217 راديان
+45 درجة ضرب 2	angle	1.570796326794896619231321692	90 درجة
+180 درجة قسمة على 4	angle	0.7853981633974483096156608458	45 درجة

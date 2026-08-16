@@ -1,0 +1,41 @@
+# input	kind	canonical	formatted
+1 pouce en pt	measure	1	72 points
+72 pt en pouces	measure	1	1 pouce
+6 pc en pouces	measure	1	1 pouce
+1 pouce en mm	measure	1	25,4 millimètres
+1 pouce en px	measure	1	96 pixels
+96 px en pouces	measure	1	1 pouce
+2 pouces + 36 pt	measure	2.5	2,5 pouces
+1 pouce - 12 pt	measure	0.8333333333333333333333333333	0,83333333333333333333333333 pouce
+3 pouces * 2	measure	6	6 pouces
+1 pouce / 4	measure	0.25	0,25 pouce
+-2 pouces	measure	-2	-2 pouces
+1 pc en pt	measure	0.1666666666666666666666666667	12 points
+10 mm en cm	measure	0.3937007874015748031496062992	1 centimètre
+un pouce	measure	1	1 pouce
+douze points	measure	0.1666666666666666666666666667	12 points
+# The decimal comma, and a group separator that is both invisible and narrow:
+# this runtime groups French with U+202F. The reader takes any of the three
+# spaces — ASCII in the first row below, U+00A0 in the second, U+202F in the
+# third — because `normalize()` folds them. The writer emits U+202F and only
+# U+202F, which is what the fourth row prints.
+25,4 mm en pouces	measure	1	1 pouce
+1 440 pt en pouces	measure	20	20 pouces
+1 440 px en pouces	measure	15	15 pouces
+9 600 px en pouces	measure	100	100 pouces
+1234567 px	measure	12860.07291666666666666666667	1 234 567 pixels
+# French agrees `one` with everything below two, so a fraction takes the
+# *singular*: "1,5 pouce", and "0,83333… pouce" for the subtraction above.
+# Spanish pluralises the same numbers.
+1,5 pouce	measure	1.5	1,5 pouce
+0,5 pouce	measure	0.5	0,5 pouce
+1,5 pouces	measure	1.5	1,5 pouce
+# Vigesimal counting: ninety-six is said as four-twenties-sixteen, and the
+# cardinal reader has to add across the hyphens rather than read one word.
+quatre-vingt-seize px en pouces	measure	1	1 pouce
+# The word operators. "fois" stands alone; "divisé par" is two tokens folded
+# into one.
+3 pouces fois 2	measure	6	6 pouces
+1 pouce divisé par 4	measure	0.25	0,25 pouce
+# "vers" is the second conversion preposition beside "en".
+2 pouces vers millimètres	measure	2	50,8 millimètres

@@ -1,0 +1,42 @@
+# input	kind	canonical	formatted
+2리터	volume	2	2리터
+500밀리리터 + 500밀리리터	volume	1	1,000밀리리터
+2리터 - 250밀리리터	volume	1.75	1.75리터
+3리터 * 4	volume	12	12리터
+1리터 / 4	volume	0.25	0.25리터
+-2리터	volume	-2	-2리터
+1.5리터	volume	1.5	1.5리터
+1,234,567밀리리터	volume	1234.567	1,234,567밀리리터
+# No number agreement of any kind, so every unit has one printed form and 1
+# and 5 take the same word. The separators are English's, and there is no
+# space between the number and the unit on either side of the round trip.
+1리터	volume	1	1리터
+5리터	volume	5	5리터
+2갤런	volume	7.570823568	2갤런
+# The particles. Korean marks the *source* of a conversion with the accusative
+# 을/를 and the origin with 에서, both written glued to the unit word, and the
+# suffix stripper takes them off a bare quantity too.
+5리터를	volume	5	5리터
+500밀리리터에서	volume	0.5	500밀리리터
+# A conversion parses when the particle is its own token — which it is after a
+# Latin unit alias, the mixed-script spelling Korean technical writing uses.
+2l를 밀리리터	volume	2	2,000밀리리터
+1gal를 리터	volume	3.785411784	3.785411784리터
+1gal를 파인트	volume	3.785411784	8파인트
+1m3를 리터	volume	1000	1,000리터
+# After a *Hangul* unit the glued particle does not separate, and the
+# conversion has to be written with a space before it. "2리터를 밀리리터" does
+# not parse; the row below is the same sentence that does.
+2리터 를 밀리리터	volume	2	2,000밀리리터
+# 세제곱미터 is one token, so Korean prints the cubic metre in words where the
+# Romance languages fall back to `m³`. 입방미터 is the older Sino-Korean
+# spelling and is read onto the same unit.
+2세제곱미터	volume	2000	2세제곱미터
+2입방미터	volume	2000	2세제곱미터
+# The myriad. Korean counts in ten-thousands, so 만 is its own magnitude word.
+만 밀리리터	volume	10	10,000밀리리터
+이백오 리터	volume	205	205리터
+# The operators are native Korean verbal nouns and stand as separate tokens.
+2리터 곱하기 3	volume	6	6리터
+10리터 나누기 4	volume	2.5	2.5리터
+1리터 더하기 500밀리리터	volume	1.5	1.5리터

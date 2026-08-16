@@ -1,0 +1,41 @@
+# input	kind	canonical	formatted
+10キロメートル	length	10000	10キロメートル
+12インチ	length	0.3048	12インチ
+2キロメートルをメートル	length	2000	2,000メートル
+1マイルをキロメートル	length	1609.344	1.609344キロメートル
+10メートル + 5キロメートル	length	5010	5,010メートル
+1キロメートル - 250メートル	length	750	0.75キロメートル
+10キロメートル * 3	length	30000	30キロメートル
+1キロメートル / 4	length	250	0.25キロメートル
+-5キロメートル	length	-5000	-5キロメートル
+3フィートをセンチメートル	length	0.9144	91.44センチメートル
+1ヤードをセンチメートル	length	0.9144	91.44センチメートル
+5280フィートをマイル	length	1609.344	1マイル
+1,500ミリメートルをメートル	length	1.5	1.5メートル
+1.5キロメートル	length	1500	1.5キロメートル
+1,234,567ミリメートル	length	1234.567	1,234,567ミリメートル
+# No number agreement of any kind: Japanese marks plurality nowhere, so every
+# unit has one printed form and 1 and 5 take the same word. The separators are
+# English's — "," for groups, "." for the decimal.
+1メートル	length	1	1メートル
+5メートル	length	5	5メートル
+# No space between number and unit, on input or output, which is what makes
+# the round trip hold: the engine reads back its own "2,000メートル" exactly.
+#
+# The units are katakana loans, and the conversion markers are the case
+# particles を (accusative, the source) and から ("from"), written glued to the
+# word they mark.
+2キロメートルからメートル	length	2000	2,000メートル
+# The myriad. Japanese counts in ten-thousands, so 万 is its own magnitude word
+# and 一万 is one of them rather than ten of a thousand.
+一万メートル	length	10000	10,000メートル
+二百五キロメートル	length	205000	205キロメートル
+一キロメートル	length	1000	1キロメートル
+# The word operators need whitespace around them even though Japanese is
+# written without any: かける, 割る and 足す are matched as separate tokens, and
+# "2キロメートルかける3" does not parse.
+2キロメートル かける 3	length	6000	6キロメートル
+10キロメートル 割る 4	length	2500	2.5キロメートル
+2キロメートル 足す 500メートル	length	2500	2.5キロメートル
+# The katakana operator beside the native one — both are ordinary Japanese.
+2キロメートル プラス 500メートル	length	2500	2.5キロメートル

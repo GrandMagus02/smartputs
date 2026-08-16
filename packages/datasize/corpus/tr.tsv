@@ -1,0 +1,40 @@
+# input	kind	canonical	formatted
+1 kib çevir b	datasize	1024	1.024 bayt
+1 gb çevir mb	datasize	1000000000	1.000 megabayt
+1 gib çevir mib	datasize	1073741824	1.024 mebibayt
+1 mib çevir kb	datasize	1048576	1.048,576 kilobayt
+1024 b çevir kib	datasize	1024	1 kibibayt
+500 mb + 500 mb	datasize	1000000000	1.000 megabayt
+1 gb - 200 mb	datasize	800000000	0,8 gigabayt
+2 gb * 3	datasize	6000000000	6 gigabayt
+1 tb / 4	datasize	250000000000	0,25 terabayt
+-1 gb	datasize	-1000000000	-1 gigabayt
+bir gigabayt	datasize	1000000000	1 gigabayt
+iki yüz beş megabayt	datasize	205000000	205 megabayt
+# "." groups and "," is the decimal point, German's pair.
+1.500 bayt	datasize	1500	1.500 bayt
+1234567 bayt	datasize	1234567	1.234.567 bayt
+1,5 GB	datasize	1500000000	1,5 gigabayt
+# One printed form per unit and no number axis at all — the smallest `forms`
+# table of the seventeen. Turkish does not pluralise a noun after a numeral,
+# so 1 and 5 print the same word.
+1 bayt	datasize	1	1 bayt
+5 bayt	datasize	5	5 bayt
+# A conversion is not a preposition here: the sentence hangs off the verb
+# "çevir" standing between the quantity and the target, as every conversion
+# above does. "to" is claimed beside it because Turkish writing borrows it.
+2 GB to MB	datasize	2000000000	2.000 megabayt
+# The suffix stripper. Turkish agglutinates case and plural onto the unit
+# word, and none of these endings is an alias — the stripper takes them off
+# and the bare stem matches.
+10 megabayta	datasize	10000000	10 megabayt
+1 gigabayttan	datasize	1000000000	1 gigabayt
+5 baytlar	datasize	5	5 bayt
+# The dotless i. `toLocaleLowerCase("tr")` sends "I" to "ı" and "İ" to "i", so
+# both spellings of a capitalised unit have to fold onto the one alias. No
+# other language in this set has a case fold that moves a letter's identity.
+1 KİBİBAYT	datasize	1024	1 kibibayt
+1 KIBIBAYT	datasize	1024	1 kibibayt
+# The operators are all bare words, none of them two-token.
+2 GB çarpı 3	datasize	6000000000	6 gigabayt
+10 GB bölü 4	datasize	2500000000	2,5 gigabayt

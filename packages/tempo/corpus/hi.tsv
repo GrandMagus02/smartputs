@@ -1,0 +1,38 @@
+# input	kind	canonical	formatted
+120 बीपीएम	tempo	120	120 बीपीएम
+120 बीपीएम को मिलीसेकंड	duration	0.5	500 मिलीसेकंड
+500 मिलीसेकंड को बीपीएम	tempo	120	120 बीपीएम
+1 सेकंड को बीपीएम	tempo	60	60 बीपीएम
+2 हर्ट्ज़ को बीपीएम	tempo	120	120 बीपीएम
+120 बीपीएम को हर्ट्ज़	tempo	120	2 हर्ट्ज़
+120 बीपीएम + 8 बीपीएम	tempo	128	128 बीपीएम
+140 बीपीएम - 20 बीपीएम	tempo	120	120 बीपीएम
+60 बीपीएम * 2	tempo	120	120 बीपीएम
+120 बीपीएम / 2	tempo	60	60 बीपीएम
+-10 बीपीएम	tempo	-10	-10 बीपीएम
+एक सौ बीस बीपीएम	tempo	120	120 बीपीएम
+174 बीपीएम	tempo	174	174 बीपीएम
+# The Latin abbreviation and the Devanagari one are the same unit, and only the
+# Devanagari one prints.
+120 bpm	tempo	120	120 बीपीएम
+120 बीट	tempo	120	120 बीपीएम
+# The conversion word is a postposition after the source, and there are three of
+# them.
+120 बीपीएम में मिलीसेकंड	duration	0.5	500 मिलीसेकंड
+120 बीपीएम से मिलीसेकंड	duration	0.5	500 मिलीसेकंड
+# Both operators are single tokens between the operands.
+60 बीपीएम गुणा 2	tempo	120	120 बीपीएम
+120 बीपीएम भाग 2	tempo	60	60 बीपीएम
+# हर्ट्ज़ carries a nukta and prints with it. The nukta-less spelling, which is
+# what a keyboard without the key produces, reads and never prints.
+1 हर्ट्ज़	tempo	60	1 हर्ट्ज़
+2 हर्ट्ज़	tempo	120	2 हर्ट्ज़
+1.5 हर्ट्ज़	tempo	90	1.5 हर्ट्ज़
+120 हर्ट्ज	tempo	7200	120 हर्ट्ज़
+# लाख is a magnitude word in its own right — one lakh is a hundred thousand.
+1 लाख बीपीएम	tempo	100000	100,000 बीपीएम
+# The reader is grouping-agnostic: Indian two-two-three grouping and Western
+# threes name the same number. The writer is not — it groups in fixed threes and
+# cannot yet produce "12,34,567". A recorded core gap, pinned here rather than
+# hidden.
+12,34,567 बीपीएम	tempo	1234567	1,234,567 बीपीएम

@@ -1,0 +1,38 @@
+# input	kind	canonical	formatted
+1 кВт в Вт	power	1000	1 000 ватт
+1 МВт в кВт	power	1000000	1 000 киловатт
+2,5 кВт	power	2500	2,5 киловатта
+500 Вт + 500 Вт	power	1000	1 000 ватт
+2 кВт - 500 Вт	power	1500	1,5 киловатта
+3 кВт * 2	power	6000	6 киловатт
+1 МВт / 4	power	250000	0,25 мегаватта
+-1 кВт	power	-1000	-1 киловатт
+1000 Вт в кВт	power	1000	1 киловатт
+один киловатт	power	1000	1 киловатт
+двести пять киловатт	power	205000	205 киловатт
+1 лс в Вт	power	745.69987158227022	745,69987158227022 ватта
+100 лс в кВт	power	74569.987158227022	74,569987158227022 киловатта
+# Four categories, and the watt spells them with two words: the genitive plural
+# `many` is the bare stem that `one` also uses, so 1 and 5 and 11 all read
+# "ватт", while `few` and the fractional `other` share "ватта". Polish keeps
+# four distinct words for the same four slots.
+1 ватт	power	1	1 ватт
+2 ватта	power	2	2 ватта
+5 ватт	power	5	5 ватт
+11 ватт	power	11	11 ватт
+21 ватт	power	21	21 ватт
+102 ватта	power	102	102 ватта
+# The fractional category is the genitive singular, the same word `few` takes
+# and a different word from the `many` above it.
+1,5 ватта	power	1.5	1,5 ватта
+# "лс" is an abbreviation of two inflecting words, so it stays a symbol and
+# there is no `forms` table to select from. The default template sets it tight
+# against the number.
+1 лс	power	745.69987158227022	1лс
+# Both word operators are two tokens, hanging off "на" as `keywords.by`.
+2 кВт умножить на 3	power	6000	6 киловатт
+1 МВт разделить на 4	power	250000	0,25 мегаватта
+# "до" beside "в" and "у".
+2 кВт до ватт	power	2000	2 000 ватт
+# A U+00A0 group separator and a decimal comma.
+1 234 567 Вт	power	1234567	1 234 567 ватт

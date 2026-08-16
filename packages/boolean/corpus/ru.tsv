@@ -1,0 +1,42 @@
+# What a comparison returns. Registering this kind is what turns
+# `1000 МБ = 1 ГБ` from an unresolvable expression into `true`.
+#
+# `true` and `false` are not translated, and that is this file's finding
+# rather than an oversight it hides: the kind ships no vocabulary at all,
+# so `formatValue` degrades to the unit key in every language. A Russian
+# engine answering "true" is what the code does today, and a row asserting
+# it is what makes a later `boolean/locale/ru` a visible diff here.
+# input	kind	canonical	formatted
+1000 МБ = 1 ГБ	boolean	1	true
+1 км > 999 м	boolean	1	true
+1 км < 999 м	boolean	0	false
+1 м = 100 см	boolean	1	true
+1 >= 1	boolean	1	true
+1 <= 0	boolean	0	false
+5 != 4	boolean	1	true
+1 кг + 500 г = 1,5 кг	boolean	1	true
+1 км - 250 м = 750 м	boolean	1	true
+-5 км < 0 км	boolean	1	true
+2 км в метрах = 2000 м	boolean	1	true
+один километр = 1000 метров	boolean	1	true
+1,5 км = 1500 м	boolean	1	true
+# The four plural categories, read rather than written. 21 takes the
+# singular and 11 does not, which is the rule the teens carve out.
+1 метр = 100 см	boolean	1	true
+2 метра = 200 см	boolean	1	true
+5 метров = 500 см	boolean	1	true
+21 метр = 2100 см	boolean	1	true
+11 метров = 1100 см	boolean	1	true
+# The fractional category is the genitive singular — and where Polish and
+# Russian part company on the same number: `few` is the nominative plural
+# there ("2 metry") and the genitive singular here ("2 метра").
+1,5 метра = 150 см	boolean	1	true
+# The feminine unit, whose nominative plural and genitive singular coincide.
+2 мили > 3 км	boolean	1	true
+5 миль > 8 км	boolean	1	true
+# Both word operators are two tokens hanging off "на", which is `keywords.by`
+# rather than an operator of its own.
+2 км умножить на 3 = 6 км	boolean	1	true
+10 км разделить на 4 = 2,5 км	boolean	1	true
+1 дюйм = 2,54 см	boolean	1	true
+1 гектар = 10000 м2	boolean	1	true

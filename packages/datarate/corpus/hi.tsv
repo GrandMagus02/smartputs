@@ -1,0 +1,43 @@
+# input	kind	canonical	formatted
+100 mbps	datarate	100000000	100 एमबीपीएस
+1 गीगाबिट में मेगाबिट	datarate	1000000000	1,000 एमबीपीएस
+500 एमबी / 20 सेकंड	datarate	200000000	200 एमबीपीएस
+100 मेगाबिट * 1 मिनट	datasize	750000000	750,000,000 बाइट
+1 मिनट * 100 मेगाबिट	datasize	750000000	750,000,000 बाइट
+1 जीबी / 100 मेगाबिट	duration	80	80 सेकंड
+100 मेगाबिट + 50 मेगाबिट	datarate	150000000	150 एमबीपीएस
+200 मेगाबिट - 50 मेगाबिट	datarate	150000000	150 एमबीपीएस
+2 मेगाबिट * 3	datarate	6000000	6 एमबीपीएस
+1 गीगाबिट / 4	datarate	250000000	0.25 जीबीपीएस
+-10 मेगाबिट	datarate	-10000000	-10 एमबीपीएस
+8000 बिट में किलोबिट	datarate	8000	8 केबीपीएस
+दो सौ मेगाबिट	datarate	200000000	200 एमबीपीएस
+# The reader is grouping-agnostic: `parseNumber` drops every group separator
+# before it looks at the digits, so the Indian grouping and the international
+# one are the same number. The writer is not — it groups in fixed threes,
+# because `NumberFormatSpec` carries a separator and no grouping rule. The
+# second row records that gap: 12,34,567 is what Hindi writes and 1,234,567 is
+# what comes back.
+1,234,567 बिट	datarate	1234567	1,234,567 बीपीएस
+12,34,567 बिट	datarate	1234567	1,234,567 बीपीएस
+1.5 गीगाबिट	datarate	1500000000	1.5 जीबीपीएस
+# लाख is a magnitude word in its own right — a hundred thousand, the unit the
+# Indian grouping is cut for.
+एक लाख बिट	datarate	100000	100,000 बीपीएस
+# `को` and `से` beside `में` as conversion words.
+1 गीगाबिट को मेगाबिट	datarate	1000000000	1,000 एमबीपीएस
+1 गीगाबिट से मेगाबिट	datarate	1000000000	1,000 एमबीपीएस
+# The word operators stand alone.
+2 मेगाबिट गुणा 3	datarate	6000000	6 एमबीपीएस
+10 गीगाबिट भाग 4	datarate	2500000000	2.5 जीबीपीएस
+# `बाइट` does not move on the number axis, and neither does `सेकंड` in the
+# spine above: Hindi has two plural categories and this engine's nouns spend
+# one word on both.
+1 बाइट	datasize	1	1 बाइट
+5 बाइट	datasize	5	5 बाइट
+# The printed symbols are Devanagari transcriptions of the Latin acronyms —
+# एमबीपीएस for "Mbps" — where the aliases are the borrowed nouns. "मेगाबिट" and
+# "मेगाबाइट" name two kinds, and the factor of 8 between them is the one the
+# bridge signatures write out.
+100 मेगाबिट	datarate	100000000	100 एमबीपीएस
+100 मेगाबाइट	datasize	100000000	100 मेगाबाइट

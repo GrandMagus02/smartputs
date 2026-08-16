@@ -1,0 +1,42 @@
+# What a comparison returns. Registering this kind is what turns
+# `1000兆 = 1 GB` from an unresolvable expression into `true`.
+#
+# `true` and `false` are not translated, and that is this file's finding
+# rather than an oversight it hides: the kind ships no vocabulary at all,
+# so `formatValue` degrades to the unit key in every language. A Chinese
+# engine answering "true" is what the code does today, and a row asserting
+# it is what makes a later `boolean/locale/zh` a visible diff here.
+# input	kind	canonical	formatted
+1000兆 = 1 GB	boolean	1	true
+1公里 > 999米	boolean	1	true
+1公里 < 999米	boolean	0	false
+1米 = 100厘米	boolean	1	true
+2 > 1	boolean	1	true
+1 >= 1	boolean	1	true
+1 <= 0	boolean	0	false
+5 != 4	boolean	1	true
+-5公里 < 0公里	boolean	1	true
+1.5公里 = 1500米	boolean	1	true
+# No space between a number and its unit, on either side of a comparison.
+# Chinese writes none and the reader wants none.
+1公斤 + 500克 = 1.5公斤	boolean	1	true
+1公里 - 250米 = 750米	boolean	1	true
+# A word operator does need the surrounding whitespace, even in a language
+# that writes no spaces at all; the `*` and `/` symbols do not.
+2公里 乘 3 = 6公里	boolean	1	true
+10公里 除以 4 = 2.5公里	boolean	1	true
+# Conversion keywords need no space. Three of the four are verbs.
+1公里 到 米 = 1000米	boolean	1	true
+2公里 换算 米 = 2000米	boolean	1	true
+2公里 转换 米 = 2000米	boolean	1	true
+# The myriad: Chinese counts in ten-thousands, so 一万 is one word for what
+# English spells with two.
+一公里 = 1000米	boolean	1	true
+一万米 = 10公里	boolean	1	true
+# No number agreement anywhere. One unit word serves every count.
+1英寸 = 2.54厘米	boolean	1	true
+3英尺 = 91.44厘米	boolean	1	true
+1英里 > 1公里	boolean	1	true
+2吨 = 2000千克	boolean	1	true
+1公顷 = 10000平方米	boolean	1	true
+1小时 != 60分钟	boolean	0	false

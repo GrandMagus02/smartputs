@@ -1,0 +1,37 @@
+# input	kind	canonical	formatted
+3メートル * 4メートル	area	12	12平方メートル
+1ヘクタールを平方メートル	area	10000	10,000平方メートル
+1エーカーを平方メートル	area	4046.8564224	4,046.8564224平方メートル
+2km2をヘクタール	area	2000000	200ヘクタール
+5000cm2をm2	area	0.5	0.5平方メートル
+10m2 + 5m2	area	15	15平方メートル
+1ヘクタール - 2500m2	area	7500	0.75ヘクタール
+3m2 * 4	area	12	12平方メートル
+100m2 / 4	area	25	25平方メートル
+-5m2	area	-5	-5平方メートル
+1m2をcm2	area	1	10,000平方センチメートル
+1キロメートル * 1キロメートル	area	1000000	1,000,000平方メートル
+12m2	area	12	12平方メートル
+一万平方メートル	area	10000	10,000平方メートル
+# No number agreement anywhere: `Intl.PluralRules("ja")` declares the single
+# category `other`, so 1 and 2 and 1.5 take the same word.
+1平方メートル	area	1	1平方メートル
+2平方メートル	area	2	2平方メートル
+1.5平方メートル	area	1.5	1.5平方メートル
+# All three squared units are one token in Japanese and all three print, which
+# is what `en` and `uk` could not do with a phrase.
+100平方センチメートル	area	0.01	100平方センチメートル
+2平方キロメートル	area	2000000	2平方キロメートル
+1ヘクタール	area	10000	1ヘクタール
+# No space between the number and the unit, on input or output. That is what
+# makes the round trip hold: the engine reads back its own "1,500平方メートル"
+# byte for byte. The separators are English's.
+1,500m2	area	1500	1,500平方メートル
+# 平米 is the colloquial reading of the square metre — an estate agent's word
+# where 平方メートル is an engineer's. It reads and is never printed.
+100平米	area	100	100平方メートル
+# The conversion particles を and から glue to the unit word and need no space;
+# the operator words do need one on both sides.
+2ヘクタールから平方メートル	area	20000	20,000平方メートル
+10m2 かける 3	area	30	30平方メートル
+100m2 わる 4	area	25	25平方メートル

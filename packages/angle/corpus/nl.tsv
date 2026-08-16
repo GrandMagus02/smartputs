@@ -1,0 +1,35 @@
+# input	kind	canonical	formatted
+90 graden	angle	1.570796326794896619231321692	90 graden
+90 graden in radialen	angle	1.570796326794896619231321692	1,5707963267948966192313217 radialen
+0,25 omwentelingen in graden	angle	1.570796326794896619231321692	90 graden
+200 gon in graden	angle	3.141592653589793238462643383	180 graden
+90 graden + 90 graden	angle	3.141592653589793238462643384	180 graden
+1 omwenteling - 90 graden	angle	4.712388980384689857693965075	0,75 omwentelingen
+45 graden * 2	angle	1.570796326794896619231321692	90 graden
+180 graden / 4	angle	0.7853981633974483096156608458	45 graden
+-90 graden	angle	-1.570796326794896619231321692	-90 graden
+1 radiaal in graden	angle	1	57,295779513082320876798155 graden
+een omwenteling	angle	6.283185307179586476925286767	1 omwenteling
+tweehonderd gon	angle	3.141592653589793238462643383	200 gon
+360 graden in omwentelingen	angle	6.283185307179586476925286767	1 omwenteling
+1,5 radiaal	angle	1.5	1,5 radialen
+# "." groups and "," is the decimal point, the pair Dutch shares with German.
+1.000 graden	angle	17.45329251994329576923690768	1.000 graden
+3 omwentelingen in graden	angle	18.8495559215387594307758603	1.080 graden
+# Two categories and nothing else: Dutch has no case, so a conversion target
+# is spelled exactly like a bare quantity and every unit's table is two rows.
+# A fraction takes the plural.
+1 graad	angle	0.01745329251994329576923690768	1 graad
+2 graden	angle	0.03490658503988659153847381537	2 graden
+1,5 graden	angle	0.02617993877991494365385536153	1,5 graden
+0,75 omwentelingen	angle	4.712388980384689857693965075	0,75 omwentelingen
+# "toeren" is read and never written — the printed word for a revolution is
+# "omwentelingen" — so an input spelled the other way still lands on one form.
+2 toeren	angle	12.56637061435917295385057353	2 omwentelingen
+# The word operators. "maal" and "keer" are both bare; "gedeeld door" is two
+# tokens folded into one.
+45 graden maal 2	angle	1.570796326794896619231321692	90 graden
+45 graden keer 2	angle	1.570796326794896619231321692	90 graden
+180 graden gedeeld door 4	angle	0.7853981633974483096156608458	45 graden
+# "naar" is the second conversion preposition beside "in".
+90 graden naar gon	angle	1.570796326794896619231321692	100 gon

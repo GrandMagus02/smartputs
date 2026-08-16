@@ -1,0 +1,39 @@
+# What a comparison returns. Registering this kind is what turns
+# `1000メガバイト = 1ギガバイト` from an unresolvable expression into `true`.
+#
+# `true` and `false` are not translated, and that is this file's finding
+# rather than an oversight it hides: the kind ships no vocabulary at all,
+# so `formatValue` degrades to the unit key in every language. A Japanese
+# engine answering "true" is what the code does today, and a row asserting
+# it is what makes a later `boolean/locale/ja` a visible diff here.
+# input	kind	canonical	formatted
+1000メガバイト = 1ギガバイト	boolean	1	true
+1キロメートル > 999メートル	boolean	1	true
+1キロメートル < 999メートル	boolean	0	false
+1メートル = 100センチメートル	boolean	1	true
+2 > 1	boolean	1	true
+1 >= 1	boolean	1	true
+1 <= 0	boolean	0	false
+5 != 4	boolean	1	true
+-5キロメートル < 0キロメートル	boolean	1	true
+1.5キロメートル = 1500メートル	boolean	1	true
+# No space between a number and its unit, on either side of a comparison.
+1キログラム 足す 500グラム = 1.5キログラム	boolean	1	true
+1キロメートル ひく 250メートル = 750メートル	boolean	1	true
+# A word operator needs the surrounding whitespace; a case particle does
+# not, and glues straight onto the unit before it.
+2キロメートル かける 3 = 6キロメートル	boolean	1	true
+10キロメートル わる 4 = 2.5キロメートル	boolean	1	true
+1kmをメートル = 1000m	boolean	1	true
+2kmからメートル = 2000m	boolean	1	true
+# The myriad: Japanese counts in ten-thousands, so 一万 is one word.
+一キロメートル = 1000メートル	boolean	1	true
+一万メートル = 10キロメートル	boolean	1	true
+# The katakana loans. Every imperial unit is a transcription rather than a
+# native word, and no unit agrees with its count.
+1インチ = 2.54センチメートル	boolean	1	true
+3フィート = 91.44センチメートル	boolean	1	true
+1マイル > 1キロメートル	boolean	1	true
+2トン = 2000キログラム	boolean	1	true
+1ヘクタール = 10000平方メートル	boolean	1	true
+1時間 != 60分	boolean	0	false

@@ -1,0 +1,30 @@
+# input	kind	canonical	formatted
+2 semanas	duration	1209600	2 semanas
+30 horas - 30 minutos	duration	106200	29,5 horas
+90 minutos en horas	duration	5400	1,5 horas
+1 día en horas	duration	86400	24 horas
+500 ms + 500 ms	duration	1	1.000 milisegundos
+2 horas * 3	duration	21600	6 horas
+-2 horas	duration	-7200	-2 horas
+1 hora en segundos	duration	3600	3.600 segundos
+3600 segundos en horas	duration	3600	1 hora
+45 minutos	duration	2700	45 minutos
+1,5 horas en minutos	duration	5400	90 minutos
+2 días + 12 horas	duration	216000	2,5 días
+una hora	duration	3600	1 hora
+doscientos cinco segundos	duration	205	205 segundos
+# "." groups and "," is the decimal point.
+86.400 segundos en días	duration	86400	1 día
+# A fraction takes the plural. Portuguese, next door, takes the singular for
+# the same number — the two Iberian languages disagree here.
+1,5 días	duration	129600	1,5 días
+1 día / 4	duration	21600	0,25 días
+# "por" is times and "entre" is over, so neither operator is the verb a
+# dictionary would offer. "dividido por" cannot parse: "por" is already spoken
+# for.
+2 horas por 3	duration	21600	6 horas
+1 día entre 4	duration	21600	0,25 días
+# Two prepositions introduce a conversion target.
+1 semana a días	duration	604800	7 días
+1 segundo	duration	1	1 segundo
+5 días	duration	432000	5 días

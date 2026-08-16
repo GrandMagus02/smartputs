@@ -1,0 +1,35 @@
+# input	kind	canonical	formatted
+3미터 * 4미터	area	12	12제곱미터
+1ha를 제곱미터	area	10000	10,000제곱미터
+1acre를 제곱미터	area	4046.8564224	4,046.8564224제곱미터
+2km2를 헥타르	area	2000000	200헥타르
+5000cm2를 m2	area	0.5	0.5제곱미터
+10m2 + 5m2	area	15	15제곱미터
+1헥타르 - 2500m2	area	7500	0.75헥타르
+3m2 * 4	area	12	12제곱미터
+100m2 / 4	area	25	25제곱미터
+-5m2	area	-5	-5제곱미터
+100m2에서 cm2	area	100	1,000,000제곱센티미터
+1킬로미터 * 1킬로미터	area	1000000	1,000,000제곱미터
+12m2	area	12	12제곱미터
+만 제곱미터	area	10000	10,000제곱미터
+# No number agreement anywhere: one category, so 1 and 2 and 1.5 take the same
+# word.
+1제곱미터	area	1	1제곱미터
+2제곱미터	area	2	2제곱미터
+1.5제곱미터	area	1.5	1.5제곱미터
+# All three squared units are one token and all three print.
+100제곱센티미터	area	0.01	100제곱센티미터
+2제곱킬로미터	area	2000000	2제곱킬로미터
+1헥타르	area	10000	1헥타르
+# 평방미터 is the older Sino-Korean reading of the same unit. It reads and is
+# never printed; 제곱미터 is what comes back.
+100평방미터	area	100	100제곱미터
+# The conversion particle separates after a **Latin** unit alias but not after
+# a Hangul one: "1ha를 제곱미터" above lands, "1헥타르를 제곱미터" does not
+# parse at all. Spacing the particle off is the other way through.
+1헥타르 를 제곱미터	area	10000	10,000제곱미터
+# No space between the number and the unit, and the separators are English's.
+1,500m2	area	1500	1,500제곱미터
+10m2 곱하기 3	area	30	30제곱미터
+100m2 나누기 4	area	25	25제곱미터

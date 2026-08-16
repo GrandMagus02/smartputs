@@ -1,0 +1,46 @@
+# input	kind	canonical	formatted
+1 kg + 500 g	mass	1500	1,5 Kilogramm
+3 Pfund	mass	1360.77711	3 Pfund
+1 t in Kilogramm	mass	1000000	1.000 Kilogramm
+16 Unzen in Pfund	mass	453.59237	1 Pfund
+1 kg in Gramm	mass	1000	1.000 Gramm
+2 kg - 500 g	mass	1500	1,5 Kilogramm
+3 kg * 4	mass	12000	12 Kilogramm
+1 t / 8	mass	125000	0,125 Tonnen
+-2 kg	mass	-2000	-2 Kilogramm
+500 mg in Gramm	mass	0.5	0,5 Gramm
+ein Kilogramm	mass	1000	1 Kilogramm
+zweihundertfünf Kilogramm	mass	205000	205 Kilogramm
+2,5 Tonnen in Kilogramm	mass	2500000	2.500 Kilogramm
+1 Pfund in Unzen	mass	453.59237	16 Unzen
+# The separators are English's, swapped. "." groups the thousands and "," is
+# the decimal point, on input and on output alike — 1.500 g is fifteen hundred
+# of them, not one and a half.
+1.500 g in Kilogramm	mass	1500	1,5 Kilogramm
+1,5 kg	mass	1500	1,5 Kilogramm
+1.234.567 mg	mass	1234.567	1.234.567 Milligramm
+# Duden's rule for Maßangaben: a masculine or neuter measure noun does not
+# inflect after a numeral. Four of the six units here are one or the other, so
+# their number axis is dead — "2 Kilogramm", never "2 Kilogramme".
+2 Kilogramm	mass	2000	2 Kilogramm
+21 Kilogramm	mass	21000	21 Kilogramm
+5 Gramm	mass	5	5 Gramm
+2 Pfund	mass	907.18474	2 Pfund
+# `die Tonne` and `die Unze` are the two feminine units, and they are the two
+# whose plural moves. A fraction above zero is CLDR `other` in German, so 0,5
+# takes the plural as well — the opposite of the Slavic genitive singular.
+1 Unze	mass	28.349523125	1 Unze
+2 Unzen	mass	56.69904625	2 Unzen
+2 Tonnen	mass	2000000	2 Tonnen
+0,5 Tonne	mass	500000	0,5 Tonnen
+# The dative is read, never printed. "in Tonnen" and "zu Gramm" govern the
+# target, and the answer comes back a bare nominative quantity.
+1000 kg in Tonnen	mass	1000000	1 Tonne
+5 kg zu Gramm	mass	5000	5.000 Gramm
+# `Kilo` is the colloquial clipping, and it is the one word in this file that
+# pluralises where its full form does not: "2 Kilos", never "2 Kilogramme".
+2 Kilos	mass	2000	2 Kilogramm
+# The word operators. "mal" stands alone; "geteilt durch" is two tokens folded
+# into one, the way English folds "divided by".
+2 kg mal 3	mass	6000	6 Kilogramm
+10 kg geteilt durch 4	mass	2500	2,5 Kilogramm

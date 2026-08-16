@@ -1,0 +1,41 @@
+# input	kind	canonical	formatted
+30 usd	money	27.27272727272727272727272727	$30.00
+100美元 换算 欧元	money	90.90909090909090909090909091	€90.91
+5欧元 加 5欧元	money	10	€10.00
+30美元 减 10欧元	money	17.27272727272727272727272727	$19.00
+2欧元 乘 3	money	6	€6.00
+10欧元 除以 4	money	2.5	€2.50
+-5欧元	money	-5	-€5.00
+(1 usd / 3) * 3	money	0.909090909090909090909090909	$1.00
+# No space between the number and the unit, on input and on output alike —
+# which is what a Chinese reader would write and what makes the round trip
+# hold.
+2欧元	money	2	€2.00
+1000欧元	money	1000	€1,000.00
+1234567欧元	money	1234567	€1,234,567.00
+# The word operators need whitespace around them even though Chinese writes
+# none; the symbols do not.
+2欧元*3	money	6	€6.00
+# The conversion keywords are the exception: no space is needed around them.
+# There are four — two particles and two verbs — and the last row shows that
+# a spaced one still reads, so the space is optional rather than forbidden.
+100美元到欧元	money	90.90909090909090909090909091	€90.91
+100美元为欧元	money	90.90909090909090909090909091	€90.91
+100美元换算欧元	money	90.90909090909090909090909091	€90.91
+100美元 转换 欧元	money	90.90909090909090909090909091	€90.91
+# The myriad. Chinese counts in ten-thousands, so 一万 is one word for what
+# English needs two for — and the currency it is counting has no minor unit,
+# so nothing is added after the grouped digits.
+一万日圆	money	58.82352941176470588235294118	¥10,000
+# Both spellings of two: 二 is the counting word, 两 the one used before a
+# measure.
+二欧元	money	2	€2.00
+两欧元	money	2	€2.00
+# Chinese groups with "," and puts the decimal on ".", the English pair.
+1.5欧元	money	1.5	€1.50
+1,234,567 uah 到 欧元	money	27133.34065934065934065934066	€27,133.34
+# The Chinese words. "美金" is the colloquial one — literally "American
+# gold" — beside "美元", and both read.
+5美金	money	4.545454545454545454545454546	$5.00
+3英镑	money	3.566333808844507845934379457	£3.00
+5法郎	money	5.31914893617021276595744681	CHF5.00

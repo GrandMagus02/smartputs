@@ -1,0 +1,38 @@
+# input	kind	canonical	formatted
+120 kph	speed	33.33333333333333333333333334	120km/jam
+100 kph ke mph	speed	27.77777777777777777777777778	62,137119223733396961743418mph
+60 mph ke kph	speed	26.8224	96,56064km/jam
+1 knot ke kph	speed	0.5144444444444444444444444444	1,852km/jam
+10 mps ke kph	speed	10	36km/jam
+50 kph + 50 kph	speed	27.77777777777777777777777778	100km/jam
+100 kph - 20 kph	speed	22.22222222222222222222222222	80km/jam
+30 kph * 2	speed	16.66666666666666666666666667	60km/jam
+100 kph / 4	speed	6.944444444444444444444444445	25km/jam
+-10 kph	speed	-2.777777777777777777777777778	-10km/jam
+100 km / 2 jam	speed	13.88888888888888888888888889	13,888888888888888888888889m/s
+3,6 kph ke mps	speed	1	1m/s
+# No spelled cardinals. `@smartput/core` ships a `<lang>-cardinals` file for
+# fifteen of the sixteen non-English languages here and none for `id`, so
+# "satu kph" does not parse and this corpus records digits only. The row that
+# would prove it is the one that cannot be written.
+100 kph	speed	27.77777777777777777777777778	100km/jam
+# "." groups and "," is the decimal point — the Dutch pair, which is where
+# Indonesian orthography got it.
+1.234 kph	speed	342.7777777777777777777777778	1.234km/jam
+# "kali" is `times` and "bagi" is a bare `over`, neither needing a particle.
+30 kph kali 2	speed	16.66666666666666666666666667	60km/jam
+100 kph bagi 4	speed	6.944444444444444444444444445	25km/jam
+# "dalam" is the second conversion preposition beside "ke".
+100 kph dalam mph	speed	27.77777777777777777777777778	62,137119223733396961743418mph
+# Indonesian marks no plural at all, so the knot has one printed form and 1,
+# 5 and 1,5 take the same word.
+1 knot	speed	0.5144444444444444444444444444	1 knot
+5 knot	speed	2.572222222222222222222222222	5 knot
+1,5 knot	speed	0.7716666666666666666666666666	1,5 knot
+1 kn	speed	0.5144444444444444444444444444	1 knot
+100 kph ke knot	speed	27.77777777777777777777777778	53,995680345572354211663067 knot
+# The hour in the symbol is "jam", the ordinary Indonesian word, and the
+# symbol reads back as arithmetic over a length and a duration.
+120 km/jam	speed	33.33333333333333333333333333	33,333333333333333333333333m/s
+# The bridge, in Indonesian words.
+100 kilometer / 2 jam	speed	13.88888888888888888888888889	13,888888888888888888888889m/s

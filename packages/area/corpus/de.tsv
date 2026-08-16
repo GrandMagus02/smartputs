@@ -1,0 +1,39 @@
+# input	kind	canonical	formatted
+3 m * 4 m	area	12	12 Quadratmeter
+1 Hektar in m2	area	10000	10.000 Quadratmeter
+1 Acre in m2	area	4046.8564224	4.046,8564224 Quadratmeter
+2 km2 in Hektar	area	2000000	200 Hektar
+5000 cm2 in m2	area	0.5	0,5 Quadratmeter
+10 m2 + 5 m2	area	15	15 Quadratmeter
+1 Hektar - 2500 m2	area	7500	0,75 Hektar
+3 m2 * 4	area	12	12 Quadratmeter
+100 m2 / 4	area	25	25 Quadratmeter
+-5 m2	area	-5	-5 Quadratmeter
+2 qkm in qm	area	2000000	2.000.000 Quadratmeter
+1 m2 in cm2	area	1	10.000 Quadratzentimeter
+zwei Hektar	area	20000	2 Hektar
+1 km * 1 km	area	1000000	1.000.000 Quadratmeter
+12 m2	area	12	12 Quadratmeter
+# German writes the square metre as one token, so unlike `en` and `uk` the
+# squared units have words to print. Nothing moves on the number axis: a
+# masculine or neuter measure noun stays uninflected after a numeral, and this
+# kind has no feminine unit.
+1 Quadratmeter	area	1	1 Quadratmeter
+2 Quadratmeter	area	2	2 Quadratmeter
+3 Quadratkilometer	area	3000000	3 Quadratkilometer
+# `qm` is what a German estate agent writes, and `q` is for *Quadrat* rather
+# than for anything in `units.ts`.
+120 qm	area	120	120 Quadratmeter
+# "." groups and "," is the decimal point — the pair `en` has the other way
+# round.
+1.500 m2	area	1500	1.500 Quadratmeter
+1,5 Quadratmeter	area	1.5	1,5 Quadratmeter
+1,5 Hektar	area	15000	1,5 Hektar
+# The dative plural is read and never printed. "in Quadratmetern" is what
+# German writes for the target; the answer carries a count, so it comes back
+# nominative.
+100 m2 in Quadratmetern	area	100	100 Quadratmeter
+# Both operator words, one of them two-token: "geteilt" needs "durch" beside
+# it where "mal" stands alone.
+10 m2 mal 3	area	30	30 Quadratmeter
+100 m2 geteilt durch 4	area	25	25 Quadratmeter

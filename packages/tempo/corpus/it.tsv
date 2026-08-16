@@ -1,0 +1,31 @@
+# input	kind	canonical	formatted
+120 bpm	tempo	120	120bpm
+120 bpm in ms	duration	0.5	500 millisecondi
+500 ms in bpm	tempo	120	120bpm
+1 s in bpm	tempo	60	60bpm
+2 Hz in bpm	tempo	120	120bpm
+120 bpm in Hz	tempo	120	2 hertz
+120 bpm + 8 bpm	tempo	128	128bpm
+140 bpm - 20 bpm	tempo	120	120bpm
+60 bpm * 2	tempo	120	120bpm
+120 bpm / 2	tempo	60	60bpm
+-10 bpm	tempo	-10	-10bpm
+centoventi bpm	tempo	120	120bpm
+174 bpm	tempo	174	174bpm
+# "a" is the second conversion preposition beside "in".
+120 bpm a millisecondi	duration	0.5	500 millisecondi
+# "per" multiplies and "diviso" divides on its own — no "by" word follows it.
+60 bpm per 2	tempo	120	120bpm
+120 bpm diviso 2	tempo	60	60bpm
+# Hertz is a loan and keeps one shape in both numbers, and one of them is sixty
+# beats a minute rather than one.
+1 Hz	tempo	60	1 hertz
+2 Hz	tempo	120	2 hertz
+# A dot groups and a comma decimals.
+1.200 bpm	tempo	1200	1.200bpm
+0,5 Hz	tempo	30	0,5 hertz
+# A fraction takes the plural second, where French, reading the same 0,5, prints
+# the singular. The hertz cannot say either way: it is a loan with one shape.
+1,5 Hz	tempo	90	1,5 hertz
+120 bpm in secondi	duration	0.5	0,5 secondi
+60 bpm in s	duration	1	1 secondo

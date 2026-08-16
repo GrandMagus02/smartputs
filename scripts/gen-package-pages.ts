@@ -98,6 +98,34 @@ same \`name\`/\`code\`/\`input\` shape, no dependency.`,
       ["The `/validate` API", "/api/validate"],
     ],
   },
+  kind: {
+    group: "Engine",
+    summary: "The layer a kind and a language are written in, with no engine in it.",
+    body: `\`defineKind\`, \`defineVocabulary\`, \`decimalRatios\`,
+\`aliasesFor\`, \`deriveValue\`, the \`Decimal\` every ratio is carried in, the
+\`SmartputError\` hierarchy, and the types all of it is spelled with.
+
+It was \`@smartput/core\`'s until the edge was found running the wrong way:
+seventeen leaf packages named the engine in order to say what a kilometre is,
+which is a fact about metres and has nothing to do with parsing a sentence —
+and core named four of them back as devDependencies, closing the loop. The
+split is by **layer**: core is the pipeline (normalize, tokenize, parse, solve,
+eval, print), and this is what the pipeline agrees with a kind about before it
+runs.
+
+Core re-exports every name here unchanged, so nothing that imported them from
+\`@smartput/core\` had to stop. Writing a new kind, though, should name this
+package and not the engine — that is the whole point of it existing.
+
+It did **not** make anything smaller. A kind package's bundle barely moved,
+because what it was carrying was \`decimal.js\` and never the pipeline; the
+change bought layering, and \`scripts/check-size.ts\` records the 240 B per
+core-consuming bundle that it cost.`,
+    see: [
+      ["Defining a kind", "/guide/kinds"],
+      ["Vocabularies and languages", "/guide/languages"],
+    ],
+  },
   kinds: {
     group: "Engine",
     summary: "Every built-in kind, its vocabulary, and the two barrels over them.",
@@ -441,6 +469,9 @@ export const DEMOS: Record<string, string> = {
     '<SpExplain model-value="10 m + 5 min" />',
   ].join("\n"),
   shared: '<SpValidatedInput kind="length" />',
+  // No demo component of its own: what this package does is let *another*
+  // package have one. The custom-kind playground is that, run end to end.
+  kind: "<SpCustomKind />",
   kinds: "<SpConvert />",
 
   length: ratioDemo("length", "12 cm", ["2 km in m", "12 inch", "1 mi + 500 m", "3 ft"]),

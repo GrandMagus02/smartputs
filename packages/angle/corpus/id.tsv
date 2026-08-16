@@ -1,0 +1,37 @@
+# input	kind	canonical	formatted
+90 derajat	angle	1.570796326794896619231321692	90 derajat
+90 derajat ke radian	angle	1.570796326794896619231321692	1,5707963267948966192313217 radian
+0,25 putaran ke derajat	angle	1.570796326794896619231321692	90 derajat
+200 gon ke derajat	angle	3.141592653589793238462643383	180 derajat
+90 derajat + 90 derajat	angle	3.141592653589793238462643384	180 derajat
+1 putaran - 90 derajat	angle	4.712388980384689857693965075	0,75 putaran
+45 derajat * 2	angle	1.570796326794896619231321692	90 derajat
+180 derajat / 4	angle	0.7853981633974483096156608458	45 derajat
+-90 derajat	angle	-1.570796326794896619231321692	-90 derajat
+1 radian ke derajat	angle	1	57,295779513082320876798155 derajat
+360 derajat ke putaran	angle	6.283185307179586476925286767	1 putaran
+1,5 radian	angle	1.5	1,5 radian
+# "." groups and "," is the decimal point, the pair Indonesian took from
+# Dutch.
+1.234.567 derajat	angle	21547.25898646883482793950141	1.234.567 derajat
+3 putaran ke derajat	angle	18.8495559215387594307758603	1.080 derajat
+# No plural at all: Indonesian marks number nowhere on a noun, so every unit
+# has one printed form and 1, 5 and 1,5 take the same word.
+1 derajat	angle	0.01745329251994329576923690768	1 derajat
+5 derajat	angle	0.08726646259971647884618453842	5 derajat
+1,5 derajat	angle	0.02617993877991494365385536153	1,5 derajat
+1 putaran	angle	6.283185307179586476925286767	1 putaran
+2 putaran	angle	12.56637061435917295385057353	2 putaran
+# Indonesian borrows the gradian's symbol whole and gives it no word of its
+# own, so "gon" is both what is typed and what is printed.
+100 gon	angle	1.570796326794896619231321692	100 gon
+# The word operators are all bare, and "dalam" is the second conversion
+# preposition beside "ke".
+45 derajat kali 2	angle	1.570796326794896619231321692	90 derajat
+180 derajat bagi 4	angle	0.7853981633974483096156608458	45 derajat
+90 derajat tambah 90 derajat	angle	3.141592653589793238462643384	180 derajat
+1 putaran kurang 90 derajat	angle	4.712388980384689857693965075	0,75 putaran
+90 derajat dalam radian	angle	1.570796326794896619231321692	1,5707963267948966192313217 radian
+# One row this file cannot have, named rather than left as a hole: Indonesian
+# is the only language here with no cardinals table in core, so there is no
+# spelled number to write and "satu putaran" does not parse.

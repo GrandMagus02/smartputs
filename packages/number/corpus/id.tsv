@@ -1,0 +1,32 @@
+# input	kind	canonical	formatted
+1 + 1	number	2	2
+10 - 4	number	6	6
+6 * 7	number	42	42
+10 / 4	number	2.5	2,5
+-5	number	-5	-5
+(1 + 2) * 3	number	9	9
+100 / 3	number	33.33333333333333333333333333	33,333333333333333333333333
+2 * 3 * 7	number	42	42
+3 * (4 + 5)	number	27	27
+1234567890123456789	number	1234567890123456789	1.234.567.890.123.456.789
+# "." groups and "," marks the decimal — the Dutch pair, which Dutch and
+# German also use and English inverts.
+1.500	number	1500	1.500
+1.234.567	number	1234567	1.234.567
+0,1 + 0,2	number	0.3	0,3
+1,5 + 1,5	number	3	3
+1.500 + 500	number	2000	2.000
+0,5 * 4	number	2	2
+# No spelled cardinal row, and that absence is the point of this file.
+# Indonesian is the one language in this set with no `<lang>-cardinals.ts` in
+# core, so `indonesian.numerals` and `indonesian.spell` are both undefined and
+# "satu", "seratus" and "dua puluh satu" do not parse at all. A row here would
+# assert a table that does not exist.
+#
+# Indonesian marks no plural and no case either, so what is left of the
+# language on this kind is the number format above and the operator words
+# below, and this file spends its rows on those.
+10 tambah 5	number	15	15
+10 kurang 4	number	6	6
+6 kali 7	number	42	42
+10 bagi 4	number	2.5	2,5

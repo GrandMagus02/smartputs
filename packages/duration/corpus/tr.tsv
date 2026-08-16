@@ -1,0 +1,40 @@
+# input	kind	canonical	formatted
+2 hafta	duration	1209600	2 hafta
+30 saat - 30 dakika	duration	106200	29,5 saat
+500 ms + 500 ms	duration	1	1.000 milisaniye
+2 saat * 3	duration	21600	6 saat
+-2 saat	duration	-7200	-2 saat
+45 dakika	duration	2700	45 dakika
+2 gün + 12 saat	duration	216000	2,5 gün
+bir saat	duration	3600	1 saat
+# "." groups and "," is the decimal point, German's pair.
+86.400 saniye çevir gün	duration	86400	1 gün
+100000 saniye	duration	100000	100.000 saniye
+# Turkish does not pluralise after a numeral, so every unit here has exactly
+# one printed form and no number axis at all. "1 saat", "5 saat", "1,5 saat",
+# all the same word.
+1 saat	duration	3600	1 saat
+5 saat	duration	18000	5 saat
+1,5 saat	duration	5400	1,5 saat
+# A conversion is not a preposition: the sentence hangs off the verb "çevir",
+# which stands in front of the target. "to" is claimed beside it because
+# Turkish writing borrows it.
+90 dakika çevir saat	duration	5400	1,5 saat
+1 gün çevir saat	duration	86400	24 saat
+1 saat çevir saniye	duration	3600	3.600 saniye
+3600 saniye çevir saat	duration	3600	1 saat
+1,5 saat çevir dakika	duration	5400	90 dakika
+1 hafta to gün	duration	604800	7 gün
+# The suffix stripper. Turkish agglutinates case and plural onto the unit
+# word, and none of these endings is listed as an alias — the stripper takes
+# them off and the bare stem is what matches.
+10 dakikalar	duration	600	10 dakika
+5 saatten	duration	18000	5 saat
+1 haftaya	duration	604800	1 hafta
+# The dotless i. `toLocaleLowerCase("tr")` sends "I" to "ı" and "İ" to "i", so
+# a Turkish engine has to fold both spellings of a capitalised unit onto the
+# one alias.
+10 DAKİKA	duration	600	10 dakika
+10 DAKIKA	duration	600	10 dakika
+# The operators are bare words, none of them two-token.
+1 gün bölü 4	duration	21600	0,25 gün

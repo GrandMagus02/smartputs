@@ -1,0 +1,41 @@
+# input	kind	canonical	formatted
+10 km	length	10000	10 Kilometer
+1 kg + 500 g	mass	1500	1,5 Kilogramm
+30 h - 30 min	duration	106200	29,5 Stunden
+2 km in Meter	length	2000	2.000 Meter
+10 km * 3	length	30000	30 Kilometer
+1 km / 4	length	250	0,25 Kilometer
+(1 + 2) * 3	number	9	9
+-5 km	length	-5000	-5 Kilometer
+12 Zoll	length	0.3048	12 Zoll
+20% von 50	number	10	10
+90 Grad in Radiant	angle	1.570796326794896619231321692	1,5707963267948966192313217 Radiant
+1 kib in b	datasize	1024	1.024 Byte
+ein Kilometer	length	1000	1 Kilometer
+zweihundertfünf Gramm	mass	205	205 Gramm
+# "." groups and "," is the decimal point, so the first of these is fifteen
+# hundred grams and the second is one and a half kilograms. English reads
+# "1.500" as one and a half and has no spelling that collides the two.
+1.500 g	mass	1500	1.500 Gramm
+1,5 kg	mass	1500	1,5 Kilogramm
+# German prints a space before a unit that is a bare symbol with no noun to
+# agree with. English prints none — "100°C" there, "100 °C" here — and the
+# same gap opens before m² and m/s.
+212 F in C	temperature	100	100 °C
+30 C - 20 C	tempdelta	10	10 °C
+3 m * 4 m	area	12	12 Quadratmeter
+100 km / 2 h	speed	13.88888888888888888888888889	13,888888888888888888888889 m/s
+# Masculine and neuter measure nouns do not move after a numeral: "10
+# Kilometer", "205 Gramm", "12 Zoll". `die Meile` and `die Stunde` are the
+# feminine units here, and those do take a plural ending.
+1 Meile	length	1609.344	1 Meile
+2 Meilen	length	3218.688	2 Meilen
+# The conversion prepositions govern the dative, which is read and never
+# printed: "nach Metern" in, "Meter" out.
+2 km nach Metern	length	2000	2.000 Meter
+# `compoundSplitter` on a right-headed compound: the head carries the unit and
+# the modifier is dropped.
+3 Laufmeter	length	3	3 Meter
+# "geteilt durch" is one operator in two tokens — the verb is `over` and
+# "durch" is `by`. A bare "10 durch 2" does not parse.
+10 km geteilt durch 4	length	2500	2,5 Kilometer

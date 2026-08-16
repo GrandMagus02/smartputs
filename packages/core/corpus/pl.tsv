@@ -1,0 +1,37 @@
+# input	kind	canonical	formatted
+10 km	length	10000	10 kilometrów
+1 kg + 500 g	mass	1500	1,5 kilograma
+30 h - 30 min	duration	106200	29,5 godziny
+2 km w metrach	length	2000	2 000 metrów
+(1 + 2) * 3	number	9	9
+-5 km	length	-5000	-5 kilometrów
+212 F w C	temperature	100	100 °C
+30 C - 20 C	tempdelta	10	10 °C
+20% z 50	number	10	10
+90 stopni w radianach	angle	1.570796326794896619231321692	1,5707963267948966192313217 radiana
+1 kib w bajtach	datasize	1024	1 024 bajty
+3 m * 4 m	area	12	12 m²
+100 km / 2 h	speed	13.88888888888888888888888889	13,888888888888888888888889 m/s
+jeden kilometr	length	1000	1 kilometr
+dwieście pięć gramów	mass	205	205 gramów
+# The four plural categories on one unit, against English's two. Polish picks
+# `few` for 2-4 and `many` from 5 up; the teens go to `many` however they end,
+# and so does 21, because `one` here is the number 1 and nothing else. Russian
+# gives 21 the singular — see `corpus/ru.tsv`.
+1 metr	length	1	1 metr
+2 metry	length	2	2 metry
+5 metrów	length	5	5 metrów
+12 metrów	length	12	12 metrów
+21 metrów	length	21	21 metrów
+# The fractional category is the genitive **singular** — "1,5 metra", never
+# "1,5 metrów" — and it is a fifth word, not a reuse of one of the four above.
+1,5 metra	length	1.5	1,5 metra
+# A decimal comma and a U+00A0 group separator, Ukrainian's pair rather than
+# German's.
+1 500 mm w metrach	length	1.5	1,5 metra
+# "razy" stands alone; "podzielić przez" is one operator in two tokens.
+2 km razy 3	length	6000	6 kilometrów
+10 km podzielić przez 4	length	2500	2,5 kilometra
+# "na" and "do" both introduce a conversion target beside "w", and only "w"
+# governs the locative that `selectForm` reads.
+2 km na metry	length	2000	2 000 metrów

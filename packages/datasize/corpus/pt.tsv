@@ -1,0 +1,36 @@
+# input	kind	canonical	formatted
+1 kib em b	datasize	1024	1.024 bytes
+1 gb em mb	datasize	1000000000	1.000 megabytes
+1 gib em mib	datasize	1073741824	1.024 mebibytes
+1 tb para gb	datasize	1000000000000	1.000 gigabytes
+1024 b em kib	datasize	1024	1 kibibyte
+500 mb + 500 mb	datasize	1000000000	1.000 megabytes
+2 gb * 3	datasize	6000000000	6 gigabytes
+1 tb / 4	datasize	250000000000	0,25 terabyte
+-1 gb	datasize	-1000000000	-1 gigabyte
+um gigabyte	datasize	1000000000	1 gigabyte
+duzentos e cinco megabytes	datasize	205000000	205 megabytes
+# Portuguese groups with "." and takes "," for the decimal.
+1.500 bytes	datasize	1500	1.500 bytes
+1234567 bytes	datasize	1234567	1.234.567 bytes
+# The loan pluralises — "2 bytes" — but a fraction takes the **singular**:
+# "1,5 gigabyte", "0,8 gigabyte", "0,25 terabyte". Spanish prints the plural
+# in every one of those cells, which is two Iberian languages disagreeing
+# about the same word.
+1 byte	datasize	1	1 byte
+2 bytes	datasize	2	2 bytes
+1,5 GB	datasize	1500000000	1,5 gigabyte
+1 gb - 200 mb	datasize	800000000	0,8 gigabyte
+# "quilobyte" is the Portuguese spelling and it reads; the k-spelling is what
+# prints. "octeto" is the eight bits named rather than borrowed, and it reads
+# for either family.
+1 quilobyte	datasize	1000	1 kilobyte
+1 octeto	datasize	1	1 byte
+5 octetos	datasize	5	5 bytes
+# The word operators, and the trap in them: "por" is times, so "dividido por"
+# puts two operators in a row and does not parse. Division is "sobre".
+2 GB vezes 3	datasize	6000000000	6 gigabytes
+2 GB por 3	datasize	6000000000	6 gigabytes
+10 GB sobre 4	datasize	2500000000	2,5 gigabytes
+100 MB mais 100 MB	datasize	200000000	200 megabytes
+1 GB menos 200 MB	datasize	800000000	0,8 gigabyte

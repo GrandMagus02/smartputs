@@ -1,0 +1,47 @@
+# input	kind	canonical	formatted
+1 كيلوغرام + 500 غرام	mass	1500	1.5 كيلوغرام
+3 أرطال	mass	1360.77711	3 أرطال
+1 طن إلى كيلوغرام	mass	1000000	1,000 كيلوغرام
+16 أونصة إلى رطل	mass	453.59237	1 رطل
+1 كيلوغرام إلى غرام	mass	1000	1,000 غرام
+2 كيلوغرام - 500 غرام	mass	1500	1.5 كيلوغرام
+3 كيلوغرام * 4	mass	12000	12 كيلوغرامًا
+1 طن / 8	mass	125000	0.125 طن
+-2 كيلوغرام	mass	-2000	-2 كيلوغرامان
+500 مليغرام إلى غرام	mass	0.5	0.5 غرام
+مئتان وخمسة كيلوغرام	mass	205000	205 كيلوغرامات
+2.5 طن إلى كيلوغرام	mass	2500000	2,500 كيلوغرام
+1 رطل إلى أونصة	mass	453.59237	16 أونصة
+# Six plural categories, the most any language in this set has, and each of
+# them a different word. CLDR's Arabic rule: 0 zero, 1 one, 2 two, 3-10 few,
+# 11-99 many, and everything else — 100, and every fraction — other.
+0 غرام	mass	0	0 غرام
+1 غرام	mass	1	1 غرام
+2 غرام	mass	2	2 غرامان
+3 غرام	mass	3	3 غرامات
+11 غرام	mass	11	11 غرامًا
+100 غرام	mass	100	100 غرام
+1.5 غرام	mass	1.5	1.5 غرام
+# The plural of طن is a broken plural — أطنان, an internal reshaping of the
+# stem rather than a suffix. No stripper could derive it, which is why every
+# category is written out rather than left to a rule.
+3 طن	mass	3000000	3 أطنان
+# أونصة is the one unit whose `many` cell repeats its `one` cell: the written
+# tanwīn the grams and the pound carry at 11-99 is left off this noun, so 11
+# and 1 print the same string and only the four other units show the category.
+11 أونصة	mass	311.844754375	11 أونصة
+2 أونصة	mass	56.69904625	2 أونصتان
+# The category is read off the *result*, not off anything typed: 10 lands in
+# few, 30 in many, and the operand that produced it never had either.
+10 كيلوغرام	mass	10000	10 كيلوغرامات
+30 كيلوغرام	mass	30000	30 كيلوغرامًا
+# The digits and separators are Latin. `ar` resolves to a `latn` numbering
+# system with "," for groups and "." for the decimal, so an Arabic sentence
+# reads and prints its numbers left to right inside right-to-left text.
+1,500 غرام إلى كيلوغرام	mass	1500	1.5 كيلوغرام
+# في is both "in" and "times" in Arabic, and it is claimed as the conversion
+# preposition; ضرب is what is left to say "multiplied". قسمة على is the
+# two-token division, hanging off على as `keywords.by`.
+2 كيلوغرام في غرام	mass	2000	2,000 غرام
+2 كيلوغرام ضرب 3	mass	6000	6 كيلوغرامات
+10 كيلوغرام قسمة على 4	mass	2500	2.5 كيلوغرام

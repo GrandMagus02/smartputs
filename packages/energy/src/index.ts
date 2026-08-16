@@ -1,5 +1,5 @@
-import type { Value } from "@smartput/core";
-import { type Decimal, decimalRatios, defineKind, deriveValue } from "@smartput/core";
+import type { Value } from "@smartput/kind";
+import { type Decimal, decimalRatios, defineKind, deriveValue } from "@smartput/kind";
 import { ENERGY_UNITS } from "./units";
 
 export type { EnergyUnit } from "./units";

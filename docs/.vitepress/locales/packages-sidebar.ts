@@ -12,6 +12,7 @@ export const packagesSidebar: DefaultTheme.SidebarItem[] = [
     collapsed: false,
     items: [
       { text: "@smartput/core", link: "/packages/core" },
+      { text: "@smartput/kind", link: "/packages/kind" },
       { text: "@smartput/kinds", link: "/packages/kinds" },
       { text: "@smartput/shared", link: "/packages/shared" },
     ],

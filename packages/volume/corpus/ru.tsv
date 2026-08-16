@@ -1,0 +1,39 @@
+# input	kind	canonical	formatted
+2 л в мл	volume	2	2 000 миллилитров
+1 гал в литрах	volume	3.785411784	3,785411784 литра
+500 мл + 500 мл	volume	1	1 000 миллилитров
+2 л - 250 мл	volume	1.75	1,75 литра
+3 л * 4	volume	12	12 литров
+1 л / 4	volume	0.25	0,25 литра
+-2 л	volume	-2	-2 литра
+один литр	volume	1	1 литр
+двести пять литров	volume	205	205 литров
+# A decimal comma, and a U+00A0 group separator on the way out that an
+# ordinary space stands in for on the way in.
+1 500 мл в литрах	volume	1.5	1,5 литра
+1,5 л	volume	1.5	1,5 литра
+1 234 567 мл	volume	1234.567	1 234 567 миллилитров
+# Four plural categories. 21 takes the singular and 11 does not, which is the
+# rule no two-category language can state.
+1 литр	volume	1	1 литр
+2 литра	volume	2	2 литра
+5 литров	volume	5	5 литров
+11 литров	volume	11	11 литров
+21 литр	volume	21	21 литр
+# `few` here is the genitive singular, so "2 литра" and the fractional
+# "1,5 литра" are the same word — where Polish spends two different words on
+# those two numbers.
+1,5 литра	volume	1.5	1,5 литра
+102 литра	volume	102	102 литра
+# The feminine unit, where the genitive singular and the nominative plural
+# coincide in `few` and the `many` form is a bare stem.
+2 пинты	volume	0.946352946	2 пинты
+5 пинт	volume	2.365882365	5 пинт
+# `кубометр` is written out, which is how the cubic metre is said rather than
+# printed — the unit carries no `forms`, so the symbol is what comes back.
+2 кубометра	volume	2000	2м³
+# "до" is the third conversion preposition beside "в" and "у".
+2 л до миллилитров	volume	2	2 000 миллилитров
+# Both operators are two tokens, and both hang off "на" as `keywords.by`.
+2 л умножить на 3	volume	6	6 литров
+10 л разделить на 4	volume	2.5	2,5 литра

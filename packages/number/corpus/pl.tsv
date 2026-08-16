@@ -1,0 +1,37 @@
+# input	kind	canonical	formatted
+1 + 1	number	2	2
+10 - 4	number	6	6
+6 * 7	number	42	42
+10 / 4	number	2.5	2,5
+-5	number	-5	-5
+(1 + 2) * 3	number	9	9
+100 / 3	number	33.33333333333333333333333333	33,333333333333333333333333
+# The decimal is a comma and the group separator is U+00A0, which is not the
+# space accepted on the way in — the string that goes back out is not the
+# string that came in, and the round trip still holds.
+1 500	number	1500	1 500
+0,1 + 0,2	number	0.3	0,3
+1 500 + 500	number	2000	2 000
+# The four plural categories this language is known for cost nothing on this
+# kind: a bare count is not a quantity of anything, so there is no noun beside
+# the number for `selectForm` to inflect and every row below prints digits.
+# What Polish does bring is a numeral that declines on its own.
+jeden	number	1	1
+jedna	number	1	1
+jedno	number	1	1
+dwa	number	2	2
+dwie	number	2	2
+# The hundreds are table entries and not compositions: "dwieście" is not "dwa
+# sto" and "pięćset" is one fused word.
+dwieście pięć	number	205	205
+pięćset	number	500	500
+dziewięćset dziewięćdziesiąt dziewięć	number	999	999
+dwadzieścia jeden	number	21	21
+tysiąc trzydzieści dwa	number	1032	1 032
+dziesięć tysięcy	number	10000	10 000
+zero	number	0	0
+# Word operators. Both of the two-token ones hang off "przez", and "razy" is
+# the bare multiplication word a Pole actually says out loud.
+6 razy 7	number	42	42
+6 pomnożyć przez 7	number	42	42
+10 podzielić przez 4	number	2.5	2,5

@@ -1,4 +1,4 @@
-import { decimalRatios, defineKind } from "@smartput/core";
+import { decimalRatios, defineKind } from "@smartput/kind";
 import { NUMBER_UNITS } from "./units";
 
 export type { NumberUnit } from "./units";

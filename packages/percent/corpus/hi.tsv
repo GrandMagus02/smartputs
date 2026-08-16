@@ -1,0 +1,37 @@
+# input	kind	canonical	formatted
+20%	percent	0.2	20%
+20 प्रतिशत	percent	0.2	20%
+50 + 20%	number	60	60
+50 - 10%	number	45	45
+10% + 5%	percent	0.15	15%
+100% - 40%	percent	0.6	60%
+50 * 10%	percent	5	500%
+10% / 2	percent	0.05	5%
+-10%	percent	-0.1	-10%
+दस प्रतिशत	percent	0.1	10%
+0.5 में प्रतिशत	percent	0.5	50%
+5 / 50 में प्रतिशत	percent	0.1	10%
+# "," groups and "." is the decimal point, as in English.
+2.5%	percent	0.025	2.5%
+1,000%	percent	10	1,000%
+100 * 20%	percent	20	2,000%
+# The Sanskritic compound is closed up and claimable; the Perso-Arabic word is
+# listed twice because no normalization joins the nukta-bearing spelling to the
+# nukta-less one a great many keyboards produce.
+20 फ़ीसदी	percent	0.2	20%
+20 फीसदी	percent	0.2	20%
+# लाख is a magnitude word: a hundred thousand.
+एक लाख प्रतिशत	percent	1000	100,000%
+# The reader is grouping-agnostic — "12,34,567" is the Indian grouping and reads
+# as the same number the Western one would — but the writer groups in fixed
+# threes and cannot yet produce "12,34,567" back. A recorded core gap, not a
+# corpus error.
+12,34,567%	percent	12345.67	1,234,567%
+# The word operators, each one token.
+50 गुणा 10%	percent	5	500%
+10% भाग 2	percent	0.05	5%
+10% जोड़ 5%	percent	0.15	15%
+100% घटा 40%	percent	0.6	60%
+# Conversion is a postposition, and three of them reach it.
+0.5 को प्रतिशत	percent	0.5	50%
+0.5 से प्रतिशत	percent	0.5	50%
