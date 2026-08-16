@@ -4,7 +4,16 @@ export type { AutocompleterOptions } from "./complete/completer";
 export { Autocompleter } from "./complete/completer";
 export { EXACT_BONUS, LENGTH_PENALTY, SCALE_BONUS } from "./complete/score";
 export { Decimal } from "./decimal";
-export type { Engine, EngineOptions, EvalOptions, Explanation, Result } from "./engine";
+export type {
+  Engine,
+  EngineOptions,
+  EvalOptions,
+  Explanation,
+  Mark,
+  MarkReading,
+  Result,
+  ScanOptions,
+} from "./engine";
 export { createEngine } from "./engine";
 export * from "./errors";
 export type { EvalResult, EvaluateOptions } from "./eval/evaluate";
@@ -103,6 +112,13 @@ export { Tokenizer } from "./parse/tokenizer";
 // for a caller reaching through the `@smartput/core/print` subpath.
 export type { PrinterOptions, PrintMode, PrintOptions } from "./print/print";
 export { Printer } from "./print/print";
+// The segmenter behind `engine.scan`, exposed for the same reason `Solver` and
+// `Parser` are: a caller who wants marks without formatted readings can drive
+// it directly, and a plugin can see what a cue did without an engine.
+export type { CueHit } from "./scan/cues";
+export { CUE_CEILING, collectCues } from "./scan/cues";
+export type { ScanMatch, ScannerOptions, ScanScope } from "./scan/scan";
+export { DEFAULT_CUE_WINDOW, DEFAULT_MAX_SPAN, Scanner } from "./scan/scan";
 export type { Resolution } from "./solve/solver";
 export { solve } from "./solve/solver";
 export type { SolverOptions } from "./solve/solver-class";

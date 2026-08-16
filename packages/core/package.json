@@ -9,6 +9,7 @@
     "./dist/tokenize.js",
     "./dist/parse.js",
     "./dist/solve.js",
+    "./dist/scan.js",
     "./dist/eval.js",
     "./dist/print.js",
     "./dist/registry.js"
@@ -43,6 +44,11 @@
       "bun": "./src/solve.ts",
       "types": "./dist/solve.d.ts",
       "default": "./dist/solve.js"
+    },
+    "./scan": {
+      "bun": "./src/scan.ts",
+      "types": "./dist/scan.d.ts",
+      "default": "./dist/scan.js"
     },
     "./eval": {
       "bun": "./src/eval.ts",

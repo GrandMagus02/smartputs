@@ -17,6 +17,8 @@ import { Normalizer } from "./parse/normalize";
 import { Parser, type Program } from "./parse/program";
 import { Tokenizer, type TokenStream } from "./parse/tokenizer";
 import { Printer } from "./print/print";
+import type { CueHit } from "./scan/cues";
+import { DEFAULT_CUE_WINDOW, DEFAULT_MAX_SPAN, Scanner } from "./scan/scan";
 import type { Resolution } from "./solve/solver";
 import { Solver } from "./solve/solver-class";
 import { weightBreakdown } from "./solve/weights";
@@ -182,12 +184,49 @@ export interface Explanation {
   }>;
 }
 
+/** Readings kept per mark before truncation. */
+const DEFAULT_MAX_READINGS = 3;
+
+export interface ScanOptions extends EvalOptions {
+  /** Tokens either side of a mark that are offered as context. Default 4. */
+  cueWindow?: number;
+  /** Readings kept per mark. Default 3. */
+  maxReadings?: number;
+  /** The token backoff cap, and the adversarial-input guard. Default 12. */
+  maxSpan?: number;
+}
+
+export interface MarkReading {
+  kind: KindId;
+  value: Value;
+  formatted: string;
+  confidence: number;
+}
+
+/**
+ * One stretch of the caller's string that reads as a quantity.
+ *
+ * `start`/`end` index the CALLER's string, like `Result.spans` and never the
+ * normalized one, and `text` is `input.slice(start, end)` — carried so a caller
+ * never re-slices, and stated because it is the invariant most likely to rot.
+ */
+export interface Mark {
+  start: number;
+  end: number;
+  text: string;
+  /** Ranked, best first. Never empty: a mark with no reading is not emitted. */
+  readings: MarkReading[];
+  /** Which words biased this mark, and by how much. Empty when none did. */
+  cues: CueHit[];
+}
+
 export interface Engine {
   evaluate(input: string, opts?: EvalOptions): Result;
   suggest(input: string, opts?: EvalOptions): Result[];
   coerce(kind: KindId, input: string, opts?: EvalOptions): Value;
   explain(input: string, opts?: EvalOptions): Explanation;
   complete(input: string, opts?: CompleteOptions): Completion[];
+  scan(input: string, opts?: ScanOptions): Mark[];
 }
 
 /**
@@ -243,35 +282,42 @@ function weightLayers(
  * `completerFor`).
  */
 function buildStages(opts: EngineOptions, registry: Registry, format: Locale) {
+  // Both lists, because lexing is split down exactly the line the phase is
+  // about. `locale` is the format one: number grammar, segmentation and the
+  // case fold belong to the language the engine speaks (I8). `locales` is
+  // every installed one, for the two parts that are many-locale — keywords
+  // and spelled numerals — so a bilingual engine reads "5 кг в грамах" and
+  // "двадцять два кг" while still writing one language.
+  //
+  // `weights` is the engine-level layers and only those: a numeral tie is
+  // broken inside this stage, which is built once and frozen, so a per-call
+  // `EvalOptions.weights` cannot reach it. `weightLayers` with no call layer
+  // is the same array `parserFor` builds, minus the slot only a call fills.
+  const tokenizer = new Tokenizer({
+    locale: format,
+    locales: opts.locales,
+    weights: weightLayers(opts.locales, opts, undefined),
+    registry,
+    ...(opts.now === undefined ? {} : { now: opts.now }),
+    ...(opts.timeZone === undefined ? {} : { timeZone: opts.timeZone }),
+  });
+  const solver = new Solver({
+    registry,
+    ...(opts.maxCandidates === undefined ? {} : { maxCandidates: opts.maxCandidates }),
+    ...(opts.ambiguityEpsilon === undefined
+      ? {}
+      : { ambiguityEpsilon: opts.ambiguityEpsilon }),
+    ...(opts.tiebreak === undefined ? {} : { tiebreak: opts.tiebreak }),
+  });
   return {
     normalizer: new Normalizer(),
-    // Both lists, because lexing is split down exactly the line the phase is
-    // about. `locale` is the format one: number grammar, segmentation and the
-    // case fold belong to the language the engine speaks (I8). `locales` is
-    // every installed one, for the two parts that are many-locale — keywords
-    // and spelled numerals — so a bilingual engine reads "5 кг в грамах" and
-    // "двадцять два кг" while still writing one language.
-    //
-    // `weights` is the engine-level layers and only those: a numeral tie is
-    // broken inside this stage, which is built once and frozen, so a per-call
-    // `EvalOptions.weights` cannot reach it. `weightLayers` with no call layer
-    // is the same array `parserFor` builds, minus the slot only a call fills.
-    tokenizer: new Tokenizer({
-      locale: format,
-      locales: opts.locales,
-      weights: weightLayers(opts.locales, opts, undefined),
-      registry,
-      ...(opts.now === undefined ? {} : { now: opts.now }),
-      ...(opts.timeZone === undefined ? {} : { timeZone: opts.timeZone }),
-    }),
-    solver: new Solver({
-      registry,
-      ...(opts.maxCandidates === undefined ? {} : { maxCandidates: opts.maxCandidates }),
-      ...(opts.ambiguityEpsilon === undefined
-        ? {}
-        : { ambiguityEpsilon: opts.ambiguityEpsilon }),
-      ...(opts.tiebreak === undefined ? {} : { tiebreak: opts.tiebreak }),
-    }),
+    tokenizer,
+    solver,
+    // Shares both: scanning a paragraph normalizes and lexes it once, and the
+    // `Scanner` only ever calls `solver.all()`, which applies neither
+    // `tiebreak` nor `ambiguityEpsilon` — so sharing the configured instance
+    // costs nothing and keeps one solver per engine.
+    scanner: new Scanner({ tokenizer, solver, registry }),
     evaluator: newEvaluator(opts, registry, format, opts.comparePrecision),
     printer: newPrinter(opts, registry, format),
   };
@@ -659,6 +705,53 @@ export function createEngine(callerOpts: EngineOptions): Engine {
     },
     complete(input, call) {
       return [...completerFor(call).run(input, call)];
+    },
+    scan(input, call) {
+      const matches = stages.scanner.run(input, parserFor(call), {
+        ...(call?.kinds ? { kinds: call.kinds } : {}),
+        ...(call?.locales ? { locales: call.locales } : {}),
+        ...(call?.timeZone === undefined ? {} : { timeZone: call.timeZone }),
+        ...(call?.cues ? { cues: call.cues } : {}),
+        cueWindow: call?.cueWindow ?? DEFAULT_CUE_WINDOW,
+        maxSpan: call?.maxSpan ?? DEFAULT_MAX_SPAN,
+      });
+      const resultCtx = ctxFor(call);
+      const limit = call?.maxReadings ?? DEFAULT_MAX_READINGS;
+      const marks: Mark[] = [];
+      for (const match of matches) {
+        const readings: MarkReading[] = [];
+        for (const resolution of match.resolutions) {
+          if (readings.length === limit) break;
+          let result: Result;
+          try {
+            result = toResult(match.program, resolution, resultCtx);
+          } catch (e) {
+            // Ruling S4, and narrower than the spec's first wording: the
+            // READING is dropped, and the mark with it only if nothing
+            // survives. `suggest` re-throws this because the caller typed
+            // "30 jpy" and deserves to hear "no rate for JPY"; the caller of
+            // `scan` did not type the prose, and one unpriced currency in
+            // paragraph three must not delete the twelve marks around it.
+            if (e instanceof MissingRateError) continue;
+            throw e;
+          }
+          readings.push({
+            kind: result.kind,
+            value: result.value,
+            formatted: result.formatted,
+            confidence: result.confidence,
+          });
+        }
+        if (readings.length === 0) continue;
+        marks.push({
+          start: match.span.start,
+          end: match.span.end,
+          text: input.slice(match.span.start, match.span.end),
+          readings,
+          cues: [...match.cues],
+        });
+      }
+      return marks;
     },
   };
 }
