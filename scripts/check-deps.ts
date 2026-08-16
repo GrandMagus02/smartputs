@@ -322,7 +322,15 @@ const ALLOWED: Record<string, string[]> = {
   // structurally, on the precedent core's own `PlaceMeta` sets: the shape is
   // the contract, and importing the packages that produce it would drag
   // Temporal and a gazetteer into a bundle whose job is to emit a WHERE clause.
-  "packages/query/package.json": ["@smartput/core"],
+  //
+  // `@smartput/kind` is the errors half, and that edge is a size decision.
+  // Every error in this package extends `SmartputError`, and reaching it
+  // through core's root barrel linked decimal.js: 33 KB of bignum arithmetic
+  // in a bundle whose entire job is to emit a WHERE clause. Measured, the
+  // `query/sql` entry was 36_924 B of which 33 KB was a library it never
+  // called. `@smartput/kind/errors` is 134 B and has no runtime dependency at
+  // all. The `query/sql` row in check-size.ts is what keeps it that way.
+  "packages/query/package.json": ["@smartput/core", "@smartput/kind"],
 
   // The aggregator: re-exports every kind above and owns BUILTIN_KINDS, so it
   // is the one package legitimately allowed to depend on all of them. Breadth

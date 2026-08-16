@@ -10,6 +10,7 @@ import {
   packageDirs,
   rootDir,
   runtimeExports,
+  specifierOf,
   unitTablesFor,
 } from "./gen-package-pages";
 
@@ -88,8 +89,8 @@ async function ratioExample(pkg: string): Promise<Example> {
 
   return {
     imports: [
-      `import { parse${Kind}, as${Kind}, format${Kind} } from "@smartput/${pkg}/validate";`,
-      `import { ${Kind} } from "@smartput/${pkg}/class";`,
+      `import { parse${Kind}, as${Kind}, format${Kind} } from "${specifierOf(pkg, "./validate")}";`,
+      `import { ${Kind} } from "${specifierOf(pkg, "./class")}";`,
     ],
     lines: [
       `parse${Kind}(${JSON.stringify(sample)})`,
@@ -635,7 +636,7 @@ function relink(markdown: string, pkg: string): string {
  */
 function peerLine(pkg: string, peer: string): string {
   const name = peer.slice("@smartput/".length);
-  return `- [\`${peer}\`](../${name}/README.md) — needed only by \`@smartput/${pkg}\` and its \`/locale/*\` entries, and \`npm add\` does not fetch it. Anyone reaching those has written \`createEngine\` and installed it already; the \`/validate\`, \`/units\` and \`/class\` entries never touch it.`;
+  return `- [\`${peer}\`](../${name}/README.md) — needed only by \`${specifierOf(pkg)}\` and its \`/locale/*\` entries, and \`npm add\` does not fetch it. Anyone reaching those has written \`createEngine\` and installed it already; the \`/validate\`, \`/units\` and \`/class\` entries never touch it.`;
 }
 
 async function readme(pkg: string, meta: PageMeta): Promise<string> {
@@ -646,8 +647,7 @@ async function readme(pkg: string, meta: PageMeta): Promise<string> {
 
   const entryRows = subpaths
     .map((subpath) => {
-      const spec =
-        subpath === "." ? `@smartput/${pkg}` : `@smartput/${pkg}${subpath.slice(1)}`;
+      const spec = specifierOf(pkg, subpath);
       const what =
         meta.subpaths?.[subpath] ??
         DEFAULT_SUBPATHS[subpath] ??
@@ -666,7 +666,7 @@ async function readme(pkg: string, meta: PageMeta): Promise<string> {
           .split("\n")
           .filter((row) => !/`@smartput\/[a-z-]+\/locale\//.test(row))
           .concat(
-            `| \`@smartput/${pkg}/locale/<id>\` | One language's words for this kind. ${localeRows.length} ship: ${localeRows
+            `| \`${specifierOf(pkg)}/locale/<id>\` | One language's words for this kind. ${localeRows.length} ship: ${localeRows
               .map((s) => `\`${s.slice("./locale/".length)}\``)
               .join(", ")}. |`,
           )
@@ -716,11 +716,11 @@ because it has none.`
   const example = await exampleBlock(pkg, await build());
 
   return [
-    `# @smartput/${pkg}`,
+    `# ${specifierOf(pkg)}`,
     `> ${meta.summary}`,
     relink(meta.body, pkg),
     "## Setup",
-    `\`\`\`sh\nnpm add @smartput/${pkg}\n\`\`\``,
+    `\`\`\`sh\nnpm add ${specifierOf(pkg)}\n\`\`\``,
     "## Example",
     example.trimEnd(),
     `## Entry points\n\n| Import | Contents |\n| --- | --- |\n${trimmedRows}`,

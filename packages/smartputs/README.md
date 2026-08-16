@@ -1,4 +1,4 @@
-# @smartput/smartputs
+# smartputs
 
 > The unscoped install name. Everything `@smartput/core` is, under one word.
 
@@ -45,7 +45,7 @@ it at all.
 ## Setup
 
 ```sh
-npm add @smartput/smartputs
+npm add smartputs
 ```
 
 ## Example
@@ -87,17 +87,34 @@ this: `@smartput/length/validate` is 1.5 KB and has no engine in it.
 
 | Import | Contents |
 | --- | --- |
-| `@smartput/smartputs` | The package root. |
-| `@smartput/smartputs/testing` | Test helpers, not shipped to consumers. |
-| `@smartput/smartputs/normalize` | See the source for what this subpath carries. |
-| `@smartput/smartputs/tokenize` | See the source for what this subpath carries. |
-| `@smartput/smartputs/parse` | See the source for what this subpath carries. |
-| `@smartput/smartputs/solve` | See the source for what this subpath carries. |
-| `@smartput/smartputs/scan` | See the source for what this subpath carries. |
-| `@smartput/smartputs/eval` | See the source for what this subpath carries. |
-| `@smartput/smartputs/print` | See the source for what this subpath carries. |
-| `@smartput/smartputs/registry` | See the source for what this subpath carries. |
-| `@smartput/smartputs/locale/<id>` | One language's words for this kind. 17 ship: `en`, `de`, `fr`, `es`, `pt`, `it`, `nl`, `zh`, `ja`, `ar`, `ru`, `pl`, `tr`, `hi`, `ko`, `id`, `uk`. |
+| `smartputs` | The package root. |
+| `smartputs/testing` | Test helpers, not shipped to consumers. |
+| `smartputs/normalize` | See the source for what this subpath carries. |
+| `smartputs/tokenize` | See the source for what this subpath carries. |
+| `smartputs/parse` | See the source for what this subpath carries. |
+| `smartputs/solve` | See the source for what this subpath carries. |
+| `smartputs/scan` | See the source for what this subpath carries. |
+| `smartputs/eval` | See the source for what this subpath carries. |
+| `smartputs/print` | See the source for what this subpath carries. |
+| `smartputs/registry` | See the source for what this subpath carries. |
+| `smartputs/locale/en` | English vocabulary for this package's kinds (default export). |
+| `smartputs/locale/de` | See the source for what this subpath carries. |
+| `smartputs/locale/fr` | See the source for what this subpath carries. |
+| `smartputs/locale/es` | See the source for what this subpath carries. |
+| `smartputs/locale/pt` | See the source for what this subpath carries. |
+| `smartputs/locale/it` | See the source for what this subpath carries. |
+| `smartputs/locale/nl` | See the source for what this subpath carries. |
+| `smartputs/locale/zh` | See the source for what this subpath carries. |
+| `smartputs/locale/ja` | See the source for what this subpath carries. |
+| `smartputs/locale/ar` | See the source for what this subpath carries. |
+| `smartputs/locale/ru` | See the source for what this subpath carries. |
+| `smartputs/locale/pl` | See the source for what this subpath carries. |
+| `smartputs/locale/tr` | See the source for what this subpath carries. |
+| `smartputs/locale/hi` | See the source for what this subpath carries. |
+| `smartputs/locale/ko` | See the source for what this subpath carries. |
+| `smartputs/locale/id` | See the source for what this subpath carries. |
+| `smartputs/locale/uk` | Ukrainian vocabulary for this package's kinds (default export). |
+| `smartputs/locale/<id>` | One language's words for this kind. 17 ship: `en`, `de`, `fr`, `es`, `pt`, `it`, `nl`, `zh`, `ja`, `ar`, `ru`, `pl`, `tr`, `hi`, `ko`, `id`, `uk`. |
 
 ## Runtime exports
 
@@ -108,6 +125,17 @@ Type-only exports are erased and do not appear here.
 ## Dependencies
 
 - [`@smartput/core`](../core/README.md)
+
+## What it costs
+
+Ceilings, not measurements. `bun run check-size` bundles each entry with
+`bun build --minify` and fails if a row crosses its ceiling **or drops more
+than 30 % below it** — a budget that is only an upper bound reports a vanished
+graph as a triumph.
+
+| Import | Minified | Gzipped |
+| --- | --- | --- |
+| smartputs root (the facade over core) | ≤ 83.8 kB | ≤ 30.3 kB |
 
 ---
 

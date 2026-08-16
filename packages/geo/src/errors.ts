@@ -1,4 +1,4 @@
-import { SmartputError } from "@smartput/core";
+import { SmartputError } from "@smartput/kind/errors";
 
 /**
  * A failure that belongs to the *search* rather than to any one provider

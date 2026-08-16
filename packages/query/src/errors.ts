@@ -1,4 +1,4 @@
-import { SmartputError } from "@smartput/core";
+import { SmartputError } from "@smartput/kind/errors";
 
 /**
  * Every error here extends core's `SmartputError` for the reason core's own

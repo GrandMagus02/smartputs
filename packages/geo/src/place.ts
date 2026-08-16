@@ -1,4 +1,5 @@
-import { type PlaceMeta, SmartputError } from "@smartput/core";
+import type { PlaceMeta } from "@smartput/core";
+import { SmartputError } from "@smartput/kind/errors";
 
 /**
  * One resolved place as a provider hands it back (geo spec §8).

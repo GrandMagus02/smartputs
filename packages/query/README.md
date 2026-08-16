@@ -73,6 +73,7 @@ Type-only exports are erased and do not appear here.
 ## Dependencies
 
 - [`@smartput/core`](../core/README.md)
+- [`@smartput/kind`](../kind/README.md)
 
 ## What it costs
 
@@ -84,8 +85,8 @@ graph as a triumph.
 | Import | Minified | Gzipped |
 | --- | --- | --- |
 | query root (grammar + schema, no dialect) | ≤ 59.5 kB | ≤ 22.0 kB |
-| query/sql | ≤ 36.5 kB | ≤ 14.7 kB |
-| query/mongo | ≤ 38.3 kB | ≤ 15.2 kB |
+| query/sql | ≤ 3.3 kB | ≤ 1.4 kB |
+| query/mongo | ≤ 4.6 kB | ≤ 1.9 kB |
 
 ---
 

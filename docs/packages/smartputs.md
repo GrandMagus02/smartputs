@@ -1,9 +1,9 @@
 ---
-title: "@smartput/smartputs"
+title: "smartputs"
 description: "The unscoped install name. Everything `@smartput/core` is, under one word."
 ---
 
-# @smartput/smartputs
+# smartputs
 
 ```sh
 bun i smartputs
@@ -54,46 +54,57 @@ it at all.
 ## Installing
 
 ```sh
-npm add @smartput/smartputs
+npm add smartputs
 ```
 
 ## Entry points
 
 | Import | Contents |
 | --- | --- |
-| `@smartput/smartputs` | The package root. |
-| `@smartput/smartputs/testing` | Test helpers, not shipped to consumers. |
-| `@smartput/smartputs/normalize` | See the source for what this subpath carries. |
-| `@smartput/smartputs/tokenize` | See the source for what this subpath carries. |
-| `@smartput/smartputs/parse` | See the source for what this subpath carries. |
-| `@smartput/smartputs/solve` | See the source for what this subpath carries. |
-| `@smartput/smartputs/scan` | See the source for what this subpath carries. |
-| `@smartput/smartputs/eval` | See the source for what this subpath carries. |
-| `@smartput/smartputs/print` | See the source for what this subpath carries. |
-| `@smartput/smartputs/registry` | See the source for what this subpath carries. |
-| `@smartput/smartputs/locale/en` | English vocabulary for this package's kinds (default export). |
-| `@smartput/smartputs/locale/de` | See the source for what this subpath carries. |
-| `@smartput/smartputs/locale/fr` | See the source for what this subpath carries. |
-| `@smartput/smartputs/locale/es` | See the source for what this subpath carries. |
-| `@smartput/smartputs/locale/pt` | See the source for what this subpath carries. |
-| `@smartput/smartputs/locale/it` | See the source for what this subpath carries. |
-| `@smartput/smartputs/locale/nl` | See the source for what this subpath carries. |
-| `@smartput/smartputs/locale/zh` | See the source for what this subpath carries. |
-| `@smartput/smartputs/locale/ja` | See the source for what this subpath carries. |
-| `@smartput/smartputs/locale/ar` | See the source for what this subpath carries. |
-| `@smartput/smartputs/locale/ru` | See the source for what this subpath carries. |
-| `@smartput/smartputs/locale/pl` | See the source for what this subpath carries. |
-| `@smartput/smartputs/locale/tr` | See the source for what this subpath carries. |
-| `@smartput/smartputs/locale/hi` | See the source for what this subpath carries. |
-| `@smartput/smartputs/locale/ko` | See the source for what this subpath carries. |
-| `@smartput/smartputs/locale/id` | See the source for what this subpath carries. |
-| `@smartput/smartputs/locale/uk` | Ukrainian vocabulary for this package's kinds (default export). |
+| `smartputs` | The package root. |
+| `smartputs/testing` | Test helpers, not shipped to consumers. |
+| `smartputs/normalize` | See the source for what this subpath carries. |
+| `smartputs/tokenize` | See the source for what this subpath carries. |
+| `smartputs/parse` | See the source for what this subpath carries. |
+| `smartputs/solve` | See the source for what this subpath carries. |
+| `smartputs/scan` | See the source for what this subpath carries. |
+| `smartputs/eval` | See the source for what this subpath carries. |
+| `smartputs/print` | See the source for what this subpath carries. |
+| `smartputs/registry` | See the source for what this subpath carries. |
+| `smartputs/locale/en` | English vocabulary for this package's kinds (default export). |
+| `smartputs/locale/de` | See the source for what this subpath carries. |
+| `smartputs/locale/fr` | See the source for what this subpath carries. |
+| `smartputs/locale/es` | See the source for what this subpath carries. |
+| `smartputs/locale/pt` | See the source for what this subpath carries. |
+| `smartputs/locale/it` | See the source for what this subpath carries. |
+| `smartputs/locale/nl` | See the source for what this subpath carries. |
+| `smartputs/locale/zh` | See the source for what this subpath carries. |
+| `smartputs/locale/ja` | See the source for what this subpath carries. |
+| `smartputs/locale/ar` | See the source for what this subpath carries. |
+| `smartputs/locale/ru` | See the source for what this subpath carries. |
+| `smartputs/locale/pl` | See the source for what this subpath carries. |
+| `smartputs/locale/tr` | See the source for what this subpath carries. |
+| `smartputs/locale/hi` | See the source for what this subpath carries. |
+| `smartputs/locale/ko` | See the source for what this subpath carries. |
+| `smartputs/locale/id` | See the source for what this subpath carries. |
+| `smartputs/locale/uk` | Ukrainian vocabulary for this package's kinds (default export). |
 
 ## Runtime exports
 
 Type-only exports are erased and do not appear here.
 
 `AmbiguityError` · `Autocompleter` · `BOOLEAN_KIND` · `BOOLEAN_UNIT` · `COMPARE_PRECISION` · `COMPARISON_OPS` · `CUE_CEILING` · `DEFAULT_CUE_WINDOW` · `DEFAULT_MAX_SPAN` · `DISPLAY_PRECISION` · `Decimal` · `DimensionMismatchError` · `DivideByZeroError` · `EDIT_HEADROOM` · `EXACT_BONUS` · `Evaluator` · `KeywordConflictError` · `KindConflictError` · `LENGTH_PENALTY` · `LocaleMismatchError` · `MissingRateError` · `NUMBER_FALLBACK_WEIGHT` · `NUMBER_KIND` · `NoCandidateError` · `Normalizer` · `PERCENT_KIND` · `Parser` · `Printer` · `RateProviderError` · `RatesNotReadyError` · `SCALE_BONUS` · `Scanner` · `SmartputError` · `Solver` · `Tokenizer` · `TooAmbiguousError` · `UnitParseError` · `UnknownKindError` · `VocabularyConflictError` · `aliasesFor` · `buildKeywords` · `buildProgram` · `buildRegistry` · `cardinalNumerals` · `cardinalSpeller` · `collectCues` · `complete` · `composeLocale` · `compoundSplitter` · `createAnalyzerChain` · `createCachedEngine` · `createEngine` · `createFacade` · `createFacades` · `createSnapshotCache` · `decimalRatios` · `defineKind` · `defineLanguage` · `defineVocabulary` · `deriveValue` · `editDistance` · `evaluateNode` · `foldLiterals` · `formatNumber` · `formatValue` · `generateComparisonOps` · `identity` · `nearestWord` · `normalize` · `phraseAnalyzer` · `prefixStripper` · `scriptSegmenter` · `solve` · `suffixStripper` · `tableAnalyzer` · `walk` · `wordsFor`
+
+## What it costs
+
+Ceilings, not measurements — `scripts/check-size.ts` bundles each
+entry with `bun build --minify`, measures it, and fails `bun run check` if a
+row crosses its ceiling **or drops more than 30 % below it**. A budget that is
+only an upper bound reports a vanished graph as a triumph.
+
+| Import | Minified | Gzipped |
+| --- | --- | --- |
+| smartputs root (the facade over core) | ≤ 83.8 kB | ≤ 30.3 kB |
 
 ## Dependencies
 

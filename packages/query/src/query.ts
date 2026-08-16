@@ -1,4 +1,5 @@
-import { type Engine, SmartputError } from "@smartput/core";
+import type { Engine } from "@smartput/core";
+import { SmartputError } from "@smartput/kind/errors";
 import type { CompileCtx, Compiler } from "./compile";
 import { SchemaError } from "./errors";
 import type { QueryIr } from "./ir";

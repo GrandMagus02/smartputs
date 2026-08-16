@@ -299,6 +299,39 @@ const classOnly = (pkg: string, cls: string, min: number, gzip: number): EntrySp
 });
 
 export const BUDGETS: EntrySpec[] = [
+  //
+  // 2026-08-16, the SmartputError retarget. Four rows here were over their
+  // budgets for weeks and every one of them was over for the same reason, which
+  // only became visible once something measured the modules instead of the
+  // totals: they linked decimal.js — 61 KB unminified, ~33 KB minified — and
+  // none of them called it. The path was `SmartputError`. Every package defines
+  // its errors as subclasses of core's, reached it through core's ROOT barrel,
+  // and a barrel is one module: naming one export links what the module had to
+  // load to offer it.
+  //
+  // Two import lines in `query` and two in `geo`, pointed at
+  // `@smartput/kind/errors` (134 B, no runtime dependency) instead:
+  //
+  //   query/sql       36_924 B -> 3_281 B   11.3x
+  //   query/mongo     38_254 B -> 4_597 B    8.3x
+  //   geo providers   43_368 B -> 9_656 B    4.5x
+  //
+  // Not one line of query or geo changed, only which door the error class came
+  // through. The floor guard is what turned these from a silent win into an
+  // amendment: all three failed UNDER on the next run and said so.
+  //
+  // Three rows are raised rather than fixed, and the reason is worth writing
+  // down so nobody re-derives it:
+  //
+  //   geo root      49_461 B  Its `definePlace` lives in the root barrel and
+  //                           genuinely needs `Decimal`, so a bundle asking for
+  //                           `Geo` and `rank` cannot shake it — the barrel is
+  //                           one module. Moving `definePlace` to a subpath is
+  //                           the fix, and it is an API change, not a budget one.
+  //   range         43_617 B  `slice.ts` does arithmetic on a `Value`, so its
+  //   range/class   43_642 B  `Decimal` is real. It also drags core's English
+  //                           locale (6_543 B) and `@smartput/number`, which are
+  //                           worth a second look but are not a leak.
   // Every number here was measured first and then committed, rounded up to the
   // next 50 B — see the plan's Global Constraints. Raising one means amending
   // spec §13 in the same commit, never quietly.
@@ -775,8 +808,8 @@ export const BUDGETS: EntrySpec[] = [
     label: "geo root (search and ranking, no data at all)",
     from: "@smartput/geo",
     names: ["Geo", "rank"],
-    min: 40_800,
-    gzip: 16_300,
+    min: 49_500,
+    gzip: 19_700,
   },
   // The providers entry point, measured apart from the root for the reason it is
   // a separate export: a consumer who only wants the types and the ranking must
@@ -785,8 +818,8 @@ export const BUDGETS: EntrySpec[] = [
     label: "geo providers (every adapter)",
     from: "@smartput/geo/providers",
     names: ["geonames", "postalCodes", "bundled", "custom"],
-    min: 43_400,
-    gzip: 16_700,
+    min: 9_700,
+    gzip: 3_400,
   },
 
   // Holidays, and the guard row that is the entire argument for the subpath.
@@ -993,8 +1026,8 @@ export const BUDGETS: EntrySpec[] = [
     label: "range",
     from: "@smartput/range",
     names: ["RANGE_KINDS"],
-    min: 41_600,
-    gzip: 16_750,
+    min: 43_650,
+    gzip: 17_300,
   },
   {
     // The `./class` subpath, measured to record that it is an *ergonomics* door
@@ -1006,8 +1039,8 @@ export const BUDGETS: EntrySpec[] = [
     label: "range/class",
     from: "@smartput/range/class",
     names: ["Range"],
-    min: 41_800,
-    gzip: 16_750,
+    min: 43_650,
+    gzip: 17_300,
   },
   // Every row from here to the end of the range block was re-measured when
   // comparison shipped, and moved by 5-48 B. Nothing in those packages changed:
@@ -1058,15 +1091,15 @@ export const BUDGETS: EntrySpec[] = [
     label: "query/sql",
     from: "@smartput/query/sql",
     names: ["SqlCompiler"],
-    min: 36_550,
-    gzip: 14_700,
+    min: 3_300,
+    gzip: 1_400,
   },
   {
     label: "query/mongo",
     from: "@smartput/query/mongo",
     names: ["MongoCompiler"],
-    min: 38_300,
-    gzip: 15_200,
+    min: 4_600,
+    gzip: 1_850,
   },
 ];
 

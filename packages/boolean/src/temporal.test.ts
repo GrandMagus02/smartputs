@@ -3,7 +3,7 @@ import { composeLocale, createEngine, type Engine } from "@smartput/core";
 import { english as en } from "@smartput/core/locale/en";
 import { date } from "@smartput/date";
 import { datetime, TEST_NOW, TEST_ZONE } from "@smartput/datetime";
-import { definePlace, placeVocabulary } from "@smartput/geo";
+import { definePlace } from "@smartput/geo";
 import { BUILTIN_KINDS } from "@smartput/kinds";
 import BUILTIN_EN from "@smartput/kinds/locale/en";
 import { time } from "@smartput/time";
@@ -70,7 +70,6 @@ const COUNTRIES = [
 ];
 
 const place = definePlace({ countries: COUNTRIES });
-const placeEn = placeVocabulary(COUNTRIES);
 
 /**
  * Ruling C5, from both sides.

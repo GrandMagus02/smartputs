@@ -655,13 +655,48 @@ export const DEFAULT_SUBPATHS: Record<string, string> = {
 };
 
 /** A pipe inside a cell ends the cell. `Ok | Err` is a real description here. */
+/**
+ * A package's published name, read from the manifest that npm will publish.
+ *
+ * It is not always `@smartput/<dir>`, and spelling it that way was a bug rather
+ * than a shortcut: `smartputs` is the unscoped install name, so every page this
+ * file generated for it said `@smartput/smartputs` — in the title, the `npm add`
+ * line, and all 26 rows of its entry-point table. A package that does not exist,
+ * printed as the install instruction for the one package whose whole purpose is
+ * being easy to install.
+ *
+ * Read rather than pattern-matched, because the manifest is the thing that gets
+ * published and a second rule here would be a second thing to keep in sync.
+ */
+const NAMES = new Map<string, string>(
+  await Promise.all(
+    (await packageDirs()).map(
+      async (dir) =>
+        [
+          dir,
+          (await Bun.file(`${rootDir}/packages/${dir}/package.json`).json())
+            .name as string,
+        ] as const,
+    ),
+  ),
+);
+
+/** `specifierOf("smartputs", "./solve")` → `smartputs/solve`. */
+export function specifierOf(pkg: string, subpath = "."): string {
+  const name = NAMES.get(pkg);
+  if (name === undefined) {
+    throw new Error(`specifierOf: no manifest read for packages/${pkg}`);
+  }
+  return subpath === "." ? name : `${name}${subpath.slice(1)}`;
+}
+
 export const cell = (text: string): string => text.replace(/\|/g, "\\|");
 
 export const bytes = (n: number): string =>
   n >= 1000 ? `${(n / 1000).toFixed(n >= 100_000 ? 0 : 1)} kB` : `${n} B`;
 
 export function budgetsFor(pkg: string): EntrySpec[] {
-  const prefix = `@smartput/${pkg}`;
+  const prefix = specifierOf(pkg);
   return BUDGETS.filter(
     (row) => row.from === prefix || row.from.startsWith(`${prefix}/`),
   );
@@ -762,7 +797,7 @@ interface Manifest {
  */
 function peerLine(pkg: string, peer: string): string {
   const name = peer.slice("@smartput/".length);
-  return `- [\`${peer}\`](/packages/${name}) — needed only by \`@smartput/${pkg}\` and its \`/locale/*\` entries, and \`npm add\` does not fetch it. Anyone reaching those has written \`createEngine\` and installed it already; the \`/validate\`, \`/units\` and \`/class\` entries never touch it.`;
+  return `- [\`${peer}\`](/packages/${name}) — needed only by \`${specifierOf(pkg)}\` and its \`/locale/*\` entries, and \`npm add\` does not fetch it. Anyone reaching those has written \`createEngine\` and installed it already; the \`/validate\`, \`/units\` and \`/class\` entries never touch it.`;
 }
 
 async function page(pkg: string, meta: PageMeta): Promise<string> {
@@ -775,8 +810,7 @@ async function page(pkg: string, meta: PageMeta): Promise<string> {
 
   const entryRows = subpaths
     .map((subpath) => {
-      const spec =
-        subpath === "." ? `@smartput/${pkg}` : `@smartput/${pkg}${subpath.slice(1)}`;
+      const spec = specifierOf(pkg, subpath);
       const what =
         meta.subpaths?.[subpath] ??
         DEFAULT_SUBPATHS[subpath] ??
@@ -842,13 +876,13 @@ because it has none.\n`
   }
 
   return [
-    `---\ntitle: "@smartput/${pkg}"\ndescription: ${JSON.stringify(meta.summary)}\n---`,
-    `# @smartput/${pkg}`,
+    `---\ntitle: "${specifierOf(pkg)}"\ndescription: ${JSON.stringify(meta.summary)}\n---`,
+    `# ${specifierOf(pkg)}`,
     meta.body,
     `## Try it\n\n${demo}`,
     ...prose,
     "## Installing",
-    "```sh\n" + `npm add @smartput/${pkg}\n` + "```",
+    `\`\`\`sh\nnpm add ${specifierOf(pkg)}\n\`\`\``,
     `## Entry points\n\n| Import | Contents |\n| --- | --- |\n${entryRows}`,
     await unitTablesFor(pkg, subpaths),
     exportSection,
