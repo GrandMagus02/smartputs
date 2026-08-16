@@ -7,6 +7,8 @@ import { createEngine } from "../engine";
 import { Evaluator } from "../eval/evaluator";
 import { buildRegistry } from "../kind/registry";
 import { composeLocale } from "../locale/compose";
+import { defineLanguage } from "../locale/define";
+import { identity } from "../locale/helpers";
 import { turkish } from "../locale/tr";
 import { defineVocabulary } from "../locale/vocabulary";
 import { createResolver } from "../parse/candidates";
@@ -315,4 +317,146 @@ test("a non-breaking space does not collapse every mark onto the whole input", (
     "5 km",
     "3 km",
   ]);
+});
+
+/**
+ * Runs `scanner.run` and reads each mark's SPAN back through `input`, plus the
+ * canonical value of its top resolution -- asserting a value, not only a span,
+ * is the whole point of the table below: a span-only assertion has failed to
+ * catch every bug in this rule's history, this one included.
+ */
+function markValues(input: string): Array<{ text: string; value: string }> {
+  return scanner.run(input, parser).map((m) => {
+    const text = input.slice(m.span.start, m.span.end);
+    const resolution = m.resolutions[0];
+    if (resolution === undefined) throw new Error(`no resolution for "${text}"`);
+    return {
+      text,
+      value: evaluator.run(m.program, resolution).value.canonical.toString(),
+    };
+  });
+}
+
+// The CRITICAL bug this fix wave exists for: backoff's run extension read no
+// punctuation, so a run could cross any character `lex` silently drops (a
+// comma, a full stop, a newline) and the parser would then find a valid
+// arithmetic reading straight through it -- a value the source never wrote.
+// Every shape measured in the fix report is pinned here, by VALUE, because
+// the span alone does not distinguish "read correctly as two quantities"
+// from "read wrongly as one arithmetic expression that happens to have the
+// same extent".
+
+test("a comma bounds the run even though arithmetic would parse through it", () => {
+  // Before the fix: one mark "5, -3" = 2 (evaluate throws on the same string).
+  // After: the comma ends the first run at "5", and the "-" anchors its own.
+  expect(markValues("5, -3 h")).toEqual([
+    { text: "5", value: "5" },
+    { text: "-3 h", value: "-10800" },
+  ]);
+});
+
+test("a comma after a parenthesised expression bounds the run the same way", () => {
+  // Before the fix: one mark spanning the whole input = 0 (evaluate throws).
+  expect(markValues("(1 + 2), -3 h")).toEqual([
+    { text: "(1 + 2)", value: "3" },
+    { text: "-3 h", value: "-10800" },
+  ]);
+});
+
+test("a full stop bounds the run even mid-sentence", () => {
+  // Before the fix: one mark "5. -3" = 2 (evaluate throws).
+  expect(markValues("a 5. -3 h")).toEqual([
+    { text: "5", value: "5" },
+    { text: "-3 h", value: "-10800" },
+  ]);
+});
+
+test("a full stop after a colon-introduced number bounds the run", () => {
+  // Before the fix: one mark "1. -2" = -1 (evaluate throws).
+  expect(markValues("list: 1. -2 kg")).toEqual([
+    { text: "1", value: "1" },
+    { text: "-2 kg", value: "-2000" },
+  ]);
+});
+
+test("every character lex drops bounds the run the same way", () => {
+  // ";", ":", "!", "?" and the double quote all vanish from the token stream
+  // exactly like a comma does, so before the fix each of these read as one
+  // mark "5 kg" + "the dropped character" + "-3 kg" = 2 kilograms,
+  // indistinguishably from the comma case above. All five are asserted
+  // together because they are the same bug, not five different ones.
+  for (const punct of [";", ":", "!", "?", '"']) {
+    expect(markValues(`5 kg${punct} -3 kg`)).toEqual([
+      { text: "5 kg", value: "5000" },
+      { text: "-3 kg", value: "-3000" },
+    ]);
+  }
+});
+
+test("a newline bounds the run and keeps the mark's text on one line", () => {
+  // Before the fix: one mark "5 kg\n-3 kg" = 2 kilograms -- wrong twice
+  // over, both the value (the source never wrote a subtraction) and the
+  // shape (a `Mark.text` containing "\n" is not "one stretch of the
+  // caller's string").
+  expect(markValues("Flour: 5 kg\n-3 kg is the discount")).toEqual([
+    { text: "5 kg", value: "5000" },
+    { text: "-3 kg", value: "-3000" },
+  ]);
+});
+
+test("a newline still bounds the run when it also precedes the first quantity", () => {
+  expect(markValues("Shopping\n5 kg\n-3 kg")).toEqual([
+    { text: "5 kg", value: "5000" },
+    { text: "-3 kg", value: "-3000" },
+  ]);
+});
+
+test("a newline lets the sign after it anchor as unary, not just end the first run", () => {
+  // The `endsOperand` half of the fix, isolated from `matchAt`'s: even once
+  // backoff stops the first run at "5 km", the "-" that follows still has to
+  // be recognised as a FRESH unary anchor rather than skipped as "still
+  // continuing the same operand" -- before that half of the fix, this read
+  // "3 C" (positive), silently dropping the sign, because `endsOperand` read
+  // the newline off `normalized.text`, where `Normalizer` had already
+  // collapsed it to an ordinary space.
+  expect(markValues("5 km\n-3 C")).toEqual([
+    { text: "5 km", value: "5000" },
+    { text: "-3 C", value: "-3" },
+  ]);
+});
+
+test("ScanScope.locales excludes another installed language's cue from the vote", () => {
+  // `en`'s duration table (patched above) lists "in": 3; a minimal stub
+  // language installed alongside it lists "in": 1 for the same kind. Before
+  // the fix, `CueEntry.locale` was recorded and exported but read by
+  // nothing in `scan`, so `{ locales: ["en"] }` -- which already hard-filters
+  // every OTHER reading down to English -- still let the stub's cue vote.
+  const stubLanguage = defineLanguage({
+    id: "zz",
+    numberFormat: "intl",
+    analyze: [identity()],
+    keywords: {},
+    selectForm: () => "other",
+  });
+  const stubDuration = defineVocabulary({
+    locale: "zz",
+    kind: "duration",
+    units: {},
+    cues: { in: 1 },
+  });
+  const enLocale = composeLocale(en, patched);
+  const zzLocale = composeLocale(stubLanguage, [stubDuration]);
+  const engine = createEngine({ locales: [enLocale, zzLocale], kinds: BUILTIN_KINDS });
+
+  // Unfiltered: one hit, deduplicated to `en`'s own weight (3) -- see Fix 3's
+  // other half in `cues.test.ts`.
+  const unfiltered = engine.scan("in 5 m", { cueWindow: 4 });
+  expect(unfiltered[0]?.cues.filter((c) => c.word === "in")).toHaveLength(1);
+
+  // Filtered to "zz" only: the surviving hit is `zz`'s, not `en`'s -- proof
+  // the list really reaches `collectCues` and narrows which language's cue
+  // survives, not just whether one does.
+  const zzOnly = engine.scan("in 5 m", { locales: ["zz"], cueWindow: 4 });
+  const hit = zzOnly[0]?.cues.find((c) => c.word === "in");
+  expect(hit?.weight).toBe(1);
 });

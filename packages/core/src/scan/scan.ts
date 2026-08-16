@@ -71,6 +71,53 @@ export interface ScanMatch {
 }
 
 /**
+ * True when the gap between two normalized-relative offsets is something a
+ * unary sign or a backoff run must not cross.
+ *
+ * Two checks, over two different strings, because no single one of them is
+ * both safe and sufficient:
+ *
+ * The `\S` check reads `normalized.TEXT`, not source, and that is
+ * deliberate: `Normalizer` itself deletes some characters outright before
+ * `text` is ever built — the degree sign, zero-width joiners — because they
+ * are decoration on a quantity, not punctuation between two of them. Reading
+ * the raw SOURCE here would see the `°` in `"30  °C"` and misread it as a
+ * comma-shaped break, splitting one temperature into a bare number and a
+ * dangling unit — a real regression this function's first version had.
+ * `normalized.text` already reflects that deletion, so a comma or full stop
+ * — which `Normalizer` does NOT delete, only `lex` silently declines to
+ * tokenize — is exactly what is left over for `\S` to catch.
+ *
+ * The `\n` check is the opposite trade, over `normalized.SOURCE`: it is the
+ * one piece of information `normalized.text` cannot supply, because
+ * `Normalizer` collapses a newline to an ordinary space before `text` is
+ * built (I8), same as it does any other whitespace run. `"5 km\n-3 C"` and
+ * `"5 km -3 C"` are indistinguishable through `text`, but the source string
+ * between two `mapSpan`-mapped offsets still has the real character — this
+ * is the payoff for the exact `mapSpan` this feature already carries. `\n`
+ * needs the explicit check because it is whitespace by the regex engine's
+ * own definition and would otherwise pass a bare `/\S/` test even when read
+ * from source; naming it here is not a general "whitespace is suspicious"
+ * rule; it is what `cues.ts`'s `BREAK` already rules a clause boundary, for
+ * the identical "the token stream cannot see it, only the source gap can"
+ * reason.
+ *
+ * NBSP (U+00A0) passes both checks and stays invisible here — it is what
+ * pasting from a web page produces between a number and its own unit (NFKC
+ * folds it to an ordinary space before `text` is built, same as the degree
+ * sign's deletion), and the non-breaking-space regression test requires
+ * `"5 km"` to keep reading as one mark despite it.
+ */
+function gapBreaksRun(normalized: NormalizedInput, from: number, to: number): boolean {
+  if (/\S/.test(normalized.text.slice(from, to))) return true;
+  const source = normalized.source.slice(
+    normalized.mapSpan({ start: from, end: from }).start,
+    normalized.mapSpan({ start: to, end: to }).start,
+  );
+  return source.includes("\n");
+}
+
+/**
  * True when `token` is something a parsed expression can END on — i.e. its
  * presence right before `sign` makes `sign` binary rather than unary.
  *
@@ -78,21 +125,30 @@ export interface ScanMatch {
  * `sign` with nothing but spaces between them, and `token`'s own type/text
  * must be operand-shaped.
  *
- * The gap check comes first and can veto the type check outright. `lex`
- * silently drops characters it does not recognize — a comma, a full stop —
- * so they exist nowhere in the token stream and can only be seen in the
- * normalized *text* between two tokens' spans. `"5 km, -3 C"` and
- * `"5 km. -3 C"` tokenize identically to `"5 km -3 C"` as far as token TYPES
- * go, but the first two end a clause at the comma/full stop while the third
- * does not — the `-` starts a new quantity in the first two, and continues
- * subtracting from the same one in the third. `cues.ts`'s `broken` reads
- * sentence boundaries out of the same gap for the same reason: the token
- * stream cannot express punctuation, only the source text between spans can.
- * Skipping this check was a real regression the first version of this
- * function shipped with — `"I ran 5 km, -3 C outside"` silently flipped the
- * second mark's sign, the exact defect class this whole rule exists to
- * remove, because `endsOperand` said "km ends an operand" without noticing a
- * comma sat between `km` and the sign.
+ * The gap check comes first and can veto the type check outright, via
+ * `gapBreaksRun` above. `lex` silently drops characters it does not
+ * recognize — a comma, a full stop — so they exist nowhere in the token
+ * stream and can only be seen in the normalized TEXT between two tokens'
+ * spans (`Normalizer` itself does not delete them, only `lex` declines to
+ * tokenize them). `"5 km, -3 C"` and `"5 km. -3 C"` tokenize identically to
+ * `"5 km -3 C"` as far as token TYPES go, but the first two end a clause at
+ * the comma/full stop while the third does not — the `-` starts a new
+ * quantity in the first two, and continues subtracting from the same one in
+ * the third. `cues.ts`'s `broken` reads sentence boundaries out of the same
+ * kind of gap for the same reason: the token stream cannot express
+ * punctuation, only the text between spans can. Skipping this check was a
+ * real regression the first version of this function shipped with —
+ * `"I ran 5 km, -3 C outside"` silently flipped the second mark's sign, the
+ * exact defect class this whole rule exists to remove, because `endsOperand`
+ * said "km ends an operand" without noticing a comma sat between `km` and
+ * the sign.
+ *
+ * A newline needs the SOURCE, not the text, for the same reason `matchAt`'s
+ * backoff bound does: `Normalizer` collapses "\n" to an ordinary space
+ * before `text` is ever built (I8), so `"5 km\n-3 C"` looks exactly like
+ * `"5 km -3 C"` through text alone, and would read the second mark's sign as
+ * a continuation of the first — `gapBreaksRun`'s source-and-`mapSpan` half
+ * is what tells them apart.
  *
  * The type check, once the gap is clear: `number`, `literal`, and `rparen`
  * always end an operand — nothing else can follow them to extend the same
@@ -115,12 +171,12 @@ export interface ScanMatch {
 function endsOperand(
   token: Token | undefined,
   sign: Token,
-  text: string,
+  normalized: NormalizedInput,
   registry: Registry,
   localeId: string,
 ): boolean {
   if (token === undefined) return false;
-  if (/\S/.test(text.slice(token.end, sign.start))) return false;
+  if (gapBreaksRun(normalized, token.end, sign.start)) return false;
   if (token.type === "number" || token.type === "literal" || token.type === "rparen") {
     return true;
   }
@@ -170,7 +226,7 @@ function endsOperand(
 function isAnchor(
   tokens: readonly Token[],
   index: number,
-  text: string,
+  normalized: NormalizedInput,
   registry: Registry,
   localeId: string,
 ): boolean {
@@ -185,7 +241,7 @@ function isAnchor(
       return false;
     }
     const previous = tokens[index - 1];
-    return !endsOperand(previous, token, text, registry, localeId);
+    return !endsOperand(previous, token, normalized, registry, localeId);
   }
   return false;
 }
@@ -258,7 +314,7 @@ export class Scanner {
     const out: ScanMatch[] = [];
     let i = 0;
     while (i < tokens.length) {
-      if (!isAnchor(tokens, i, normalized.text, this.registry, this.locale)) {
+      if (!isAnchor(tokens, i, normalized, this.registry, this.locale)) {
         i += 1;
         continue;
       }
@@ -294,7 +350,44 @@ export class Scanner {
     maxSpan: number,
     opts: ScanScope | undefined,
   ): { match: ScanMatch; next: number } | undefined {
-    const limit = Math.min(tokens.length, from + maxSpan);
+    // `maxSpan` alone lets a run cross any character `lex` silently drops — a
+    // comma, a full stop, a newline — exactly the gap `endsOperand` above
+    // already refuses to cross for a unary sign, via the same `gapBreaksRun`
+    // this loop calls below. Without this, "5, -3 h" anchors on "5" and
+    // backoff finds "5, -3" parses (the comma is invisible to the token
+    // stream), reading a value the source never wrote — the same
+    // silent-wrong-value class the anchor rule exists to remove, reached
+    // through the one door that rule does not guard. And a run that swallows
+    // a "\n" produces a `Mark.text` no UI can highlight as one stretch of the
+    // caller's string.
+    //
+    // Bounded here, once, rather than left to the parser: the first
+    // disqualifying interior gap ends the run for every `to` backoff will
+    // try, not just the longest one. See `gapBreaksRun` for exactly what
+    // disqualifies a gap, why the check has to read `normalized.text` AND
+    // `normalized.source` rather than either alone, and why a lone "\n"
+    // needs a carve-out that a bare `/\S/` test does not give it.
+    //
+    // `gapBreaksRun`'s source half is the one `nfkcShifted` can degrade:
+    // under it both mapped offsets collapse to `{0, source.length}` (see
+    // `NormalizedInput.mapSpan`), so its "\n" check reads the ENTIRE source
+    // rather than one gap. That over-detects — a run gets cut short whenever
+    // the input has a newline anywhere, not only inside this particular gap
+    // — which is the safe direction to be wrong in: it breaks a run that
+    // might have been fine rather than combining two that should not have
+    // been. No worse than before this fix, and NFKC composition is rare
+    // enough that a tighter answer is not worth a second correspondence
+    // table.
+    let limit = Math.min(tokens.length, from + maxSpan);
+    for (let j = from + 1; j < limit; j += 1) {
+      const prev = tokens[j - 1];
+      const cur = tokens[j];
+      if (prev === undefined || cur === undefined) break;
+      if (gapBreaksRun(normalized, prev.end, cur.start)) {
+        limit = j;
+        break;
+      }
+    }
     for (let to = limit; to > from; to -= 1) {
       // `input` is the WHOLE NormalizedInput, never a sliced one: token offsets
       // stay relative to the entire string, so `mapSpan` maps a mark back to
@@ -318,6 +411,8 @@ export class Scanner {
         input: normalized,
         registry: this.registry,
         window,
+        locale: this.locale,
+        ...(opts?.locales ? { locales: opts.locales } : {}),
       });
 
       // The caller's own cues are a floor the collected ones build on, so

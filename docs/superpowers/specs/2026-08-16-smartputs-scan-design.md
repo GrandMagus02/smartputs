@@ -377,9 +377,53 @@ ambiguities of the input, not defects in the anchor rule.
 
 ### 6.3 Longest-match backoff
 
-From each anchor, take the longest token run that starts there and is at most
-`maxSpan` tokens; hand it to the `Parser`; on failure drop the last token and
-retry, down to the anchor alone. The first run that parses wins.
+From each anchor, take the longest token run that starts there, is at most
+`maxSpan` tokens, AND crosses no interior gap that contains a non-whitespace
+character or a newline; hand it to the `Parser`; on failure drop the last
+token and retry, down to the anchor alone. The first run that parses wins.
+
+The punctuation rule is load-bearing, not a nicety. `lex` silently drops every
+character it does not recognize — a comma, a full stop, a newline — so a
+`maxSpan`-only bound lets a run cross one of them unseen, and the parser can
+then find a valid arithmetic reading straight through it: `"5, -3 h"` anchors
+on `5` and backoff happily finds `"5, -3"` parses, reporting a value the
+source never wrote. That is the same silent-wrong-value class §6.2's anchor
+rule exists to remove, reached through the one door the gap check there does
+not guard, and it is also internally inconsistent with §6.6: `BREAK` already
+rules that `.!?;` and a newline end a clause for cue collection, so
+segmentation reading arithmetic straight through the same characters was
+never the intended rule, only an unenforced one.
+
+The gap has to be read off the **source**, not the normalized text: `lex` and
+`Normalizer` both discard the punctuation a token stream cannot represent, but
+`Normalizer` additionally collapses a newline to an ordinary space before
+tokenization ever runs (I8), so a normalized-text check cannot see a line
+break at all — `"5 km\n-3 C"` looks exactly like `"5 km -3 C"` to it.
+`mapSpan` is what makes the source reachable at a token boundary, which is the
+payoff for the exact mapping §6.3's synthetic `TokenStream` already relies on
+below.
+
+A lone newline still needs one more carve-out even once the source is
+reachable. "Any non-whitespace character in the gap" is the right test for a
+comma or a full stop, and it has to stay that permissive about whitespace in
+general — NBSP (U+00A0) is what a browser paste puts between a number and its
+own unit, and it must stay invisible here or a pasted `"5 km"` stops reading
+as one mark. But `\n` is *itself* whitespace by the regex engine's own
+definition, so that same permissive test does not flag a lone newline gap
+either, and `"5 km\n-3 C"` would keep reading as one continuous expression.
+The actual test is therefore "a non-whitespace character, OR a newline
+specifically" — `\n` gets named explicitly, the one whitespace character
+singled out, because §6.6's `BREAK` already rules it a clause boundary for
+the identical reason.
+
+Under `nfkcShifted` — true only when NFKC composed multiple source code
+points together and lost the one-to-one correspondence back to the source —
+`mapSpan` already answers every span with the whole source, `{0,
+source.length}`, rather than guess at an offset that only looks plausible.
+The gap read inherits that: it degrades to "the whole source", which almost
+always contains a non-space character and so degrades further to no run
+longer than one token. No worse than the unbounded behaviour this rule
+replaces, for the one input shape it cannot see through.
 
 ```
 tokens:  … keyword(in) number(5) word(km) word(from) word(work)
