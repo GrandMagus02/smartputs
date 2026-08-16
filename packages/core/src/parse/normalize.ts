@@ -78,13 +78,18 @@ interface NormalizedInputInit {
   readonly source: string;
   readonly text: string;
   readonly edits: readonly Edit[];
-  /** `offsets[i]` is the index in the NFKC-folded string that `text[i]` came
-   * from, plus one trailing entry for the end position. */
+  /** `offsets[i]` is the SOURCE index that `text[i]` came from, plus one
+   * trailing entry for the end position. When NFKC's effect was derivable
+   * per code point, this is already composed through that map; see
+   * `preToSource` in `normalize()`. */
   readonly offsets: readonly number[];
-  /** Length of the NFKC-folded string, used as `mapSpan`'s end-of-range fallback. */
+  /** Length of the source string, used as `mapSpan`'s end-of-range fallback. */
   readonly preLength: number;
-  /** True once NFKC changed the string at all — not only its length — at
-   * which point offsets no longer correspond to source positions. */
+  /** True only when NFKC composed multiple source code points together
+   * (e.g. "e" + combining acute -> "é"), the one case with no per-character
+   * correspondence back to the source. A same-length or length-changing fold
+   * that stays one-code-point-in-one-code-point-out (NBSP, "①" → "1", "½" →
+   * "1⁄2"...) does NOT set this — `offsets` carries an exact map instead. */
   readonly nfkcShifted: boolean;
 }
 
@@ -116,10 +121,12 @@ class NormalizedInputImpl implements NormalizedInput {
   }
 
   mapSpan(span: Span): Span {
-    // After any NFKC change — not only one that alters length, a same-length
-    // fold like "①" → "1" sets this too — there is no character-level
-    // correspondence to the source, so the honest answer is the whole source
-    // rather than an offset that happens to be plausible.
+    // `nfkcShifted` is true only when NFKC composed multiple source code
+    // points into one output (see its doc comment) — the one case with no
+    // character-level correspondence to the source, so the honest answer is
+    // the whole source rather than an offset that happens to be plausible.
+    // Every other NFKC fold, including ones that change length, is exact:
+    // `offsets` already carries the composed source positions.
     if (this.nfkcShifted) return { start: 0, end: this.source.length };
     const start = this.offsets[span.start] ?? 0;
     const endExclusive = this.offsets[span.end] ?? this.preLength;
@@ -141,10 +148,64 @@ export function normalize(input: string, opts: NormalizerOptions = {}): Normaliz
   const doWhitespace = opts.whitespace !== false;
   const doTrim = opts.trim !== false;
 
-  // NFKC can change length, so it runs first and its own edit is recorded
-  // against the whole string rather than per character — a per-character map
-  // through a compatibility decomposition is not derivable from the output.
-  const pre = doNfkc ? input.normalize("NFKC") : input;
+  // NFKC can change length, so it runs first. Its edit is still recorded
+  // against the whole string rather than per character, but the offset map
+  // it produces is per code point whenever that is derivable — see
+  // `preToSource` below.
+  const inputNfkc = doNfkc ? input.normalize("NFKC") : input;
+
+  // `preToSource[i]` is the source index the character at `pre[i]` came
+  // from, when defined. `undefined` means `pre === input`: NFKC changed
+  // nothing, so indices into `pre` already are source indices, and the
+  // per-code-point work below never runs — the fast, overwhelmingly common
+  // path.
+  let preToSource: readonly number[] | undefined;
+  let pre: string;
+  let nfkcShifted: boolean;
+
+  if (inputNfkc === input) {
+    pre = input;
+    nfkcShifted = false;
+  } else {
+    // NFKC changed something. Folding each code point independently and
+    // concatenating the results is, for the cases that matter in practice
+    // (NBSP, ½, ℃, circled digits, fullwidth digits, ligatures, ™...),
+    // identical to folding the whole string at once — which gives an exact
+    // per-code-point offset map: `parts[j]`'s output characters all came
+    // from source code point `j`. It differs only when NFKC composes
+    // adjacent code points together (e.g. "e" + combining acute -> "é"),
+    // and composition across code points genuinely has no per-character
+    // correspondence back to the source, so that case keeps today's
+    // whole-source fallback exactly.
+    const codePoints = [...input];
+    const parts = codePoints.map((cp) => cp.normalize("NFKC"));
+    const perCp = parts.join("");
+    if (perCp === inputNfkc) {
+      const map: number[] = [];
+      let srcIdx = 0;
+      for (let j = 0; j < codePoints.length; j += 1) {
+        const cp = codePoints[j] as string;
+        const folded = parts[j] as string;
+        for (let k = 0; k < folded.length; k += 1) map.push(srcIdx);
+        // A surrogate pair is one code point but two UTF-16 units, so the
+        // source index has to advance by the code point's own `.length`,
+        // not by one.
+        srcIdx += cp.length;
+      }
+      map.push(input.length); // one past the end, for the trailing offset entry.
+      pre = perCp;
+      preToSource = map;
+      nfkcShifted = false;
+    } else {
+      pre = inputNfkc;
+      nfkcShifted = true;
+    }
+  }
+
+  /** Composes an index into `pre` through `preToSource`, when there is one. */
+  const toSource = (i: number): number =>
+    preToSource === undefined ? i : (preToSource[i] ?? input.length);
+
   const edits: Edit[] = [];
   if (pre !== input) {
     edits.push({
@@ -154,9 +215,10 @@ export function normalize(input: string, opts: NormalizerOptions = {}): Normaliz
     });
   }
 
-  // `offsets[i]` is the index in `pre` that `text[i]` came from, plus one
-  // trailing entry for the end position. This is what makes mapSpan exact
-  // rather than approximate.
+  // `offsets[i]` is the source index that `text[i]` came from (composed
+  // through `preToSource` when NFKC's effect was per-code-point derivable),
+  // plus one trailing entry for the end position. This is what makes mapSpan
+  // exact rather than approximate.
   let text = "";
   const offsets: number[] = [];
   let pendingWhitespace = false;
@@ -199,19 +261,19 @@ export function normalize(input: string, opts: NormalizerOptions = {}): Normaliz
         // same source position twice under two reasons.
         edits.push({ at: { start: wsStart, end: i }, length: 0, reason: "trim" });
       } else {
-        offsets.push(i - 1);
+        offsets.push(toSource(i - 1));
         text += " ";
       }
     }
 
     if (doDashes && DASH.test(ch)) {
       edits.push({ at: { start: i, end: i + 1 }, length: 1, reason: "dash" });
-      offsets.push(i);
+      offsets.push(toSource(i));
       text += "-";
       continue;
     }
 
-    offsets.push(i);
+    offsets.push(toSource(i));
     text += ch;
   }
 
@@ -219,7 +281,7 @@ export function normalize(input: string, opts: NormalizerOptions = {}): Normaliz
     if (doTrim) {
       edits.push({ at: { start: wsStart, end: pre.length }, length: 0, reason: "trim" });
     } else {
-      offsets.push(pre.length - 1);
+      offsets.push(toSource(pre.length - 1));
       text += " ";
     }
   }
@@ -227,9 +289,8 @@ export function normalize(input: string, opts: NormalizerOptions = {}): Normaliz
   // One past the last character, so a span whose `end` is `text.length` maps.
   // A trailing run that trim just dropped is not part of the mapped content,
   // so the boundary is where that run started, not `pre.length`.
-  offsets.push(pendingWhitespace && doTrim ? wsStart : pre.length);
+  offsets.push(toSource(pendingWhitespace && doTrim ? wsStart : pre.length));
 
-  const nfkcShifted = pre !== input;
   const repaired = opts.repair?.(text, { source: input }) ?? [];
   edits.push(...repaired);
 
@@ -251,7 +312,7 @@ export function normalize(input: string, opts: NormalizerOptions = {}): Normaliz
       edits.map((e) => Object.freeze({ ...e, at: Object.freeze({ ...e.at }) })),
     ) as readonly Edit[],
     offsets,
-    preLength: pre.length,
+    preLength: input.length,
     nfkcShifted,
   });
 }

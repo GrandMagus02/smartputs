@@ -63,15 +63,18 @@ test("several quantities in one sentence are several marks", () => {
 });
 
 test("marks never overlap and are in source order", () => {
-  const input = "I walked 5 km then ran 3 km";
+  // Adjacent marks with no space between them: the case a walk that resumed
+  // at the wrong index would get wrong. The count assertion is load-bearing
+  // — without it this test passes by asserting nothing whenever the scanner
+  // returns fewer than two marks.
+  const input = "5km,3km";
   const marks = scanner.run(input, parser);
-  for (let i = 1; i < marks.length; i += 1) {
-    const previous = marks[i - 1];
-    const current = marks[i];
-    expect(previous).toBeDefined();
-    expect(current).toBeDefined();
-    if (previous === undefined || current === undefined) continue;
-    expect(current.span.start).toBeGreaterThanOrEqual(previous.span.end);
+  expect(marks).toHaveLength(2);
+  let previousEnd = 0;
+  for (const mark of marks) {
+    expect(mark.span.start).toBeGreaterThanOrEqual(previousEnd);
+    expect(mark.span.end).toBeGreaterThan(mark.span.start);
+    previousEnd = mark.span.end;
   }
 });
 
@@ -130,4 +133,18 @@ test("a caller's own cues are added to the ones collected from the text", () => 
   const biased = scanner.run("5 m", parser, { cues: { length: 4 } });
   expect(biased[0]?.resolutions[0]?.kind).toBe("length");
   expect(biased[0]?.resolutions[0]?.cueBonus).toBe(4);
+});
+
+test("a non-breaking space does not collapse every mark onto the whole input", () => {
+  // U+00A0 is what pasting from a web page produces. Before the mapSpan fix,
+  // NFKC folding made every mark report the entire input as its span, which
+  // silently broke the non-overlap invariant on exactly the input class scan
+  // exists to read. The space between "5" and "km" below is a genuine
+  // U+00A0, not U+0020 -- the other spaces in the input are ordinary.
+  const input = "I ran 5 km then 3 km";
+  const marks = scanner.run(input, parser);
+  expect(marks.map((m) => input.slice(m.span.start, m.span.end))).toEqual([
+    "5 km",
+    "3 km",
+  ]);
 });

@@ -107,6 +107,39 @@ test("mutating the config object after construction does not change run()", () =
   expect(n.run("20 °C").text).toBe("20 °C");
 });
 
+test("mapSpan is exact through a same-length NFKC fold", () => {
+  // U+00A0 (NBSP) folds to a plain space under NFKC — same length, one code
+  // point in, one code point out. This is exactly the input class pasting
+  // from a web page produces, and the whole point of the fix: before it,
+  // ANY NFKC change at all — even one that alters nothing but which
+  // character is present — sent mapSpan to the whole-source fallback.
+  const n = normalize("5 km");
+  expect(n.text).toBe("5 km");
+  expect(n.mapSpan({ start: 0, end: 4 })).toEqual({ start: 0, end: 4 });
+  expect(n.source.slice(0, 4)).toBe("5 km");
+});
+
+test("mapSpan is exact through a length-changing NFKC fold", () => {
+  // "½" is one source code point that folds to the three characters "1⁄2" —
+  // still one-code-point-in, N-characters-out, so still derivable per code
+  // point. All three output characters map back to the same source index.
+  const n = normalize("½ cup");
+  expect(n.text).toBe("1⁄2 cup");
+  expect(n.mapSpan({ start: 0, end: 3 })).toEqual({ start: 0, end: 1 });
+  expect(n.mapSpan({ start: 4, end: 7 })).toEqual({ start: 2, end: 5 });
+});
+
+test("mapSpan still takes the whole-source fallback when NFKC composes code points together", () => {
+  // "café" written as "cafe" + combining acute (U+0301): NFKC composes the
+  // "e" and the accent into one "é", which is not one-code-point-in/N-out —
+  // it consumes two source code points to produce one output character, so
+  // there is no per-character correspondence back to the source. This case
+  // keeps today's behavior exactly.
+  const n = normalize("café");
+  expect(n.text).toBe("café");
+  expect(n.mapSpan({ start: 0, end: 4 })).toEqual({ start: 0, end: n.source.length });
+});
+
 test("outputs are frozen", () => {
   const n = normalize("  30 deg  ");
   expect(Object.isFrozen(n)).toBe(true);
