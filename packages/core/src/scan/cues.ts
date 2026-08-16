@@ -79,6 +79,27 @@ export interface CollectCuesArgs {
   readonly registry: Registry;
   /** Tokens of any type to look at in each direction. */
   readonly window: number;
+  /**
+   * The engine's format locale id, needed to case-fold a candidate cue's
+   * surface the same way `registry.cueIndex`'s keys were folded when the
+   * registry was built (`registry.ts`'s `word.toLocaleLowerCase(localeId)`).
+   * An ordinary `.toLowerCase()` disagrees with that fold for `tr`/`az`/`lt`
+   * words containing `i`/`I` — `scan.ts`'s `endsOperand` documents the exact
+   * mismatch — and getting it wrong here has the same shape of consequence:
+   * a cue that is genuinely in the table stops being found for the one
+   * locale whose fold it needed.
+   */
+  readonly locale: string;
+  /**
+   * Caller's `ScanScope.locales`, forwarded so a cue from a language the
+   * caller excluded does not vote. Mirrors `solve/solver.ts`'s `inScope`,
+   * which already applies this same list to every OTHER reading a mark can
+   * take — leaving cues out of it meant `scan(text, { locales: ["en"] })`
+   * still counted another installed language's cue table, even though that
+   * language's own READINGS were hard-filtered from the solver in the very
+   * next statement.
+   */
+  readonly locales?: readonly string[];
 }
 
 /**
@@ -95,7 +116,7 @@ export function collectCues(args: CollectCuesArgs): {
   hits: CueHit[];
   weights: Record<KindId, number>;
 } {
-  const { tokens, from, to, input, registry, window } = args;
+  const { tokens, from, to, input, registry, window, locale, locales } = args;
   const text = input.text;
   const hits: CueHit[] = [];
 
@@ -105,8 +126,29 @@ export function collectCues(args: CollectCuesArgs): {
     const surface = cueSurface(token, text);
     if (surface === undefined) return;
     const entries: readonly CueEntry[] =
-      registry.cueIndex.get(surface.toLowerCase()) ?? [];
+      registry.cueIndex.get(surface.toLocaleLowerCase(locale)) ?? [];
+    // One token, one vote per kind. `buildRegistry` legitimately keeps two
+    // `CueEntry`s for one (word, kind) when two installed languages both
+    // claim it — `en` and a stub locale both listing `in: 1` for `duration`,
+    // say — because that genuinely is two languages' worth of evidence.
+    // But a mark's score sums one weight per kind per cue *token*, not per
+    // language that happened to agree, so pushing a `CueHit` for each entry
+    // would double the vote and, in a UI walking `mark.cues`, double-underline
+    // one word. Kept to one hit per kind by taking the first entry this
+    // token reaches — `registry.cueIndex`'s own deterministic order (kind
+    // id, then locale id, both sorted at build time), not iteration order.
+    const seenKinds = new Set<KindId>();
     for (const entry of entries) {
+      // `locales` narrows the same way `solve/solver.ts`'s `inScope` narrows
+      // every other reading: a cue from a language the caller did not ask to
+      // read casts no vote. No `"*"` case to mirror here the way `inScope`
+      // carries one for `AliasEntry` — `composeLocale` refuses a vocabulary
+      // whose `locale` differs from its language's own id (`LocaleMismatchError`),
+      // so every `CueEntry.locale` names a real installed language and there
+      // is no language-neutral entry a list could wrongly exclude.
+      if (locales !== undefined && !locales.includes(entry.locale)) continue;
+      if (seenKinds.has(entry.kind)) continue;
+      seenKinds.add(entry.kind);
       // Token spans are normalized-relative; every span that reaches a caller
       // is not.
       const span = input.mapSpan({ start: token.start, end: token.end });
