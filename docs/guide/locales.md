@@ -42,6 +42,7 @@ interface Vocabulary {
   locale: string;                              // must equal the language's id
   kind: KindId;                                // named by string, never imported
   units: Record<string, UnitWords>;
+  cues?: Record<string, number>;               // words that argue a nearby quantity is this kind
 }
 
 interface UnitWords {
@@ -67,6 +68,41 @@ A `Vocabulary` is the other half, and it names its kind by **id string**. It
 never imports the kind. That one decision is what lets
 `@smartput/mass/locale/uk` be installed without pulling in the ratio tables,
 and published by someone who is not the kind's author and cannot change it.
+
+### Cues
+
+`Vocabulary.cues` is a second, smaller table, read only by `engine.scan()` —
+`evaluate()`, `suggest()`, `coerce()` and `explain()` never look at it. A cue
+is a word that argues, by standing near a quantity, that the quantity is
+**this** kind: `mass`'s English pack lists `weighs: 4`, so `scan("the parcel
+weighs 5")` biases its mark toward `mass` over any other kind `5` could be.
+
+```ts
+cues?: Record<string, number>;
+```
+
+Weights are **single digits**, typically 1–4, and small on purpose: the
+solver turns a score difference into odds through a softmax, so a cue of 25
+would report the losing reading at `1e-11` and claim a certainty no adjacent
+word has earned. Several cue words agreeing near one mark do not compound
+without bound either — `CUE_CEILING` (4) clamps the *summed* weight for one
+kind at one mark, so three words each worth 3 still cap out at 4, the same as
+one word worth 4 alone.
+
+A cue **ranks** candidate readings; it never **admits** one. It cannot make
+`scan` report a kind that surface did not already parse as, and it cannot
+turn a non-quantity into a mark — it only moves the confidence among
+readings a mark already has.
+
+The point worth stating plainly, because no other page does: **a cue only
+changes an outcome where a surface is ambiguous across kinds.** `"5 kg"`
+reads as `mass` at confidence 1.000 whether or not `weighs` sits beside it,
+because no other installed kind claims the alias `kg`. A cue table is inert
+— present, tested, and changing nothing — until some other kind's vocabulary
+claims an overlapping surface and creates the ambiguity for it to break. Most
+of the built-in English cue tables are in exactly that state on their own:
+they activate the moment a third-party kind installs a colliding unit, not
+before.
 
 ## Composing and installing
 

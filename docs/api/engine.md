@@ -119,6 +119,18 @@ interface Explanation {
 `explain()` shares the strict pipeline, so it throws where `evaluate()` would on
 a lexing or parsing failure.
 
+`contributions` rows come from named selectors, one per term `score` sums —
+see [Ambiguity and weights](/guide/weights#scoring) for `token:`, `${kind}`,
+`${kind}:${unit}` and `locale:`, and `analyzer` and `fuzzy:` for a corrected
+reading. Three more are per-assignment rather than per-candidate: `contextBonus`
+(a matching `OpSignature` exists for the sibling operand) is emitted on every
+assignment, zero or not; `signature` (the op signature itself carries a
+weight — see `@smartput/range`'s `date`/`time` disambiguation) and `cueBonus`
+(a nearby cue word, or a caller-supplied `EvalOptions.cues`, argued for this
+assignment's kind) are each emitted only when non-zero, so a reading nothing
+biased carries no dead row for either. `Σcontributions === score` always
+holds, `cueBonus` included.
+
 <SpExplain />
 
 ## complete()
@@ -201,11 +213,18 @@ interface EvalOptions {
   kinds?: KindId[];      // hard filter — candidates outside this set are dropped
   locales?: string[];    // hard filter — by the language that listed the spelling
   weights?: Weights;     // per-call layer 4
+  cues?: Record<KindId, number>;  // kind -> weight, added once to a reading whose result kind matches
   format?: string;       // per-call output language; must be installed
   timeZone?: string;     // per-call override of EngineOptions.timeZone
   comparePrecision?: number | "exact";  // per-call override
 }
 ```
+
+`cues` is the same term `scan()` computes from the words around a mark
+(below), made public so a caller who already knows their domain can say it
+directly: `suggest("10 m", { cues: { duration: 3 } })` gets exactly the bias
+`scan` would have computed from a nearby "in", with no text to scan at all.
+Unlike `weights`, this is a small, single-digit scale — see `CUE_CEILING`.
 
 `kinds` is a filter, not a weight. Candidates outside the set are dropped before
 scoring, which is a different operation from being ranked last:
