@@ -80,7 +80,7 @@ result.value.unit; // "kg"     — the left operand's unit
 result.confidence; // 1
 ```
 
-### Five entry points
+### Six entry points
 
 `evaluate()` is strict and throws, which makes it the wrong choice for a keystroke-rate
 input where ambiguity is normal. Reach for `suggest()` there.
@@ -92,6 +92,7 @@ input where ambiguity is normal. Reach for `suggest()` there.
 | `coerce(kind, input)` | resolved by the hard kind constraint | a `Value` |
 | `explain(input)` | shows the scoring | an `Explanation` |
 | `complete(input)` | ranks the units the fragment could become | `Completion[]` |
+| `scan(text)` | ranks, per mark | `Mark[]`, possibly empty; never throws |
 
 ```ts
 engine.evaluate("10 m");
@@ -103,6 +104,20 @@ engine.suggest("10 m");
 
 engine.complete("30 ho");
 // [ { alias: "hour", text: "30 hours", kind: "duration", unit: "h", … } ]
+```
+
+`evaluate` and friends read the whole string as one expression. `scan` does not:
+it finds the quantities inside a sentence and marks each one, letting the words
+around a mark argue for a kind.
+
+```ts
+engine.scan("My house is 5km from work");
+// [ { start: 12, end: 15, text: "5km", readings: [ { kind: "length", … } ] } ]
+
+engine.scan("Will be in time in 5m")[0].readings.map((r) => r.kind);
+// [ "duration", "length" ]   — "in" and "time" argue for minutes, and the
+//                              metres reading survives at 0.018 rather than
+//                              being deleted
 ```
 
 If your domain knows that `m` always means metres, say so once at construction:

@@ -842,7 +842,10 @@ test("cueIndex folds every installed vocabulary's cues", () => {
     units: { kg: { aliases: ["kg"], symbol: "kg" } },
     cues: { Weighs: 4, heavy: 3 },
   });
-  const registry = buildRegistry([mass, number], [composeLocale(englishStub, [massCued])]);
+  const registry = buildRegistry(
+    [mass, number],
+    [composeLocale(englishStub, [massCued])],
+  );
   // Keys are folded, so the authored capital survives only as the entry's own word.
   expect(registry.cueIndex.get("weighs")).toEqual([
     { kind: "mass", weight: 4, locale: "en" },

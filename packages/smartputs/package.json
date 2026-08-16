@@ -34,6 +34,11 @@
       "types": "./dist/solve.d.ts",
       "default": "./dist/solve.js"
     },
+    "./scan": {
+      "bun": "./src/scan.ts",
+      "types": "./dist/scan.d.ts",
+      "default": "./dist/scan.js"
+    },
     "./eval": {
       "bun": "./src/eval.ts",
       "types": "./dist/eval.d.ts",

@@ -321,11 +321,59 @@ An anchor is a token index at which a quantity may begin:
 | --- | --- | --- |
 | `number` | yes | the ordinary case |
 | `literal` | yes | `tomorrow`, `kyiv` — a claim that is already a value |
+| `lparen` | yes | a parenthesised expression begins at its paren |
+| `op` of `-` | conditional | only in unary position — see below |
 | everything else | no | a unit word with no number is not a quantity |
 
 A bare unit word is deliberately not an anchor. `"the kilometre is a unit"`
 should mark nothing, and an anchor rule that fired on unit words would mark the
 word `kilometre` as a quantity of one.
+
+**`lparen` anchors too**, because a parenthesised expression begins at its
+paren, never at the number inside it. Without this, backoff finds `"1 + 2"`
+inside `"(1 + 2) * 3"` and stops there — it never tries the run that also
+swallows the closing paren and everything after it — so the sentence produced
+two marks (`"1 + 2"` and, separately, whatever the trailing `* 3` anchored on)
+instead of the one quantity it actually is.
+
+**A `-` anchors in unary position.** A leading sign lexes as a plain `op`
+token, the same as any other operator, so dropping it from the anchor set does
+not merely shorten a mark — `scan("-5 km")` reported `+5000` where `evaluate`
+gives `-5000`, a wrong value rather than a short span. "Unary position" means:
+the next token is something a sign can attach to (`number`, `literal`, or
+`lparen`), and the *previous* token does not end an operand. Ending an operand
+is `number`, `literal`, `rparen`, or a `word` that is a registered unit alias
+in the active locale — **and** nothing but spaces separates that token from the
+sign. The gap check is load-bearing on its own: `lex` silently drops
+punctuation, so `"5 km, -3 C"` and `"5 km -3 C"` tokenize identically as far as
+token *types* go, and only the source text between the two tokens' spans still
+holds the comma that ends the first clause. Skipping the gap check was a real
+regression — `"I ran 5 km, -3 C outside"` silently flipped the second mark's
+sign — and reading a comma or full stop as "the operand continues" is the
+class of bug this half of the rule removes.
+
+The alias lookup folds with `toLocaleLowerCase(localeId)`, matching how
+`registry.ts` folded the alias keys it is compared against and how the
+`Tokenizer`'s own alias lookup works. A plain `.toLowerCase()` disagrees with
+that fold for `tr`/`az`/`lt` aliases containing `i`/`I`
+(`"DAKİKA".toLowerCase()` is `"daki̇ka"`, an index miss;
+`toLocaleLowerCase("tr")` is `"dakika"`, a hit) — get it wrong and a genuine
+unit word reads as ordinary prose, flipping a sign the same way a missed
+punctuation gap does.
+
+`+` is deliberately **not** an anchor: `pratt.ts` has a unary branch for `-`
+only, so a `+` anchor would never parse and would cost up to `maxSpan` wasted
+attempts per `+` in the input for nothing.
+
+Two shapes still lose a sign, and neither is fixable at this layer. A markdown
+bullet — `"- 2 kg flour"` — reads as `-2 kg`, because there is no lexical way
+to tell a bullet's `"- "` from a negation; `engine.evaluate("- 2 kg")` already
+agrees, so scan matching it is the consistent answer, not a bug to chase. And
+`"the min -5 km"` reads `+5 km`, because `min` genuinely is a registered alias
+(of `duration`'s minute) sitting where ordinary prose happens to be — nothing
+in the token stream marks the difference between "the word before the sign IS
+a unit, used as a unit" and "used as an ordinary noun". Both are real
+ambiguities of the input, not defects in the anchor rule.
 
 ### 6.3 Longest-match backoff
 
@@ -433,6 +481,18 @@ path `evaluate` uses, so `formatted`, `value` and `confidence` cannot drift from
 what the other entry points would report for the same span. `readings` is
 truncated to `maxReadings` after ranking, never before.
 
+The mark's own `span` comes from the winning token run's own first and last
+tokens (`tokens[from]` and `tokens[to - 1]`), not from `program.root.span`.
+For an ordinary run the two coincide, but for a parenthesised one they do not:
+a paren pair contributes no span of its own to the AST it builds, so
+`program.root.span` for the run `"(1 + 2)"` sits *inside* the parens. Reporting
+that would either drop the parens from the mark or, once trailing tokens are
+folded in, report a span that omits the opening one entirely. A mark is a
+claim about the run backoff found, not about the node that run happened to
+produce, so its extent is `{ start: tokens[from].start, end: tokens[to -
+1].end }`, mapped back through `normalized.mapSpan` like every other span in
+this design.
+
 ## 7. English cue tables, first cut
 
 Authored, not generated, and only for `en`. A kind that ships no `cues` key is
@@ -478,12 +538,15 @@ would produce a file that looks authored and is not.
 because for a caller who typed `"30 jpy"` the truth is "no rate for JPY" and an
 empty list would hide it.
 
-`scan` inverts that for `MissingRateError` alone: the mark is dropped and the
-scan continues. The caller of `scan` did not type the prose — it arrived from a
-document, a message, a paste — and a single unpriced currency in paragraph three
-must not delete the twelve marks around it. `KindConflictError` and
-`UnknownKindError` still propagate: those describe the caller's wiring, and
-wiring is as broken on the first mark as on the last.
+`scan` inverts that for `MissingRateError` alone: the *reading* is dropped, and
+the mark with it only if no reading survives. The caller of `scan` did not type
+the prose — it arrived from a document, a message, a paste — and a single
+unpriced currency in paragraph three must not delete the twelve marks around it.
+Dropping the reading rather than the whole mark is the narrower form of the same
+rule: a mark whose other readings are perfectly priced still has something true
+to say. `KindConflictError` and `UnknownKindError` still propagate: those
+describe the caller's wiring, and wiring is as broken on the first mark as on
+the last.
 
 Every other `SmartputError` is per-mark and already handled by backoff, which
 treats a throw as "this run is not it" and shortens.

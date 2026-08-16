@@ -533,12 +533,18 @@ export const BUDGETS: EntrySpec[] = [
   // So this row is an equality check wearing a budget. If it ever climbs away
   // from core's own number, some module in the facade stopped being a re-export
   // and started being code.
+  //
+  // 2026-08-16, scan mode: 78_895 -> 83_281 B min, 28_647 -> 30_161 B gzip.
+  // `engine.scan()`, the cue-collection pass over `buildRegistry`'s index, and
+  // the `Mark`/`Reading`/`CueHit` types it returns are all reachable from
+  // `createEngine`, so the growth belongs to core and the facade merely
+  // reports it.
   {
     label: "smartputs root (the facade over core)",
     from: "smartputs",
     names: ["createEngine"],
-    min: 78_900,
-    gzip: 28_650,
+    min: 83_300,
+    gzip: 30_200,
   },
   {
     label: "kind root (defineKind, with Decimal behind it)",
@@ -629,16 +635,21 @@ export const BUDGETS: EntrySpec[] = [
   // module boundary that existed because two functions were written the same
   // afternoon.
   //
-  // The ceiling is 1_550 B — the measurement rounded up to the next 50 B like
-  // every other row — which leaves ~31 B of headroom and a floor of 1_085 B.
+  // The ceiling was 1_550 B — the measurement rounded up to the next 50 B like
+  // every other row — which left ~31 B of headroom and a floor of 1_085 B.
   // A single stray `from "@smartput/kind"` in any locale file puts this row back
   // over by a factor of twenty-two, which is precisely the alarm wanted.
+  //
+  // 2026-08-16, scan mode: 1_519 -> 1_626 B min, 655 -> 735 B gzip. `en.ts`
+  // gained a `cues` table so length's words can argue for a `scan()` mark;
+  // every other kind package's locale is unaffected, which is why this is the
+  // only row in the block that moved.
   {
     label: "length/locale/en (a kind's words, no arithmetic)",
     from: "@smartput/length/locale/en",
     names: ["default"],
-    min: 1550,
-    gzip: 700,
+    min: 1650,
+    gzip: 750,
   },
   // The same guard for the two packages the first migration missed, and they are
   // the reason it is worth having more than one row for this. `length` is a kind

@@ -90,7 +90,7 @@ graph as a triumph.
 | Import | Minified | Gzipped |
 | --- | --- | --- |
 | length/validate parseLength only | ≤ 1.6 kB | ≤ 800 B |
-| length/locale/en (a kind's words, no arithmetic) | ≤ 1.6 kB | ≤ 700 B |
+| length/locale/en (a kind's words, no arithmetic) | ≤ 1.6 kB | ≤ 750 B |
 
 ---
 
