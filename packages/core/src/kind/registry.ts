@@ -33,10 +33,25 @@ export interface AliasEntry {
   locale: string;
 }
 
+/**
+ * One kind's claim on one cue word. Unlike `AliasEntry`, several may share a
+ * surface: `in` is evidence for `duration` and, once `@smartput/datetime` is
+ * installed, for `datetime` too. `buildKeywords` treats such a clash as a boot
+ * error because a keyword is a definition; a cue is a vote, so both are kept.
+ */
+export interface CueEntry {
+  readonly kind: KindId;
+  readonly weight: number;
+  /** The language that listed the word, recorded for `AliasEntry`'s reason. */
+  readonly locale: string;
+}
+
 export interface Registry {
   kinds: Map<KindId, NormalizedKind>;
   ops: Map<string, OpSignature>;
   aliasIndex: Map<string, AliasEntry[]>;
+  /** Case-folded cue word -> every kind that claims it. Read only by `scan`. */
+  cueIndex: Map<string, CueEntry[]>;
   /**
    * Every registered matcher, ordered by kind id then declaration order.
    * Ordered rather than a Map because the fold tries them all at each token
@@ -119,10 +134,19 @@ export function buildRegistry(kinds: Kind[], locales: readonly Locale[] = []): R
   const words = new Map<string, UnitWords>();
   /** `${locale}|${kind}` for every kind some language has spoken for at all. */
   const spokenKinds = new Set<string>();
+  /** `${locale}|${kind}` -> that vocabulary's cue table. */
+  const cueTables = new Map<string, Record<string, number>>();
   const install = (vocab: Vocabulary): void => {
     const kind = normalized.get(vocab.kind);
     if (kind === undefined) throw new UnknownKindError(vocab.locale, vocab.kind);
     spokenKinds.add(`${vocab.locale}|${vocab.kind}`);
+    if (vocab.cues !== undefined) {
+      const key = `${vocab.locale}|${vocab.kind}`;
+      // Merged rather than overwritten, for the reason `mergeWords` is: a
+      // collision here means one language was assembled from two `Locale`
+      // objects, and the later half is a patch, not a replacement.
+      cueTables.set(key, { ...cueTables.get(key), ...vocab.cues });
+    }
     for (const [unit, entry] of Object.entries(vocab.units)) {
       if (!kind.units.has(unit)) {
         throw new UnknownKindError(vocab.locale, vocab.kind, unit);
@@ -232,6 +256,31 @@ export function buildRegistry(kinds: Kind[], locales: readonly Locale[] = []): R
     }
   }
 
+  // Pass 5b: cue index, ordered by the rule pass 5 uses — kind ids sorted, then
+  // locales sorted, then words sorted — so one surface's entry list is byte-for
+  // -byte identical on every run and in every process.
+  //
+  // A zero weight is skipped rather than recorded: it would be an entry that
+  // changes no score, and `scan` would still pay to look it up and would still
+  // report it as a `CueHit` the user could see no effect from.
+  const cueIndex = new Map<string, CueEntry[]>();
+  for (const kindId of kindIds) {
+    for (const localeId of readIds) {
+      const table = cueTables.get(`${localeId}|${kindId}`);
+      if (table === undefined) continue;
+      for (const word of Object.keys(table).sort()) {
+        const weight = table[word];
+        if (weight === undefined || weight === 0) continue;
+        const fold = word.toLocaleLowerCase(localeId);
+        const list = cueIndex.get(fold) ?? [];
+        if (!list.some((e) => e.kind === kindId && e.locale === localeId)) {
+          list.push({ kind: kindId, weight, locale: localeId });
+        }
+        cueIndex.set(fold, list);
+      }
+    }
+  }
+
   // Pass 6: literal matchers, deterministically ordered.
   const literals: Array<{ kind: KindId; matcher: LiteralMatcher }> = [];
   for (const kindId of kindIds) {
@@ -240,5 +289,5 @@ export function buildRegistry(kinds: Kind[], locales: readonly Locale[] = []): R
     }
   }
 
-  return { kinds: normalized, ops, aliasIndex, literals, words };
+  return { kinds: normalized, ops, aliasIndex, cueIndex, literals, words };
 }

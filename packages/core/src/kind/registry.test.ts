@@ -60,6 +60,14 @@ const ukrainian = composeLocale(
   [massUk],
 );
 
+/** An uncomposed English, so the cue tests below can pair it with whichever vocabularies they need. */
+const englishStub = defineLanguage({
+  id: "en",
+  numberFormat: "intl",
+  keywords: {},
+  selectForm: () => "other",
+});
+
 test("ratio kinds get same-kind + and - for free", () => {
   const r = buildRegistry([number, mass]);
   expect(r.ops.has(opKey("+", "mass", "mass"))).toBe(true);
@@ -825,4 +833,75 @@ test("a vocabulary naming an unregistered unit is a wiring error", () => {
   expect(() => buildRegistry([widget], [composeLocale(vocabLang, [vocab])])).toThrow(
     UnknownKindError,
   );
+});
+
+test("cueIndex folds every installed vocabulary's cues", () => {
+  const massCued = defineVocabulary({
+    locale: "en",
+    kind: "mass",
+    units: { kg: { aliases: ["kg"], symbol: "kg" } },
+    cues: { Weighs: 4, heavy: 3 },
+  });
+  const registry = buildRegistry([mass, number], [composeLocale(englishStub, [massCued])]);
+  // Keys are folded, so the authored capital survives only as the entry's own word.
+  expect(registry.cueIndex.get("weighs")).toEqual([
+    { kind: "mass", weight: 4, locale: "en" },
+  ]);
+  expect(registry.cueIndex.get("Weighs")).toBeUndefined();
+  expect(registry.cueIndex.get("heavy")).toEqual([
+    { kind: "mass", weight: 3, locale: "en" },
+  ]);
+});
+
+test("two kinds claiming one cue word is not a conflict", () => {
+  // `buildKeywords` refuses a two-language disagreement on one surface. A cue
+  // is a vote rather than a definition, so both entries are kept and the
+  // solver weighs them — spec §3.1.
+  const registry = buildRegistry(
+    [mass, number],
+    [
+      composeLocale(englishStub, [
+        defineVocabulary({
+          locale: "en",
+          kind: "mass",
+          units: { kg: { aliases: ["kg"], symbol: "kg" } },
+          cues: { about: 2 },
+        }),
+        defineVocabulary({
+          locale: "en",
+          kind: "number",
+          units: { one: { aliases: ["ones"] } },
+          cues: { about: 1 },
+        }),
+      ]),
+    ],
+  );
+  // Sorted by kind id, so the list is identical on every run.
+  expect(registry.cueIndex.get("about")).toEqual([
+    { kind: "mass", weight: 2, locale: "en" },
+    { kind: "number", weight: 1, locale: "en" },
+  ]);
+});
+
+test("a vocabulary with no cues contributes no entries", () => {
+  const registry = buildRegistry([mass, number], [composeLocale(englishStub, [massEn])]);
+  expect(registry.cueIndex.size).toBe(0);
+});
+
+test("a zero-weight cue is skipped rather than indexed as a no-op", () => {
+  const registry = buildRegistry(
+    [mass, number],
+    [
+      composeLocale(englishStub, [
+        defineVocabulary({
+          locale: "en",
+          kind: "mass",
+          units: { kg: { aliases: ["kg"], symbol: "kg" } },
+          cues: { heavy: 3, maybe: 0 },
+        }),
+      ]),
+    ],
+  );
+  expect(registry.cueIndex.get("maybe")).toBeUndefined();
+  expect(registry.cueIndex.get("heavy")).toBeDefined();
 });

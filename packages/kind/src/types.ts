@@ -696,6 +696,22 @@ export interface Vocabulary {
   readonly locale: string;
   readonly kind: KindId;
   readonly units: Readonly<Record<string, UnitWords>>;
+  /**
+   * Words that, standing NEAR a quantity, argue it is this kind — read only by
+   * `scan`. Positive argues for; negative argues against.
+   *
+   * The kind and the language are the vocabulary's own, so a cue needs only a
+   * word and a weight. This is the whole authoring surface: a kind package
+   * already ships `src/locale/<id>.ts`, and cues are another key in the object
+   * that is already there.
+   *
+   * Single digits, typically 1–4, and `CUE_CEILING` clamps the sum per kind per
+   * mark. The scale is small on purpose: the solver's softmax turns a score
+   * difference into odds, so a cue of 25 would report the losing reading at
+   * 1e-11 and claim a certainty no adjacent preposition has earned. A cue ranks
+   * readings; it never admits or refuses one.
+   */
+  readonly cues?: Readonly<Record<string, number>>;
 }
 
 /**
