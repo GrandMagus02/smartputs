@@ -13,6 +13,7 @@ dist/
 .superpowers/
 docs/.vitepress/dist/
 docs/.vitepress/cache/
+docs/.vitepress/.temp/
 .claude/worktrees/
 graphify-out/
 .vercel

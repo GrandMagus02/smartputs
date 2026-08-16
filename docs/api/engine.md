@@ -1,6 +1,6 @@
 ---
 title: Engine
-description: evaluate, suggest, coerce, explain and complete.
+description: evaluate, suggest, coerce, explain, complete and scan.
 ---
 
 # Engine
@@ -12,14 +12,19 @@ interface Engine {
   coerce(kind: KindId, input: string, opts?: EvalOptions): Value;
   explain(input: string, opts?: EvalOptions): Explanation;
   complete(input: string, opts?: CompleteOptions): Completion[];
+  scan(input: string, opts?: ScanOptions): Mark[];
 }
 ```
 
-Five entry points over one pipeline. The first four differ in what they do with
+Six entry points over one pipeline. The first four differ in what they do with
 ambiguity, not in how they parse — `coerce()` injects a hard constraint into the
 solver rather than running a second code path, so every solver behaviour is
 shared. `complete()` answers a different question entirely, but ranks its
-answers with the same weights.
+answers with the same weights. `scan()` answers a third question again: not
+"what does this string mean" but "which spans in this text are quantities" —
+it segments free-form prose into marks first, then hands each one to the same
+solver, so a mark's `formatted`, `value` and `confidence` cannot drift from
+what the other entry points would report for the same span.
 
 ## evaluate()
 
@@ -155,6 +160,40 @@ parseable: [`complete()`](/api/complete). Writing a completer:
 
 <SpComplete />
 
+## scan()
+
+```ts
+scan(input: string, opts?: ScanOptions): Mark[]
+```
+
+`evaluate` and friends read the whole string as one expression. `scan` does
+not: it finds the quantities inside a sentence and marks each one, letting the
+words around a mark argue for a kind. **Never throws on prose** — an input
+with nothing in it answers `[]`, the same totality `suggest()` and
+`complete()` promise.
+
+```ts
+engine.scan("My house is 5km from work");
+// [ { start: 12, end: 15, text: "5km", readings: [ { kind: "length", … } ] } ]
+
+engine.scan("Will be in time in 5m")[0].readings.map((r) => r.kind);
+// [ "duration", "length" ]   — "in" and "time" argue for minutes, and the
+//                              metres reading survives at 0.018 rather than
+//                              being deleted
+```
+
+Marks never overlap and are emitted in source order. Each carries a ranked,
+never-empty `readings` list — see [Mark](#mark) below — plus `cues`, the words
+that biased it and by how much.
+
+```ts
+interface ScanOptions extends EvalOptions {
+  cueWindow?: number;   // tokens either side of a mark offered as context. Default 4.
+  maxReadings?: number; // readings kept per mark. Default 3.
+  maxSpan?: number;     // token backoff cap, the adversarial-input guard. Default 12.
+}
+```
+
 ## EvalOptions
 
 ```ts
@@ -251,3 +290,42 @@ other value newly frozen alongside `Assumption`.)
 `meta.ratesAsOf` is the date of the rate table the result was computed against —
 absent on an engine with no `rates`. A converted amount without one is a number
 pretending to be a fact.
+
+## Mark
+
+```ts
+interface Mark {
+  start: number;         // caller-relative, like Result.spans — never the normalized string
+  end: number;
+  text: string;           // input.slice(start, end), carried so a caller never re-slices
+  readings: MarkReading[]; // ranked, best first. Never empty — a mark with no reading is not emitted
+  cues: CueHit[];          // which words biased this mark, and by how much. Empty when none did
+}
+
+interface MarkReading {
+  kind: KindId;
+  value: Value;
+  formatted: string;
+  confidence: number;
+}
+
+interface CueHit {
+  readonly word: string;  // as written, not folded
+  readonly start: number; // also caller-relative — a UI that underlines the cue needs this
+  readonly end: number;
+  readonly kind: KindId;
+  readonly weight: number;
+}
+```
+
+A `Mark` is `scan()`'s unit of output: one stretch of the caller's string that
+reads as a quantity, with every reading it earned. `readings` is a list rather
+than a bare `reading` with an optional `alternatives` beside it even when there
+is exactly one — a caller that renders a mark renders a list either way, and a
+shape that changes with the arity forces every consumer to branch on a case
+that carries no information. This is the same call `suggest()` already made
+with `Result[]`.
+
+`cues` is empty on a mark nothing nearby argued for — most marks in ordinary
+prose have no cue words within `cueWindow` tokens, and an empty array says so
+without a caller needing to check `readings.length` first.
