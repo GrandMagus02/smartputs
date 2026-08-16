@@ -5,6 +5,11 @@ dist/
 *.tsbuildinfo
 .DS_Store
 .env*
+# Registry credentials. `scripts/publish.ts` does not read this file — it takes
+# the token from NPM_TOKEN/NODE_AUTH_TOKEN or a prompt and writes a mode-600
+# `.npmrc-publish` it deletes afterwards — so this is only for `npm`/`bun`
+# commands run by hand.
+.npmrc
 .superpowers/
 docs/.vitepress/dist/
 docs/.vitepress/cache/
