@@ -71,50 +71,76 @@ export interface ScanMatch {
 }
 
 /**
- * True when the gap between two normalized-relative offsets is something a
- * unary sign or a backoff run must not cross.
+ * True when the gap between two adjacent tokens is something a unary sign or
+ * a backoff run must not cross.
  *
- * Two checks, over two different strings, because no single one of them is
- * both safe and sufficient:
+ * Two checks, over two different strings, with two different reliability
+ * guarantees, because no single one of them is both safe and sufficient:
  *
  * The `\S` check reads `normalized.TEXT`, not source, and that is
  * deliberate: `Normalizer` itself deletes some characters outright before
- * `text` is ever built — the degree sign, zero-width joiners — because they
+ * `text` is ever built -- the degree sign, zero-width joiners -- because they
  * are decoration on a quantity, not punctuation between two of them. Reading
  * the raw SOURCE here would see the `°` in `"30  °C"` and misread it as a
  * comma-shaped break, splitting one temperature into a bare number and a
- * dangling unit — a real regression this function's first version had.
+ * dangling unit -- a real regression this function's first version had.
  * `normalized.text` already reflects that deletion, so a comma or full stop
- * — which `Normalizer` does NOT delete, only `lex` silently declines to
- * tokenize — is exactly what is left over for `\S` to catch.
+ * -- which `Normalizer` does NOT delete, only `lex` silently declines to
+ * tokenize -- is exactly what is left over for `\S` to catch. This half needs
+ * no mapping at all and holds on every input, `nfkcShifted` or not.
  *
- * The `\n` check is the opposite trade, over `normalized.SOURCE`: it is the
- * one piece of information `normalized.text` cannot supply, because
- * `Normalizer` collapses a newline to an ordinary space before `text` is
- * built (I8), same as it does any other whitespace run. `"5 km\n-3 C"` and
- * `"5 km -3 C"` are indistinguishable through `text`, but the source string
- * between two `mapSpan`-mapped offsets still has the real character — this
- * is the payoff for the exact `mapSpan` this feature already carries. `\n`
- * needs the explicit check because it is whitespace by the regex engine's
- * own definition and would otherwise pass a bare `/\S/` test even when read
- * from source; naming it here is not a general "whitespace is suspicious"
- * rule; it is what `cues.ts`'s `BREAK` already rules a clause boundary, for
- * the identical "the token stream cannot see it, only the source gap can"
- * reason.
+ * The line-boundary check is the opposite trade, over `normalized.SOURCE`:
+ * it is the one piece of information `normalized.text` cannot supply,
+ * because `Normalizer` collapses a newline (and every other line separator
+ * this check names) to an ordinary space before `text` is built (I8), same
+ * as it does any other whitespace run. `"5 km\n-3 C"` and `"5 km -3 C"` are
+ * indistinguishable through `text`, but the source string spanned by
+ * `mapSpan({ start: prev.end, end: cur.start })` still has the real
+ * character(s) -- this is the payoff for the exact `mapSpan` this feature
+ * already carries. The set -- `\n`, a bare `\r`, `\t`, U+2028 LINE SEPARATOR,
+ * U+2029 PARAGRAPH SEPARATOR -- needs the explicit check because each is
+ * whitespace by the regex engine's own definition and would otherwise pass a
+ * bare `/\S/` test even when read from source; naming them here is not a
+ * general "whitespace is suspicious" rule, it is "a record or line boundary
+ * the source still shows and the token stream cannot." It is NOT what
+ * `cues.ts`'s `BREAK` already covers: `broken()` tests `BREAK` against
+ * `normalized.text`, and by that point every one of these characters has
+ * already been collapsed to an ordinary space, so that alternative is dead
+ * on this path -- this check is the only place any of them is still visible.
  *
- * NBSP (U+00A0) passes both checks and stays invisible here — it is what
+ * This second half is the one `nfkcShifted` can take away, not merely
+ * degrade: once NFKC has composed source code points across a token
+ * boundary, `mapSpan` cannot answer any span with a real offset -- it
+ * answers `{ 0, source.length }` for every span asked, including this one,
+ * with no way to tell "the gap genuinely spans the whole source" (impossible
+ * between two adjacent real tokens -- there is always at least one token's
+ * worth of source on each side of an interior gap) from "the mapping is
+ * simply unavailable." That degraded answer is detected by its shape --
+ * `start === 0 && end === source.length` -- and treated as "cannot tell,"
+ * which SKIPS this half rather than treating the whole source as the gap.
+ * Skipping costs a missed line break on the rare input that composes across
+ * code points; the alternative -- reading the whole document as if it sat
+ * inside this one gap -- would instead flag every interior gap in the
+ * document as broken and fragment every run to a single token, discarding
+ * units and signs on input nowhere near the composition. A false negative on
+ * one line break is a far smaller cost than that.
+ *
+ * NBSP (U+00A0) passes both checks and stays invisible here -- it is what
  * pasting from a web page produces between a number and its own unit (NFKC
  * folds it to an ordinary space before `text` is built, same as the degree
  * sign's deletion), and the non-breaking-space regression test requires
  * `"5 km"` to keep reading as one mark despite it.
  */
-function gapBreaksRun(normalized: NormalizedInput, from: number, to: number): boolean {
-  if (/\S/.test(normalized.text.slice(from, to))) return true;
-  const source = normalized.source.slice(
-    normalized.mapSpan({ start: from, end: from }).start,
-    normalized.mapSpan({ start: to, end: to }).start,
-  );
-  return source.includes("\n");
+function gapBreaksRun(prev: Token, cur: Token, normalized: NormalizedInput): boolean {
+  if (/\S/.test(normalized.text.slice(prev.end, cur.start))) return true;
+  const mapped = normalized.mapSpan({ start: prev.end, end: cur.start });
+  // The degraded `nfkcShifted` answer: no two adjacent tokens can genuinely
+  // have the entire source sitting between them, so this shape can only mean
+  // "unmappable," and the honest response is to skip this half rather than
+  // treat the whole document as the gap.
+  if (mapped.start === 0 && mapped.end === normalized.source.length) return false;
+  const source = normalized.source.slice(mapped.start, mapped.end);
+  return /[\n\r\t\u2028\u2029]/.test(source);
 }
 
 /**
@@ -176,7 +202,7 @@ function endsOperand(
   localeId: string,
 ): boolean {
   if (token === undefined) return false;
-  if (gapBreaksRun(normalized, token.end, sign.start)) return false;
+  if (gapBreaksRun(token, sign, normalized)) return false;
   if (token.type === "number" || token.type === "literal" || token.type === "rparen") {
     return true;
   }
@@ -368,22 +394,27 @@ export class Scanner {
     // `normalized.source` rather than either alone, and why a lone "\n"
     // needs a carve-out that a bare `/\S/` test does not give it.
     //
-    // `gapBreaksRun`'s source half is the one `nfkcShifted` can degrade:
-    // under it both mapped offsets collapse to `{0, source.length}` (see
-    // `NormalizedInput.mapSpan`), so its "\n" check reads the ENTIRE source
-    // rather than one gap. That over-detects — a run gets cut short whenever
-    // the input has a newline anywhere, not only inside this particular gap
-    // — which is the safe direction to be wrong in: it breaks a run that
-    // might have been fine rather than combining two that should not have
-    // been. No worse than before this fix, and NFKC composition is rare
-    // enough that a tighter answer is not worth a second correspondence
-    // table.
+    // `gapBreaksRun`'s source half is the one `nfkcShifted` can take away,
+    // not degrade: under it `mapSpan({ start: prev.end, end: cur.start })`
+    // answers `{ start: 0, end: source.length }` regardless of the span
+    // asked for (see `NormalizedInput.mapSpan`), and `gapBreaksRun` treats
+    // that exact shape as "unmappable" and skips the line-boundary check
+    // rather than reading it as "the whole source is this gap." Skipping
+    // costs a missed line break on the one input shape this cannot map —
+    // NFKC composing source code points across a token boundary — but the
+    // alternative (reading the whole document as the gap) would flag every
+    // interior gap in the document as broken and fragment every run at every
+    // anchor down to a single token, discarding units and signs on input
+    // nowhere near the composition. A miss here is strictly cheaper than
+    // that, and no worse than before this rule existed for the one input
+    // shape it cannot see through; NFKC composition is rare enough that a
+    // tighter answer is not worth a second correspondence table.
     let limit = Math.min(tokens.length, from + maxSpan);
     for (let j = from + 1; j < limit; j += 1) {
       const prev = tokens[j - 1];
       const cur = tokens[j];
       if (prev === undefined || cur === undefined) break;
-      if (gapBreaksRun(normalized, prev.end, cur.start)) {
+      if (gapBreaksRun(prev, cur, normalized)) {
         limit = j;
         break;
       }

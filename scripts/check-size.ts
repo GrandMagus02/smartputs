@@ -549,12 +549,21 @@ export const BUDGETS: EntrySpec[] = [
   // `.toLowerCase()`), and its per-(token, kind) dedup plus `locales`
   // forwarding. The growth still belongs to core; the facade still only
   // reports it.
+  //
+  // 2026-08-16, the residual `gapBreaksRun`/`mapSpan` fix: 83_714 -> 83_766 B
+  // min, 30_279 -> 30_301 B gzip. Real code again: `gapBreaksRun` now takes
+  // one real `mapSpan({ start: prev.end, end: cur.start })` call instead of
+  // two zero-width ones, and adds the `mapped.start === 0 && mapped.end ===
+  // source.length` guard that detects an unmappable `nfkcShifted` answer and
+  // skips the line-boundary check rather than misreading the whole source as
+  // the gap. Same reachability path as above; the facade still only reports
+  // core's growth.
   {
     label: "smartputs root (the facade over core)",
     from: "smartputs",
     names: ["createEngine"],
-    min: 83_750,
-    gzip: 30_300,
+    min: 83_800,
+    gzip: 30_320,
   },
   {
     label: "kind root (defineKind, with Decimal behind it)",

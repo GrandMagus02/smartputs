@@ -425,6 +425,87 @@ test("a newline lets the sign after it anchor as unary, not just end the first r
   ]);
 });
 
+test("a plain-ASCII word before the newline still bounds the run", () => {
+  // The non-composing contrast to the combining-accent cases below: nothing
+  // here shifts NFKC, so `mapSpan` maps this input exactly and the newline
+  // is found. Two marks, the second negative.
+  expect(markValues("cafe 5 kg\n-3 kg")).toEqual([
+    { text: "5 kg", value: "5000" },
+    { text: "-3 kg", value: "-3000" },
+  ]);
+});
+
+test("a combining-accent word that shifts NFKC hides a newline it cannot map -- a documented miss, not a fragmenting over-detect", () => {
+  // "cafe\u0301" -- a combining acute (e + U+0301) rather than the
+  // precomposed "\u00e9": NFKC composes the two code points into one and
+  // `NormalizedInput.mapSpan` falls back to `{0, source.length}` for EVERY
+  // span it is asked to map, for the rest of this input (`nfkcShifted`).
+  // `gapBreaksRun` recognizes that exact shape as "unmappable" and skips its
+  // line-boundary half rather than treat the whole source as the gap, so the
+  // real "\n" between "kg" and "-3" goes undetected here, same as before
+  // this fix existed.
+  //
+  // This is a known, accepted miss, not a regression: the alternative --
+  // reading `{0, source.length}` as a real gap -- was tried and measured
+  // worse. It flags every interior gap in the WHOLE document as broken
+  // (because `nfkcShifted` is a property of the whole `NormalizedInput`, not
+  // of the span beside the accented word), fragmenting every run in the
+  // input down to a single token: "5" alone, "kg" orphaned, the unary "-"
+  // anchoring but failing to parse alone, "3" alone and positive -- both the
+  // unit and the sign lost, on tokens nowhere near the accent. One mark that
+  // silently subtracts is judged the smaller cost than that.
+  //
+  // `text` is the whole input for the one mark that does form, for the same
+  // reason: `Scanner` maps the mark's own span through the same degraded
+  // `mapSpan`.
+  const input = "cafe\u0301 5 kg\n-3 kg";
+  expect(markValues(input)).toEqual([{ text: input, value: "2000" }]);
+});
+
+test("punctuation still bounds the run under NFKC composition, even though a newline cannot", () => {
+  // The point of splitting `gapBreaksRun` into two independently-reliable
+  // halves: the comma is visible in `normalized.text` and needs no mapping
+  // at all, so it still bounds the run here even though the newline case
+  // just above cannot. Two marks, the second negative -- `text` is the whole
+  // input for both, same degraded-`mapSpan` reason as above.
+  const input = "cafe\u0301 5 kg, -3 kg";
+  expect(markValues(input)).toEqual([
+    { text: input, value: "5000" },
+    { text: input, value: "-3000" },
+  ]);
+});
+
+test("a bare carriage return bounds the run the same way a newline does", () => {
+  expect(markValues("5 kg\r-3 kg")).toEqual([
+    { text: "5 kg", value: "5000" },
+    { text: "-3 kg", value: "-3000" },
+  ]);
+});
+
+test("a tab bounds the run the same way a newline does", () => {
+  // A TSV record separator: a tab between two fields is not "arithmetic
+  // continuing", the same reasoning that applies to a newline.
+  expect(markValues("5 kg\t-3 kg")).toEqual([
+    { text: "5 kg", value: "5000" },
+    { text: "-3 kg", value: "-3000" },
+  ]);
+});
+
+test("U+2028 LINE SEPARATOR bounds the run the same way a newline does", () => {
+  expect(markValues("5 kg -3 kg")).toEqual([
+    { text: "5 kg", value: "5000" },
+    { text: "-3 kg", value: "-3000" },
+  ]);
+});
+
+test("U+2029 PARAGRAPH SEPARATOR bounds the run the same way a newline does", () => {
+  // What a rich-text paste produces between paragraphs.
+  expect(markValues("5 kg -3 kg")).toEqual([
+    { text: "5 kg", value: "5000" },
+    { text: "-3 kg", value: "-3000" },
+  ]);
+});
+
 test("ScanScope.locales excludes another installed language's cue from the vote", () => {
   // `en`'s duration table (patched above) lists "in": 3; a minimal stub
   // language installed alongside it lists "in": 1 for the same kind. Before

@@ -413,17 +413,49 @@ definition, so that same permissive test does not flag a lone newline gap
 either, and `"5 km\n-3 C"` would keep reading as one continuous expression.
 The actual test is therefore "a non-whitespace character, OR a newline
 specifically" — `\n` gets named explicitly, the one whitespace character
-singled out, because §6.6's `BREAK` already rules it a clause boundary for
-the identical reason.
+singled out for the same "the token stream cannot see it, only the source gap
+can" reason as the punctuation half. This is NOT what §6.6's `BREAK` already
+covers, despite `BREAK`'s own pattern listing `\n` alongside `.!?;`: `broken()`
+tests `BREAK` against `normalized.text`, and by the time `text` exists every
+line-boundary character has already been collapsed to an ordinary space (I8),
+so that alternative is dead on this path — this check is the only place a
+line break is still visible.
 
-Under `nfkcShifted` — true only when NFKC composed multiple source code
+The gap check has two halves, with two different reliability guarantees, and
+only one of them touches `mapSpan` at all. The non-whitespace half reads
+`normalized.text` and needs no mapping — it holds on every input, `nfkcShifted`
+or not. Only the line-boundary half calls `mapSpan({ start: prev.end, end:
+cur.start })` and reads the slice of `normalized.source` it returns, and that
+is the half `nfkcShifted` — true only when NFKC composed multiple source code
 points together and lost the one-to-one correspondence back to the source —
-`mapSpan` already answers every span with the whole source, `{0,
-source.length}`, rather than guess at an offset that only looks plausible.
-The gap read inherits that: it degrades to "the whole source", which almost
-always contains a non-space character and so degrades further to no run
-longer than one token. No worse than the unbounded behaviour this rule
-replaces, for the one input shape it cannot see through.
+can take away entirely, not merely degrade: under it, `mapSpan` answers every
+span, however it is called, with the whole source, `{0, source.length}`,
+because it has no real offset left to give.
+
+That answer is not usable as "the gap." Two adjacent real tokens can never
+legitimately have the entire source sitting between them, so `{0,
+source.length}` from a call shaped `mapSpan({ start: prev.end, end: cur.start
+})` can only mean "unmappable," and `gapBreaksRun` treats it as exactly that:
+it detects the shape and **skips** the line-boundary half rather than reading
+the whole source as this gap. The cost is a false negative — a genuine line
+break the check cannot see, on the one input shape (NFKC composing across a
+token boundary) it was never able to map — and nothing worse than the
+unbounded behaviour this rule replaces for that shape. The alternative, tried
+and measured against the corpus, is worse: reading `{0, source.length}` as a
+real gap makes every interior gap in the *whole document* read as broken the
+moment the line-boundary character class (`\n`, `\r`, `\t`, U+2028, U+2029)
+appears anywhere in it, because `nfkcShifted` is a property of the whole
+`NormalizedInput`, not of the one span beside the composed word. That
+fragments every run at every anchor in the document down to a single token —
+discarding units and signs on input nowhere near the composition — which is
+a strictly larger loss than the one missed line break the skip accepts.
+
+The punctuation half is unaffected throughout: `"café 5 kg, -3 kg"` (combining
+acute, so `nfkcShifted`) still bounds at the comma and reads as two marks,
+because that half never touches `mapSpan`. Only `"café 5 kg\n-3 kg"` — the
+same composing accent, but a newline instead of a comma — reads as one
+5-kg-minus-3-kg mark; that is the documented miss, pinned as such rather than
+silently accepted.
 
 ```
 tokens:  … keyword(in) number(5) word(km) word(from) word(work)
