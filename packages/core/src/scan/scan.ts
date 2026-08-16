@@ -69,9 +69,50 @@ export interface ScanMatch {
  * A bare unit word is deliberately not one: "the kilometre is a unit" must mark
  * nothing, and an anchor rule that fired on unit words would mark the word
  * `kilometre` as a quantity of one.
+ *
+ * Three shapes anchor a run:
+ * - a `number` or `literal`, the ordinary case;
+ * - an `lparen` — a parenthesised expression begins at its paren, never at the
+ *   number inside it, or backoff finds "1 + 2" and stops, never trying the run
+ *   that also swallows the closing paren and everything after it;
+ * - an `op` of `-` or `+` in UNARY position: the next token has to be
+ *   something a sign can attach to (`number`, `literal`, `lparen`), and the
+ *   previous token has to be something that CANNOT be the tail of an operand
+ *   — i.e. not a `number`, a `literal`, or an `rparen`. Those three are the
+ *   only token types a parsed expression can end on, so a sign right after
+ *   one of them is binary: "5 - 3 km" has `number` before its `-`, and
+ *   "(1 + 2) - 3" has `rparen` before its `-`, and in both cases treating the
+ *   sign as unary would let backoff build a run like "- 3 km" that starts
+ *   mid-subtraction, silently changing what a *correct* longer match already
+ *   covers. Every other previous token — absent, another `op`, an `lparen`, a
+ *   `keyword`, or an ordinary `word` — cannot itself terminate an operand, so
+ *   a sign after one of those is unambiguously unary. The `word` case is not
+ *   a hypothetical: it is "note -5 km ok", the carrier sentence the corpus
+ *   test wraps every row in. "note" precedes the `-` and is plainly not a
+ *   quantity, so the sign has nothing to its left to bind to; an allow-list
+ *   naming only `op`/`lparen`/`keyword` would miss this and go on dropping
+ *   the sign whenever ordinary prose sits in front of it.
  */
-function isAnchor(token: Token | undefined): boolean {
-  return token !== undefined && (token.type === "number" || token.type === "literal");
+function isAnchor(tokens: readonly Token[], index: number): boolean {
+  const token = tokens[index];
+  if (token === undefined) return false;
+  if (token.type === "number" || token.type === "literal") return true;
+  if (token.type === "lparen") return true;
+  if (token.type === "op" && (token.op === "-" || token.op === "+")) {
+    const next = tokens[index + 1];
+    if (next === undefined) return false;
+    if (next.type !== "number" && next.type !== "literal" && next.type !== "lparen") {
+      return false;
+    }
+    const previous = tokens[index - 1];
+    return (
+      previous === undefined ||
+      (previous.type !== "number" &&
+        previous.type !== "literal" &&
+        previous.type !== "rparen")
+    );
+  }
+  return false;
 }
 
 /**
@@ -140,7 +181,7 @@ export class Scanner {
     const out: ScanMatch[] = [];
     let i = 0;
     while (i < tokens.length) {
-      if (!isAnchor(tokens[i])) {
+      if (!isAnchor(tokens, i)) {
         i += 1;
         continue;
       }
@@ -222,9 +263,25 @@ export class Scanner {
       }
       if (resolutions.length === 0) continue;
 
+      // `program.root.span` is the span of the parsed EXPRESSION, not of the
+      // token run backoff tried: for a parenthesised run "(1 + 2)" the root
+      // node's span sits *inside* the parens, since a paren pair contributes
+      // no span of its own in the AST it builds. Using it here would report
+      // "1 + 2" (or, once trailing tokens are included, drop the parens from
+      // the middle of the mark) even though the run that actually parsed
+      // spans the parens too. The mark is a claim about the run, not about the
+      // node it happened to produce, so its extent has to come from the run's
+      // own first and last tokens — `tokens[from]` and `tokens[to - 1]`, both
+      // guaranteed to exist by the loop bounds above (`from < to <= limit <=
+      // tokens.length`).
+      const first = tokens[from];
+      const last = tokens[to - 1];
+      if (first === undefined || last === undefined) continue;
+      const runSpan = { start: first.start, end: last.end };
+
       return {
         match: {
-          span: trimSpan(normalized.source, normalized.mapSpan(program.root.span)),
+          span: trimSpan(normalized.source, normalized.mapSpan(runSpan)),
           program,
           resolutions,
           cues: hits,

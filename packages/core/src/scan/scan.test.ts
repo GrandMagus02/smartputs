@@ -2,6 +2,7 @@ import { expect, test } from "bun:test";
 import { english as en } from "@smartput/core/locale/en";
 import { BUILTIN_KINDS } from "@smartput/kinds";
 import BUILTIN_EN from "@smartput/kinds/locale/en";
+import { Evaluator } from "../eval/evaluator";
 import { buildRegistry } from "../kind/registry";
 import { composeLocale } from "../locale/compose";
 import { defineVocabulary } from "../locale/vocabulary";
@@ -38,6 +39,8 @@ const scanner = new Scanner({
 
 const spans = (input: string) =>
   scanner.run(input, parser).map((m) => input.slice(m.span.start, m.span.end));
+
+const evaluator = new Evaluator({ registry, locale: locale.id });
 
 test("a quantity in prose is marked, and the prose is not", () => {
   expect(spans("My house is in 5km from work")).toEqual(["5km"]);
@@ -133,6 +136,56 @@ test("a caller's own cues are added to the ones collected from the text", () => 
   const biased = scanner.run("5 m", parser, { cues: { length: 4 } });
   expect(biased[0]?.resolutions[0]?.kind).toBe("length");
   expect(biased[0]?.resolutions[0]?.cueBonus).toBe(4);
+});
+
+test("a leading minus is part of the mark and part of the value", () => {
+  // Before the anchor rule accepted a unary `op`, the mark started at the
+  // number, dropping the sign from both the text ("5 km", not "-5 km") and
+  // the resolved value (positive 5000, not -5000) — a wrong answer delivered
+  // confidently, not just a short span. The span assertion alone would not
+  // have caught the value bug, so both are asserted here.
+  const marks = scanner.run("-5 km", parser);
+  const mark = marks[0];
+  expect(mark).toBeDefined();
+  if (mark === undefined) return;
+  expect(mark.span).toEqual({ start: 0, end: 5 });
+  const resolution = mark.resolutions[0];
+  expect(resolution).toBeDefined();
+  if (resolution === undefined) return;
+  expect(evaluator.run(mark.program, resolution).value.canonical.toString()).toBe(
+    "-5000",
+  );
+});
+
+test("a spelled-out minus is part of the mark and part of the value", () => {
+  const marks = scanner.run("minus five kg", parser);
+  const mark = marks[0];
+  expect(mark).toBeDefined();
+  if (mark === undefined) return;
+  expect(mark.span).toEqual({ start: 0, end: 13 });
+  const resolution = mark.resolutions[0];
+  expect(resolution).toBeDefined();
+  if (resolution === undefined) return;
+  expect(evaluator.run(mark.program, resolution).value.canonical.toString()).toBe(
+    "-5000",
+  );
+});
+
+test("a parenthesised expression is one mark spanning its own parens", () => {
+  // `program.root.span` covers only what is INSIDE the parens — a paren pair
+  // contributes no span of its own to the node it builds — so before the mark
+  // took its extent from the token run rather than the root node, this
+  // reported "1 + 2", silently losing the parens and the trailing "* 3" that
+  // depends on them.
+  expect(spans("(1 + 2) * 3")).toEqual(["(1 + 2) * 3"]);
+});
+
+test("the binary minus that precedes a unit is left alone", () => {
+  // The regression the unary anchor rule must not disturb: a `-` preceded by
+  // a `number` is binary, and backing off must still find "5 - 3" as a bare
+  // number, leaving the trailing "km" unclaimed rather than treating the "-"
+  // as a fresh unary anchor over "3 km" alone.
+  expect(spans("5 - 3 km")).toEqual(["5 - 3"]);
 });
 
 test("a non-breaking space does not collapse every mark onto the whole input", () => {
