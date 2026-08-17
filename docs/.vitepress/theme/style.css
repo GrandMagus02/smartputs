@@ -182,15 +182,17 @@
      word lifts at the tail instead of drifting away from the paragraph under
      it, and `inline-block` because a transform does not apply to inline text. */
   display: inline-block;
-  transform: rotate(-3deg);
+  /* Hung out past the headline's left edge and dropped a little into it, so
+     the sign reads as mounted over the page rather than as its first line. */
+  transform: translate(-0.42em, 0.04em) rotate(-3deg);
   transform-origin: left bottom;
   /* A connected script sets a much smaller shape than a text face at the same
      size, so the wordmark needs the size back to stand next to the headline. */
-  font-size: 3.8em;
+  font-size: clamp(3.4rem, 11vw, 7rem);
   /* The ink overruns the line box as much as it overruns the advance widths,
      so the headline under it needs the room given back explicitly. */
   line-height: 1.05;
-  margin-bottom: 0.12em;
+  margin-bottom: 0.1em;
   /* Not the gradient the theme fills hero names with: the face's ink runs well
      past its advance widths — the closing `s` and the underline swash sit
      outside the element box — and `background-clip: text` paints nothing out
