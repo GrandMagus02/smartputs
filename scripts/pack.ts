@@ -42,7 +42,7 @@ const TEST_PATHS = [/\.test\.(ts|js|d\.ts)$/, /(^|\/)corpus\//, /(^|\/)__snapsho
 const isTestPath = (path: string) => TEST_PATHS.some((re) => re.test(path));
 
 /** What the tarball carries, in `files` order. */
-const SHIPPED = ["dist", "src", "README.md", "LICENSE"] as const;
+const SHIPPED = ["dist", "src", "README.md", "CHANGELOG.md", "LICENSE"] as const;
 
 export interface StagedPackage {
   /** Workspace directory, e.g. `packages/length`. */
@@ -218,8 +218,10 @@ export async function stagePackage(
     if (isTestPath(path)) continue;
     copies.push(Bun.write(`${stagedDir}/${path}`, Bun.file(`${src}/${path}`)));
   }
-  const readme = Bun.file(`${src}/README.md`);
-  if (await readme.exists()) copies.push(Bun.write(`${stagedDir}/README.md`, readme));
+  for (const name of ["README.md", "CHANGELOG.md"]) {
+    const file = Bun.file(`${src}/${name}`);
+    if (await file.exists()) copies.push(Bun.write(`${stagedDir}/${name}`, file));
+  }
   copies.push(Bun.write(`${stagedDir}/LICENSE`, Bun.file(`${rootDir}/LICENSE`)));
   await Promise.all(copies);
 

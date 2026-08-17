@@ -115,7 +115,7 @@ export function nextVersion(version: string, bump: Bump): string {
   return version;
 }
 
-async function git(args: string[]): Promise<string> {
+export async function git(args: string[]): Promise<string> {
   const proc = Bun.spawn(["git", ...args], {
     cwd: rootDir,
     stdout: "pipe",
@@ -145,9 +145,17 @@ export function compareVersions(a: string, b: string): number {
   return am - bm || an - bn || ap - bp;
 }
 
-/** Commits since `from` (or the whole history) that touched a package directory. */
-async function commitsFor(dir: string, from: string | undefined): Promise<Commit[]> {
-  const range = from ? `${from}..HEAD` : "HEAD";
+/**
+ * Commits that touched a package directory: since `from` (or the whole
+ * history) and up to `to`, which the changelog backfill points at a tag rather
+ * than at `HEAD` so an old version's entry lists only what that version had.
+ */
+export async function commitsFor(
+  dir: string,
+  from: string | undefined,
+  to = "HEAD",
+): Promise<Commit[]> {
+  const range = from ? `${from}..${to}` : to;
   const log = await git(["log", range, "--format=%x1e%H%x1f%s%x1f%b", "--", dir]);
   return log
     .split("\u001e")
