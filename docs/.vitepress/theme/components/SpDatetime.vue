@@ -60,7 +60,7 @@ const examples = [
 </script>
 
 <template>
-  <DemoShell title="Dates, times and zones" icon="i-lucide-calendar-clock">
+  <DemoShell title="Dates, times and zones" icon="i-hugeicons-date-time">
     <div class="sp-dt">
       <label class="sp-field">
         <span class="sp-field__label">Expression</span>

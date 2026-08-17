@@ -27,7 +27,7 @@ const ranked = computed(() => {
 </script>
 
 <template>
-  <DemoShell title="engine.suggest(input)" icon="i-lucide-list-tree" :hint="hint">
+  <DemoShell title="engine.suggest(input)" icon="i-hugeicons-list-tree" :hint="hint">
     <label class="sp-field">
       <span class="sp-field__label">Expression</span>
       <input
@@ -66,7 +66,7 @@ const ranked = computed(() => {
     </ol>
 
     <p v-else class="sp-empty">
-      <span class="i-lucide-circle-alert" aria-hidden="true" />
+      <span class="i-hugeicons-alert-circle" aria-hidden="true" />
       No candidate ranking — <code>suggest()</code> returned an empty array.
     </p>
   </DemoShell>

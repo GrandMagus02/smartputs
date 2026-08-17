@@ -104,7 +104,7 @@ const pretty = (value: unknown): string => JSON.stringify(value, null, 2);
 </script>
 
 <template>
-  <DemoShell title="QueryEngine.parse() → SQL and Mongo" icon="i-lucide-database">
+  <DemoShell title="QueryEngine.parse() → SQL and Mongo" icon="i-hugeicons-database-01">
     <label class="sp-field">
       <span class="sp-field__label">Filter</span>
       <input
@@ -130,7 +130,7 @@ const pretty = (value: unknown): string => JSON.stringify(value, null, 2);
     </div>
 
     <div v-if="outcome.status === 'error'" class="sp-query__error">
-      <span class="i-lucide-circle-alert" aria-hidden="true" />
+      <span class="i-hugeicons-alert-circle" aria-hidden="true" />
       <span><strong>{{ outcome.name }}</strong> — {{ outcome.message }}</span>
     </div>
 

@@ -34,7 +34,7 @@ defineProps<{
          and destroyed with the message, and only `role="alert"` is reliably
          announced when the node itself appears. -->
     <p v-if="message" :id="ids.error" class="sp-formfield__error" role="alert">
-      <span class="i-lucide-circle-alert" aria-hidden="true" />
+      <span class="i-hugeicons-alert-circle" aria-hidden="true" />
       {{ message }}
     </p>
 
@@ -89,7 +89,7 @@ defineProps<{
   align-items: flex-start;
 }
 
-.sp-formfield__error > .i-lucide-circle-alert {
+.sp-formfield__error > .i-hugeicons-alert-circle {
   flex: none;
   margin-top: 2px;
 }

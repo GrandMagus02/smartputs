@@ -23,58 +23,58 @@ hero:
       link: https://github.com/GrandMagus02/smartputs
 
 features:
-  - icon: '<span class="i-lucide-calculator"></span>'
+  - icon: '<span class="i-hugeicons-calculator"></span>'
     title: One expression, many kinds
     details: >-
       "1 kg + 500 g", "30 h - 30 min", "212 F in C", "100 km / 2 h". Cross-kind
       operations are declared as signatures, so the evaluator never hardcodes a
       domain.
-  - icon: '<span class="i-lucide-sliders-horizontal"></span>'
+  - icon: '<span class="i-hugeicons-sliders-horizontal"></span>'
     title: Ambiguity is data, not a failure
     details: >-
       "10 m" is genuinely ambiguous. Candidates stay open until the solver runs,
       four layers of weights rank them, and explain() shows every term in the sum.
-  - icon: '<span class="i-lucide-text-cursor-input"></span>'
+  - icon: '<span class="i-hugeicons-cursor-text"></span>'
     title: Completion, not just evaluation
     details: >-
       complete() ranks the units a half-typed fragment could become and rewrites
       the whole input, so what it hands back always evaluates. Same weights, plus
       a magnitude fit.
-  - icon: '<span class="i-lucide-banknote"></span>'
+  - icon: '<span class="i-hugeicons-money-01"></span>'
     title: Money with the rates you supply
     details: >-
       @smartput/rate adds a currency kind whose ratios come from an injected,
       dated table. A rate derived through the base currency is disclosed, never
       implied.
-  - icon: '<span class="i-lucide-sigma"></span>'
+  - icon: '<span class="i-hugeicons-summation-01"></span>'
     title: LaTeX math, with the working
     details: >-
       @smartput/math evaluates, solves and analyses LaTeX — systems, matrices,
       calculus — exactly, and hands back the steps that got there. It reads the
       expression out in English too.
-  - icon: '<span class="i-lucide-puzzle"></span>'
+  - icon: '<span class="i-hugeicons-puzzle"></span>'
     title: A new kind is five lines
     details: >-
       defineKind takes an id and a unit table. Aliases, arithmetic and "in"
       conversion are generated. Built-ins register through the same public API.
-  - icon: '<span class="i-lucide-languages"></span>'
+  - icon: '<span class="i-hugeicons-translate"></span>'
     title: Built for inflected languages
     details: >-
       Recognition runs an analyzer chain, not an alias list, so "kilograms"
       reaches "kilogram" without enumerating every form. Generation uses
       Intl.PluralRules.
-  - icon: '<span class="i-lucide-binary"></span>'
+  - icon: '<span class="i-hugeicons-binary-code"></span>'
     title: Decimal all the way down
     details: >-
       Every value is a decimal.js Decimal in a canonical unit. A 23-significant-
       digit input survives the whole pipeline intact.
-  - icon: '<span class="i-lucide-square-check-big"></span>'
+  - icon: '<span class="i-hugeicons-checkmark-square-01"></span>'
     title: A 1.5 KB door for one field
     details: >-
       An HTML input asking whether "30deg" is valid does not need a registry and
       a Pratt parser. Every kind ships an engine-free parseX, and its size is a
       budget CI enforces.
-  - icon: '<span class="i-lucide-package"></span>'
+  - icon: '<span class="i-hugeicons-package"></span>'
     title: One runtime dependency
     details: >-
       @smartput/core depends on decimal.js and nothing else. CI fails on a

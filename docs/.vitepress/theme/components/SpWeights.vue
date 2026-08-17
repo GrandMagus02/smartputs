@@ -52,7 +52,7 @@ function addRow() {
 </script>
 
 <template>
-  <DemoShell title="Weights change the ranking" icon="i-lucide-sliders-horizontal">
+  <DemoShell title="Weights change the ranking" icon="i-hugeicons-sliders-horizontal">
     <label class="sp-field">
       <span class="sp-field__label">Expression</span>
       <input
@@ -87,7 +87,7 @@ function addRow() {
         />
       </div>
       <button type="button" class="sp-chip" @click="addRow">
-        <span class="i-lucide-layers" aria-hidden="true" /> add selector
+        <span class="i-hugeicons-layers-01" aria-hidden="true" /> add selector
       </button>
     </div>
 

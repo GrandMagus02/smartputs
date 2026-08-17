@@ -4,7 +4,7 @@ defineProps<{ name: string; message: string }>();
 
 <template>
   <p class="sp-math-error">
-    <span class="i-lucide-triangle-alert" aria-hidden="true" />
+    <span class="i-hugeicons-alert-02" aria-hidden="true" />
     <code>{{ name }}</code>
     <span>{{ message }}</span>
   </p>

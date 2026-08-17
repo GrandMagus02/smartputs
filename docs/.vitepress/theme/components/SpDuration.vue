@@ -33,7 +33,7 @@ const examples = [
 </script>
 
 <template>
-  <DemoShell title="Duration, a plain ratio kind" icon="i-lucide-timer">
+  <DemoShell title="Duration, a plain ratio kind" icon="i-hugeicons-timer-01">
     <div class="sp-duration">
       <label class="sp-field">
         <span class="sp-field__label">Amount</span>

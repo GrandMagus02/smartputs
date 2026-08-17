@@ -30,7 +30,7 @@ const rows = computed(() => {
 </script>
 
 <template>
-  <DemoShell title="math.describe(latex) — and OPERATOR_WORDS" icon="i-lucide-audio-lines">
+  <DemoShell title="math.describe(latex) — and OPERATOR_WORDS" icon="i-hugeicons-audio-wave-01">
     <label class="sp-field">
       <span class="sp-field__label">LaTeX</span>
       <input
@@ -65,7 +65,7 @@ const rows = computed(() => {
 
     <p v-else-if="outcome.status === 'ok'" class="sp-speech__said">
       <SpTex :tex="input" />
-      <span class="i-lucide-arrow-right" aria-hidden="true" />
+      <span class="i-hugeicons-arrow-right-01" aria-hidden="true" />
       <span class="sp-speech__words">“{{ outcome.value }}”</span>
     </p>
 

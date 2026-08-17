@@ -41,7 +41,7 @@ function onKeydown(event: KeyboardEvent) {
 </script>
 
 <template>
-  <DemoShell :title="title" icon="i-lucide-text-cursor-input" :hint="hint">
+  <DemoShell :title="title" icon="i-hugeicons-cursor-text" :hint="hint">
     <label class="sp-field">
       <span class="sp-field__label">Expression — ↓ ↑ to move, Enter to accept</span>
       <div class="sp-complete">

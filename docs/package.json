@@ -29,7 +29,7 @@
     "katex": "^0.18.1"
   },
   "devDependencies": {
-    "@iconify-json/lucide": "^1.2.0",
+    "@iconify-json/hugeicons": "^1.2.33",
     "reka-ui": "^2.10.1",
     "unocss": "^66.0.0",
     "vitepress": "^1.6.3",

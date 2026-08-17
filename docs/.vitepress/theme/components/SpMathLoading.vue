@@ -8,7 +8,7 @@
 
 <template>
   <p class="sp-math-loading">
-    <span class="i-lucide-loader-circle" aria-hidden="true" />
+    <span class="i-hugeicons-loading-03" aria-hidden="true" />
     <span>Loading the math engine…</span>
   </p>
 </template>

@@ -45,14 +45,14 @@ const day = (ms: number): string => new Date(ms).toISOString().slice(0, 10);
 </script>
 
 <template>
-  <DemoShell title="findHoliday(query, place)" icon="i-lucide-party-popper">
+  <DemoShell title="findHoliday(query, place)" icon="i-hugeicons-party">
     <div v-if="find === null" class="sp-holiday__gate">
       <p>
         The rule table is about <strong>236 KB gzipped</strong>. Nothing on this
         page has loaded it — click to fetch it now.
       </p>
       <button type="button" class="sp-chip" :disabled="loading" @click="load">
-        <span :class="loading ? 'i-lucide-loader' : 'i-lucide-download'" aria-hidden="true" />
+        <span :class="loading ? 'i-hugeicons-loading-02' : 'i-hugeicons-download-01'" aria-hidden="true" />
         {{ loading ? "Loading…" : "Load the holiday table" }}
       </button>
       <p v-if="failed" class="sp-holiday__failed">{{ failed }}</p>
@@ -94,7 +94,7 @@ const day = (ms: number): string => new Date(ms).toISOString().slice(0, 10);
       </ol>
 
       <p v-else class="sp-empty">
-        <span class="i-lucide-circle-alert" aria-hidden="true" />
+        <span class="i-hugeicons-alert-circle" aria-hidden="true" />
         No match above the score floor — a guess is not a match.
       </p>
     </template>

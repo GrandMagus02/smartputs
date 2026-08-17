@@ -22,7 +22,7 @@ const outcome = computed(() => evaluateSafely(docsEngine, expression.value));
 </script>
 
 <template>
-  <DemoShell title="Conversion with the `in` keyword" icon="i-lucide-move-horizontal">
+  <DemoShell title="Conversion with the `in` keyword" icon="i-hugeicons-arrow-horizontal">
     <div class="sp-convert">
       <label class="sp-field">
         <span class="sp-field__label">Amount</span>

@@ -19,7 +19,7 @@ withDefaults(
 <template>
   <section class="sp-demo" :class="{ 'sp-demo--overflow': overflow }">
     <header class="sp-demo__head">
-      <span class="sp-demo__icon" :class="icon ?? 'i-lucide-play'" aria-hidden="true" />
+      <span class="sp-demo__icon" :class="icon ?? 'i-hugeicons-play'" aria-hidden="true" />
       <h4 class="sp-demo__title">{{ title }}</h4>
       <span class="sp-demo__badge">live</span>
     </header>
@@ -29,7 +29,7 @@ withDefaults(
     </div>
 
     <p v-if="hint || $slots.hint" class="sp-demo__hint">
-      <span class="i-lucide-message-square-quote" aria-hidden="true" />
+      <span class="i-hugeicons-quote-down-square" aria-hidden="true" />
       <slot name="hint">{{ hint }}</slot>
     </p>
   </section>
@@ -106,7 +106,7 @@ withDefaults(
 
 /* The hint is prose with inline `code` in it, so it must stay a normal text
    flow — a flex container would make every inline child its own column. */
-.sp-demo__hint > .i-lucide-message-square-quote {
+.sp-demo__hint > .i-hugeicons-quote-down-square {
   margin-right: 6px;
 }
 

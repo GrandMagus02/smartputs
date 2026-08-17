@@ -52,7 +52,7 @@ const folded = computed(() => normalizeName(input.value));
 </script>
 
 <template>
-  <DemoShell title="similarity() and haversine(), with no provider" icon="i-lucide-globe">
+  <DemoShell title="similarity() and haversine(), with no provider" icon="i-hugeicons-globe">
     <label class="sp-field">
       <span class="sp-field__label">Typed name</span>
       <input

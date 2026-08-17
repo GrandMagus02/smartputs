@@ -54,7 +54,7 @@ onBeforeUnmount(() => {
         :aria-label="copied ? 'Copied' : 'Copy page as Markdown'"
         @click="copyAsMarkdown"
       >
-        <span :class="copied ? 'i-lucide-check' : 'i-lucide-copy'" aria-hidden="true" />
+        <span :class="copied ? 'i-hugeicons-tick-02' : 'i-hugeicons-copy-01'" aria-hidden="true" />
         {{ copied ? "Copied" : "Copy page" }}
       </button>
 
@@ -66,7 +66,7 @@ onBeforeUnmount(() => {
         :aria-expanded="menuOpen"
         @click="menuOpen = !menuOpen"
       >
-        <span class="i-lucide-chevron-down" aria-hidden="true" />
+        <span class="i-hugeicons-arrow-down-01" aria-hidden="true" />
       </button>
 
       <div v-if="menuOpen" class="sp-actions__menu" role="menu">
@@ -78,7 +78,7 @@ onBeforeUnmount(() => {
             menuOpen = false;
           "
         >
-          <span class="i-lucide-file-text" aria-hidden="true" />
+          <span class="i-hugeicons-file-02" aria-hidden="true" />
           View raw Markdown
         </button>
         <button
@@ -91,9 +91,9 @@ onBeforeUnmount(() => {
             menuOpen = false;
           "
         >
-          <span class="i-lucide-bot" aria-hidden="true" />
+          <span class="i-hugeicons-bot" aria-hidden="true" />
           Open in {{ provider.name }}
-          <span class="i-lucide-external-link sp-actions__ext" aria-hidden="true" />
+          <span class="i-hugeicons-link-square-01 sp-actions__ext" aria-hidden="true" />
         </button>
       </div>
     </div>
@@ -104,7 +104,7 @@ onBeforeUnmount(() => {
       :aria-label="downloaded ? 'Downloaded' : 'Download page as Markdown'"
       @click="downloadMarkdown"
     >
-      <span :class="downloaded ? 'i-lucide-check' : 'i-lucide-download'" aria-hidden="true" />
+      <span :class="downloaded ? 'i-hugeicons-tick-02' : 'i-hugeicons-download-01'" aria-hidden="true" />
       {{ downloaded ? "Saved" : "Download" }}
     </button>
   </div>

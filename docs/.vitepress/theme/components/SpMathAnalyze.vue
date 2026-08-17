@@ -15,15 +15,15 @@ const outcome = computed(() =>
 );
 
 const KIND_ICON: Record<string, string> = {
-  minimum: "i-lucide-trending-down",
-  maximum: "i-lucide-trending-up",
-  inflection: "i-lucide-move-horizontal",
-  unknown: "i-lucide-circle-help",
+  minimum: "i-hugeicons-chart-down",
+  maximum: "i-hugeicons-chart-up",
+  inflection: "i-hugeicons-arrow-horizontal",
+  unknown: "i-hugeicons-help-circle",
 };
 </script>
 
 <template>
-  <DemoShell title="math.analyze(latex, options?)" icon="i-lucide-chart-spline">
+  <DemoShell title="math.analyze(latex, options?)" icon="i-hugeicons-chart-line-data-01">
     <label class="sp-field">
       <span class="sp-field__label">Function of one variable</span>
       <input

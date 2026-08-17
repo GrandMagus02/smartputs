@@ -43,7 +43,7 @@ const examples = [
 </script>
 
 <template>
-  <DemoShell title="Range.parse(text)?.slice(list)" icon="i-lucide-list-ordered">
+  <DemoShell title="Range.parse(text)?.slice(list)" icon="i-hugeicons-left-to-right-list-number">
     <label class="sp-field">
       <span class="sp-field__label">Selection</span>
       <input
@@ -74,7 +74,7 @@ const examples = [
     </label>
 
     <p v-if="sliced === null" class="sp-empty">
-      <span class="i-lucide-circle-alert" aria-hidden="true" />
+      <span class="i-hugeicons-alert-circle" aria-hidden="true" />
       <code>Range.parse()</code> returned <code>null</code> — not a selection.
     </p>
 

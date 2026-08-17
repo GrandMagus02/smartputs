@@ -16,7 +16,7 @@ const props = withDefaults(
   }>(),
   {
     title: "engine.evaluate(input)",
-    icon: "i-lucide-calculator",
+    icon: "i-hugeicons-calculator",
     modelValue: "1 kg + 500 g",
     examples: () => [],
     withMoney: false,

@@ -70,7 +70,7 @@ function accept(alias: unknown): void {
 <template>
   <DemoShell
     title="Reka UI Combobox over one unit table"
-    icon="i-lucide-text-cursor-input"
+    icon="i-hugeicons-cursor-text"
     :hint="hint"
     overflow
   >

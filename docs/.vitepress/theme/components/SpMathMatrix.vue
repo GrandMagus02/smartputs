@@ -32,7 +32,7 @@ const product = computed(() =>
 </script>
 
 <template>
-  <DemoShell title="math.matrix(latex)" icon="i-lucide-grid-3x3">
+  <DemoShell title="math.matrix(latex)" icon="i-hugeicons-grid">
     <label class="sp-field">
       <span class="sp-field__label">Matrix — <code>pmatrix</code>, <code>bmatrix</code> or a list of rows</span>
       <input

@@ -41,7 +41,7 @@ const code = computed(() => {
 </script>
 
 <template>
-  <DemoShell title="parseX() behind one <input>" icon="i-lucide-square-check-big" :hint="hint">
+  <DemoShell title="parseX() behind one <input>" icon="i-hugeicons-checkmark-square-01" :hint="hint">
     <div v-if="switchable" class="sp-chips">
       <button
         v-for="entry in FIELD_KINDS"

@@ -37,7 +37,7 @@ const outcome = computed(() => evaluateSafely(rangeEngine, input.value));
 </script>
 
 <template>
-  <DemoShell :title="title" icon="i-lucide-calendar-range" :hint="hint">
+  <DemoShell :title="title" icon="i-hugeicons-calendar-02" :hint="hint">
     <label class="sp-field">
       <span class="sp-field__label">Expression</span>
       <input

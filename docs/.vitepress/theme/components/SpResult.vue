@@ -28,13 +28,13 @@ const canonical = computed(() =>
 
 <template>
   <div v-if="outcome.status === 'empty'" class="sp-result sp-result--idle">
-    <span class="i-lucide-terminal" aria-hidden="true" />
+    <span class="i-hugeicons-computer-terminal-01" aria-hidden="true" />
     <span>Type an expression to evaluate it.</span>
   </div>
 
   <div v-else-if="outcome.status === 'error'" class="sp-result sp-result--error">
     <div class="sp-result__line">
-      <span class="i-lucide-circle-x" aria-hidden="true" />
+      <span class="i-hugeicons-cancel-circle" aria-hidden="true" />
       <code class="sp-result__errname">{{ outcome.name }}</code>
     </div>
     <p class="sp-result__msg">{{ outcome.message }}</p>
@@ -63,7 +63,7 @@ const canonical = computed(() =>
     </dl>
 
     <p v-if="outcome.result.meta.assumptions.length" class="sp-result__assumptions">
-      <span class="i-lucide-triangle-alert" aria-hidden="true" />
+      <span class="i-hugeicons-alert-02" aria-hidden="true" />
       {{ outcome.result.meta.assumptions.map((a) => a.message).join('; ') }}
     </p>
   </div>

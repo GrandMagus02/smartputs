@@ -44,7 +44,7 @@ const approx = computed(() => {
 </script>
 
 <template>
-  <DemoShell :title="title" icon="i-lucide-sigma" :hint="hint">
+  <DemoShell :title="title" icon="i-hugeicons-summation-01" :hint="hint">
     <label class="sp-field">
       <span class="sp-field__label">LaTeX</span>
       <input

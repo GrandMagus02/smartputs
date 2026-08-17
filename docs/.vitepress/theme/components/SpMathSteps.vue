@@ -23,7 +23,7 @@ withDefaults(
         <span class="sp-steps__title">{{ step.title }}</span>
         <span class="sp-steps__math">
           <SpTex :tex="step.before" />
-          <span class="sp-steps__arrow i-lucide-arrow-right" aria-hidden="true" />
+          <span class="sp-steps__arrow i-hugeicons-arrow-right-01" aria-hidden="true" />
           <SpTex :tex="step.after" />
         </span>
         <span v-if="step.detail" class="sp-steps__detail">

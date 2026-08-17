@@ -31,7 +31,7 @@ const rows = computed(() => {
 </script>
 
 <template>
-  <DemoShell title="math.solveSystem(input, options?)" icon="i-lucide-brackets">
+  <DemoShell title="math.solveSystem(input, options?)" icon="i-hugeicons-3rd-bracket">
     <label class="sp-field">
       <span class="sp-field__label">Equations — one per line, or a <code>cases</code> block</span>
       <textarea

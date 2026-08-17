@@ -180,25 +180,25 @@ export function evaluateSafely(engine: Engine, input: string): EvalOutcome {
   }
 }
 
-/** Lucide icon suffix per registered kind, used by the result cards. */
+/** Hugeicons icon suffix per registered kind, used by the result cards. */
 export const KIND_ICONS: Record<string, string> = {
   length: "ruler",
-  mass: "weight",
-  duration: "timer",
-  number: "hash",
+  mass: "weight-scale",
+  duration: "timer-01",
+  number: "hashtag",
   percent: "percent",
   temperature: "thermometer",
-  tempdelta: "thermometer-sun",
+  tempdelta: "thermometer-warm",
   angle: "triangle",
   datasize: "hard-drive",
-  speed: "gauge",
+  speed: "dashboard-speed-01",
   area: "square",
-  volume: "beaker",
-  money: "banknote",
-  datetime: "calendar-clock",
+  volume: "test-tube-01",
+  money: "money-01",
+  datetime: "date-time",
   place: "map-pin",
 };
 
 export function kindIcon(kind: string): string {
-  return `i-lucide-${KIND_ICONS[kind] ?? "shapes"}`;
+  return `i-hugeicons-${KIND_ICONS[kind] ?? "shapes"}`;
 }

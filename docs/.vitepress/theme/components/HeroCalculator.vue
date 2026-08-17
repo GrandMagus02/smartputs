@@ -52,7 +52,7 @@ function pick(example: string) {
 <template>
   <div class="hero-calc">
     <div class="hero-calc__bar">
-      <span class="i-lucide-search-code hero-calc__glyph" aria-hidden="true" />
+      <span class="i-hugeicons-search-code hero-calc__glyph" aria-hidden="true" />
       <input
         v-model="input"
         type="text"
@@ -104,7 +104,7 @@ function pick(example: string) {
     </ul>
 
     <div v-else class="hero-calc__rows hero-calc__rows--empty">
-      <span class="i-lucide-circle-alert" aria-hidden="true" />
+      <span class="i-hugeicons-alert-circle" aria-hidden="true" />
       <span>No reading for that input.</span>
     </div>
 

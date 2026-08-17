@@ -38,7 +38,7 @@ const unitRate = computed(() => {
 </script>
 
 <template>
-  <DemoShell title="Money, with an injected rate table" icon="i-lucide-banknote">
+  <DemoShell title="Money, with an injected rate table" icon="i-hugeicons-money-01">
     <div class="sp-money">
       <label class="sp-field">
         <span class="sp-field__label">Amount</span>
@@ -53,7 +53,7 @@ const unitRate = computed(() => {
       </label>
 
       <button type="button" class="sp-money__swap" title="Swap currencies" @click="swap">
-        <span class="i-lucide-arrow-left-right" aria-hidden="true" />
+        <span class="i-hugeicons-arrow-left-right" aria-hidden="true" />
         <span class="sr-only">Swap</span>
       </button>
 

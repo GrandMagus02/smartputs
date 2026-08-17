@@ -61,7 +61,7 @@ const tokenLabel = (token: Explanation["tokens"][number]): string => {
 </script>
 
 <template>
-  <DemoShell title="engine.explain(input)" icon="i-lucide-microscope" :hint="hint">
+  <DemoShell title="engine.explain(input)" icon="i-hugeicons-microscope" :hint="hint">
     <label class="sp-field">
       <span class="sp-field__label">Expression</span>
       <input

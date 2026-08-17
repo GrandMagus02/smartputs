@@ -32,7 +32,7 @@ const outcome = computed(() =>
 </script>
 
 <template>
-  <DemoShell title="math.solve(latex, options?)" icon="i-lucide-equal" :hint="hint">
+  <DemoShell title="math.solve(latex, options?)" icon="i-hugeicons-equal-sign" :hint="hint">
     <div class="sp-solve">
       <label class="sp-field">
         <span class="sp-field__label">Equation</span>

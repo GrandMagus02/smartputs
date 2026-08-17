@@ -97,7 +97,7 @@ const source = computed(() => {
 </script>
 
 <template>
-  <DemoShell title="defineKind() — a new kind, live" icon="i-lucide-puzzle">
+  <DemoShell title="defineKind() — a new kind, live" icon="i-hugeicons-puzzle">
     <div class="sp-kind">
       <label class="sp-field">
         <span class="sp-field__label">Kind id</span>
