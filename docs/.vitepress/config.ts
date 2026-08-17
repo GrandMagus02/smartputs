@@ -54,26 +54,18 @@ export default defineConfig({
         generateLLMFriendlyDocsForEachPage: true,
       }),
     ],
-    // `@smartput/core`, `@smartput/kinds`, `@smartput/rate` and
-    // `@smartput/math` are workspace symlinks whose exports point at TypeScript
-    // source, so the demos run the same code the tests do — no build step in
-    // between. Vite must transform them for the SSR pass too, and the dev
-    // server has to be allowed to read outside `docs/`.
+    // Every `@smartput/*` package is bundled into the SSR pass rather than
+    // handed to Node. Locally they are workspace symlinks, which Vite would
+    // inline anyway; in the production build they are the published tarballs
+    // (see `scripts/docs-published.ts`), and left external the barrels that
+    // `export *` from a sibling subpath — `@smartput/kinds/validate` over the
+    // per-kind `/validate` entries — come back out of Rollup with every name
+    // imported from whichever sibling came first. The whole scope, so a demo
+    // reaching for a kind the list forgot does not fail only in production.
     ssr: {
       noExternal: [
-        "@smartput/core",
-        "@smartput/kinds",
-        "@smartput/rate",
-        "@smartput/math",
-        "@smartput/shared",
-        "@smartput/range",
-        "@smartput/query",
-        "@smartput/geo",
-        "@smartput/date",
-        "@smartput/time",
-        "@smartput/date-range",
-        "@smartput/time-range",
-        "@smartput/datetime-range",
+        /^@smartput\//,
+        "smartputs",
         // Reka UI ships single-file components compiled to ESM. Vite must
         // bundle them for the SSR pass rather than hand them to Node, or the
         // `.vue`-derived modules arrive as bare ESM in a CJS require chain.

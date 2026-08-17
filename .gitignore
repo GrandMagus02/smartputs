@@ -11,6 +11,7 @@ dist/
 # commands run by hand.
 .npmrc
 .superpowers/
+docs/.published/
 docs/.vitepress/dist/
 docs/.vitepress/cache/
 docs/.vitepress/.temp/
