@@ -22,7 +22,17 @@ export default defineConfig({
     // Markdown is compiled to a Vue SFC before UnoCSS sees it, so both
     // extensions have to be in the transform pipeline.
     pipeline: { include: [/\.(vue|md)($|\?)/] },
-    filesystem: ["**/*.md", ".vitepress/**/*.{vue,ts}"],
+    // The scan is the site's own files and nothing else. `**/*.md` on its own
+    // walks `node_modules` — 92 MB of it, through the workspace symlinks — on
+    // every extract, which is a third of a second added to each module the dev
+    // server hands out and both cores pinned while it does.
+    filesystem: [
+      "**/*.md",
+      ".vitepress/**/*.{vue,ts}",
+      "!node_modules/**",
+      "!.published/**",
+      "!.vitepress/{cache,dist}/**",
+    ],
   },
   // Icons composed at runtime (`:class="'i-hugeicons-' + name"`) are invisible
   // to the static extractor, so every dynamic name is listed here — the whole

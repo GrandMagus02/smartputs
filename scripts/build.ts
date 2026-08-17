@@ -110,7 +110,7 @@ export async function buildPackage(
 }
 
 /** Builds every package. Returns false if any package failed. */
-export async function buildAll(): Promise<boolean> {
+export async function buildAll(options: BuildOptions = {}): Promise<boolean> {
   const manifests = packageManifests();
 
   if (manifests.length === 0) {
@@ -122,7 +122,9 @@ export async function buildAll(): Promise<boolean> {
   // starts in series is most of a minute. Output is buffered and printed in
   // glob order so the log reads the same however the race lands.
   const results = await Promise.all(
-    manifests.map((manifest) => buildPackage(manifest.replace(/\/package\.json$/, ""))),
+    manifests.map((manifest) =>
+      buildPackage(manifest.replace(/\/package\.json$/, ""), options),
+    ),
   );
 
   let ok = true;
@@ -137,5 +139,9 @@ export async function buildAll(): Promise<boolean> {
 }
 
 if (import.meta.main) {
-  if (!(await buildAll())) process.exit(1);
+  // `--no-declarations` is for callers that only need something importable:
+  // the docs dev server reads the bundles and never a `.d.ts`, and tsc is
+  // three quarters of the wall clock here.
+  const declarations = !process.argv.slice(2).includes("--no-declarations");
+  if (!(await buildAll({ declarations }))) process.exit(1);
 }

@@ -72,13 +72,54 @@ export default defineConfig({
         "reka-ui",
       ],
     },
+    // Prebundled, every entry the theme imports, and named one by one.
+    //
+    // Vite leaves linked dependencies out of the dep optimizer by default, and
+    // a workspace symlink is a linked dependency: unlisted, `@smartput/*` is
+    // served as loose ESM, every internal import is another request, and the
+    // scanner has to crawl the whole engine — the holiday tables, the geo
+    // providers, `decimal.js` — on the way to finding what to optimize. That
+    // crawl is what made `docs:dev` sit at 100% CPU for minutes with the page
+    // still blank. Esbuild bundles this list once into `.vitepress/cache`
+    // instead, and the second start reuses it.
+    //
+    // Subpaths need naming separately — `@smartput/core` does not stand for
+    // `@smartput/core/locale/en`. A demo importing an entry that is missing
+    // here still works; it just costs the one reload that adds it.
     optimizeDeps: {
-      exclude: [
+      // ...and nothing is discovered by crawling. Vite's scanner treats a
+      // symlinked package as source rather than as a dependency, so it walks
+      // the entire engine — every kind, the holiday tables, the geo providers
+      // — through the JS resolver before the optimizer has bundled anything.
+      // That scan is minutes; esbuild bundling the same graph is one second.
+      // With the list below complete there is nothing left for it to find.
+      noDiscovery: true,
+      include: [
+        "reka-ui",
+        "katex",
         "@smartput/core",
+        "@smartput/core/locale/en",
         "@smartput/kinds",
-        "@smartput/rate",
-        "@smartput/math",
+        "@smartput/kinds/locale/en",
+        "@smartput/kinds/validate",
         "@smartput/shared",
+        "@smartput/math",
+        "@smartput/rate",
+        "@smartput/rate/locale/en",
+        "@smartput/range",
+        "@smartput/range/class",
+        "@smartput/query",
+        "@smartput/query/sql",
+        "@smartput/query/mongo",
+        "@smartput/geo",
+        "@smartput/date",
+        "@smartput/date-range",
+        "@smartput/datetime",
+        "@smartput/datetime/locale/en",
+        "@smartput/datetime-range",
+        "@smartput/time",
+        "@smartput/time-range",
+        "@smartput/timezone",
       ],
     },
     server: { fs: { allow: [repoRoot] } },
