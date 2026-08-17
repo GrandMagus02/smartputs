@@ -4,12 +4,14 @@
     <filter id="tube" x="-50%" y="-50%" width="200%" height="200%">
       <feGaussianBlur stdDeviation="1.4"/>
     </filter>
+    <!-- Hugeicons `brain-01`, drawn on a 24 grid and inset by 4 on each side. -->
+    <path id="brain" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.145 5.208a3.5 3.5 0 0 0-5.92 1.053A3 3 0 0 0 5 9.051m10.145-3.843a4.5 4.5 0 0 1 5.492 6.065m-5.492-6.065A4.51 4.51 0 0 0 12.028 9M9.05 14a2.5 2.5 0 0 0 2.45 2c.255 0 .382 0 .5.014a2 2 0 0 1 1.435.887c.065.099.122.213.236.44L15 20m-5.95-6a2.5 2.5 0 0 1 .95-2.5M9.05 14H4.5A2.5 2.5 0 1 1 5 9.05m15.637 2.223A2.5 2.5 0 0 0 17.05 13m3.587-1.727A2.5 2.5 0 0 1 19.5 16a1.733 1.733 0 0 0-1.622 2.34L18.5 20M5 9.05c.013.749.3 1.43.764 1.95"/>
   </defs>
   <rect width="32" height="32" rx="8" fill="#090714"/>
-  <g filter="url(#tube)" opacity="0.75">
-    <path d="M8 12h6M8 20h6M11 9v6" stroke="#FF3FA4" stroke-width="2.4" stroke-linecap="round"/>
-    <path d="M18 11.5h6M18 16h6M18 20.5h6" stroke="#2DE2FF" stroke-width="2.4" stroke-linecap="round"/>
+  <!-- Same two-pass tube as the rest of the palette: a blurred saturated pass
+       under a crisp pale one, so the mark still reads as a shape at 16px. -->
+  <g transform="translate(3.9 3.9) scale(1.008)">
+    <use href="#brain" stroke="#FFB13D" filter="url(#tube)" opacity="0.85"/>
+    <use href="#brain" stroke="#FFE066"/>
   </g>
-  <path d="M8 12h6M8 20h6M11 9v6" stroke="#FFE9F5" stroke-width="2.4" stroke-linecap="round"/>
-  <path d="M18 11.5h6M18 16h6M18 20.5h6" stroke="#EAFDFF" stroke-width="2.4" stroke-linecap="round"/>
 </svg>

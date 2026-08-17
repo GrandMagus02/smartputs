@@ -158,17 +158,57 @@
 
 /* ------------------------------------------------------------- wordmark --- */
 
-/* The hero name is set in the mono face the demos type into: the product reads
-   what people key in, so its own name is shown keyed in. */
-.VPHero .name {
-  font-family: var(--vp-font-family-mono);
-  text-transform: uppercase;
-  letter-spacing: 0.01em;
-  filter: drop-shadow(0 0 22px rgba(255, 63, 164, 0.35));
+/* Las Enter (Måns Grebäck, 2013) — a neon-tube script, which is the palette in
+   letterform. Self-hosted rather than fetched, subset to printable ASCII, and
+   `swap` so the name is readable before it arrives.
+   PERSONAL USE ONLY: see `public/fonts/las-enter-LICENSE.txt`. A commercial
+   licence is at https://www.aringtypeface.com/las-enter. */
+@font-face {
+  font-family: "Las Enter";
+  src: url("/fonts/las-enter.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
 }
 
+/* The wordmark is the sign the rest of the page is lit by. Mixed case and no
+   extra tracking: the face draws its own tube joins, and uppercasing or
+   spreading it breaks them. */
+.VPHero .name {
+  font-family: "Las Enter", var(--vp-font-family-mono);
+  text-transform: none;
+  letter-spacing: 0.02em;
+  /* A sign hung slightly off true. Rotated about the baseline's left end so the
+     word lifts at the tail instead of drifting away from the paragraph under
+     it, and `inline-block` because a transform does not apply to inline text. */
+  display: inline-block;
+  transform: rotate(-3deg);
+  transform-origin: left bottom;
+  /* A connected script sets a much smaller shape than a text face at the same
+     size, so the wordmark needs the size back to stand next to the headline. */
+  font-size: 2.4em;
+  line-height: 1.05;
+  /* Not the gradient the theme fills hero names with: the face's ink runs well
+     past its advance widths — the closing `s` and the underline swash sit
+     outside the element box — and `background-clip: text` paints nothing out
+     there, so the end of the word would fade out. A lit tube instead, which is
+     what the letterform is drawing anyway. */
+  background: none;
+  color: var(--sp-magenta);
+  -webkit-text-fill-color: currentColor;
+  text-shadow:
+    0 0 6px rgba(255, 63, 164, 0.5),
+    0 0 20px rgba(255, 63, 164, 0.25);
+  filter: none;
+}
+
+/* On the dark page the tube is lit: a pale core inside a magenta throw. */
 .dark .VPHero .name {
-  filter: drop-shadow(0 0 26px rgba(255, 63, 164, 0.45));
+  color: var(--sp-blush);
+  text-shadow:
+    0 0 6px rgba(255, 63, 164, 0.95),
+    0 0 18px rgba(255, 63, 164, 0.75),
+    0 0 42px rgba(255, 63, 164, 0.45);
 }
 
 /* --------------------------------------------------------- neon horizon --- */
@@ -384,7 +424,7 @@
 
 /* Feature icons on the home page: the `icon` frontmatter field renders raw
    HTML, so an icon span needs a size the utility class does not carry. */
-.VPFeature .icon [class^="i-lucide-"] {
+.VPFeature .icon [class^="i-hugeicons-"] {
   width: 22px;
   height: 22px;
 }
