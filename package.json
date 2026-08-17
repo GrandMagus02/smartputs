@@ -15,7 +15,7 @@
     "docs:dev": "bun run build && bun run docs:packages && bun run --cwd docs dev",
     "docs:build": "bun run build && bun run docs:packages && bun run --cwd docs build",
     "docs:published": "bun run scripts/docs-published.ts",
-    "docs:build:prod": "bun run build && bun run docs:packages && bun run docs:published && bun run --cwd docs build",
+    "docs:build:prod": "bun run docs:packages && bun run docs:published && bun run --cwd docs build",
     "docs:preview": "bun run --cwd docs preview",
     "lint": "biome check .",
     "format": "biome format --write .",

@@ -63,7 +63,9 @@ async function stage(names: string[]): Promise<void> {
       2,
     )}\n`,
   );
-  await $`bun install --no-cache`.cwd(stageDir);
+  // No `--no-cache`: `latest` is re-resolved against the registry every run
+  // either way, and the flag only throws away tarballs already on the machine.
+  await $`bun install --no-save`.cwd(stageDir);
 }
 
 /**
