@@ -1,5 +1,9 @@
 # @smartput/datasize
 
+## 0.1.1 (2026-08-18)
+
+Released to pick up a new version of a workspace dependency.
+
 ## 0.1.0 (2026-08-16)
 
 ### BREAKING CHANGES

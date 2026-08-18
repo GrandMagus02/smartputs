@@ -1,5 +1,11 @@
 # @smartput/kinds
 
+## 0.2.0 (2026-08-18)
+
+### Features
+
+- **core:** context-aware completion, and the count query ([77b4c88](https://github.com/GrandMagus02/smartputs/commit/77b4c8880bf42e88031b67dd65ea00381dcc9718))
+
 ## 0.1.0 (2026-08-16)
 
 ### BREAKING CHANGES
