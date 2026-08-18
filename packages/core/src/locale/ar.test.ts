@@ -49,30 +49,39 @@ describe("arabic number symbols", () => {
 
   /**
    * The platform's own answer for "Arabic", recorded as it is on this runtime
-   * rather than as the folklore says it is: the bare tag resolves to `latn`, and
-   * the regional tags disagree with it and with each other. `ar-MA` is the row
-   * that shows why "just take `intl`" would not even be a stable *Latin-digit*
-   * answer — the Maghreb writes Latin digits with French separators.
+   * rather than as the folklore says it is: the regional tags disagree with the
+   * bare one and with each other. `ar-MA` is the row that shows why "just take
+   * `intl`" would not even be a stable *Latin-digit* answer — the Maghreb
+   * writes Latin digits with French separators.
+   *
+   * The bare tag is the sharpest version of the point, and the one thing here
+   * that is not a fact about CLDR at all: it is a fact about the ICU build
+   * underneath. macOS resolves `ar` to `latn`, the Linux CI runners to `arab`.
+   * Asserted as "one of the two known answers" for that reason — pinning it to
+   * whichever this machine gives would just fail on the other machine, and the
+   * claim being made is that the bare tag cannot be relied on.
    */
   test("CLDR's answer depends on which Arabic you ask for", () => {
-    expect(new Intl.NumberFormat("ar").resolvedOptions().numberingSystem).toBe("latn");
+    expect(["latn", "arab"]).toContain(
+      new Intl.NumberFormat("ar").resolvedOptions().numberingSystem,
+    );
     expect(new Intl.NumberFormat("ar-EG").resolvedOptions().numberingSystem).toBe("arab");
     expect(new Intl.NumberFormat("ar-MA").format(1234567.5)).toBe("1.234.567,5");
     // The separators `arab` brings with it, as escapes rather than literals:
     // U+066C and U+066B are near-invisible commas in source, and they are
-    // exactly the two characters this language would have inherited the day a
-    // CLDR revision resolved the bare tag the other way.
+    // exactly the two characters this language would inherit on any runtime
+    // that resolves the bare tag that way.
     const eg = new Intl.NumberFormat("ar-EG").formatToParts(1234567.5);
     expect(eg.find((p) => p.type === "group")?.value).toBe("\u066C");
     expect(eg.find((p) => p.type === "decimal")?.value).toBe("\u066B");
-    // The bare tag agrees with the transcription today. Written as an assertion
-    // rather than as a comment so that the day it stops agreeing is a failing
-    // test and not a silently different language.
+    // What the language declares is tied to the numbering system it transcribes
+    // and never to the bare tag, which is the whole reason `latn` is named in
+    // the locale rather than taken from whatever `ar` resolves to here.
     expect(numberSymbols(arabic)).toEqual({
-      group: new Intl.NumberFormat("ar")
+      group: new Intl.NumberFormat("ar-u-nu-latn")
         .formatToParts(1234)
         .find((p) => p.type === "group")?.value as string,
-      decimal: new Intl.NumberFormat("ar")
+      decimal: new Intl.NumberFormat("ar-u-nu-latn")
         .formatToParts(1.5)
         .find((p) => p.type === "decimal")?.value as string,
     });
