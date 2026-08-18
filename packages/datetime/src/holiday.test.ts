@@ -214,7 +214,7 @@ test("a unit alias is never a holiday name", () => {
   // the duration arithmetic before the solver ran.
   expect(on(us, "3 days + 2 days")).toBe("5 days");
   expect(us.evaluate("3 days + 2 days").kind).toBe("duration");
-  expect(on(us, "30 hours - 10 minutes")).toBe("29.833333333333333333333333 hours");
+  expect(on(us, "30 hours - 10 minutes")).toBe("29.8333 hours");
 });
 
 test("the date literal keeps every span it can read on its own", () => {

@@ -6,7 +6,7 @@
 1回転 - 90度	angle	4.712388980384689857693965075	0.75回転
 180度 / 4	angle	0.7853981633974483096156608458	45度
 -90度	angle	-1.570796326794896619231321692	-90度
-1radを度	angle	1	57.295779513082320876798155度
+1radを度	angle	1	57.2958度
 360度を回転	angle	6.283185307179586476925286767	1回転
 1,234,567度	angle	21547.25898646883482793950141	1,234,567度
 # No number agreement of any kind: Japanese marks plurality nowhere, so every
@@ -25,7 +25,7 @@
 # renders through its symbol, and "rad" round-trips because a Latin run has no
 # character of a declared script.
 2 rad	angle	2	2rad
-90度を弧度	angle	1.570796326794896619231321692	1.5707963267948966192313217rad
+90度を弧度	angle	1.570796326794896619231321692	1.5708rad
 # The units that do have a Japanese word are katakana loans and native
 # compounds alike.
 100グラード	angle	1.570796326794896619231321692	100グラード

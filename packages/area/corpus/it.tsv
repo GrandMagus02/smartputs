@@ -1,7 +1,7 @@
 # input	kind	canonical	formatted
 3 m * 4 m	area	12	12 m²
 1 ettaro in m2	area	10000	10.000 m²
-1 acro in m2	area	4046.8564224	4.046,8564224 m²
+1 acro in m2	area	4046.8564224	4.046,8564 m²
 2 km2 in ettari	area	2000000	200 ettari
 5000 cm2 in m2	area	0.5	0,5 m²
 10 m2 + 5 m2	area	15	15 m²
@@ -29,5 +29,5 @@ due ettari	area	20000	2 ettari
 10 m2 per 3	area	30	30 m²
 100 m2 diviso 4	area	25	25 m²
 # "a" is the second conversion preposition, beside "in".
-1 acro a ettari	area	4046.8564224	0,40468564224 ettari
+1 acro a ettari	area	4046.8564224	0,4047 ettari
 centoventi m2	area	120	120 m²

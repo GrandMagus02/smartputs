@@ -22,8 +22,6 @@ test("mixed-prefix arithmetic converts through the canonical byte", () => {
 test("gigabyte and gibibyte differ as expected", () => {
   // Canonical is bytes whatever the target unit; the formatted value is what
   // actually distinguishes gb from gib.
-  expect(engine.evaluate("1 gib in gb").formatted).toBe("1.073741824 gigabytes");
-  expect(engine.evaluate("1 gb in gib").formatted).toBe(
-    "0.931322574615478515625 gibibytes",
-  );
+  expect(engine.evaluate("1 gib in gb").formatted).toBe("1.0737 gigabytes");
+  expect(engine.evaluate("1 gb in gib").formatted).toBe("0.9313 gibibytes");
 });

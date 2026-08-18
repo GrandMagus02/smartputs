@@ -26,5 +26,5 @@ days in week	duration	604800	7 days
 hour in minutes	duration	3600	60 minutes
 # Neither shape: a singular left operand, or a plural right one, leaves nothing
 # to count inside, so both stay conversions of the implied 1.
-minute in hours	duration	60	0.016666666666666666666666667 hours
-minutes in hours	duration	60	0.016666666666666666666666667 hours
+minute in hours	duration	60	0.0167 hours
+minutes in hours	duration	60	0.0167 hours

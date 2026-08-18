@@ -172,7 +172,7 @@ test("a distance is an ordinary length afterwards", () => {
   // conversion the length kind already generated works on the result.
   const r = engine.evaluate("france to germany in mi");
   expect(r.kind).toBe("length");
-  expect(r.formatted).toBe("545.81183389008192157798457 miles");
+  expect(r.formatted).toBe("545.8118 miles");
 });
 
 test("the countries-only build knows no city", () => {

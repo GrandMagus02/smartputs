@@ -38,7 +38,7 @@ next friday	datetime	1769126400000000000	2026-01-23 00:00 UTC
 # `durationValue` reports the largest unit it fills, so 45 days is weeks — and
 # a fraction is `other`, the genitive singular, which is a fifth word rather
 # than a reuse of one of the four above.
-2026-03-01 - 2026-01-15	duration	3888000	6,4285714285714285714285714 tygodnia
+2026-03-01 - 2026-01-15	duration	3888000	6,4286 tygodnia
 # A decimal comma and a U+00A0 group separator — the Ukrainian pair rather than
 # the German one.
 1000 dni	duration	86400000	1 000 dni

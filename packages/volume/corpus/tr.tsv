@@ -1,7 +1,7 @@
 # input	kind	canonical	formatted
 2 l çevir ml	volume	2	2.000 mililitre
-1 gal çevir litre	volume	3.785411784	3,785411784 litre
-1 pint çevir ml	volume	0.473176473	473,176473 mililitre
+1 gal çevir litre	volume	3.785411784	3,7854 litre
+1 pint çevir ml	volume	0.473176473	473,1765 mililitre
 500 ml + 500 ml	volume	1	1.000 mililitre
 2 l - 250 ml	volume	1.75	1,75 litre
 3 l * 4	volume	12	12 litre

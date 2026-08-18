@@ -164,7 +164,7 @@ describe("volume es vocabulary", () => {
     // A conversion, written with `en`, over the gallon — and the accented
     // singular printing as the accent-free plural, which is Spanish spelling
     // and not a stripped stem.
-    expect(engine.evaluate("2 galones en litros").formatted).toBe("7,570823568 litros");
+    expect(engine.evaluate("2 galones en litros").formatted).toBe("7,5708 litros");
     expect(engine.evaluate("1 galón").formatted).toBe("1 galón");
     // The accent-free spelling a keyboard without dead keys produces. NFKC
     // does not strip the acute, so it is a different string to the index and is
@@ -193,9 +193,13 @@ describe("volume es vocabulary", () => {
     ]) {
       const first = engine.evaluate(input);
       const again = engine.evaluate(first.formatted);
-      expect(again.value.canonical.toString(), input).toBe(
-        first.value.canonical.toString(),
-      );
+      // Ruling R-C1: `formatted` is a readability policy, so what comes back
+      // from it is the displayed number and not the 26-digit one. The property
+      // that survives — and the one "reads back what it prints" means to a
+      // person — is that displaying the re-read value writes the same string.
+      // The exact guard is `formatPrecision`, tested through the Printer in
+      // `@smartput/core`'s print/roundtrip.test.ts.
+      expect(again.formatted, input).toBe(first.formatted);
       expect(again.value.unit, input).toBe(first.value.unit);
     }
   });

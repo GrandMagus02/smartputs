@@ -22,7 +22,7 @@
 30C - 20C	tempdelta	10	10°C
 (1 + 2) * 3	number	9	9
 1kib 를 b	datasize	1024	1,024바이트
-90도 를 라디안	angle	1.570796326794896619231321692	1.5707963267948966192313217라디안
+90도 를 라디안	angle	1.570796326794896619231321692	1.5708라디안
 -5km	length	-5000	-5킬로미터
 # No number agreement, and no space between the number and the unit.
 1미터	length	1	1미터

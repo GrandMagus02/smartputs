@@ -20,7 +20,7 @@
 20% dari 50	number	10	10
 (1 + 2) * 3	number	9	9
 1 kib ke b	datasize	1024	1.024 byte
-90 derajat ke radian	angle	1.570796326794896619231321692	1,5707963267948966192313217 radian
+90 derajat ke radian	angle	1.570796326794896619231321692	1,5708 radian
 -5 km	length	-5000	-5 kilometer
 # "." groups and "," separates the decimal — the Dutch pair, from the language
 # Indonesian took its orthography from.

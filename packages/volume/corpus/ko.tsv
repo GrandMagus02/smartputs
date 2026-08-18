@@ -21,7 +21,7 @@
 # A conversion parses when the particle is its own token — which it is after a
 # Latin unit alias, the mixed-script spelling Korean technical writing uses.
 2l를 밀리리터	volume	2	2,000밀리리터
-1gal를 리터	volume	3.785411784	3.785411784리터
+1gal를 리터	volume	3.785411784	3.7854리터
 1gal를 파인트	volume	3.785411784	8파인트
 1m3를 리터	volume	1000	1,000리터
 # After a *Hangul* unit the glued particle does not separate, and the

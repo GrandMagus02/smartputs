@@ -10,7 +10,7 @@
 1000 W en kW	power	1000	1 kilowatt
 un kilowatt	power	1000	1 kilowatt
 deux cent cinq kilowatts	power	205000	205 kilowatts
-100 hp en kW	power	74569.987158227022	74,569987158227022 kilowatts
+100 hp en kW	power	74569.987158227022	74,57 kilowatts
 # The group separator is U+202F, a narrow no-break space, and it is accepted on
 # input as well — `normalize()` folds every whitespace character to a plain
 # space before anything reads the string back.

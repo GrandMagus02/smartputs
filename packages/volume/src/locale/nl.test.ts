@@ -162,9 +162,9 @@ describe("volume nl vocabulary", () => {
     expect(e.evaluate("1 l + 500 ml").formatted).toBe("1,5 liter");
     // Conversions written with both Dutch keywords, which is `dutch.keywords`'
     // doing and not this file's.
-    expect(e.evaluate("1 gallon in liter").formatted).toBe("3,785411784 liter");
+    expect(e.evaluate("1 gallon in liter").formatted).toBe("3,7854 liter");
     expect(e.evaluate("500 ml naar liter").formatted).toBe("0,5 liter");
-    expect(e.evaluate("1 pint in ml").formatted).toBe("473,176473 milliliter");
+    expect(e.evaluate("1 pint in ml").formatted).toBe("473,1765 milliliter");
     // The unit that renders through its symbol, spaced — `dutch.renderQuantity`
     // sets a symbol off from the number the way SI asks, where the default
     // template writes English's tight "2m³".
@@ -189,9 +189,13 @@ describe("volume nl vocabulary", () => {
       const first = e.evaluate(input);
       const again = e.evaluate(first.formatted);
       expect(again.value.unit, input).toBe(first.value.unit);
-      expect(again.value.canonical.toString(), input).toBe(
-        first.value.canonical.toString(),
-      );
+      // Ruling R-C1: `formatted` is a readability policy, so what comes back
+      // from it is the displayed number and not the 26-digit one. The property
+      // that survives — and the one "reads back what it prints" means to a
+      // person — is that displaying the re-read value writes the same string.
+      // The exact guard is `formatPrecision`, tested through the Printer in
+      // `@smartput/core`'s print/roundtrip.test.ts.
+      expect(again.formatted, input).toBe(first.formatted);
     }
   });
 });

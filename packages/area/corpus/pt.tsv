@@ -1,7 +1,7 @@
 # input	kind	canonical	formatted
 3 m * 4 m	area	12	12 m²
 1 hectare em m2	area	10000	10.000 m²
-1 acre em m2	area	4046.8564224	4.046,8564224 m²
+1 acre em m2	area	4046.8564224	4.046,8564 m²
 2 km2 em hectares	area	2000000	200 hectares
 5000 cm2 em m2	area	0.5	0,5 m²
 10 m2 + 5 m2	area	15	15 m²
@@ -29,5 +29,5 @@ dois hectares	area	20000	2 hectares
 10 m2 por 3	area	30	30 m²
 100 m2 sobre 4	area	25	25 m²
 # "para" is the second conversion preposition, beside "em".
-1 acre para hectares	area	4046.8564224	0,40468564224 hectare
+1 acre para hectares	area	4046.8564224	0,4047 hectare
 cento e vinte m2	area	120	120 m²

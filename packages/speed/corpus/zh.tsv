@@ -1,7 +1,7 @@
 # input	kind	canonical	formatted
 120 kph	speed	33.33333333333333333333333334	120km/h
-100 kph到mph	speed	27.77777777777777777777777778	62.137119223733396961743418mph
-60 mph到kph	speed	26.8224	96.56064km/h
+100 kph到mph	speed	27.77777777777777777777777778	62.1371mph
+60 mph到kph	speed	26.8224	96.5606km/h
 1 knot到kph	speed	0.5144444444444444444444444444	1.852km/h
 10 mps到kph	speed	10	36km/h
 50 kph + 50 kph	speed	27.77777777777777777777777778	100km/h
@@ -22,7 +22,7 @@
 # symbols have no such requirement, and neither do the conversion keywords.
 30 kph 乘 2	speed	16.66666666666666666666666667	60km/h
 100 kph 除以 4	speed	6.944444444444444444444444445	25km/h
-100 kph换算节	speed	27.77777777777777777777777778	53.995680345572354211663067节
+100 kph换算节	speed	27.77777777777777777777777778	53.9957节
 # No number agreement anywhere: the knot has one printed form and 1, 5 and
 # 1.5 take the same word.
 1节	speed	0.5144444444444444444444444444	1节
@@ -30,7 +30,7 @@
 1.5节	speed	0.7716666666666666666666666666	1.5节
 二十节	speed	10.28888888888888888888888889	20节
 # No space between number and unit, on input or output.
-100kph到mph	speed	27.77777777777777777777777778	62.137119223733396961743418mph
+100kph到mph	speed	27.77777777777777777777777778	62.1371mph
 # The bridge with no spaces at all — the slash is enough of a boundary.
 100公里/2小时	speed	13.88888888888888888888888889	13.888888888888888888888889m/s
 # The printed symbol read back as arithmetic. A different path to the same

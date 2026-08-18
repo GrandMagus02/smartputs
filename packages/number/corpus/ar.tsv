@@ -5,7 +5,7 @@
 10 / 4	number	2.5	2.5
 -5	number	-5	-5
 (1 + 2) * 3	number	9	9
-100 / 3	number	33.33333333333333333333333333	33.333333333333333333333333
+100 / 3	number	33.33333333333333333333333333	33.3333
 # The digits and the separators are Latin. `ar` here resolves to a `latn`
 # numbering system with "," for groups and "." for the decimal — English's
 # pair, inside right-to-left text.

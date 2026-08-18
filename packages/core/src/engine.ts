@@ -11,6 +11,7 @@ import {
   UnknownKindError,
 } from "./errors";
 import { Evaluator } from "./eval/evaluator";
+import { DEFAULT_DISPLAY, type DisplayOptions } from "./format/format";
 import { buildRegistry, NUMBER_KIND, type Registry } from "./kind/registry";
 import { type Node, walk } from "./parse/ast";
 import { createResolver } from "./parse/candidates";
@@ -84,8 +85,35 @@ export interface EngineOptions {
    * Significant digits in formatted output. Defaults to 26 — two guard digits
    * below the 28 Decimal computes at, which is what keeps a round trip through
    * a non-terminating ratio from surfacing as trailing noise.
+   *
+   * Not a readability figure: see `display`, which is. This one is the
+   * round-trip and comparison guard, and `comparePrecision` still defaults to
+   * it so two values that pass the guard identically compare identically.
    */
   formatPrecision?: number;
+  /**
+   * What `Result.formatted` keeps — ruling R-C1. Defaults to
+   * `{ maximumFractionDigits: 4, minimumSignificantDigits: 3 }`, so
+   * `"1.5 kg in lb"` reads `"3.3069 pounds"` rather than
+   * `"3.306933932773163710844607 pounds"`.
+   *
+   * Distinct from `formatPrecision` above, and applied after it, never
+   * before: `Result.value.canonical` and `Result.value.raw` are untouched at
+   * 28 and 26 significant digits, which is why `1 km / 3 * 3 = 1 km` stays
+   * true (ruling C4) even though the two no longer print the same digits.
+   * The cost of that separation is stated where a reader meets it —
+   * `print/roundtrip.test.ts`'s R-C1 test: `formatted` no longer round-trips
+   * exactly, only idempotently.
+   *
+   * A kind with its own `format` hook is exempt, and the exemption is a
+   * consequence rather than a special case: the policy runs on
+   * `formatValue`'s default path, and a hook (money, deciding a cent from a
+   * currency's minor units under `rounding`) never reaches it.
+   *
+   * A scientific caller sets it once — `{ maximumFractionDigits: 12 }` — and
+   * gets its digits back on every call.
+   */
+  display?: DisplayOptions;
   /**
    * FX rates for kinds whose unit ratios are not constants. `@smartput/rate`'s
    * RateSnapshot satisfies this structurally; core never imports it.
@@ -157,6 +185,12 @@ export interface EvalOptions {
    * input grammar has to move: that is what `EngineOptions.format` is for.
    */
   format?: string;
+  /**
+   * Per-call display policy, overriding `EngineOptions.display`. Output only,
+   * like `format`, and cheaper: it rebuilds nothing at all, because the policy
+   * is an argument to the print step rather than state a stage holds.
+   */
+  display?: DisplayOptions;
   /** Per-call time zone, overriding `EngineOptions.timeZone`. */
   timeZone?: string;
   /** Per-call comparison precision, overriding `EngineOptions.comparePrecision`. */
@@ -387,6 +421,12 @@ function newPrinter(opts: EngineOptions, registry: Registry, format: Locale): Pr
     locale: format,
     ...(opts.rates ? { rates: opts.rates } : {}),
     ...(opts.rounding === undefined ? {} : { rounding: opts.rounding }),
+    // Unconditional, unlike the two above: `display` has an engine default
+    // (ruling R-C1), so "the caller said nothing" and "the caller asked for
+    // no policy" are the same thing here, and both mean DEFAULT_DISPLAY.
+    // `toResult` passes the ctx's own policy on every call anyway; this is
+    // what a caller reaching for `printer.value` directly gets.
+    display: opts.display ?? DEFAULT_DISPLAY,
   });
 }
 
@@ -419,6 +459,14 @@ interface EngineCtx {
   format: Locale;
   evaluator: Evaluator;
   printer: Printer;
+  /**
+   * The display policy this call prints at — `EngineOptions.display`, or a
+   * per-call `EvalOptions.display` override. On the ctx rather than baked into
+   * the `Printer` because overriding it must not rebuild a stage: it is an
+   * argument to one print, which is exactly what `Printer.value`'s "explicit
+   * beats configured" merge already accepts.
+   */
+  display: DisplayOptions;
   opts: EngineOptions;
 }
 
@@ -445,6 +493,10 @@ function toResult(program: Program, resolution: Resolution, ctx: EngineCtx): Res
     value,
     formatted: printer.value(value, {
       ...(opts.formatPrecision === undefined ? {} : { precision: opts.formatPrecision }),
+      // After `formatPrecision`, never before — ruling R-C1. `precision`
+      // trims the guard digits off the value; `display` decides how much of
+      // what is left a person is shown, and neither touches `value` above.
+      display: ctx.display,
     }),
     kind: value.kind,
     confidence: resolution.confidence,
@@ -660,6 +712,7 @@ export function createEngine(callerOpts: EngineOptions): Engine {
     format,
     evaluator: stages.evaluator,
     printer: stages.printer,
+    display: opts.display ?? DEFAULT_DISPLAY,
     opts,
   };
 
@@ -678,10 +731,17 @@ export function createEngine(callerOpts: EngineOptions): Engine {
    * on one call cannot be visible on the next: nothing here is assigned to.
    */
   const ctxFor = (call?: EvalOptions): EngineCtx => {
-    if (call?.comparePrecision === undefined && call?.format === undefined) return ctx;
+    // `display` alone never justifies rebuilding a stage — it reaches
+    // `printer.value` as an argument — so it is a spread over the shared ctx,
+    // and identity is still preserved when the call overrode nothing.
+    const display = call?.display ?? ctx.display;
+    if (call?.comparePrecision === undefined && call?.format === undefined) {
+      return display === ctx.display ? ctx : { ...ctx, display };
+    }
     const callFormat = call.format === undefined ? format : formatFor(call.format);
     return {
       ...ctx,
+      display,
       format: callFormat,
       // `?? opts.comparePrecision` because this branch is now also reached by
       // a call that overrode only `format`: without it, asking for a language

@@ -1,7 +1,7 @@
 # input	kind	canonical	formatted
 120 kph	speed	33.33333333333333333333333334	120km/h
-100 kph를 mph	speed	27.77777777777777777777777778	62.137119223733396961743418mph
-60 mph를 kph	speed	26.8224	96.56064km/h
+100 kph를 mph	speed	27.77777777777777777777777778	62.1371mph
+60 mph를 kph	speed	26.8224	96.5606km/h
 1 knot를 kph	speed	0.5144444444444444444444444444	1.852km/h
 10 mps를 kph	speed	10	36km/h
 50 kph + 50 kph	speed	27.77777777777777777777777778	100km/h
@@ -20,7 +20,7 @@
 100 kph 나누기 4	speed	6.944444444444444444444444445	25km/h
 # 에서 is the third conversion keyword beside 을 and 를, and like them it glues
 # onto the source unit with no space in front of it.
-100 kph에서 mph	speed	27.77777777777777777777777778	62.137119223733396961743418mph
+100 kph에서 mph	speed	27.77777777777777777777777778	62.1371mph
 # No number agreement: the knot has one printed form, the Hangul loan, and 1,
 # 5 and 1.5 take it unchanged.
 1노트	speed	0.5144444444444444444444444444	1노트
@@ -29,7 +29,7 @@
 이십 노트	speed	10.28888888888888888888888889	20노트
 # The particle glues onto a Hangul unit and the stripper takes it off.
 5노트를	speed	2.572222222222222222222222222	5노트
-100 kph를 노트	speed	27.77777777777777777777777778	53.995680345572354211663067노트
+100 kph를 노트	speed	27.77777777777777777777777778	53.9957노트
 # The bridge with no spaces at all — the slash is enough of a boundary.
 100킬로미터/2시간	speed	13.88888888888888888888888889	13.888888888888888888888889m/s
 # The printed symbol read back as arithmetic. A different path to the same

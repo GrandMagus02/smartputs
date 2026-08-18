@@ -1,8 +1,8 @@
 # input	kind	canonical	formatted
 2 l	volume	2	2 litres
 2 l en ml	volume	2	2 000 millilitres
-1 gal en l	volume	3.785411784	3,785411784 litres
-1 pinte en ml	volume	0.473176473	473,176473 millilitres
+1 gal en l	volume	3.785411784	3,7854 litres
+1 pinte en ml	volume	0.473176473	473,1765 millilitres
 500 ml + 500 ml	volume	1	1 000 millilitres
 2 l - 250 ml	volume	1.75	1,75 litre
 3 l * 4	volume	12	12 litres

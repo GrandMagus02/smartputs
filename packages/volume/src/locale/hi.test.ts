@@ -177,7 +177,7 @@ describe("volume hi vocabulary", () => {
     // लीटर में कितने मिलीलीटर".
     expect(e.evaluate("1 लीटर में मिलीलीटर").formatted).toBe("1,000 मिलीलीटर");
     expect(e.evaluate("1 मी³ को लीटर").formatted).toBe("1,000 लीटर");
-    expect(e.evaluate("1 गैलन से लीटर").formatted).toBe("3.785411784 लीटर");
+    expect(e.evaluate("1 गैलन से लीटर").formatted).toBe("3.7854 लीटर");
     // A sum that lands on a fraction, written with the arithmetic noun जोड़,
     // which Hindi reads infix ("दस जोड़ पाँच") even though a full sentence puts
     // the operator last. 1.5 is `other`, and on a Hindi measure noun `other` is
@@ -231,9 +231,13 @@ describe("volume hi vocabulary", () => {
       const first = e.evaluate(input);
       const again = e.evaluate(first.formatted);
       expect(again.value?.unit, input).toBe(first.value?.unit);
-      expect(again.value?.canonical.toFixed(20), input).toBe(
-        first.value?.canonical.toFixed(20),
-      );
+      // Ruling R-C1: `formatted` is a readability policy, so what comes back
+      // from it is the displayed number and not the 26-digit one. The property
+      // that survives — and the one "reads back what it prints" means to a
+      // person — is that displaying the re-read value writes the same string.
+      // The exact guard is `formatPrecision`, tested through the Printer in
+      // `@smartput/core`'s print/roundtrip.test.ts.
+      expect(again.formatted, input).toBe(first.formatted);
     }
   });
 });

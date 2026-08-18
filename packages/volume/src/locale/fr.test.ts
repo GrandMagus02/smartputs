@@ -188,7 +188,7 @@ describe("volume fr vocabulary", () => {
     expect(engine.evaluate("1 l + 500 ml").formatted).toBe("1,5 litre");
     // A conversion, written with `en` — French's own conversion keyword, which
     // happens to be spelled like English's.
-    expect(engine.evaluate("2 gallons en litres").formatted).toBe("7,570823568 litres");
+    expect(engine.evaluate("2 gallons en litres").formatted).toBe("7,5708 litres");
     // The unit with no words at all: `m³` is the whole of what it reads and
     // prints, in French as in every other language here.
     expect(engine.evaluate("2 m3").formatted).toBe("2 m³");
@@ -222,9 +222,13 @@ describe("volume fr vocabulary", () => {
     ]) {
       const first = engine.evaluate(input);
       const again = engine.evaluate(first.formatted);
-      expect(again.value.canonical.toString(), input).toBe(
-        first.value.canonical.toString(),
-      );
+      // Ruling R-C1: `formatted` is a readability policy, so what comes back
+      // from it is the displayed number and not the 26-digit one. The property
+      // that survives — and the one "reads back what it prints" means to a
+      // person — is that displaying the re-read value writes the same string.
+      // The exact guard is `formatPrecision`, tested through the Printer in
+      // `@smartput/core`'s print/roundtrip.test.ts.
+      expect(again.formatted, input).toBe(first.formatted);
       expect(again.value.unit, input).toBe(first.value.unit);
     }
   });

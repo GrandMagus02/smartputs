@@ -1,7 +1,7 @@
 # input	kind	canonical	formatted
 1 kw in w	power	1000	1,000 watts
 1 mw in kw	power	1000000	1,000 kilowatts
-1 hp in w	power	745.69987158227022	745.69987158227022 watts
+1 hp in w	power	745.69987158227022	745.6999 watts
 500 w + 500 w	power	1000	1,000 watts
 2 kw - 500 w	power	1500	1.5 kilowatts
 3 kw * 2	power	6000	6 kilowatts
@@ -10,7 +10,7 @@
 1000 w in kw	power	1000	1 kilowatt
 one kilowatt	power	1000	1 kilowatt
 2.5 kw	power	2500	2.5 kilowatts
-746 w in hp	power	746	1.000402478837890839005544 horsepower
+746 w in hp	power	746	1.0004 horsepower
 1 gw in mw	power	1000000000	1,000 megawatts
 100 w	power	100	100 watts
 1.5 mw in w	power	1500000	1,500,000 watts

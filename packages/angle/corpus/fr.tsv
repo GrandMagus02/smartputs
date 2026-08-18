@@ -1,6 +1,6 @@
 # input	kind	canonical	formatted
 90 degrés	angle	1.570796326794896619231321692	90 degrés
-90 degrés en radians	angle	1.570796326794896619231321692	1,5707963267948966192313217 radian
+90 degrés en radians	angle	1.570796326794896619231321692	1,5708 radian
 0,25 tour en degrés	angle	1.570796326794896619231321692	90 degrés
 200 grades en degrés	angle	3.141592653589793238462643383	180 degrés
 90 degrés + 90 degrés	angle	3.141592653589793238462643384	180 degrés
@@ -8,7 +8,7 @@
 45 degrés * 2	angle	1.570796326794896619231321692	90 degrés
 180 degrés / 4	angle	0.7853981633974483096156608458	45 degrés
 -90 degrés	angle	-1.570796326794896619231321692	-90 degrés
-1 radian en degrés	angle	1	57,295779513082320876798155 degrés
+1 radian en degrés	angle	1	57,2958 degrés
 un tour	angle	6.283185307179586476925286767	1 tour
 deux radians	angle	2	2 radians
 360 degrés en tours	angle	6.283185307179586476925286767	1 tour
@@ -26,7 +26,7 @@ deux radians	angle	2	2 radians
 0,75 tour	angle	4.712388980384689857693965075	0,75 tour
 # Vigesimal cardinals: ninety is spoken as four-twenties-ten.
 quatre-vingt-dix degrés	angle	1.570796326794896619231321692	90 degrés
-quatre-vingt-dix degrés en radians	angle	1.570796326794896619231321692	1,5707963267948966192313217 radian
+quatre-vingt-dix degrés en radians	angle	1.570796326794896619231321692	1,5708 radian
 # The word operators. "fois" stands alone; "divisé par" is two tokens folded
 # into one.
 45 degrés fois 2	angle	1.570796326794896619231321692	90 degrés

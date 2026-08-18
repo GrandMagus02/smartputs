@@ -164,9 +164,7 @@ describe("measure pt vocabulary", () => {
     // `numberFormat: "intl"`, and because the integer part is 0 the noun goes
     // *singular*: "polegada", where English writes "inches" and Spanish
     // "pulgadas".
-    expect(engine.evaluate("1 polegada - 12 pontos").formatted).toBe(
-      "0,83333333333333333333333333 polegada",
-    );
+    expect(engine.evaluate("1 polegada - 12 pontos").formatted).toBe("0,8333 polegada");
   });
 
   test("its own output reads back to the same value", () => {

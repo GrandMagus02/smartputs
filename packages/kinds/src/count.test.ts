@@ -39,11 +39,11 @@ test.each([
   ["hour in minutes", "60 minutes"],
   ["kilogram in grams", "1,000 grams"],
   // A count somebody wrote down is never a count query.
-  ["10 minutes in hours", "0.16666666666666666666666667 hours"],
-  ["1 minute in hours", "0.016666666666666666666666667 hours"],
+  ["10 minutes in hours", "0.1667 hours"],
+  ["1 minute in hours", "0.0167 hours"],
   // Singular on the left, or plural on the right: neither is the idiom.
-  ["minute in hours", "0.016666666666666666666666667 hours"],
-  ["minutes in hours", "0.016666666666666666666666667 hours"],
+  ["minute in hours", "0.0167 hours"],
+  ["minutes in hours", "0.0167 hours"],
 ])("%p stays a conversion", (input, expected) => {
   expect(formatted(input)).toBe(expected);
 });
@@ -59,7 +59,7 @@ test.each([
 
 test("the refusal points at the spelling that does resolve", () => {
   expect(() => engine.evaluate("hours in minute")).toThrow(/"minute in hours"/);
-  expect(formatted("minute in hours")).toBe("0.016666666666666666666666667 hours");
+  expect(formatted("minute in hours")).toBe("0.0167 hours");
 });
 
 test("a count query crosses no kind", () => {

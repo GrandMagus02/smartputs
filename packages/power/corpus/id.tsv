@@ -8,8 +8,8 @@
 1 MW / 4	power	250000	0,25 megawatt
 -1 kW	power	-1000	-1 kilowatt
 1000 W ke kW	power	1000	1 kilowatt
-1 hp ke W	power	745.69987158227022	745,69987158227022 watt
-100 hp ke kW	power	74569.987158227022	74,569987158227022 kilowatt
+1 hp ke W	power	745.69987158227022	745,6999 watt
+100 hp ke kW	power	74569.987158227022	74,57 kilowatt
 # No spelled-cardinal row: Indonesian is the one language of the seventeen with
 # no cardinals file in core, so "satu kilowatt" does not parse and there is
 # nothing honest to record for it.

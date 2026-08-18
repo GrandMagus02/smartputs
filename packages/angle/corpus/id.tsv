@@ -1,6 +1,6 @@
 # input	kind	canonical	formatted
 90 derajat	angle	1.570796326794896619231321692	90 derajat
-90 derajat ke radian	angle	1.570796326794896619231321692	1,5707963267948966192313217 radian
+90 derajat ke radian	angle	1.570796326794896619231321692	1,5708 radian
 0,25 putaran ke derajat	angle	1.570796326794896619231321692	90 derajat
 200 gon ke derajat	angle	3.141592653589793238462643383	180 derajat
 90 derajat + 90 derajat	angle	3.141592653589793238462643384	180 derajat
@@ -8,7 +8,7 @@
 45 derajat * 2	angle	1.570796326794896619231321692	90 derajat
 180 derajat / 4	angle	0.7853981633974483096156608458	45 derajat
 -90 derajat	angle	-1.570796326794896619231321692	-90 derajat
-1 radian ke derajat	angle	1	57,295779513082320876798155 derajat
+1 radian ke derajat	angle	1	57,2958 derajat
 360 derajat ke putaran	angle	6.283185307179586476925286767	1 putaran
 1,5 radian	angle	1.5	1,5 radian
 # "." groups and "," is the decimal point, the pair Indonesian took from
@@ -31,7 +31,7 @@
 180 derajat bagi 4	angle	0.7853981633974483096156608458	45 derajat
 90 derajat tambah 90 derajat	angle	3.141592653589793238462643384	180 derajat
 1 putaran kurang 90 derajat	angle	4.712388980384689857693965075	0,75 putaran
-90 derajat dalam radian	angle	1.570796326794896619231321692	1,5707963267948966192313217 radian
+90 derajat dalam radian	angle	1.570796326794896619231321692	1,5708 radian
 # One row this file cannot have, named rather than left as a hole: Indonesian
 # is the only language here with no cardinals table in core, so there is no
 # spelled number to write and "satu putaran" does not parse.

@@ -6,7 +6,7 @@
 1 polegada em px	measure	1	96 pixels
 96 px em polegadas	measure	1	1 polegada
 2 polegadas + 36 pt	measure	2.5	2,5 polegadas
-1 polegada - 12 pt	measure	0.8333333333333333333333333333	0,83333333333333333333333333 polegada
+1 polegada - 12 pt	measure	0.8333333333333333333333333333	0,8333 polegada
 3 polegadas * 2	measure	6	6 polegadas
 1 polegada / 4	measure	0.25	0,25 polegada
 -2 polegadas	measure	-2	-2 polegadas

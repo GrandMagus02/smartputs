@@ -174,7 +174,7 @@ describe("volume ar vocabulary", () => {
     expect(e.evaluate("1 لتر + 500 مل").formatted).toBe("1.5 لتر");
     // A conversion, written with إلى, whose result is a long non-terminating
     // decimal — and still `other`, because every fraction is.
-    expect(e.evaluate("1 غالون إلى لتر").formatted).toBe("3.785411784 لتر");
+    expect(e.evaluate("1 غالون إلى لتر").formatted).toBe("3.7854 لتر");
     // `m3` has no words to print, so it renders through its symbol — and
     // `arabic.renderQuantity` sets a symbol off from the number with a SPACE
     // where `defaultRenderQuantity` sets it tight, because an Arabic symbol is
@@ -200,9 +200,13 @@ describe("volume ar vocabulary", () => {
       const first = e.evaluate(input);
       const again = e.evaluate(first.formatted);
       expect(again.value?.unit, input).toBe(first.value?.unit);
-      expect(again.value?.canonical.toFixed(20), input).toBe(
-        first.value?.canonical.toFixed(20),
-      );
+      // Ruling R-C1: `formatted` is a readability policy, so what comes back
+      // from it is the displayed number and not the 26-digit one. The property
+      // that survives — and the one "reads back what it prints" means to a
+      // person — is that displaying the re-read value writes the same string.
+      // The exact guard is `formatPrecision`, tested through the Printer in
+      // `@smartput/core`'s print/roundtrip.test.ts.
+      expect(again.formatted, input).toBe(first.formatted);
     }
   });
 

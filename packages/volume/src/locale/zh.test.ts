@@ -196,7 +196,7 @@ describe("volume zh vocabulary", () => {
     // gives — which `zh` reads back, unlike `de`.
     expect(e.evaluate("1l + 500ml").formatted).toBe("1.5升");
     expect(e.evaluate("1立方米到升").formatted).toBe("1,000升");
-    expect(e.evaluate("1加仑到升").formatted).toBe("3.785411784升");
+    expect(e.evaluate("1加仑到升").formatted).toBe("3.7854升");
     // The fuller name of the litre, read and normalised to the printed one.
     expect(e.evaluate("3公升").formatted).toBe("3升");
     // The wordless unit, printing its symbol and reading it back — a Latin run
@@ -223,9 +223,13 @@ describe("volume zh vocabulary", () => {
       const first = e.evaluate(input);
       const again = e.evaluate(first.formatted);
       expect(again.value.unit, input).toBe(first.value.unit);
-      expect(again.value.canonical.toString(), input).toBe(
-        first.value.canonical.toString(),
-      );
+      // Ruling R-C1: `formatted` is a readability policy, so what comes back
+      // from it is the displayed number and not the 26-digit one. The property
+      // that survives — and the one "reads back what it prints" means to a
+      // person — is that displaying the re-read value writes the same string.
+      // The exact guard is `formatPrecision`, tested through the Printer in
+      // `@smartput/core`'s print/roundtrip.test.ts.
+      expect(again.formatted, input).toBe(first.formatted);
     }
   });
 });

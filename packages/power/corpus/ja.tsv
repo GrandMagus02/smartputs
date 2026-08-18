@@ -9,8 +9,8 @@
 -1キロワット	power	-1000	-1kW
 1000ワットをキロワット	power	1000	1kW
 二百五キロワット	power	205000	205kW
-1馬力をワット	power	745.69987158227022	745.69987158227022W
-100馬力をキロワット	power	74569.987158227022	74.569987158227022kW
+1馬力をワット	power	745.69987158227022	745.6999W
+100馬力をキロワット	power	74569.987158227022	74.57kW
 1,234,567ワット	power	1234567	1,234,567W
 # No number agreement, and no space between the number and the unit.
 1ワット	power	1	1W

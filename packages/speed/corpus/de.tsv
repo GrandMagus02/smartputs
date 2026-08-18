@@ -1,7 +1,7 @@
 # input	kind	canonical	formatted
 120 kph	speed	33.33333333333333333333333334	120 km/h
-100 kph in mph	speed	27.77777777777777777777777778	62,137119223733396961743418 mph
-60 mph in kph	speed	26.8224	96,56064 km/h
+100 kph in mph	speed	27.77777777777777777777777778	62,1371 mph
+60 mph in kph	speed	26.8224	96,5606 km/h
 1 knot in kph	speed	0.5144444444444444444444444444	1,852 km/h
 10 mps in kph	speed	10	36 km/h
 50 kph + 50 kph	speed	27.77777777777777777777777778	100 km/h
@@ -22,7 +22,7 @@ ein kph	speed	0.2777777777777777777777777778	1 km/h
 100 kph geteilt durch 4	speed	6.944444444444444444444444445	25 km/h
 # Three prepositions mark a conversion — "in", "nach", "zu" — where most
 # languages here manage with two.
-100 kph zu mph	speed	27.77777777777777777777777778	62,137119223733396961743418 mph
+100 kph zu mph	speed	27.77777777777777777777777778	62,1371 mph
 # "kmh" is the slash-free alias; the printed symbol puts the slash back.
 120 kmh	speed	33.33333333333333333333333334	120 km/h
 # Knoten fills all four cells of the German table with one word: nominative

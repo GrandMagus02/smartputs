@@ -33,7 +33,7 @@
 2 chilowattora in mj	energy	7200000	7,2 megajoule
 # The imperial length whose plural changes the stem's own vowel rather than
 # its ending — miglio, miglia.
-2 miglia in km	length	3218.688	3,218688 chilometri
+2 miglia in km	length	3218.688	3,2187 chilometri
 # "per" is times and "diviso" stands alone as over, so Italian spends no
 # second token on either operator.
 3 kg per 4	mass	12000	12 chilogrammi

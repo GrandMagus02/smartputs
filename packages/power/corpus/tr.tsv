@@ -10,7 +10,7 @@
 1000 W çevir kilovat	power	1000	1 kilovat
 bir kilovat	power	1000	1 kilovat
 iki yüz beş kilovat	power	205000	205 kilovat
-100 bg çevir kilovat	power	74569.987158227022	74,569987158227022 kilovat
+100 bg çevir kilovat	power	74569.987158227022	74,57 kilovat
 # "." groups and "," is the decimal point, German's pair.
 1.234.567 W	power	1234567	1.234.567 vat
 1.500.000 W çevir MW	power	1500000	1,5 megavat

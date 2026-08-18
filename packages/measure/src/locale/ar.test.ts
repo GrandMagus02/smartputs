@@ -194,9 +194,7 @@ describe("measure ar vocabulary", () => {
     // A subtraction landing on a fraction: `other`, the genitive singular, and
     // the decimal point is "." because `arabic.numberFormat` pins the `latn`
     // numbering system rather than reading `Intl`'s default for the bare tag.
-    expect(engine.evaluate("1 بوصة - 12 نقطة").formatted).toBe(
-      "0.83333333333333333333333333 بوصة",
-    );
+    expect(engine.evaluate("1 بوصة - 12 نقطة").formatted).toBe("0.8333 بوصة");
   });
 
   test("what it prints, it reads back", () => {

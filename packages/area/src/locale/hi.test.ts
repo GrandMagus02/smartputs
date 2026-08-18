@@ -185,7 +185,7 @@ describe("area hi vocabulary", () => {
     // हेक्टेयर में कितने वर्ग मीटर".
     expect(e.evaluate("1 हेक्टेयर में मी²").formatted).toBe("10,000 मी²");
     expect(e.evaluate("1 किमी² को हेक्टेयर").formatted).toBe("100 हेक्टेयर");
-    expect(e.evaluate("1 एकड़ से मी²").formatted).toBe("4,046.8564224 मी²");
+    expect(e.evaluate("1 एकड़ से मी²").formatted).toBe("4,046.8564 मी²");
     // A sum that lands on a fraction, written with the arithmetic noun जोड़,
     // which Hindi reads infix ("दस जोड़ पाँच") even though a full sentence puts
     // the operator last. 1.5 is `other`, and on a Hindi measure noun `other` is
@@ -200,7 +200,7 @@ describe("area hi vocabulary", () => {
     // The oblique plural, read by `hindi`'s stripper rather than listed here,
     // and the nukta-less spelling, which no normalization would ever join to the
     // nukta-bearing one and so is listed.
-    expect(e.evaluate("1 एकड़ों में मी²").formatted).toBe("4,046.8564224 मी²");
+    expect(e.evaluate("1 एकड़ों में मी²").formatted).toBe("4,046.8564 मी²");
     expect(e.evaluate("5 एकड").formatted).toBe("5 एकड़");
     // A cardinal read through `hindi.numerals`.
     expect(e.evaluate("पाँच हेक्टेयर").formatted).toBe("5 हेक्टेयर");
@@ -242,9 +242,13 @@ describe("area hi vocabulary", () => {
       const first = e.evaluate(input);
       const again = e.evaluate(first.formatted);
       expect(again.value?.unit, input).toBe(first.value?.unit);
-      expect(again.value?.canonical.toFixed(20), input).toBe(
-        first.value?.canonical.toFixed(20),
-      );
+      // Ruling R-C1: `formatted` is a readability policy, so what comes back
+      // from it is the displayed number and not the 26-digit one. The property
+      // that survives — and the one "reads back what it prints" means to a
+      // person — is that displaying the re-read value writes the same string.
+      // The exact guard is `formatPrecision`, tested through the Printer in
+      // `@smartput/core`'s print/roundtrip.test.ts.
+      expect(again.formatted, input).toBe(first.formatted);
     }
   });
 });

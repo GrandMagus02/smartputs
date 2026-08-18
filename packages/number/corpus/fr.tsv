@@ -5,7 +5,7 @@
 10 / 4	number	2.5	2,5
 -5	number	-5	-5
 (1 + 2) * 3	number	9	9
-100 / 3	number	33.33333333333333333333333333	33,333333333333333333333333
+100 / 3	number	33.33333333333333333333333333	33,3333
 # The group separator is a space and the decimal a comma. Three different
 # space characters are read as the separator — ASCII, U+00A0 and U+202F — and
 # exactly one of them, U+202F, is ever written back.

@@ -14,3 +14,9 @@
 one gbps	datarate	1000000000	1 gbps
 1 gbps in bps	datarate	1000000000	1,000,000,000 bps
 250 mbps	datarate	250000000	250 mbps
+# Spec §D's other half, the ruling: `datasize / duration` names `mbps` itself,
+# so the evaluator leaves it alone. It has to — the bit/byte factor lives in
+# that signature's `apply`, not in a ratio, and the derived-unit table matches
+# on ratios, so the table's own answer for (gb, /, s) would be eight times off.
+# A plugin that spoke is not second-guessed, and this row is what says so.
+1 gb / 2 s	datarate	4000000000	4,000 mbps

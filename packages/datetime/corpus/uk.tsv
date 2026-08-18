@@ -38,7 +38,7 @@ next friday	datetime	1769126400000000000	2026-01-23 00:00 UTC
 2026-01-20 - 2026-01-15	duration	432000	5 днів
 # `durationValue` reports the largest unit it fills, so 45 days is weeks, and
 # a fraction is `other`, the genitive singular.
-2026-03-01 - 2026-01-15	duration	3888000	6,4285714285714285714285714 тижня
+2026-03-01 - 2026-01-15	duration	3888000	6,4286 тижня
 # The same four categories again on the hour, which the day rows cannot reach:
 # eleven is `many` however it ends.
 2026-01-15 23:00 - 2026-01-15 12:00	duration	39600	11 годин

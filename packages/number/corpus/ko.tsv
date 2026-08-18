@@ -5,7 +5,7 @@
 10 / 4	number	2.5	2.5
 -5	number	-5	-5
 (1 + 2) * 3	number	9	9
-100 / 3	number	33.33333333333333333333333333	33.333333333333333333333333
+100 / 3	number	33.33333333333333333333333333	33.3333
 # The separators are English's — "," for groups, "." for the decimal.
 1,234,567	number	1234567	1,234,567
 0.1 + 0.2	number	0.3	0.3

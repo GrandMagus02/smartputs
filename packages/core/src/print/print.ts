@@ -1,6 +1,12 @@
 import type { Decimal } from "../decimal";
 import { fromCanonical, toCanonical } from "../eval/convert";
-import { formatNumber, formatValue } from "../format/format";
+import {
+  applyDisplay,
+  type DisplayOptions,
+  type FormatOptionsWithDisplay,
+  formatNumber,
+  formatValue,
+} from "../format/format";
 import { type Registry, wordsFor } from "../kind/registry";
 import { defaultRenderExpression, defaultRenderQuantity } from "../locale/render";
 import type { Node, NodeId } from "../parse/ast";
@@ -9,7 +15,6 @@ import type { Program } from "../parse/program";
 import type { Resolution } from "../solve/solver";
 import type {
   Candidate,
-  FormatOptions,
   Keyword,
   KindId,
   Locale,
@@ -19,10 +24,17 @@ import type {
 } from "../types";
 import { avoidSpellings, pickCandidate, unitLabel, unitWord } from "./unit-word";
 
+export type { DisplayOptions } from "../format/format";
 // `format/format.ts` stays the one place `formatValue` is defined; this is a
 // re-export, not a second copy, so a caller who wants the bare function
 // without standing up a `Printer` still has one place to import it from.
-export { DISPLAY_PRECISION, formatNumber, formatValue } from "../format/format";
+export {
+  applyDisplay,
+  DEFAULT_DISPLAY,
+  DISPLAY_PRECISION,
+  formatNumber,
+  formatValue,
+} from "../format/format";
 export type { FormatOptions } from "../types";
 
 export type PrintMode = "canonical" | "verbatim" | "resolved";
@@ -130,6 +142,20 @@ export interface PrintOptions {
    */
   precision?: number;
   /**
+   * Readability policy for the same number `precision` governs, and only that
+   * one — ruling R-C1. A rebased quantity is the one number `print` derives
+   * rather than echoes, so it is the one number a display policy could apply
+   * to; every other magnitude on the tree is the literal the user typed,
+   * reprinted by `printDecimal`, and rounding *that* would make the printer
+   * rewrite its own input.
+   *
+   * Defaults to `undefined` — no policy — rather than to `PrinterOptions.display`
+   * or `DEFAULT_DISPLAY`, so `print()` keeps satisfying spec §4.6's round-trip
+   * contract with default options. `Result.formatted` is where the engine's
+   * configured policy applies, through `value()`.
+   */
+  display?: DisplayOptions;
+  /**
    * "30deg+15deg" vs "30 deg + 15 deg". Defaults to `"normal"`. `"tight"`
    * only squeezes the number-unit gap and the space around a symbolic
    * operator (`+ - * /`); a keyword operator (`in`, `of`, `off`) always keeps
@@ -145,6 +171,15 @@ export interface PrinterOptions {
   locale: Locale;
   rates?: RateLookup;
   rounding?: Decimal.Rounding;
+  /**
+   * The readability policy `value()` applies unless a call overrides it —
+   * ruling R-C1, and what `createEngine` sets from `EngineOptions.display`.
+   * Undefined leaves the guard digits alone, which is what a `Printer` built
+   * by hand gets and why nothing that constructs one directly moved.
+   *
+   * Deliberately not consulted by `print()`: see `PrintOptions.display`.
+   */
+  display?: DisplayOptions;
 }
 
 /**
@@ -227,6 +262,8 @@ interface RenderCtx {
    * once per node — a typo in the option fails loudly exactly once. */
   readonly rebase?: { readonly kind: KindId; readonly unit: string };
   readonly precision?: number;
+  /** `PrintOptions.display`, and only ever applied to a rebased magnitude. */
+  readonly display?: DisplayOptions;
   /**
    * `this.locale.language.spell`, carried into the ctx only when `PrintOptions.spelled`
    * was `true` — set here (once per call) rather than read from `this.locale`
@@ -249,25 +286,30 @@ export class Printer {
   private readonly locale: Locale;
   private readonly rates?: RateLookup;
   private readonly rounding?: Decimal.Rounding;
+  private readonly display?: DisplayOptions;
 
   constructor(cfg: PrinterOptions) {
     this.registry = cfg.registry;
     this.locale = cfg.locale;
     if (cfg.rates !== undefined) this.rates = cfg.rates;
     if (cfg.rounding !== undefined) this.rounding = cfg.rounding;
+    if (cfg.display !== undefined) this.display = cfg.display;
     Object.freeze(this);
   }
 
   /**
    * `formatValue(value, this.registry, this.locale, opts)`, with this
-   * instance's own `rates`/`rounding` folded in wherever the caller's `opts`
-   * did not already say — the caller's `opts` always wins, the same
-   * "explicit beats configured" rule every stage here follows.
+   * instance's own `rates`/`rounding`/`display` folded in wherever the
+   * caller's `opts` did not already say — the caller's `opts` always wins, the
+   * same "explicit beats configured" rule every stage here follows, and what
+   * lets `EvalOptions.display` override `EngineOptions.display` without
+   * rebuilding the `Printer`.
    */
-  value(v: Value, opts: FormatOptions = {}): string {
+  value(v: Value, opts: FormatOptionsWithDisplay = {}): string {
     return formatValue(v, this.registry, this.locale, {
       ...(this.rates !== undefined ? { rates: this.rates } : {}),
       ...(this.rounding !== undefined ? { rounding: this.rounding } : {}),
+      ...(this.display !== undefined ? { display: this.display } : {}),
       ...opts,
     });
   }
@@ -379,6 +421,7 @@ export class Printer {
       spacing: opts.spacing ?? "normal",
       ...(rebase !== undefined ? { rebase } : {}),
       ...(opts.precision !== undefined ? { precision: opts.precision } : {}),
+      ...(opts.display !== undefined ? { display: opts.display } : {}),
       ...(spell !== undefined ? { spell } : {}),
     };
   }
@@ -748,7 +791,10 @@ export class Printer {
       ...(this.rates !== undefined ? { rates: this.rates } : {}),
     };
     const canonical = toCanonical(value, kind, chosen.unit, conversionCtx);
-    const authored = fromCanonical(canonical, kind, ctx.rebase.unit, conversionCtx);
+    const authored = applyDisplay(
+      fromCanonical(canonical, kind, ctx.rebase.unit, conversionCtx),
+      ctx.display,
+    );
     const text = formatNumber(authored, this.locale.language, {
       ...(ctx.precision !== undefined ? { precision: ctx.precision } : {}),
       ...(this.rounding !== undefined ? { rounding: this.rounding } : {}),

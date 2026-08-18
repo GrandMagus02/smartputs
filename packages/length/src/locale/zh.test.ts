@@ -199,7 +199,7 @@ describe("length zh vocabulary", () => {
     expect(e.evaluate("0.5公里到米").formatted).toBe("500米");
     expect(e.evaluate("500厘米换算米").formatted).toBe("5米");
     expect(e.evaluate("36英寸到英尺").formatted).toBe("3英尺");
-    expect(e.evaluate("1英里到公里").formatted).toBe("1.609344公里");
+    expect(e.evaluate("1英里到公里").formatted).toBe("1.6093公里");
     // Latin input still reads, and answers in Chinese.
     expect(e.evaluate("2m").formatted).toBe("2米");
     // The Taiwanese spellings, read and normalised to the mainland ones.
@@ -222,9 +222,13 @@ describe("length zh vocabulary", () => {
       const first = e.evaluate(input);
       const again = e.evaluate(first.formatted);
       expect(again.value.unit, input).toBe(first.value.unit);
-      expect(again.value.canonical.toString(), input).toBe(
-        first.value.canonical.toString(),
-      );
+      // Ruling R-C1: `formatted` is a readability policy, so what comes back
+      // from it is the displayed number and not the 26-digit one. The property
+      // that survives — and the one "reads back what it prints" means to a
+      // person — is that displaying the re-read value writes the same string.
+      // The exact guard is `formatPrecision`, tested through the Printer in
+      // `@smartput/core`'s print/roundtrip.test.ts.
+      expect(again.formatted, input).toBe(first.formatted);
     }
   });
 });

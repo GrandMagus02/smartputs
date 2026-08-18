@@ -35,7 +35,7 @@ next friday	datetime	1769126400000000000	2026-01-23 00:00 UTC
 2026-01-17 - 2026-01-15	duration	172800	2 jours
 # `durationValue` reports the largest unit it fills, so 45 days is weeks, and
 # the remainder is where the decimal comma shows.
-2026-03-01 - 2026-01-15	duration	3888000	6,4285714285714285714285714 semaines
+2026-03-01 - 2026-01-15	duration	3888000	6,4286 semaines
 # The group separator printed is U+202F, a narrow no-break space, and not the
 # ordinary space it looks like.
 1000 jours	duration	86400000	1 000 jours

@@ -1,6 +1,6 @@
 # input	kind	canonical	formatted
 2升	volume	2	2升
-1加仑到升	volume	3.785411784	3.785411784升
+1加仑到升	volume	3.785411784	3.7854升
 500毫升 + 500毫升	volume	1	1,000毫升
 2升 - 250毫升	volume	1.75	1.75升
 3升 * 4	volume	12	12升

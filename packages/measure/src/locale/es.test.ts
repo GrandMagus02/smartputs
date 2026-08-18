@@ -169,9 +169,7 @@ describe("measure es vocabulary", () => {
     // A subtraction landing on a repeating fraction: the decimal comma comes
     // from CLDR through `numberFormat: "intl"`, and the noun stays the plain
     // plural — Ukrainian would need a genitive singular here.
-    expect(engine.evaluate("1 pulgada - 12 puntos").formatted).toBe(
-      "0,83333333333333333333333333 pulgadas",
-    );
+    expect(engine.evaluate("1 pulgada - 12 puntos").formatted).toBe("0,8333 pulgadas");
   });
 
   test("its own output reads back to the same value", () => {

@@ -53,7 +53,7 @@ test("`in` converts the zone and keeps the instant", () => {
 test("duration arithmetic still needs no date at all", () => {
   const r = engine.evaluate("30 hours - 10 minutes");
   expect(r.kind).toBe("duration");
-  expect(r.formatted).toBe("29.833333333333333333333333 hours");
+  expect(r.formatted).toBe("29.8333 hours");
 });
 
 test("a length expression is untouched by the date matcher", () => {

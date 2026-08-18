@@ -28,8 +28,18 @@ export type {
   QuantitySnapshot,
 } from "./facade/index";
 export { createFacade, createFacades } from "./facade/index";
-export type { FormatOptions } from "./format/format";
-export { DISPLAY_PRECISION, formatNumber, formatValue } from "./format/format";
+export type { DisplayOptions, FormatOptions } from "./format/format";
+// `DisplayOptions`/`DEFAULT_DISPLAY`/`applyDisplay` are `EngineOptions.display`'s
+// type and its default (ruling R-C1): a caller who widens one field of the
+// policy needs to be able to name it, and one who wants to reproduce what
+// `Result.formatted` did to a number needs the function itself.
+export {
+  applyDisplay,
+  DEFAULT_DISPLAY,
+  DISPLAY_PRECISION,
+  formatNumber,
+  formatValue,
+} from "./format/format";
 export { defineKind } from "./kind/define";
 // The engine-side view of a kind package's UnitTable: the micro path reads the
 // same table, so English aliases and ratios have exactly one source.

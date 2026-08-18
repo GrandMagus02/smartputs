@@ -1,13 +1,13 @@
 # input	kind	canonical	formatted
 90 derece	angle	1.570796326794896619231321692	90 derece
-90 derece çevir radyan	angle	1.570796326794896619231321692	1,5707963267948966192313217 radyan
+90 derece çevir radyan	angle	1.570796326794896619231321692	1,5708 radyan
 0,25 devir çevir derece	angle	1.570796326794896619231321692	90 derece
 200 grad çevir derece	angle	3.141592653589793238462643383	180 derece
 90 derece + 90 derece	angle	3.141592653589793238462643384	180 derece
 1 devir - 90 derece	angle	4.712388980384689857693965075	0,75 devir
 180 derece / 4	angle	0.7853981633974483096156608458	45 derece
 -90 derece	angle	-1.570796326794896619231321692	-90 derece
-1 radyan çevir derece	angle	1	57,295779513082320876798155 derece
+1 radyan çevir derece	angle	1	57,2958 derece
 bir devir	angle	6.283185307179586476925286767	1 devir
 iki yüz grad	angle	3.141592653589793238462643383	200 grad
 360 derece çevir devir	angle	6.283185307179586476925286767	1 devir
@@ -24,7 +24,7 @@ iki yüz grad	angle	3.141592653589793238462643383	200 grad
 # A conversion is not a preposition here: the target takes no marker of its
 # own and the sentence hangs off the verb "çevir". "to" is claimed beside it
 # because Turkish writing borrows it.
-90 derece to radyan	angle	1.570796326794896619231321692	1,5707963267948966192313217 radyan
+90 derece to radyan	angle	1.570796326794896619231321692	1,5708 radyan
 # The suffix stripper. Turkish agglutinates case and plural onto the unit
 # word, and neither of these endings is listed as an alias — the stripper
 # takes them off and the bare stem is what matches.

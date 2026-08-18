@@ -5,7 +5,7 @@
 10 / 4	number	2.5	2,5
 -5	number	-5	-5
 (1 + 2) * 3	number	9	9
-100 / 3	number	33.33333333333333333333333333	33,333333333333333333333333
+100 / 3	number	33.33333333333333333333333333	33,3333
 # The decimal is a comma and the group separator is U+00A0, which is not the
 # space read on the way in.
 1 500	number	1500	1 500

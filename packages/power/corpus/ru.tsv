@@ -10,8 +10,8 @@
 1000 Вт в кВт	power	1000	1 киловатт
 один киловатт	power	1000	1 киловатт
 двести пять киловатт	power	205000	205 киловатт
-1 лс в Вт	power	745.69987158227022	745,69987158227022 ватта
-100 лс в кВт	power	74569.987158227022	74,569987158227022 киловатта
+1 лс в Вт	power	745.69987158227022	745,6999 ватта
+100 лс в кВт	power	74569.987158227022	74,57 киловатта
 # Four categories, and the watt spells them with two words: the genitive plural
 # `many` is the bare stem that `one` also uses, so 1 and 5 and 11 all read
 # "ватт", while `few` and the fractional `other` share "ватта". Polish keeps

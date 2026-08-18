@@ -7,7 +7,7 @@
 1 inch in px	measure	1	96 pixels
 96 px in inch	measure	1	1 inch
 2 inch + 36 pt	measure	2.5	2.5 inches
-1 inch - 12 pt	measure	0.8333333333333333333333333333	0.83333333333333333333333333 inches
+1 inch - 12 pt	measure	0.8333333333333333333333333333	0.8333 inches
 3 inch * 2	measure	6	6 inches
 1 inch / 4	measure	0.25	0.25 inches
 -2 inch	measure	-2	-2 inches

@@ -5,7 +5,7 @@
 10 / 4	number	2.5	2,5
 -5	number	-5	-5
 (1 + 2) * 3	number	9	9
-100 / 3	number	33.33333333333333333333333333	33,333333333333333333333333
+100 / 3	number	33.33333333333333333333333333	33,3333
 # "." groups and "," marks the decimal, so a dot inside an argument is never a
 # decimal point here.
 1.500	number	1500	1.500

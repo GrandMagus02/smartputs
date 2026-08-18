@@ -178,8 +178,8 @@ describe("volume it vocabulary", () => {
     // through `numberFormat: "intl"`, and the noun stays the plain plural.
     expect(engine.evaluate("1 l + 500 ml").formatted).toBe("1,5 litri");
     // A conversion, written with `in` and then with `a` — Italian claims both.
-    expect(engine.evaluate("2 galloni in litri").formatted).toBe("7,570823568 litri");
-    expect(engine.evaluate("2 galloni a litri").formatted).toBe("7,570823568 litri");
+    expect(engine.evaluate("2 galloni in litri").formatted).toBe("7,5708 litri");
+    expect(engine.evaluate("2 galloni a litri").formatted).toBe("7,5708 litri");
     // The cubic metre renders through the symbol branch — number and symbol with
     // no space — and reads back through the same symbol.
     expect(engine.evaluate("1 m3 in litri").formatted).toBe("1.000 litri");
@@ -205,9 +205,13 @@ describe("volume it vocabulary", () => {
     ]) {
       const first = engine.evaluate(input);
       const again = engine.evaluate(first.formatted);
-      expect(again.value.canonical.toString(), input).toBe(
-        first.value.canonical.toString(),
-      );
+      // Ruling R-C1: `formatted` is a readability policy, so what comes back
+      // from it is the displayed number and not the 26-digit one. The property
+      // that survives — and the one "reads back what it prints" means to a
+      // person — is that displaying the re-read value writes the same string.
+      // The exact guard is `formatPrecision`, tested through the Printer in
+      // `@smartput/core`'s print/roundtrip.test.ts.
+      expect(again.formatted, input).toBe(first.formatted);
       expect(again.value.unit, input).toBe(first.value.unit);
     }
   });

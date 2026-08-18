@@ -10,8 +10,8 @@
 1000 W in kW	power	1000	1 chilowatt
 un chilowatt	power	1000	1 chilowatt
 duecentocinque chilowatt	power	205000	205 chilowatt
-1 hp in W	power	745.69987158227022	745,69987158227022 watt
-100 hp in kW	power	74569.987158227022	74,569987158227022 chilowatt
+1 hp in W	power	745.69987158227022	745,6999 watt
+100 hp in kW	power	74569.987158227022	74,57 chilowatt
 # "." groups and "," is the decimal point.
 1.234.567 W	power	1234567	1.234.567 watt
 1.500.000 W in MW	power	1500000	1,5 megawatt

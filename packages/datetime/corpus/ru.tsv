@@ -39,7 +39,7 @@ next friday	datetime	1769126400000000000	2026-01-23 00:00 UTC
 # a fraction is `other`, the genitive singular. Where Russian and Polish part
 # company: `few` here is that same genitive singular ("2 дня"), and there it is
 # the nominative plural.
-2026-03-01 - 2026-01-15	duration	3888000	6,4285714285714285714285714 недели
+2026-03-01 - 2026-01-15	duration	3888000	6,4286 недели
 # A decimal comma and a U+00A0 group separator.
 1000 дней	duration	86400000	1 000 дней
 # Both word operators are two tokens, hanging off "на", which core reads as the

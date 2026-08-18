@@ -1,13 +1,13 @@
 # input	kind	canonical	formatted
 90 stopni	angle	1.570796326794896619231321692	90 stopni
-90 stopni w radianach	angle	1.570796326794896619231321692	1,5707963267948966192313217 radiana
+90 stopni w radianach	angle	1.570796326794896619231321692	1,5708 radiana
 0,25 obrotu w stopniach	angle	1.570796326794896619231321692	90 stopni
 200 gradów w stopniach	angle	3.141592653589793238462643383	180 stopni
 90 stopni + 90 stopni	angle	3.141592653589793238462643384	180 stopni
 1 obrót - 90 stopni	angle	4.712388980384689857693965075	0,75 obrotu
 180 stopni / 4	angle	0.7853981633974483096156608458	45 stopni
 -90 stopni	angle	-1.570796326794896619231321692	-90 stopni
-1 radian w stopniach	angle	1	57,295779513082320876798155 stopnia
+1 radian w stopniach	angle	1	57,2958 stopnia
 jeden obrót	angle	6.283185307179586476925286767	1 obrót
 dwieście gradów	angle	3.141592653589793238462643383	200 gradów
 360 stopni w obrotach	angle	6.283185307179586476925286767	1 obrót
@@ -36,5 +36,5 @@ dwieście gradów	angle	3.141592653589793238462643383	200 gradów
 # "na" and "do" are two more conversion prepositions beside "w", and all three
 # introduce the same target: the result carries a magnitude of its own, so the
 # form comes off the nominative axis and the locative is never reached here.
-90 stopni na radiany	angle	1.570796326794896619231321692	1,5707963267948966192313217 radiana
-90 stopni do radianów	angle	1.570796326794896619231321692	1,5707963267948966192313217 radiana
+90 stopni na radiany	angle	1.570796326794896619231321692	1,5708 radiana
+90 stopni do radianów	angle	1.570796326794896619231321692	1,5708 radiana

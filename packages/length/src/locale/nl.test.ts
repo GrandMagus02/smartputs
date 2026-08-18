@@ -171,7 +171,7 @@ describe("length nl vocabulary", () => {
     // Conversions written with both Dutch keywords, which is `dutch.keywords`'
     // doing and not this file's.
     expect(e.evaluate("3 voet in duim").formatted).toBe("36 inch");
-    expect(e.evaluate("1 mijl naar kilometer").formatted).toBe("1,609344 kilometer");
+    expect(e.evaluate("1 mijl naar kilometer").formatted).toBe("1,6093 kilometer");
     expect(e.evaluate("1 voet in centimeter").formatted).toBe("30,48 centimeter");
     // Latin input still reads: a Dutch developer types "2 km" and a Dutch engine
     // answers in Dutch.

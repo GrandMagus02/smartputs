@@ -10,8 +10,8 @@
 1000 W in kW	power	1000	1 Kilowatt
 ein Kilowatt	power	1000	1 Kilowatt
 zweihundertfünf Kilowatt	power	205000	205 Kilowatt
-1 PS in W	power	745.69987158227022	745,69987158227022 Watt
-100 PS in kW	power	74569.987158227022	74,569987158227022 Kilowatt
+1 PS in W	power	745.69987158227022	745,6999 Watt
+100 PS in kW	power	74569.987158227022	74,57 Kilowatt
 # "." groups and "," is the decimal point, the reverse of English.
 1.234.567 W	power	1234567	1.234.567 Watt
 1.500.000 W in MW	power	1500000	1,5 Megawatt
@@ -27,7 +27,7 @@ zweihundertfünf Kilowatt	power	205000	205 Kilowatt
 2 PS	power	1491.39974316454044	2 Pferdestärken
 5 Pferdestärken	power	3728.4993579113511	5 Pferdestärken
 # A conversion target carries no magnitude, and German names it in the plural.
-2 kW in Pferdestärken	power	2000	2,6820441791900558686475711 Pferdestärken
+2 kW in Pferdestärken	power	2000	2,682 Pferdestärken
 # "nach" beside "in" as a conversion preposition. The dative it governs is read
 # — `forms` carries a dat- axis — and never printed.
 2 kW nach Watt	power	2000	2.000 Watt

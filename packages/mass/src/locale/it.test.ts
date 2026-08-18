@@ -165,10 +165,10 @@ describe("mass it vocabulary", () => {
     // "1,5 chilogrammi", not the genitive singular Ukrainian would need.
     expect(engine.evaluate("1 kg + 500 g").formatted).toBe("1,5 chilogrammi");
     // A conversion over the imperial pound, written with `in`.
-    expect(engine.evaluate("2 libbre in grammi").formatted).toBe("907,18474 grammi");
+    expect(engine.evaluate("2 libbre in grammi").formatted).toBe("907,1847 grammi");
     // …and the same conversion written with `a`, the other half of Italian's
     // "da … a …", which `italian.keywords.in` also claims.
-    expect(engine.evaluate("2 libbre a grammi").formatted).toBe("907,18474 grammi");
+    expect(engine.evaluate("2 libbre a grammi").formatted).toBe("907,1847 grammi");
     // Italian welds its cardinals into one word, and `italian.numerals` reads
     // them: "due" is 2 and "ventidue" is 22, both in front of an ordinary noun.
     expect(engine.evaluate("due chilogrammi").formatted).toBe("2 chilogrammi");
@@ -194,9 +194,13 @@ describe("mass it vocabulary", () => {
     ]) {
       const first = engine.evaluate(input);
       const again = engine.evaluate(first.formatted);
-      expect(again.value.canonical.toString(), input).toBe(
-        first.value.canonical.toString(),
-      );
+      // Ruling R-C1: `formatted` is a readability policy, so what comes back
+      // from it is the displayed number and not the 26-digit one. The property
+      // that survives — and the one "reads back what it prints" means to a
+      // person — is that displaying the re-read value writes the same string.
+      // The exact guard is `formatPrecision`, tested through the Printer in
+      // `@smartput/core`'s print/roundtrip.test.ts.
+      expect(again.formatted, input).toBe(first.formatted);
       expect(again.value.unit, input).toBe(first.value.unit);
     }
   });

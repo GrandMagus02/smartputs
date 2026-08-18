@@ -9,7 +9,7 @@
 -1 كيلوواط	power	-1000	-1 كيلوواط
 1000 واط إلى كيلوواط	power	1000	1 كيلوواط
 مئتان وخمسة كيلوواط	power	205000	205 كيلوواطات
-100 حصان إلى كيلوواط	power	74569.987158227022	74.569987158227022 كيلوواط
+100 حصان إلى كيلوواط	power	74569.987158227022	74.57 كيلوواط
 # Six plural categories, the most any language in this set has. CLDR's Arabic
 # rule: 0 zero, 1 one, 2 two, 3-10 few, 11-99 many, and everything else — every
 # fraction included — other. The watt spells them with four words: zero, one

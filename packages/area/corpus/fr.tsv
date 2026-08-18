@@ -1,7 +1,7 @@
 # input	kind	canonical	formatted
 3 m * 4 m	area	12	12 m²
 1 hectare en m2	area	10000	10 000 m²
-1 acre en m2	area	4046.8564224	4 046,8564224 m²
+1 acre en m2	area	4046.8564224	4 046,8564 m²
 2 km2 en hectares	area	2000000	200 hectares
 5000 cm2 en m2	area	0.5	0,5 m²
 10 m2 + 5 m2	area	15	15 m²
@@ -32,4 +32,4 @@ deux hectares	area	20000	2 hectares
 quatre-vingt-dix hectares	area	900000	90 hectares
 # "vers" is the second conversion preposition, and the count-free target still
 # lands in `one` when the answer is below two.
-1 acre vers hectares	area	4046.8564224	0,40468564224 hectare
+1 acre vers hectares	area	4046.8564224	0,4047 hectare

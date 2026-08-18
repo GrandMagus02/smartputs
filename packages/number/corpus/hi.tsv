@@ -5,7 +5,7 @@
 10 / 4	number	2.5	2.5
 -5	number	-5	-5
 (1 + 2) * 3	number	9	9
-100 / 3	number	33.33333333333333333333333333	33.333333333333333333333333
+100 / 3	number	33.33333333333333333333333333	33.3333
 # The separators are English's — "," for groups, "." for the decimal — and the
 # reader is grouping-agnostic: it strips every comma wherever it falls without
 # counting the digits between them, so the Indian and the international

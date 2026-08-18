@@ -25,7 +25,7 @@
 # A conversion parses when the particle is its own token — which it is after a
 # Latin unit alias, the mixed-script spelling Korean technical writing uses.
 2km를 미터	length	2000	2,000미터
-90deg를 라디안	angle	1.570796326794896619231321692	1.5707963267948966192313217라디안
+90deg를 라디안	angle	1.570796326794896619231321692	1.5708라디안
 1kib를 바이트	datasize	1024	1,024바이트
 # After a *Hangul* unit the glued particle does not separate and the
 # conversion has to be written with a space before it. "2킬로미터를 미터" does

@@ -20,7 +20,7 @@
 20% de 50	number	10	10
 (1 + 2) * 3	number	9	9
 1 kib en b	datasize	1024	1.024 bytes
-90 grados en radianes	angle	1.570796326794896619231321692	1,5707963267948966192313217 radianes
+90 grados en radianes	angle	1.570796326794896619231321692	1,5708 radianes
 -5 km	length	-5000	-5 kilómetros
 # "." groups and "," separates the decimal.
 1.500 m en km	length	1500	1,5 kilómetros

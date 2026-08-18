@@ -181,7 +181,7 @@ describe("length de vocabulary", () => {
     // A conversion written with the German keyword, read and answered in
     // German nouns.
     expect(e.evaluate("3 Fuß in Zoll").formatted).toBe("36 Zoll");
-    expect(e.evaluate("1 Meile nach Kilometer").formatted).toBe("1,609344 Kilometer");
+    expect(e.evaluate("1 Meile nach Kilometer").formatted).toBe("1,6093 Kilometer");
     // Latin input still reads: a German developer types "2 km" and a German
     // engine answers in German.
     expect(e.evaluate("2 km").formatted).toBe("2 Kilometer");

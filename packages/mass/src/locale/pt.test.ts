@@ -159,7 +159,7 @@ describe("mass pt vocabulary", () => {
     // which is the whole difference from `en` and `es` next door.
     expect(engine.evaluate("1 kg + 500 g").formatted).toBe("1,5 quilograma");
     // A conversion, written with `em`, over the imperial pound.
-    expect(engine.evaluate("2 libras em gramas").formatted).toBe("907,18474 gramas");
+    expect(engine.evaluate("2 libras em gramas").formatted).toBe("907,1847 gramas");
     // `para` is the second spelling of the same keyword, and the cedilla's
     // accent-free twin reads on the way in.
     expect(engine.evaluate("16 oncas para libras").formatted).toBe("1 libra");
@@ -183,9 +183,13 @@ describe("mass pt vocabulary", () => {
     ]) {
       const first = engine.evaluate(input);
       const again = engine.evaluate(first.formatted);
-      expect(again.value.canonical.toString(), input).toBe(
-        first.value.canonical.toString(),
-      );
+      // Ruling R-C1: `formatted` is a readability policy, so what comes back
+      // from it is the displayed number and not the 26-digit one. The property
+      // that survives — and the one "reads back what it prints" means to a
+      // person — is that displaying the re-read value writes the same string.
+      // The exact guard is `formatPrecision`, tested through the Printer in
+      // `@smartput/core`'s print/roundtrip.test.ts.
+      expect(again.formatted, input).toBe(first.formatted);
       expect(again.value.unit, input).toBe(first.value.unit);
     }
   });

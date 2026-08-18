@@ -30,7 +30,7 @@ today + 90 min	datetime	1768440600000000000	2026-01-15 01:30 UTC
 tomorrow - today	duration	86400	1 day
 # 2026-01-15 to 2026-03-01 is 45 days = 3,888,000s, which durationValue reports
 # in weeks because that is the largest unit it fills.
-2026-03-01 - today	duration	3888000	6.4285714285714285714285714 weeks
+2026-03-01 - today	duration	3888000	6.4286 weeks
 
 # time-zone conversion — `in` keeps the instant and relabels the wall clock
 3pm in tokyo	datetime	1768489200000000000	2026-01-16 00:00 JST
@@ -42,7 +42,7 @@ today in nyc	datetime	1768435200000000000	2026-01-14 19:00 ET
 # Nothing below is a date. These rows are the accept-gate's regression guard
 # (plan ruling R4): if a chrono upgrade starts claiming them, they fail loudly.
 10 km + 5 km	length	15000	15 kilometres
-30 hours - 10 minutes	duration	107400	29.833333333333333333333333 hours
+30 hours - 10 minutes	duration	107400	29.8333 hours
 5 min	duration	300	5 minutes
 20 C	temperature	20	20°C
 2 wk	duration	1209600	2 weeks

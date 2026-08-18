@@ -181,9 +181,7 @@ describe("area fr vocabulary", () => {
     // A conversion, written with `en` — French's own conversion keyword, which
     // happens to be spelled like English's — landing below two, so the noun is
     // *singular* where English would print "0.809… hectares".
-    expect(engine.evaluate("2 acres en hectares").formatted).toBe(
-      "0,80937128448 hectare",
-    );
+    expect(engine.evaluate("2 acres en hectares").formatted).toBe("0,8094 hectare");
     // Arithmetic over a unit that has no words: `m²` is the whole of what this
     // unit reads and prints, in French as in every other language here.
     expect(engine.evaluate("1 m2 + 1 m2").formatted).toBe("2 m²");
@@ -217,9 +215,13 @@ describe("area fr vocabulary", () => {
     ]) {
       const first = engine.evaluate(input);
       const again = engine.evaluate(first.formatted);
-      expect(again.value.canonical.toString(), input).toBe(
-        first.value.canonical.toString(),
-      );
+      // Ruling R-C1: `formatted` is a readability policy, so what comes back
+      // from it is the displayed number and not the 26-digit one. The property
+      // that survives — and the one "reads back what it prints" means to a
+      // person — is that displaying the re-read value writes the same string.
+      // The exact guard is `formatPrecision`, tested through the Printer in
+      // `@smartput/core`'s print/roundtrip.test.ts.
+      expect(again.formatted, input).toBe(first.formatted);
       expect(again.value.unit, input).toBe(first.value.unit);
     }
   });

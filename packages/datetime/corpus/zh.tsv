@@ -35,7 +35,7 @@ next friday	datetime	1769126400000000000	2026-01-23 00:00 UTC
 2026-01-17 - 2026-01-15	duration	172800	2天
 # `durationValue` reports the largest unit it fills, so 45 days is weeks. "."
 # decimals and "," groups — the English pair.
-2026-03-01 - 2026-01-15	duration	3888000	6.4285714285714285714285714周
+2026-03-01 - 2026-01-15	duration	3888000	6.4286周
 1000天	duration	86400000	1,000天
 # The myriad: 一万 is ten thousand, one digit-group boundary away from where a
 # Latin-script reader would put it.

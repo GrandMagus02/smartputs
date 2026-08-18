@@ -4,6 +4,7 @@ import { BUILTIN_KINDS } from "@smartput/kinds";
 import BUILTIN_EN from "@smartput/kinds/locale/en";
 import { Decimal } from "../decimal";
 import { Evaluator } from "../eval/evaluator";
+import { DEFAULT_DISPLAY } from "../format/format";
 import { buildRegistry } from "../kind/registry";
 import { composeLocale } from "../locale/compose";
 import { createResolver } from "../parse/candidates";
@@ -37,6 +38,8 @@ const parser = new Parser({ resolver });
 const solver = new Solver({ registry });
 const evaluator = new Evaluator({ registry, locale: en.id });
 const printer = new Printer({ registry, locale: en });
+/** What `createEngine` builds — `Result.formatted`'s printer, ruling R-C1. */
+const displayPrinter = new Printer({ registry, locale: en, display: DEFAULT_DISPLAY });
 
 function buildProgram(input: string): Program {
   return parser.run(tokenizer.run(normalizer.run(input)));
@@ -97,3 +100,33 @@ for (const row of CORPUS_ROWS) {
     expect(roundtripped).toEqual(original);
   });
 }
+
+/**
+ * Ruling R-C1's cost, named where a reader will meet it.
+ *
+ * `Result.formatted` is a readability policy now, so the exact
+ * `parse(format(v)) === v` equality no longer holds of it: "1.5 kg in lb"
+ * prints 3.3069 pounds and reads back as a slightly different number of grams.
+ * The guard that equality exists for is `formatPrecision`, and it is still
+ * exact — every `round-trip:` case above is that guard, printed through the
+ * default `Printer` at DISPLAY_PRECISION.
+ *
+ * What survives for `formatted` is the weaker property that actually matters
+ * to a person: displaying is idempotent. Whatever the display printer wrote,
+ * reading it back and displaying it again writes the same string, so a value
+ * copied out of one answer and pasted into the next input does not drift.
+ * `moved` is the non-vacuity check: at least one corpus row genuinely loses
+ * digits to the policy, or this test would be asserting nothing.
+ */
+test("R-C1: display round-trips at display precision; the guard stays exact", () => {
+  let moved = 0;
+  for (const row of CORPUS_ROWS) {
+    const original = evaluateProgram(buildProgram(row.input));
+    const guarded = printer.value(original);
+    const shown = displayPrinter.value(original);
+    if (shown !== guarded) moved += 1;
+    const reread = evaluateProgram(buildProgram(shown));
+    expect(displayPrinter.value(reread), row.input).toBe(shown);
+  }
+  expect(moved).toBeGreaterThan(0);
+});

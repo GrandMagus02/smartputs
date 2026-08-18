@@ -6,7 +6,7 @@
 1 Zoll in px	measure	1	96 Pixel
 96 px in Zoll	measure	1	1 Zoll
 2 Zoll + 36 pt	measure	2.5	2,5 Zoll
-1 Zoll - 12 pt	measure	0.8333333333333333333333333333	0,83333333333333333333333333 Zoll
+1 Zoll - 12 pt	measure	0.8333333333333333333333333333	0,8333 Zoll
 3 Zoll * 2	measure	6	6 Zoll
 1 Zoll / 4	measure	0.25	0,25 Zoll
 -2 Zoll	measure	-2	-2 Zoll

@@ -47,7 +47,7 @@ next friday	datetime	1769126400000000000	2026-01-23 00:00 UTC
 # `durationValue` reports the largest unit it fills, so 45 days is weeks, and
 # the fraction is `other`. A Latin decimal point on the first, a Latin group
 # separator on the second, both inside a right-to-left string.
-2026-03-01 - 2026-01-15	duration	3888000	6.4285714285714285714285714 أسبوع
+2026-03-01 - 2026-01-15	duration	3888000	6.4286 أسبوع
 1000 يوم	duration	86400000	1,000 يوم
 # "في" is both "in" and "times", and the keyword table claims it for the
 # conversion preposition — so "ضرب" is what is left to spell multiplication.

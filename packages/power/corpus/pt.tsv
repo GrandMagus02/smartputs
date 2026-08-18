@@ -10,7 +10,7 @@
 1000 W em kW	power	1000	1 quilowatt
 um quilowatt	power	1000	1 quilowatt
 duzentos e cinco quilowatts	power	205000	205 quilowatts
-100 hp em kW	power	74569.987158227022	74,569987158227022 quilowatts
+100 hp em kW	power	74569.987158227022	74,57 quilowatts
 # "." groups and "," is the decimal point.
 1.234.567 W	power	1234567	1.234.567 watts
 1.500.000 W em MW	power	1500000	1,5 megawatt

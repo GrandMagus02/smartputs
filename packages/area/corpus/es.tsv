@@ -1,7 +1,7 @@
 # input	kind	canonical	formatted
 3 m * 4 m	area	12	12 m²
 1 hectárea en m2	area	10000	10.000 m²
-1 acre en m2	area	4046.8564224	4.046,8564224 m²
+1 acre en m2	area	4046.8564224	4.046,8564 m²
 2 km2 en hectáreas	area	2000000	200 hectáreas
 5000 cm2 en m2	area	0.5	0,5 m²
 10 m2 + 5 m2	area	15	15 m²
@@ -31,5 +31,5 @@ dos hectáreas	area	20000	2 hectáreas
 # that cannot reach á is what most people type. Only the accented form prints.
 1 hectarea	area	10000	1 hectárea
 # "a" is the second conversion preposition, beside "en".
-1 acre a hectáreas	area	4046.8564224	0,40468564224 hectáreas
+1 acre a hectáreas	area	4046.8564224	0,4047 hectáreas
 ciento veinte m2	area	120	120 m²

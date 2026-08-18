@@ -6,7 +6,7 @@
 1 duim in px	measure	1	96 pixels
 96 px in duim	measure	1	1 inch
 2 duim + 36 pt	measure	2.5	2,5 inch
-1 duim - 12 pt	measure	0.8333333333333333333333333333	0,83333333333333333333333333 inch
+1 duim - 12 pt	measure	0.8333333333333333333333333333	0,8333 inch
 3 duim * 2	measure	6	6 inch
 1 duim / 4	measure	0.25	0,25 inch
 -2 duim	measure	-2	-2 inch
@@ -37,4 +37,4 @@ twaalf punten	measure	0.1666666666666666666666666667	12 punt
 3 duim keer 2	measure	6	6 inch
 1 duim gedeeld door 4	measure	0.25	0,25 inch
 # "naar" is the second conversion preposition beside "in".
-100 px naar mm	measure	1.041666666666666666666666667	26,458333333333333333333333 millimeter
+100 px naar mm	measure	1.041666666666666666666666667	26,4583 millimeter

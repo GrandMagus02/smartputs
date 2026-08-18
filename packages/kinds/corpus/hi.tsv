@@ -18,8 +18,8 @@
 30 C - 20 C	tempdelta	10	10°C
 50 + 20%	number	60	60
 1 किबिबाइट में बाइट	datasize	1024	1,024 बाइट
-90 डिग्री में रेडियन	angle	1.570796326794896619231321692	1.5707963267948966192313217 रेडियन
-1 गैलन में लीटर	volume	3.785411784	3.785411784 लीटर
+90 डिग्री में रेडियन	angle	1.570796326794896619231321692	1.5708 रेडियन
+1 गैलन में लीटर	volume	3.785411784	3.7854 लीटर
 -5 किमी	length	-5000	-5 किलोमीटर
 # The reader is grouping-agnostic: Indian grouping puts the separators in
 # different places and the two spellings read as the same number. The writer

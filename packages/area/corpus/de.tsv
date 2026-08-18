@@ -1,7 +1,7 @@
 # input	kind	canonical	formatted
 3 m * 4 m	area	12	12 Quadratmeter
 1 Hektar in m2	area	10000	10.000 Quadratmeter
-1 Acre in m2	area	4046.8564224	4.046,8564224 Quadratmeter
+1 Acre in m2	area	4046.8564224	4.046,8564 Quadratmeter
 2 km2 in Hektar	area	2000000	200 Hektar
 5000 cm2 in m2	area	0.5	0,5 Quadratmeter
 10 m2 + 5 m2	area	15	15 Quadratmeter

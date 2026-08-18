@@ -535,8 +535,14 @@ test("rounding does not perturb an ordinary kind's formatted output", () => {
     rounding: Decimal.ROUND_UP,
   });
   const expected = "0.33333333333333333333333333 kilometres";
-  expect(plain.evaluate("1 km / 3").formatted).toBe(expected);
-  expect(up.evaluate("1 km / 3").formatted).toBe(expected);
+  // `display` is turned off for the assertion, not for the mechanism: the
+  // digit `rounding` would perturb is the 26th, and the four-fraction-digit
+  // display policy this engine ships with would hide the difference rather
+  // than prove it absent. Ruling R-C1's two figures, both visible in one test.
+  const wide = { display: { maximumFractionDigits: 30 } } as const;
+  expect(plain.evaluate("1 km / 3", wide).formatted).toBe(expected);
+  expect(up.evaluate("1 km / 3", wide).formatted).toBe(expected);
+  expect(plain.evaluate("1 km / 3").formatted).toBe("0.3333 kilometres");
 });
 
 test("a result carries no ratesAsOf when no rates were supplied", () => {
@@ -1061,7 +1067,11 @@ test("the contribution rows still sum to the score with a cue applied", () => {
  * `outcome` now; anything else is a bug in a stage and still propagates.
  */
 test("explain returns an Explanation for input evaluate throws on", () => {
-  const ex = engine.explain("100 km / 2 h in km/h");
+  // Was "100 km / 2 h in km/h", which spec §D turned into a working input: a
+  // compound unit is a conversion target now, so that string evaluates and
+  // proves nothing about `explain`. "10 kg / 2 m" has no signature and no
+  // prospect of one, which is what this test needs.
+  const ex = engine.explain("10 kg / 2 m");
   expect(ex.outcome.status).toBe("error");
   expect(ex.tokens.length).toBeGreaterThan(0);
   expect(ex.candidates.length).toBeGreaterThan(0);
@@ -1110,4 +1120,114 @@ test("a non-SmartputError still propagates out of explain: it is a bug, not an o
     },
   ) as unknown as Weights;
   expect(() => engine.explain("1 kg", { weights: hostile })).toThrow(TypeError);
+});
+
+/**
+ * Ruling R-C1 — the display policy, wired.
+ *
+ * `formatPrecision` (26 significant digits) is the round-trip and comparison
+ * guard and keeps both its meaning and its default; `display` is what
+ * `Result.formatted` is allowed to keep. The two figures answer two different
+ * questions, and the cost of separating them is stated in the last test here:
+ * `formatted` and `value.canonical` no longer agree digit for digit, by design.
+ */
+test("R-C1: formatted reads the way a person expects", () => {
+  const e = createEngine({
+    locales: [composeLocale(en, BUILTIN_EN)],
+    kinds: BUILTIN_KINDS,
+  });
+  expect(e.evaluate("1.5 kg in lb").formatted).toBe("3.3069 pounds");
+  expect(e.evaluate("60 mph in kph").formatted).toBe("96.5606 km/h");
+  // Spelled as a conversion since spec §D: "50 km/h" is a length over a
+  // duration, and a derived result now keeps the units the person wrote, so it
+  // comes back "50 km/h" with no repeating decimal left to round.
+  expect(e.evaluate("50 km/h in mps").formatted).toBe("13.8889 m/s");
+  expect(e.evaluate("90 deg in rad").formatted).toBe("1.5708 radians");
+});
+
+test("R-C1: display is a display policy — the value keeps every digit", () => {
+  const e = createEngine({
+    locales: [composeLocale(en, BUILTIN_EN)],
+    kinds: BUILTIN_KINDS,
+  });
+  const r = e.evaluate("1.5 kg in lb");
+  expect(r.value.canonical.toFixed()).toBe("1500");
+  expect(r.value.unit).toBe("lb");
+  expect(r.formatted).toBe("3.3069 pounds");
+});
+
+test("the significant-digit floor keeps a small value off zero", () => {
+  const e = createEngine({
+    locales: [composeLocale(en, BUILTIN_EN)],
+    kinds: BUILTIN_KINDS,
+  });
+  // Four fraction digits alone would round this to "0 grams"; the three
+  // significant-digit floor is the whole reason the policy is two figures.
+  expect(e.evaluate("0.00001234 g").formatted).toBe("0.0000123 grams");
+});
+
+test("a scientific caller sets display once and gets its digits back", () => {
+  const e = createEngine({
+    locales: [composeLocale(en, BUILTIN_EN)],
+    kinds: BUILTIN_KINDS,
+    display: { maximumFractionDigits: 12 },
+  });
+  expect(e.evaluate("1.5 kg in lb").formatted).toBe("3.306933932773 pounds");
+});
+
+test("display overrides per call, like format", () => {
+  const e = createEngine({
+    locales: [composeLocale(en, BUILTIN_EN)],
+    kinds: BUILTIN_KINDS,
+  });
+  // Both halves of the policy stay in force: asking for one fraction digit
+  // still gets the three-significant-digit floor, because the floor is what
+  // stops a small value displaying as 0 and a per-call override of one field
+  // is not a request to drop the other. Say so to get one digit.
+  expect(
+    e.evaluate("1.5 kg in lb", { display: { maximumFractionDigits: 1 } }).formatted,
+  ).toBe("3.31 pounds");
+  expect(
+    e.evaluate("1.5 kg in lb", {
+      display: { maximumFractionDigits: 1, minimumSignificantDigits: 1 },
+    }).formatted,
+  ).toBe("3.3 pounds");
+  // Per call, and only for that call: the engine's own policy is untouched.
+  expect(e.evaluate("1.5 kg in lb").formatted).toBe("3.3069 pounds");
+});
+
+test("a per-call display composes with a per-call format", () => {
+  // Both are per-call output overrides, and the ctx that carries one has to
+  // carry the other: `format` rebuilds the Printer, `display` does not, so a
+  // call using both is the one that would drop `display` if the rebuild
+  // branch forgot it.
+  const e = createEngine({
+    locales: [composeLocale(en, BUILTIN_EN), composeLocale(ukrainian, BUILTIN_UK)],
+    kinds: BUILTIN_KINDS,
+  });
+  const uk = e.evaluate("1.5 kg in lb", { format: "uk" }).formatted;
+  const short = e.evaluate("1.5 kg in lb", {
+    format: "uk",
+    display: { maximumFractionDigits: 1, minimumSignificantDigits: 1 },
+  }).formatted;
+  expect(uk).toContain("3,3069");
+  expect(short).toBe(uk.replace(/^3,3\d+/, "3,3"));
+});
+
+test("R-C1: a kind that formats itself is exempt, so money keeps its own cent", () => {
+  // The money exemption, enforced at the call site rather than inside
+  // `applyDisplay`: a kind with its own `format` hook decides its last digit
+  // (a currency's minor units, under `rounding`), and a general readability
+  // policy re-rounding £22.94 would be core deciding a domain question.
+  const doubloon = defineKind({
+    id: "doubloon",
+    value: { mode: "ratio", canonical: "dbl", units: { dbl: 1 } },
+    format: (_v, ctx) => `${ctx.formatNumber(ctx.authored, { precision: 8 })} dbl`,
+  });
+  const e = createEngine({
+    locales: [composeLocale(en)],
+    kinds: [number, doubloon],
+    display: { maximumFractionDigits: 1 },
+  });
+  expect(e.evaluate("1 dbl / 3").formatted).toBe("0.33333333 dbl");
 });

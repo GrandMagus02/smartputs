@@ -169,7 +169,7 @@ describe("volume pt vocabulary", () => {
     expect(engine.evaluate("1 l + 500 ml").formatted).toBe("1,5 litro");
     // A conversion, written with `em`, over the gallon — the unit whose plural
     // replaces an ending rather than adding to one.
-    expect(engine.evaluate("2 galões em litros").formatted).toBe("7,570823568 litros");
+    expect(engine.evaluate("2 galões em litros").formatted).toBe("7,5708 litros");
     expect(engine.evaluate("1 galão").formatted).toBe("1 galão");
     // The accent-free spellings a keyboard without dead keys produces. NFKC
     // folds neither the tilde on `ã` nor the one on `õ`, so both are different
@@ -202,9 +202,13 @@ describe("volume pt vocabulary", () => {
     ]) {
       const first = engine.evaluate(input);
       const again = engine.evaluate(first.formatted);
-      expect(again.value.canonical.toString(), input).toBe(
-        first.value.canonical.toString(),
-      );
+      // Ruling R-C1: `formatted` is a readability policy, so what comes back
+      // from it is the displayed number and not the 26-digit one. The property
+      // that survives — and the one "reads back what it prints" means to a
+      // person — is that displaying the re-read value writes the same string.
+      // The exact guard is `formatPrecision`, tested through the Printer in
+      // `@smartput/core`'s print/roundtrip.test.ts.
+      expect(again.formatted, input).toBe(first.formatted);
       expect(again.value.unit, input).toBe(first.value.unit);
     }
   });

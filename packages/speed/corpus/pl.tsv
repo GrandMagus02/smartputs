@@ -1,7 +1,7 @@
 # input	kind	canonical	formatted
 120 kph	speed	33.33333333333333333333333334	120 km/h
-100 kph w mph	speed	27.77777777777777777777777778	62,137119223733396961743418 mph
-60 mph w kph	speed	26.8224	96,56064 km/h
+100 kph w mph	speed	27.77777777777777777777777778	62,1371 mph
+60 mph w kph	speed	26.8224	96,5606 km/h
 1 knot w kph	speed	0.5144444444444444444444444444	1,852 km/h
 10 mps w kph	speed	10	36 km/h
 50 kph + 50 kph	speed	27.77777777777777777777777778	100 km/h
@@ -32,7 +32,7 @@ jeden kph	speed	0.2777777777777777777777777778	1 km/h
 # A conversion target is locative after "w", and the result is a fraction, so
 # what comes back is the nominative-other cell rather than either locative
 # one. The case the preposition governs is read and thrown away.
-100 kph w węzłach	speed	27.77777777777777777777777778	53,995680345572354211663067 węzła
+100 kph w węzłach	speed	27.77777777777777777777777778	53,9957 węzła
 # The diacritic-free spelling. węzeł carries ę and ł and its genitive plural
 # carries ó as well — three corrections, past what the fuzzy pass will apply
 # — so the stripped forms are listed as aliases. They read and never print.

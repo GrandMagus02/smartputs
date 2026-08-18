@@ -33,7 +33,7 @@ next friday	datetime	1769126400000000000	2026-01-23 00:00 UTC
 # `durationValue` reports the largest unit it fills, so 45 days is weeks. The
 # decimal separator is "." and the group separator "," — the English pair, not
 # the European one.
-2026-03-01 - 2026-01-15	duration	3888000	6.4285714285714285714285714 सप्ताह
+2026-03-01 - 2026-01-15	duration	3888000	6.4286 सप्ताह
 1000 दिन	duration	86400000	1,000 दिन
 # The reader is grouping-agnostic, and this is Indian grouping: "1,234,567"
 # would be the same number to it. The writer is not — it groups in fixed threes

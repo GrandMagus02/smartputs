@@ -152,7 +152,7 @@ describe("mass es vocabulary", () => {
     // "1,5 kilogramos", not a genitive singular the way Ukrainian would.
     expect(engine.evaluate("1 kg + 500 g").formatted).toBe("1,5 kilogramos");
     // A conversion, written with `en`, over the imperial pound.
-    expect(engine.evaluate("2 libras en gramos").formatted).toBe("907,18474 gramos");
+    expect(engine.evaluate("2 libras en gramos").formatted).toBe("907,1847 gramos");
     // Latin input still reads: a Spanish keyboard produces "gramos", a Spanish
     // developer types "g", and both are the same unit. Spanish groups with "."
     // (Spain's CLDR default, which the bare `es` tag resolves to) and the
@@ -174,9 +174,13 @@ describe("mass es vocabulary", () => {
     ]) {
       const first = engine.evaluate(input);
       const again = engine.evaluate(first.formatted);
-      expect(again.value.canonical.toString(), input).toBe(
-        first.value.canonical.toString(),
-      );
+      // Ruling R-C1: `formatted` is a readability policy, so what comes back
+      // from it is the displayed number and not the 26-digit one. The property
+      // that survives — and the one "reads back what it prints" means to a
+      // person — is that displaying the re-read value writes the same string.
+      // The exact guard is `formatPrecision`, tested through the Printer in
+      // `@smartput/core`'s print/roundtrip.test.ts.
+      expect(again.formatted, input).toBe(first.formatted);
       expect(again.value.unit, input).toBe(first.value.unit);
     }
   });

@@ -1,7 +1,7 @@
 # input	kind	canonical	formatted
 3 metre * 4 metre	area	12	12 metrekare
 1 hektar çevir m2	area	10000	10.000 metrekare
-1 akre çevir m2	area	4046.8564224	4.046,8564224 metrekare
+1 akre çevir m2	area	4046.8564224	4.046,8564 metrekare
 2 km2 çevir hektar	area	2000000	200 hektar
 5000 cm2 çevir m2	area	0.5	0,5 metrekare
 10 m2 + 5 m2	area	15	15 metrekare

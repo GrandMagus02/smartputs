@@ -10,7 +10,7 @@
 1000 W में किलोवाट	power	1000	1 किलोवाट
 एक किलोवाट	power	1000	1 किलोवाट
 दो सौ पांच किलोवाट	power	205000	205 किलोवाट
-100 एचपी में किलोवाट	power	74569.987158227022	74.569987158227022 किलोवाट
+100 एचपी में किलोवाट	power	74569.987158227022	74.57 किलोवाट
 # No number axis: `one` and `other` are the same word on every unit, and a
 # fraction gets it too.
 1 वाट	power	1	1 वाट

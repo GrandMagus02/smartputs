@@ -1,7 +1,7 @@
 # input	kind	canonical	formatted
 120 kph	speed	33.33333333333333333333333334	120 км/ч
-100 kph в mph	speed	27.77777777777777777777777778	62,137119223733396961743418 миль/ч
-60 mph в kph	speed	26.8224	96,56064 км/ч
+100 kph в mph	speed	27.77777777777777777777777778	62,1371 миль/ч
+60 mph в kph	speed	26.8224	96,5606 км/ч
 1 knot в kph	speed	0.5144444444444444444444444444	1,852 км/ч
 10 mps в kph	speed	10	36 км/ч
 50 kph + 50 kph	speed	27.77777777777777777777777778	100 км/ч
@@ -31,7 +31,7 @@
 1,5 узла	speed	0.7716666666666666666666666666	1,5 узла
 # A conversion target is locative after "в". The result is a fraction, so it
 # prints the nominative-other cell and the locative is read and dropped.
-100 kph в узлах	speed	27.77777777777777777777777778	53,995680345572354211663067 узла
+100 kph в узлах	speed	27.77777777777777777777777778	53,9957 узла
 # "уз" is the Russian abbreviation, and it is two letters — under the suffix
 # stripper's `minStem` — so it has to be an alias or it is nothing. "kn" is
 # not one: this vocabulary spends the short form on Cyrillic.

@@ -33,9 +33,7 @@ test("A4 width in points", () => {
   // exact authored value to 26 significant digits (see format.ts) rather
   // than printing all 28 Decimal computes at — so this is 26 significant
   // digits, not "595.276 points".
-  expect(at().evaluate("210 mm in pt").formatted).toBe(
-    "595.27559055118110236220472 points",
-  );
+  expect(at().evaluate("210 mm in pt").formatted).toBe("595.2756 points");
 });
 
 test("physical units are unaffected by dpi", () => {

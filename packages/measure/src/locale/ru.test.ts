@@ -115,9 +115,7 @@ describe("measure ru vocabulary", () => {
     // Latin aliases still read: a designer types `pt` whatever the keyboard is.
     expect(engine.evaluate("6 pc в дюймах").formatted).toBe("1 дюйм");
     // A fraction takes the genitive singular, not a plural.
-    expect(engine.evaluate("1 дюйм - 12 пунктов").formatted).toBe(
-      "0,83333333333333333333333333 дюйма",
-    );
+    expect(engine.evaluate("1 дюйм - 12 пунктов").formatted).toBe("0,8333 дюйма");
   });
 
   test("round-trips its own output", () => {

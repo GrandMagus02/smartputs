@@ -27,7 +27,7 @@
 2キロメートルからメートル	length	2000	2,000メートル
 # Neither the radian nor the byte carries a Japanese form, only a symbol, so
 # those two come back in Latin letters inside an otherwise katakana file.
-90度を弧度	angle	1.570796326794896619231321692	1.5707963267948966192313217rad
+90度を弧度	angle	1.570796326794896619231321692	1.5708rad
 # The myriad. Japanese counts in ten-thousands, so 万 is its own magnitude word
 # and 一万 is one of them rather than ten of a thousand.
 一万メートル	length	10000	10,000メートル

@@ -10,7 +10,7 @@
 1000 watów w kilowatach	power	1000	1 kilowat
 jeden kilowat	power	1000	1 kilowat
 dwieście pięć kilowatów	power	205000	205 kilowatów
-1 hp w watach	power	745.69987158227022	745,69987158227022 wata
+1 hp w watach	power	745.69987158227022	745,6999 wata
 # The four plural categories on one unit, which English has two of. Polish
 # picks `few` for 2-4, `many` from 5 up, and the teens go to `many` however
 # they end.

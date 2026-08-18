@@ -23,7 +23,7 @@
 30C - 20C	tempdelta	10	10°C
 (1 + 2) * 3	number	9	9
 1kib到b	datasize	1024	1,024B
-90度到弧度	angle	1.570796326794896619231321692	1.5707963267948966192313217弧度
+90度到弧度	angle	1.570796326794896619231321692	1.5708弧度
 -5公里	length	-5000	-5公里
 # No number agreement of any kind, and no space between the number and the
 # unit on either side: `Printer`'s gap is empty for this language, which is

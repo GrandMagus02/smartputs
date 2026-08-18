@@ -29,7 +29,7 @@
 # does pluralise — it is a flat contradiction.
 1 kg + 500 g	mass	1500	1,5 kilogram
 30 h - 30 min	duration	106200	29,5 uur
-5 mijl in km	length	8046.72	8,04672 kilometer
+5 mijl in km	length	8046.72	8,0467 kilometer
 # No case either, so a conversion target is spelled exactly like a bare
 # quantity.
 2 km in meter	length	2000	2.000 meter

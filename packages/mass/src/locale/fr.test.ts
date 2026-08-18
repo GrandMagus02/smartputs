@@ -166,7 +166,7 @@ describe("mass fr vocabulary", () => {
     expect(engine.evaluate("1 kg + 500 g").formatted).toBe("1,5 kilogramme");
     // A conversion, written with `en` — French's own conversion keyword, which
     // happens to be spelled like English's.
-    expect(engine.evaluate("2 livres en grammes").formatted).toBe("907,18474 grammes");
+    expect(engine.evaluate("2 livres en grammes").formatted).toBe("907,1847 grammes");
     // `tonne` is `units.ts`'s English alias and French's own spelling at once,
     // so it reads without this file adding a thing.
     expect(engine.evaluate("2 t").formatted).toBe("2 tonnes");
@@ -202,9 +202,13 @@ describe("mass fr vocabulary", () => {
     ]) {
       const first = engine.evaluate(input);
       const again = engine.evaluate(first.formatted);
-      expect(again.value.canonical.toString(), input).toBe(
-        first.value.canonical.toString(),
-      );
+      // Ruling R-C1: `formatted` is a readability policy, so what comes back
+      // from it is the displayed number and not the 26-digit one. The property
+      // that survives — and the one "reads back what it prints" means to a
+      // person — is that displaying the re-read value writes the same string.
+      // The exact guard is `formatPrecision`, tested through the Printer in
+      // `@smartput/core`'s print/roundtrip.test.ts.
+      expect(again.formatted, input).toBe(first.formatted);
       expect(again.value.unit, input).toBe(first.value.unit);
     }
   });

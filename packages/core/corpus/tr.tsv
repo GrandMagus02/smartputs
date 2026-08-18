@@ -22,7 +22,7 @@ iki yüz beş gram	mass	205	205 gram
 # technical writing borrows it.
 2 km çevir metre	length	2000	2.000 metre
 212 F çevir C	temperature	100	100 °C
-90 derece çevir radyan	angle	1.570796326794896619231321692	1,5707963267948966192313217 radyan
+90 derece çevir radyan	angle	1.570796326794896619231321692	1,5708 radyan
 1 kib çevir bayt	datasize	1024	1.024 bayt
 2 km to metre	length	2000	2.000 metre
 # The suffix stripper. Turkish agglutinates case and plural onto the unit word

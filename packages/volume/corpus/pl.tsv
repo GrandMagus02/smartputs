@@ -1,6 +1,6 @@
 # input	kind	canonical	formatted
 2 l w ml	volume	2	2 000 mililitrów
-1 gal w litrach	volume	3.785411784	3,785411784 litra
+1 gal w litrach	volume	3.785411784	3,7854 litra
 500 ml + 500 ml	volume	1	1 000 mililitrów
 2 l - 250 ml	volume	1.75	1,75 litra
 3 l * 4	volume	12	12 litrów

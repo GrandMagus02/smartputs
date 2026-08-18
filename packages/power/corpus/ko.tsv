@@ -9,8 +9,8 @@
 -1킬로와트	power	-1000	-1킬로와트
 일 킬로와트	power	1000	1킬로와트
 이백오 킬로와트	power	205000	205킬로와트
-1hp를 와트	power	745.69987158227022	745.69987158227022와트
-100hp를 킬로와트	power	74569.987158227022	74.569987158227022킬로와트
+1hp를 와트	power	745.69987158227022	745.6999와트
+100hp를 킬로와트	power	74569.987158227022	74.57킬로와트
 1,234,567와트	power	1234567	1,234,567와트
 # No number agreement: `forms` is a single `other` key per unit. Unlike Chinese
 # and Japanese, the Hangul word is what prints — 킬로와트, not "kW".
@@ -20,7 +20,7 @@
 # word.
 1마력	power	745.69987158227022	1마력
 5hp	power	3728.4993579113511	5마력
-2kW를 마력	power	2000	2.6820441791900558686475711마력
+2kW를 마력	power	2000	2.682마력
 # The particle stripper. A bare quantity can carry its case particle glued onto
 # the unit, and the particle comes off before the alias is matched.
 5킬로와트를	power	5000	5킬로와트

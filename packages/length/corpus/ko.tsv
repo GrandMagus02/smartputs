@@ -24,7 +24,7 @@
 2km를 미터	length	2000	2,000미터
 0.5km를 미터	length	500	500미터
 500m에서 킬로미터	length	500	0.5킬로미터
-1mi를 킬로미터	length	1609.344	1.609344킬로미터
+1mi를 킬로미터	length	1609.344	1.6093킬로미터
 1,500mm를 미터	length	1.5	1.5미터
 5280ft를 마일	length	1609.344	1마일
 1yd를 센티미터	length	0.9144	91.44센티미터
@@ -33,7 +33,7 @@
 # conversion has to be written with a space before it. "2킬로미터를 미터" does
 # not parse; the row below is the same sentence that does.
 2킬로미터 를 미터	length	2000	2,000미터
-1마일 을 킬로미터	length	1609.344	1.609344킬로미터
+1마일 을 킬로미터	length	1609.344	1.6093킬로미터
 # The myriad. Korean counts in ten-thousands, so 만 is its own magnitude word.
 만 미터	length	10000	10,000미터
 일 킬로미터	length	1000	1킬로미터

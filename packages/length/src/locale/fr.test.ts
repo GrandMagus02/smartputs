@@ -178,9 +178,7 @@ describe("length fr vocabulary", () => {
     expect(engine.evaluate("12 pouces en centimètres").formatted).toBe(
       "30,48 centimètres",
     );
-    expect(engine.evaluate("2 milles en kilomètres").formatted).toBe(
-      "3,218688 kilomètres",
-    );
+    expect(engine.evaluate("2 milles en kilomètres").formatted).toBe("3,2187 kilomètres");
     // Borrowed intact, so both numbers arrive from `units.ts`.
     expect(engine.evaluate("6 yards").formatted).toBe("6 yards");
   });
