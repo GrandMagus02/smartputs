@@ -1,7 +1,7 @@
 import { AmbiguityError } from "../errors";
 import type { Registry } from "../kind/registry";
 import type { Program } from "../parse/program";
-import type { KindId, ResultCandidate } from "../types";
+import type { KindId, ResultCandidate, Weights } from "../types";
 import { type Rejection, type Resolution, solve } from "./solver";
 
 export interface SolverOptions {
@@ -9,6 +9,18 @@ export interface SolverOptions {
   maxCandidates?: number;
   ambiguityEpsilon?: number;
   tiebreak?: "error" | "first";
+  /**
+   * Weight layers, read only to score a number reading's `grammar:<localeId>`
+   * selectors — the engine-level ones, and the same array the `Tokenizer` is
+   * built with.
+   *
+   * On the constructor rather than on `SolveScope` for the reason
+   * `TokenizerOptions.weights` gives: this stage is built once and frozen, so a
+   * per-call `EvalOptions.weights` cannot reach it. Which grammar a language
+   * reads digits under is an engine-level fact, like which language wins a
+   * numeral tie.
+   */
+  weights?: readonly (Weights | undefined)[];
 }
 
 /**
@@ -50,12 +62,14 @@ export class Solver {
   private readonly maxCandidates: number;
   private readonly epsilon: number;
   private readonly tiebreak: "error" | "first";
+  private readonly weights: readonly (Weights | undefined)[];
 
   constructor(cfg: SolverOptions) {
     this.registry = cfg.registry;
     this.maxCandidates = cfg.maxCandidates ?? 10_000;
     this.epsilon = cfg.ambiguityEpsilon ?? 0.05;
     this.tiebreak = cfg.tiebreak ?? "error";
+    this.weights = cfg.weights ?? [];
     Object.freeze(this);
   }
 
@@ -64,6 +78,7 @@ export class Solver {
     return solve(program, this.registry, {
       maxCandidates: this.maxCandidates,
       input: program.input.source,
+      weights: this.weights,
       ...(opts?.kinds ? { kinds: opts.kinds } : {}),
       ...(opts?.locales ? { locales: opts.locales } : {}),
       ...(opts?.cues ? { cues: opts.cues } : {}),

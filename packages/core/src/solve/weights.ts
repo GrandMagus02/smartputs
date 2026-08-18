@@ -102,3 +102,44 @@ export function weightBreakdown(args: WeightArgs): WeightContribution[] {
 export function resolveWeight(args: WeightArgs): number {
   return weightBreakdown(args).reduce((sum, c) => sum + c.value, 0);
 }
+
+/**
+ * `grammar:<localeId>` — one selector per locale whose number grammar produced
+ * this reading, summed over the same layers a unit candidate is scored against.
+ *
+ * A caller pins a language's digits with `{ "grammar:de": 5 }` the way they pin
+ * its words with `{ "locale:de": 5 }`. The engine's own layer carries
+ * `grammar:<format>` at 1, which is what keeps a bare "1,000" reading the way
+ * the engine's own language reads it rather than as a coin flip between two
+ * installed grammars (ruling R-A1, recorded in `engine.ts` where the default is
+ * written and in `solver.ts` where the bonus that can overturn it is).
+ *
+ * One selector per locale and not one per grammar, because a grammar is shared:
+ * `en`, `ja` and `hi` all group with "," and point with ".", and a caller who
+ * writes `{ "grammar:ja": 5 }` on an engine that also reads English means to
+ * lift a *language's* digits. Every locale that reads this way therefore gets a
+ * row, and the rows sum — which is also what makes `Σcontributions === score`
+ * hold for a number slot.
+ */
+export function grammarBreakdown(
+  locales: readonly string[],
+  layers: readonly (Weights | undefined)[],
+): WeightContribution[] {
+  const out: WeightContribution[] = [];
+  layers.forEach((layer, index) => {
+    if (layer === undefined) return;
+    for (const locale of locales) {
+      const value = layer[`grammar:${locale}`];
+      if (value !== undefined)
+        out.push({ selector: `grammar:${locale}`, value, layer: index + 1 });
+    }
+  });
+  return out;
+}
+
+export function grammarWeight(
+  locales: readonly string[],
+  layers: readonly (Weights | undefined)[],
+): number {
+  return grammarBreakdown(locales, layers).reduce((sum, c) => sum + c.value, 0);
+}

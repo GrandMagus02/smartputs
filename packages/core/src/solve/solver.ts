@@ -2,10 +2,48 @@ import { DimensionMismatchError, TooAmbiguousError } from "../errors";
 import { NUMBER_KIND, opKey, type Registry } from "../kind/registry";
 import type { Node, NodeId } from "../parse/ast";
 import { walk } from "../parse/ast";
+import type { NumberReading } from "../parse/lex";
 import type { Program } from "../parse/program";
-import type { Candidate, KindId, Span } from "../types";
+import type { Candidate, KindId, Span, Weights } from "../types";
+import { grammarWeight } from "./weights";
 
 const CONTEXT_BONUS = 30;
+
+/**
+ * What a unit word spelled by a language buys that language's reading of the
+ * digits beside it — ruling R-A1's second half.
+ *
+ * Charged when the quantity's chosen unit candidate was listed by a language
+ * that also spells numbers the way this reading reads them. `Candidate.locale`
+ * is "the language that listed this spelling", which is precisely the evidence
+ * wanted: "1,5 Kilogramm" is one and a half because *Kilogramm* is a German
+ * word, not because anything about the digits changed.
+ *
+ * Two rather than one, so agreement can overturn the engine's own
+ * `grammar:<format>` default of 1 and still lose to an explicit
+ * `{ "grammar:de": 5 }`. The `+1` itself lives in the ENGINE's weight layer
+ * rather than here, so a caller who wants a different default writes one, and
+ * so this file stays a pure sum over layers like every other score in it.
+ *
+ * Two costs, both stated rather than hidden (R-A1).
+ *
+ * One: `buildRegistry` tags an alias with the alphabetically first installed
+ * language that listed it, and the resolver keeps one candidate per (kind,
+ * unit), so a spelling two languages share — "kg", and even "kilograms", on an
+ * `[en, de]` engine — agrees with just one of them. The losing reading is
+ * weighted down, never deleted, and comes back from `suggest` at 0.269.
+ *
+ * Two: agreement is only as good as the grammar that produced the reading, and
+ * `parseNumber` accepts a group separator followed by one digit. So "1.5
+ * Meilen" on an `[en, uk, de]` engine has a German reading of 15 — a number no
+ * German writer would spell that way, since a group is three digits — and the
+ * German word beside it buys that reading the +2. The fix belongs in the lexer,
+ * where a grammar's group size is knowable and a reading of "1.5" as fifteen
+ * should never be produced; charging less here would only turn the case into an
+ * `AmbiguityError`. `packages/core/src/locale/third-language.test.ts` is where
+ * it shows.
+ */
+const AGREEMENT_BONUS = 2;
 
 /**
  * One (op, left, right) the solver enumerated and found no signature for.
@@ -39,6 +77,16 @@ export interface Resolution {
    * resolution meaningless without the exact tree that produced it.
    */
   readonly choices: Readonly<Record<NodeId, Candidate>>;
+  /**
+   * The digits' chosen reading, per node that had more than one — the number
+   * half of `choices`, keyed the same way and empty on every input whose
+   * digits every installed grammar agrees about.
+   *
+   * The evaluator reads it in place of `Node.value`; a node absent from it
+   * keeps the value the parser put there, which is the format locale's
+   * reading.
+   */
+  readonly numbers: Readonly<Record<NodeId, NumberReading>>;
   readonly kind: KindId;
   readonly score: number;
   /** The part of `score` that came from context agreement, so explain() can list it. */
@@ -55,13 +103,27 @@ export interface Resolution {
    * would make it louder the longer the expression is.
    */
   readonly cueBonus: number;
+  /**
+   * The part of `score` that came from number readings — the `grammar:` weight
+   * layers plus `AGREEMENT_BONUS` per agreeing slot — so explain() can list it
+   * and `Σcontributions === score` holds for an input with a number slot.
+   */
+  readonly grammarBonus: number;
   readonly confidence: number;
 }
 
-interface Slot {
-  node: Node;
-  candidates: Candidate[];
-}
+/**
+ * A choice the enumeration has to make: which unit a word is, or which grammar
+ * the digits are in.
+ *
+ * One union rather than two parallel arrays because the two interleave — a
+ * quantity node is BOTH slots, its unit and its digits, and the agreement bonus
+ * is priced across the pair — and because `space` above has to multiply every
+ * choice the enumeration will actually make, whatever kind of evidence it is.
+ */
+type Slot =
+  | { type: "unit"; node: Node; candidates: Candidate[] }
+  | { type: "number"; node: Node; readings: readonly NumberReading[] };
 
 /**
  * The operand kinds a DimensionMismatchError should name, in source order.
@@ -181,8 +243,31 @@ function collectSlots(
   const slots: Slot[] = [];
   const keep = inScope(kinds, locales);
   walk(root, (node) => {
+    if (node.type === "quantity" || node.type === "number") {
+      // Present only when two installed grammars read the digits differently
+      // (`readingsOf` in `pratt.ts`), so a single-grammar engine pushes no
+      // number slot and enumerates exactly what it always did.
+      //
+      // Filtered by `locales` on the same rule unit candidates are: a reading
+      // no named language reads is not in scope. And abandoned when the filter
+      // would empty the slot, exactly as the convert-target prune below is —
+      // a caller who narrows to a language whose grammar read nothing here
+      // asked to narrow the readings, not to make the input unparseable.
+      const readings = node.numberReadings;
+      if (readings !== undefined && readings.length > 1) {
+        const inLocales =
+          locales === undefined
+            ? readings
+            : readings.filter((r) => r.locales.some((id) => locales.includes(id)));
+        slots.push({
+          type: "number",
+          node,
+          readings: inLocales.length > 0 ? inLocales : readings,
+        });
+      }
+    }
     if (node.type === "quantity" || node.type === "literal") {
-      slots.push({ node, candidates: node.candidates.filter(keep) });
+      slots.push({ type: "unit", node, candidates: node.candidates.filter(keep) });
     } else if (node.type === "convert") {
       // "10 km in m + 5" reported *length and duration* because the solver
       // enumerated `m` as minutes at the target and only found out at the very
@@ -201,7 +286,7 @@ function collectSlots(
       const pruned = all.filter((c) =>
         [...reachable].some((k) => registry.ops.has(opKey("in", k, c.kind))),
       );
-      slots.push({ node, candidates: pruned.length > 0 ? pruned : all });
+      slots.push({ type: "unit", node, candidates: pruned.length > 0 ? pruned : all });
     }
   });
   return slots;
@@ -350,23 +435,52 @@ export function solve(
      * needs them — the sink only decides whether anyone else hears.
      */
     onReject?: (r: Rejection) => void;
+    /**
+     * The weight layers a number reading's `grammar:<localeId>` selectors are
+     * summed over — engine-level layers only, and the same array the
+     * `Tokenizer` is built with.
+     *
+     * Engine-level rather than per-call for the reason `Tokenizer.weights`
+     * gives: a `Solver` is constructed once and frozen, so a per-call
+     * `EvalOptions.weights` cannot reach it. A caller pins a grammar on the
+     * engine, the way they pin a numeral tie there.
+     */
+    weights?: readonly (Weights | undefined)[];
   },
 ): Resolution[] {
   const root = program.root;
   const slots = collectSlots(root, opts.kinds, opts.locales, registry);
 
-  const space = slots.reduce((n, s) => n * Math.max(s.candidates.length, 1), 1);
+  const layers = opts.weights ?? [];
+  // Summed once per reading rather than once per assignment: it is a pure
+  // function of the reading and the engine's layers, and the enumeration below
+  // walks it once per branch.
+  const grammarWeights = new Map<NumberReading, number>();
+  for (const slot of slots) {
+    if (slot.type !== "number") continue;
+    for (const reading of slot.readings) {
+      grammarWeights.set(reading, grammarWeight(reading.locales, layers));
+    }
+  }
+
+  const space = slots.reduce(
+    (n, s) =>
+      n * Math.max(s.type === "unit" ? s.candidates.length : s.readings.length, 1),
+    1,
+  );
   if (space > opts.maxCandidates) {
     throw new TooAmbiguousError(opts.input, space, opts.maxCandidates);
   }
 
   const viable: Array<{
     choices: Record<NodeId, Candidate>;
+    numbers: Record<NodeId, NumberReading>;
     kind: KindId;
     score: number;
     contextBonus: number;
     signatureWeight: number;
     cueBonus: number;
+    grammarBonus: number;
   }> = [];
 
   // Keyed by node, op and the two kinds: the same pair reached from two
@@ -388,10 +502,32 @@ export function solve(
     opts.onReject?.(mapped);
   };
 
+  /**
+   * The agreement half of a number reading's score, priced at the end of an
+   * assignment rather than inside the enumeration for the reason `contextBonus`
+   * is: it reads BOTH slots of a quantity node, and the unit one may not have
+   * been chosen yet when the number one is.
+   */
+  const agreementBonus = (
+    choices: Record<NodeId, Candidate>,
+    numbers: Record<NodeId, NumberReading>,
+  ): number => {
+    let bonus = 0;
+    for (const [id, reading] of Object.entries(numbers)) {
+      const locale = choices[Number(id)]?.locale;
+      if (locale !== undefined && reading.locales.includes(locale)) {
+        bonus += AGREEMENT_BONUS;
+      }
+    }
+    return bonus;
+  };
+
   const enumerate = (
     index: number,
     choices: Record<NodeId, Candidate>,
+    numbers: Record<NodeId, NumberReading>,
     weight: number,
+    grammar: number,
   ): void => {
     if (index === slots.length) {
       const kind = typeOf(root, choices, registry, sink);
@@ -399,26 +535,43 @@ export function solve(
       const bonus = contextBonus(root, choices, registry);
       const signature = signatureWeight(root, choices, registry);
       const cue = opts.cues?.[kind] ?? 0;
+      const grammarTotal = grammar + agreementBonus(choices, numbers);
       viable.push({
         choices: { ...choices },
+        numbers: { ...numbers },
         kind,
-        score: weight + bonus + signature + cue,
+        score: weight + bonus + signature + cue + grammarTotal,
         contextBonus: bonus,
         signatureWeight: signature,
         cueBonus: cue,
+        grammarBonus: grammarTotal,
       });
       return;
     }
     const slot = slots[index];
     if (slot === undefined) return;
+    if (slot.type === "number") {
+      for (const reading of slot.readings) {
+        numbers[slot.node.id] = reading;
+        enumerate(
+          index + 1,
+          choices,
+          numbers,
+          weight,
+          grammar + (grammarWeights.get(reading) ?? 0),
+        );
+        delete numbers[slot.node.id];
+      }
+      return;
+    }
     for (const candidate of slot.candidates) {
       choices[slot.node.id] = candidate;
-      enumerate(index + 1, choices, weight + candidate.weight);
+      enumerate(index + 1, choices, numbers, weight + candidate.weight, grammar);
       delete choices[slot.node.id];
     }
   };
 
-  enumerate(0, {}, 0);
+  enumerate(0, {}, {}, 0, 0);
 
   if (viable.length === 0) {
     const all = [...rejected.values()];
@@ -459,18 +612,25 @@ export function solve(
     );
   }
 
+  const unitsOf = (v: { choices: Record<NodeId, Candidate> }): string =>
+    Object.values(v.choices)
+      .map((c) => c.unit)
+      .join();
+  // Appended after the two terms that were already here, so it only ever
+  // decides a pair that used to come out in enumeration order: two assignments
+  // with one score, one kind and one set of units differ in nothing but which
+  // grammar read the digits, and "1" before "1000" is at least a rule.
+  const digitsOf = (v: { numbers: Record<NodeId, NumberReading> }): string =>
+    Object.values(v.numbers)
+      .map((r) => r.value.toString())
+      .join();
+
   viable.sort(
     (a, b) =>
       b.score - a.score ||
       a.kind.localeCompare(b.kind) ||
-      Object.values(a.choices)
-        .map((c) => c.unit)
-        .join()
-        .localeCompare(
-          Object.values(b.choices)
-            .map((c) => c.unit)
-            .join(),
-        ),
+      unitsOf(a).localeCompare(unitsOf(b)) ||
+      digitsOf(a).localeCompare(digitsOf(b)),
   );
 
   const confidences = softmax(viable.map((v) => v.score));
@@ -484,6 +644,7 @@ export function solve(
       Object.freeze({
         ...v,
         choices: Object.freeze(v.choices),
+        numbers: Object.freeze(v.numbers),
         confidence: confidences[i] ?? 0,
       }),
     ),

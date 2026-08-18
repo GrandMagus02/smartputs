@@ -98,10 +98,21 @@ export function evaluateNode(opts: EvaluateOptions): EvalResult {
     return unit === undefined ? out : deepFreeze({ ...out, unit });
   };
 
+  /**
+   * The digits under `n`, as the assignment read them.
+   *
+   * `n.value` is the format locale's reading and stays the answer for every
+   * node the solver found nothing to choose about — which is every node on a
+   * single-grammar engine. `Resolution.numbers` overrides it only where two
+   * installed grammars disagreed and the solver ranked them.
+   */
+  const numberOf = (n: Node & { value: Decimal; id: number }): Decimal =>
+    resolution.numbers[n.id]?.value ?? n.value;
+
   const evalNode = (n: Node): Value => {
     switch (n.type) {
       case "number":
-        return deepFreeze({ kind: NUMBER_KIND, canonical: n.value, unit: "one" });
+        return deepFreeze({ kind: NUMBER_KIND, canonical: numberOf(n), unit: "one" });
 
       case "literal": {
         // A matcher already built every one of these; the assignment says which
@@ -130,7 +141,7 @@ export function evaluateNode(opts: EvaluateOptions): EvalResult {
         const meta = kindMeta[choice.kind];
         return deepFreeze({
           kind: choice.kind,
-          canonical: toCanonical(n.value, kind, choice.unit, {
+          canonical: toCanonical(numberOf(n), kind, choice.unit, {
             locale,
             ...(meta ? { meta } : {}),
             ...(rates ? { rates } : {}),

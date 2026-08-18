@@ -1,7 +1,9 @@
 import { expect, test } from "bun:test";
+import { german } from "@smartput/core/locale/de";
 import { english as en } from "@smartput/core/locale/en";
 import { ukrainian } from "@smartput/core/locale/uk";
 import { BUILTIN_KINDS, length, number } from "@smartput/kinds";
+import BUILTIN_DE from "@smartput/kinds/locale/de";
 import BUILTIN_EN from "@smartput/kinds/locale/en";
 import BUILTIN_UK from "@smartput/kinds/locale/uk";
 import { Decimal } from "./decimal";
@@ -1389,4 +1391,37 @@ test("`in` is not yet reachable as an inch, so a compound cannot end in one", ()
   // Pinned rather than left unsaid: the day the vocabulary gains "in", this
   // test is the one that says so.
   expect(() => engine.evaluate("5 ft 3 in")).toThrow(SmartputError);
+});
+
+test("explain records the chosen number reading per slot", () => {
+  const bilingual = createEngine({
+    locales: [composeLocale(en, BUILTIN_EN), composeLocale(german, BUILTIN_DE)],
+    kinds: BUILTIN_KINDS,
+  });
+  const ex = bilingual.explain("1,000");
+  expect(ex.assignments).toHaveLength(2);
+  expect(ex.assignments[0]?.numbers[0]?.value).toBe("1000");
+  expect(ex.assignments[0]?.numbers[0]?.locales).toContain("en");
+  expect(ex.assignments[0]?.contributions.map((c) => c.selector)).toContain("grammar:en");
+  expect(ex.assignments[1]?.numbers[0]?.value).toBe("1");
+  expect(ex.assignments[1]?.numbers[0]?.locales).toContain("de");
+});
+
+test("explain contributions sum to the score for a number slot too", () => {
+  // The invariant the `grammar:` and `grammarBonus` rows have to keep: a
+  // reading's score is the grammar layers plus the agreement bonus, and both
+  // are rows. "1,5 Kilogramm" is the case with all four terms in play — two
+  // readings, two unit candidates, agreement on one pair only.
+  const bilingual = createEngine({
+    locales: [composeLocale(en, BUILTIN_EN), composeLocale(german, BUILTIN_DE)],
+    kinds: BUILTIN_KINDS,
+  });
+  for (const input of ["1,000", "1,5 Kilogramm", "1,5 kg + 2 g"]) {
+    const ex = bilingual.explain(input);
+    expect(ex.assignments.length).toBeGreaterThan(0);
+    for (const a of ex.assignments) {
+      const sum = a.contributions.reduce((s, c) => s + c.value, 0);
+      expect(`${input} [${a.kind}] ${sum}`).toBe(`${input} [${a.kind}] ${a.score}`);
+    }
+  }
 });

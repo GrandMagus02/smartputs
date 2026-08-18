@@ -1,5 +1,6 @@
 import type { Decimal } from "../decimal";
 import type { Candidate, OpSymbol, Span, Value } from "../types";
+import type { NumberReading } from "./lex";
 
 /**
  * Stable within one Program, assigned depth-first at parse time.
@@ -16,6 +17,21 @@ export interface NumberNode {
   type: "number";
   value: Decimal;
   span: Span;
+  /**
+   * Every reading of the digits under this node, present only when they
+   * admitted more than one — a separator some installed grammar reads
+   * differently from the format one. A node without it is not a slot, which is
+   * what keeps a single-grammar engine's enumeration byte-identical to what it
+   * was before number slots existed.
+   *
+   * `value` above stays the FORMAT locale's reading whatever this holds, so
+   * `coerce`'s pre-solve reads, `validate`, `eval/count.ts` and the completer
+   * keep the answer they had: they have no solver to rank readings with, and
+   * the engine's own language is the only defensible reading for a caller who
+   * never asked for a ranking. The solver overrides it per assignment through
+   * `Resolution.numbers` — see `solve/solver.ts`.
+   */
+  numberReadings?: readonly NumberReading[];
 }
 
 export interface QuantityNode {
@@ -24,6 +40,21 @@ export interface QuantityNode {
   value: Decimal;
   candidates: Candidate[];
   span: Span;
+  /**
+   * Every reading of the digits under this node, present only when they
+   * admitted more than one — a separator some installed grammar reads
+   * differently from the format one. A node without it is not a slot, which is
+   * what keeps a single-grammar engine's enumeration byte-identical to what it
+   * was before number slots existed.
+   *
+   * `value` above stays the FORMAT locale's reading whatever this holds, so
+   * `coerce`'s pre-solve reads, `validate`, `eval/count.ts` and the completer
+   * keep the answer they had: they have no solver to rank readings with, and
+   * the engine's own language is the only defensible reading for a caller who
+   * never asked for a ranking. The solver overrides it per assignment through
+   * `Resolution.numbers` — see `solve/solver.ts`.
+   */
+  numberReadings?: readonly NumberReading[];
   /**
    * The count is the parser's, not the writer's: "kg" alone is one kilogram,
    * and `value` is the 1 nobody typed.

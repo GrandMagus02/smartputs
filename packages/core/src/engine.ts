@@ -14,7 +14,7 @@ import {
 import { Evaluator } from "./eval/evaluator";
 import { DEFAULT_DISPLAY, type DisplayOptions } from "./format/format";
 import { buildRegistry, NUMBER_KIND, type Registry } from "./kind/registry";
-import { type Node, walk } from "./parse/ast";
+import { type Node, type NodeId, walk } from "./parse/ast";
 import { createResolver } from "./parse/candidates";
 import type { Token } from "./parse/lex";
 import { Normalizer } from "./parse/normalize";
@@ -25,7 +25,7 @@ import type { CueHit } from "./scan/cues";
 import { DEFAULT_CUE_WINDOW, DEFAULT_MAX_SPAN, Scanner } from "./scan/scan";
 import type { Rejection, Resolution } from "./solve/solver";
 import { Solver } from "./solve/solver-class";
-import { weightBreakdown } from "./solve/weights";
+import { grammarBreakdown, weightBreakdown } from "./solve/weights";
 import type {
   Assumption,
   Candidate,
@@ -238,6 +238,17 @@ export interface Explanation {
     score: number;
     confidence: number;
     units: string[];
+    /**
+     * The grammar this assignment read each ambiguous digit run under, one
+     * entry per number slot and empty on every input whose digits every
+     * installed grammar agrees about — which is every input on a
+     * single-grammar engine.
+     *
+     * `value` is a decimal string rather than a `Decimal`, so an explanation
+     * stays JSON-shaped: it is a report, and a caller logging one should not
+     * have to teach their serialiser about a number type.
+     */
+    numbers: Array<{ node: NodeId; value: string; locales: readonly string[] }>;
     contributions: Array<{ selector: string; value: number; layer: number }>;
   }>;
   /**
@@ -358,7 +369,32 @@ function weightLayers(
   opts: EngineOptions,
   call: Weights | undefined,
 ): (Weights | undefined)[] {
-  return [languageWeights(locales), opts.weights, call];
+  return [{ ...engineWeights(opts), ...languageWeights(locales) }, opts.weights, call];
+}
+
+/**
+ * The engine's own weight layer: `grammar:<format>` at 1, and nothing else.
+ *
+ * Ruling R-A1. Two installed grammars read "1,000" as a thousand and as one,
+ * and at 0 the pair is a coin flip — `evaluate` would throw `AmbiguityError`
+ * on every thousand a bilingual engine's user types. One point is the smallest
+ * thing that says "read digits the way this engine writes them", and it is
+ * deliberately small: `AGREEMENT_BONUS` (2) overturns it when a unit word only
+ * the other language spells stands beside the digits, and an explicit
+ * `{ "grammar:de": 5 }` overturns both.
+ *
+ * Merged INTO layer 1 rather than prepended as a fourth layer, so no
+ * explanation's `layer` numbers move and language weights still win a key they
+ * both set — a language pack that prices its own grammar has said something
+ * more specific than this default has.
+ *
+ * The engine's `format`, never `EvalOptions.format`: reading digits is the
+ * `Tokenizer`'s, which is built once per engine, and a per-call `format` is
+ * output-only (see `EvalOptions.format`).
+ */
+function engineWeights(opts: EngineOptions): Weights {
+  const format = opts.format ?? opts.locales[0]?.id;
+  return format === undefined ? {} : { [`grammar:${format}`]: 1 };
 }
 
 /**
@@ -391,6 +427,10 @@ function buildStages(opts: EngineOptions, registry: Registry, format: Locale) {
   });
   const solver = new Solver({
     registry,
+    // The same engine-level array the `Tokenizer` above is given, and for the
+    // same reason: a stage frozen at construction cannot see a per-call layer,
+    // and which grammar a language reads digits under is an engine-level fact.
+    weights: weightLayers(opts.locales, opts, undefined),
     ...(opts.maxCandidates === undefined ? {} : { maxCandidates: opts.maxCandidates }),
     ...(opts.ambiguityEpsilon === undefined
       ? {}
@@ -594,6 +634,18 @@ function toExplanation(
   // weights (see `languageWeights`), so these are the same layers scoring
   // used no matter which language this call asked to print in.
   const layers = weightLayers(opts.locales, opts, weights);
+  // The layers the `Solver` was constructed with — the engine's, with no
+  // per-call one — so a number reading's rows reproduce the score it was
+  // actually given. See `SolverOptions.weights`.
+  const grammarLayers = weightLayers(opts.locales, opts, undefined);
+  /** The `grammar:` half of an assignment's `grammarBonus`, so the agreement half is what is left. */
+  const grammarSum = (a: Resolution): number =>
+    Object.values(a.numbers).reduce(
+      (sum, reading) =>
+        sum +
+        grammarBreakdown(reading.locales, grammarLayers).reduce((n, c) => n + c.value, 0),
+      0,
+    );
   const tokens: Token[] = streamTokens.map((t) => ({
     ...t,
     ...mapSpan({ start: t.start, end: t.end }),
@@ -621,11 +673,17 @@ function toExplanation(
     rejections,
     assignments: assignments.map((a) => {
       const chosen = Object.values(a.choices);
+      const numbers = Object.entries(a.numbers).map(([node, reading]) => ({
+        node: Number(node),
+        value: reading.value.toString(),
+        locales: reading.locales,
+      }));
       return {
         kind: a.kind,
         score: a.score,
         confidence: a.confidence,
         units: chosen.map((c) => c.unit),
+        numbers,
         contributions: [
           ...chosen.flatMap((c) => [
             ...weightBreakdown({
@@ -659,6 +717,26 @@ function toExplanation(
           ...(a.cueBonus === 0
             ? []
             : [{ selector: "cueBonus", value: a.cueBonus, layer: 0 }]),
+          // `grammarLayers`, not `layers`: the `Solver` is built once with the
+          // engine's own layers (see `SolverOptions.weights`), so scoring never
+          // saw a per-call one and reproducing the rows with it would break
+          // `Σcontributions === score` for exactly the caller who passed one.
+          ...Object.values(a.numbers).flatMap((reading) =>
+            grammarBreakdown(reading.locales, grammarLayers),
+          ),
+          // The agreement half, emitted like `cueBonus` only when it fired: an
+          // unconditional row would put `grammarBonus: 0` on every explanation
+          // an engine with one grammar produces, to say nothing. The two halves
+          // together are the whole of a number slot's contribution to `score`.
+          ...(a.grammarBonus - grammarSum(a) === 0
+            ? []
+            : [
+                {
+                  selector: "grammarBonus",
+                  value: a.grammarBonus - grammarSum(a),
+                  layer: 0,
+                },
+              ]),
         ],
       };
     }),

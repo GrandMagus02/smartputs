@@ -1,6 +1,15 @@
 import { expect, test } from "bun:test";
+import { german as germanLocale } from "@smartput/core/locale/de";
 import { english as enLocale } from "@smartput/core/locale/en";
-import { duration as durationKind, number as numberKind } from "@smartput/kinds";
+import { ukrainian as ukrainianLocale } from "@smartput/core/locale/uk";
+import {
+  BUILTIN_KINDS,
+  duration as durationKind,
+  number as numberKind,
+} from "@smartput/kinds";
+import BUILTIN_DE from "@smartput/kinds/locale/de";
+import BUILTIN_EN from "@smartput/kinds/locale/en";
+import BUILTIN_UK from "@smartput/kinds/locale/uk";
 import { Decimal } from "../decimal";
 import { createEngine } from "../engine";
 import { DimensionMismatchError, TooAmbiguousError } from "../errors";
@@ -509,4 +518,119 @@ test("a cue for a kind no reading produces changes nothing", () => {
   expect(withCue.map((a) => [a.kind, a.score])).toEqual(
     without.map((a) => [a.kind, a.score]),
   );
+});
+
+// --- Number slots: one reading per installed grammar, ranked (spec §A.2) ---
+//
+// These run through a whole `createEngine` rather than the `run()` helper
+// above, because a number slot only exists when two installed grammars read
+// one digit run differently — and the grammars come from the locales the
+// engine was built with, which `run()`'s single hand-built locale cannot
+// produce.
+const builtinEn = composeLocale(enLocale, BUILTIN_EN);
+const builtinDe = composeLocale(germanLocale, BUILTIN_DE);
+const builtinUk = composeLocale(ukrainianLocale, BUILTIN_UK);
+const enDe = createEngine({ locales: [builtinEn, builtinDe], kinds: BUILTIN_KINDS });
+const enUk = createEngine({ locales: [builtinEn, builtinUk], kinds: BUILTIN_KINDS });
+
+test("R-A1: a bare thousand reads under the format grammar, not as a coin flip", () => {
+  // At 0 this input is a tie and `evaluate` would throw `AmbiguityError` on
+  // every thousand a bilingual engine's user types. The format locale's
+  // grammar carries +1 so the engine reads digits the way it writes them.
+  expect(enDe.evaluate("1,000").value.canonical.toFixed()).toBe("1000");
+  expect(enDe.evaluate("1.000").value.canonical.toFixed()).toBe("1");
+});
+
+test("both readings survive as a slot, ranked one apart", () => {
+  const [first, second] = enDe.suggest("1,000");
+  expect(first?.value.canonical.toFixed()).toBe("1000");
+  expect(first?.confidence).toBeCloseTo(0.731, 3);
+  expect(second?.value.canonical.toFixed()).toBe("1");
+  expect(second?.confidence).toBeCloseTo(0.269, 3);
+});
+
+test("a German word beside German digits outweighs the format grammar", () => {
+  // Agreement is +2 against the format grammar's +1, so a unit word only
+  // German spells turns the digits beside it German too: 1,5 kg, not 15 kg.
+  expect(enDe.evaluate("1,5 Kilogramm").value.canonical.toFixed()).toBe("1500");
+  expect(enDe.evaluate("1.000 Kilogramm").value.canonical.toFixed()).toBe("1000000");
+});
+
+test("agreement is with the language the index attributes the spelling to", () => {
+  // The spec's worked example assumed "kg" reaches the solver as two
+  // candidates, an English one and a German one. It does not: `buildRegistry`
+  // keeps one entry per (kind, unit) per surface and the resolver dedupes the
+  // same way, so the alphabetically first installed language owns every
+  // spelling both list — including the English-looking "kilograms", which the
+  // German analyzer chain reaches too. Agreement therefore fires for German
+  // here, and the honest reading of the bonus is "the language the index
+  // attributes this spelling to", never "the language this word belongs to".
+  //
+  // Stated rather than hidden, and the losing reading stays visible at 0.269
+  // rather than being deleted. Making the two candidates the spec imagined
+  // reach the solver is a registry change, not a solver one.
+  const [first, second] = enDe.suggest("1,5 kilograms");
+  expect(first?.value.canonical.toFixed()).toBe("1500");
+  expect(second?.value.canonical.toFixed()).toBe("15000");
+  expect(second?.confidence).toBeCloseTo(0.269, 3);
+});
+
+test("agreement is with the unit candidate's locale, not the reader's", () => {
+  // The engine formats in English and still reads "1,5" as one and a half,
+  // because the word beside it is one only Ukrainian spells.
+  const uk = enUk.suggest("1,5 кг");
+  expect(uk[0]?.value.canonical.toFixed()).toBe("1500");
+  expect(uk[0]?.confidence).toBeCloseTo(0.731, 3);
+  // And the mirror: an English-spelled symbol agrees with English, which the
+  // format grammar was already leaning towards, so the gap is 3 rather than 1.
+  const en = enUk.suggest("1,5 kg");
+  expect(en[0]?.value.canonical.toFixed()).toBe("15000");
+  expect(en[0]?.confidence).toBeCloseTo(0.953, 3);
+});
+
+test("R-A1's cost: a symbol both languages spell agrees with just one of them", () => {
+  // `buildRegistry` tags an alias with the alphabetically first installed
+  // language that listed it, so on an [en, de] engine "kg" is a *German*
+  // reading even though English lists it too — and agreement therefore fires
+  // for German. Stated rather than hidden: it is the same lossiness the
+  // `locale:` selector documents in `weights.ts`, and the reading it costs is
+  // still visible at 0.269, never deleted.
+  const [first, second] = enDe.suggest("1,5 kg");
+  expect(first?.value.canonical.toFixed()).toBe("1500");
+  expect(first?.confidence).toBeCloseTo(0.731, 3);
+  expect(second?.value.canonical.toFixed()).toBe("15000");
+});
+
+test("a caller pins a grammar with a weight layer", () => {
+  const pinned = createEngine({
+    locales: [builtinEn, builtinDe],
+    kinds: BUILTIN_KINDS,
+    weights: { "grammar:de": 5 },
+  });
+  expect(pinned.evaluate("1,000").value.canonical.toFixed()).toBe("1");
+});
+
+test("EvalOptions.locales filters number readings too", () => {
+  expect(enUk.evaluate("1,5 kg", { locales: ["en"] }).value.canonical.toFixed()).toBe(
+    "15000",
+  );
+  expect(enUk.suggest("1,5 kg", { locales: ["en"] })).toHaveLength(1);
+});
+
+test("a single-grammar engine has no number slot and no grammar rows", () => {
+  const single = createEngine({ locales: [builtinEn], kinds: BUILTIN_KINDS });
+  const ex = single.explain("1,000.5 kg");
+  expect(ex.assignments).toHaveLength(1);
+  expect(ex.assignments[0]?.numbers).toEqual([]);
+  expect(
+    ex.assignments[0]?.contributions.some((c) => c.selector.startsWith("grammar:")),
+  ).toBe(false);
+});
+
+test("coerce ranks the readings the way evaluate does", () => {
+  // The ruling the doc comment on `NumberNode.numberReadings` records: a node's
+  // `value` stays the format reading, so `validate` and the completer — which
+  // have no solver to rank with — keep the answer they had. `coerce` does run
+  // the solver, so it agrees with `evaluate` instead of with the token.
+  expect(enDe.coerce("mass", "1,5 kg").canonical.toFixed()).toBe("1500");
 });

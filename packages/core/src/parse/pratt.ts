@@ -4,7 +4,13 @@ import { NUMBER_KIND } from "../kind/ratio-ops";
 import type { Candidate, LiteralReading, OpSymbol, Span, Value } from "../types";
 import type { Node, NodeId } from "./ast";
 import type { Resolver } from "./candidates";
-import { runOf, type Token, type WordToken } from "./lex";
+import {
+  type NumberReading,
+  type NumberToken,
+  runOf,
+  type Token,
+  type WordToken,
+} from "./lex";
 
 /**
  * What the ordinary number under a claimed span scores, and the only weight in
@@ -61,6 +67,22 @@ const BINDING: Record<BinaryOp, number> = {
   "*": 20,
   "/": 20,
 };
+
+/**
+ * The readings to hang on a node built from `token`, and nothing at all when
+ * the digits read the same way under every installed grammar.
+ *
+ * Absent rather than a one-element array on purpose: `collectSlots` treats the
+ * field's presence as "this node is a slot", so a single-grammar engine — and
+ * a many-grammar one reading "15", which every grammar agrees about — keeps
+ * exactly the enumeration it had. Ambiguity is data; agreement is not.
+ */
+function readingsOf(token: NumberToken): { numberReadings?: readonly NumberReading[] } {
+  const readings = token.readings;
+  return readings === undefined || readings.length < 2
+    ? {}
+    : { numberReadings: readings };
+}
 
 /**
  * The parser's own precedence for `op`, exported so `print/print.ts` reads
@@ -300,6 +322,7 @@ export function parse(
       id: id(),
       type: "quantity",
       value: numberToken.value,
+      ...readingsOf(numberToken),
       candidates: rightCandidates,
       span: span(numberToken, unitToken),
     };
@@ -403,6 +426,7 @@ export function parse(
             id: id(),
             type: "quantity",
             value: token.value,
+            ...readingsOf(token),
             candidates,
             span: span(token, next),
           };
@@ -421,6 +445,7 @@ export function parse(
         id: id(),
         type: "number",
         value: token.value,
+        ...readingsOf(token),
         span: { start: token.start, end: token.end },
       };
     }
