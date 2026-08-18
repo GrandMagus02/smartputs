@@ -5,51 +5,93 @@
 <p align="center"><b>Human input, evaluated.</b></p>
 
 <p align="center">
-A TypeScript engine that parses and evaluates what people actually type —<br/>
-units, durations, and arithmetic mixed together — and tells you how confident it is.
+A TypeScript engine that reads what people actually type: units, durations and<br/>
+arithmetic mixed together, in 17 languages. It gives you a decimal, a canonical unit,<br/>
+and a confidence score.
 </p>
 
 ---
 
-`"1 kg + 500 g"`, `"30 h - 30 min"`, `"212 F in C"`, `"100 km / 2 h"`. Smartputs reads
-the sentence, keeps every reading it could be, ranks them, and hands back a decimal in a
-canonical unit along with the confidence it earned. Ambiguity is data here, not a
-failure: `"10 m"` really is both minutes and metres, and the engine will say so rather
-than guess silently.
+```ts
+engine.evaluate("1 kg + 500 g").formatted;      // 🧱 "1.5 kilograms"
+engine.evaluate("30 h - 30 min").formatted;     // ⏱️ "29.5 hours"
+engine.evaluate("212 F in C").formatted;        // 🌡️ "100°C"
+engine.evaluate("3 ft in cm").formatted;        // 📏 "91.44 centimetres"
+engine.evaluate("2 GB + 500 MB").formatted;     // 💾 "2.5 gigabytes"
+engine.evaluate("twenty km").formatted;         // 🔤 "20 kilometres"
+engine.evaluate("20% of 150").formatted;        // 🧮 "30"
+engine.evaluate("100 km / 2 h").kind;           // 🚗 "speed"
+
+engine.evaluate("10 m");
+// ❓ AmbiguityError: "10 m" is ambiguous between duration:min, length:m
+engine.suggest("10 m");
+// 🤷 [ { kind: "duration", formatted: "10 minutes", confidence: 0.5 },
+//      { kind: "length",   formatted: "10 metres",  confidence: 0.5 } ]
+```
+
+Smartputs keeps every reading an input could have, ranks them, and hands back the
+winner with the confidence it earned. Ambiguity is data, not a failure. `"10 m"`
+really is both minutes and metres, and the engine says so instead of guessing.
+
+## Languages
+
+Recognition reads every locale you install. Generation writes in the one you name.
+
+| | | | |
+| --- | --- | --- | --- |
+| 🇬🇧 English `en` | 🇩🇪 German `de` | 🇫🇷 French `fr` | 🇪🇸 Spanish `es` |
+| 🇮🇹 Italian `it` | 🇵🇹 Portuguese `pt` | 🇳🇱 Dutch `nl` | 🇵🇱 Polish `pl` |
+| 🇺🇦 Ukrainian `uk` | 🇷🇺 Russian `ru` | 🇹🇷 Turkish `tr` | 🇸🇦 Arabic `ar` |
+| 🇮🇳 Hindi `hi` | 🇮🇩 Indonesian `id` | 🇯🇵 Japanese `ja` | 🇰🇷 Korean `ko` |
+| 🇨🇳 Chinese `zh` | | | |
+
+```ts
+// 🇩🇪 read German, print German
+de.evaluate("zwei Kilometer plus 500 Meter").formatted; // "2,5 Kilometer"
+
+// 🇺🇦 read Ukrainian, print Ukrainian (with the right case ending)
+uk.evaluate("5 кілограмів + 500 грамів").formatted;    // "5,5 кілограма"
+
+// 🌍 one engine, several locales: read anything, print in English
+en.evaluate("5 кілограмів + 500 грамів").formatted;    // "5.5 kilograms"
+```
+
+Each locale is its own entry point under `@smartput/core/locale/*`, and each kind ships
+its words per language beside it (`@smartput/mass/locale/uk`). Recognition runs an
+analyzer chain rather than an alias list, so `"kilograms"` reaches `"kilogram"` without
+listing every form. Plurals come from `Intl.PluralRules`.
 
 ## Install
 
 ```sh
-bun i smartputs @smartput/kinds     # the engine, plus every built-in kind
+bun i smartputs @smartput/kinds     # 📦 the engine, plus every built-in kind
 ```
 
-`smartputs` is `@smartput/core` under the name you can remember: same subpaths,
-same exports, same object identities, asserted subpath by subpath in its own
-`parity.test.ts`. Install `@smartput/core` directly if you prefer the scope —
-they are the same package and the byte counts agree exactly.
+`smartputs` is `@smartput/core` under a name you can remember. Same subpaths, same
+exports, same object identities, checked subpath by subpath in its own
+`parity.test.ts`. Install `@smartput/core` directly if you prefer the scope; the byte
+counts agree exactly.
 
-The second half is not optional. The engine registers no kinds until you give it
-some, so `smartputs` alone throws on the first thing you evaluate. Take
-[`@smartput/kinds`](docs/packages/kinds.md) for all seventeen, or a single
-package like `@smartput/length` if that is all you need.
+The second half is required. The engine registers no kinds until you give it some, so
+`smartputs` alone throws on the first thing you evaluate. Take
+[`@smartput/kinds`](docs/packages/kinds.md) for all seventeen, or a single package like
+`@smartput/length` if that is all you need.
 
-**If you only want to read one kind out of a form field, install neither.**
-[`@smartput/length/validate`](docs/packages/length.md) is 1.5 KB, has no engine
-in it, and is what most people actually want:
+**Only validating one field?** Skip the engine. Every kind ships a 1.5 KB
+engine-free parser, and that is what most people actually want:
 
 ```sh
-bun i @smartput/length
+bun i @smartput/length              # 🪶 @smartput/length/validate, no engine inside
 ```
 
-ESM only, types included. `@smartput/core` ships two runtime dependencies —
-`decimal.js` and [`@smartput/kind`](docs/packages/kind.md), the half of core that
-moved out — and `bun run check-deps` fails the repo on a third.
+ESM only, types included. `@smartput/core` has two runtime dependencies,
+`decimal.js` and [`@smartput/kind`](docs/packages/kind.md), and `bun run check-deps`
+fails the repo on a third.
 
 ## Build an engine
 
-An engine is a pure composition of frozen descriptors: locales, kinds, and optional
-weight overrides. Nothing is global, and engines with different options coexist in one
-process.
+An engine is a composition of frozen descriptors: locales, kinds, and optional weight
+overrides. Nothing is global, so engines with different options coexist in one process.
 
 ```ts
 import { composeLocale, createEngine } from "@smartput/core";
@@ -57,33 +99,31 @@ import { english } from "@smartput/core/locale/en";
 import { BUILTIN_KINDS } from "@smartput/kinds";
 import BUILTIN_EN from "@smartput/kinds/locale/en";
 
-const en = composeLocale(english, BUILTIN_EN);
-
 const engine = createEngine({
-  locales: [en],        // every language the engine READS
-  kinds: BUILTIN_KINDS, // number, percent, length, mass, duration, temperature, …
+  locales: [composeLocale(english, BUILTIN_EN)], // 🗣️ every language the engine reads
+  kinds: BUILTIN_KINDS,                          // 📐 number, percent, length, mass, …
 });
 ```
 
-`createEngine` registers nothing on your behalf — pass the kinds you want, or the engine
-has no vocabulary and every unit raises `NoCandidateError`.
+`createEngine` registers nothing on its own. Without kinds the engine has no
+vocabulary and every unit raises `NoCandidateError`.
 
 ## Evaluate
 
 ```ts
 const result = engine.evaluate("1 kg + 500 g");
 
-result.formatted; // "1.5 kilograms"
-result.kind; // "mass"
-result.value.canonical.toString(); // "1500"   — grams, the canonical unit
-result.value.unit; // "kg"     — the left operand's unit
-result.confidence; // 1
+result.formatted;                  // "1.5 kilograms"
+result.kind;                       // "mass"
+result.value.canonical.toString(); // "1500"  ⚖️ grams, the canonical unit
+result.value.unit;                 // "kg"    👈 the left operand's unit
+result.confidence;                 // 1
 ```
 
 ### Six entry points
 
-`evaluate()` is strict and throws, which makes it the wrong choice for a keystroke-rate
-input where ambiguity is normal. Reach for `suggest()` there.
+`evaluate()` is strict and throws, which makes it wrong for a keystroke-rate input where
+ambiguity is normal. Use `suggest()` there.
 
 | Method | On ambiguity | Returns |
 | --- | --- | --- |
@@ -95,44 +135,39 @@ input where ambiguity is normal. Reach for `suggest()` there.
 | `scan(text)` | ranks, per mark | `Mark[]`, possibly empty; never throws |
 
 ```ts
-engine.evaluate("10 m");
-// AmbiguityError: "10 m" is ambiguous between duration:min, length:m
-
-engine.suggest("10 m");
-// [ { kind: "duration", formatted: "10 minutes", confidence: 0.5 },
-//   { kind: "length",   formatted: "10 metres",  confidence: 0.5 } ]
-
 engine.complete("30 ho");
-// [ { alias: "hour", text: "30 hours", kind: "duration", unit: "h", … } ]
+// ⌨️ [ { alias: "hour", text: "30 hours", kind: "duration", unit: "h", … } ]
 ```
 
-`evaluate` and friends read the whole string as one expression. `scan` does not:
-it finds the quantities inside a sentence and marks each one, letting the words
-around a mark argue for a kind.
+`evaluate` and friends read the whole string as one expression. `scan` finds the
+quantities inside a sentence and marks each one. The words around a mark argue for a
+kind:
 
 ```ts
 engine.scan("My house is 5km from work");
-// [ { start: 12, end: 15, text: "5km", readings: [ { kind: "length", … } ] } ]
+// 🏠 [ { start: 12, end: 15, text: "5km", readings: [ { kind: "length", … } ] } ]
 
 engine.scan("Will be in time in 5m")[0].readings.map((r) => r.kind);
-// [ "duration", "length" ]   — "in" and "time" argue for minutes, and the
-//                              metres reading survives at 0.018 rather than
-//                              being deleted
+// ⏰ [ "duration", "length" ]
+//    "in" and "time" argue for minutes; the metres reading
+//    survives at 0.018 instead of being deleted
 ```
 
-If your domain knows that `m` always means metres, say so once at construction:
+If your domain knows that `m` always means metres, say so once:
 
 ```ts
 const engine = createEngine({
   locales: [en],
   kinds: BUILTIN_KINDS,
-  weights: { "duration:min": -20 }, // "m" never means minutes here
+  weights: { "duration:min": -20 }, // 🚫 "m" never means minutes here
 });
+
+engine.evaluate("10 m").formatted; // "10 metres"
 ```
 
-### Money, with the rates you supply
+### Money, with your own rates
 
-Ratios come from a dated table you inject — a rate derived through the base currency is
+Ratios come from a dated table you inject. A rate derived through the base currency is
 disclosed, never implied.
 
 ```ts
@@ -142,10 +177,10 @@ import moneyEn from "@smartput/rate/locale/en";
 const engine = createEngine({
   locales: [composeLocale(english, [...BUILTIN_EN, moneyEn])],
   kinds: [...BUILTIN_KINDS, money],
-  rates: snapshot("EUR", "2026-08-04", { USD: 1.1, GBP: 0.8412 }),
+  rates: snapshot("EUR", "2026-08-04", { USD: 1.1, GBP: 0.8412 }), // 📅 dated
 });
 
-engine.evaluate("30 usd in gbp").formatted; // "£22.94"
+engine.evaluate("30 usd in gbp").formatted; // 💷 "£22.94"
 ```
 
 ## What you get
@@ -153,18 +188,14 @@ engine.evaluate("30 usd in gbp").formatted; // "£22.94"
 - **One expression, many kinds.** Cross-kind operations are declared as signatures, so
   the evaluator never hardcodes a domain.
 - **Completion, not just evaluation.** `complete()` rewrites the whole input, so what it
-  hands back always evaluates — ranked by the same weights, plus a magnitude fit.
+  hands back always evaluates. Ranked by the same weights, plus a magnitude fit.
 - **Decimal all the way down.** Every value is a `decimal.js` `Decimal` in a canonical
   unit; a 23-significant-digit input survives the pipeline intact.
-- **Built for inflected languages.** Recognition runs an analyzer chain rather than an
-  alias list, so `"kilograms"` reaches `"kilogram"` without enumerating every form.
-  Generation uses `Intl.PluralRules`.
-- **A 1.5 KB door for one field.** An input asking whether `"30deg"` is valid does not
-  need a registry and a Pratt parser: every kind ships an engine-free `parseX`, and its
-  size is a budget `bun run check-size` enforces.
-- **Seventeen languages.** Locales are separate entry points under
-  `@smartput/core/locale/*`; recognition reads every locale you install, generation
-  writes in the one you name.
+- **Built for inflected languages.** Analyzer chains for recognition,
+  `Intl.PluralRules` for generation. See [Languages](#languages).
+- **A 1.5 KB door for one field.** Asking whether `"30deg"` is valid does not need a
+  registry and a Pratt parser. Every kind ships an engine-free `parseX`, and its size is
+  a budget `bun run check-size` enforces.
 - **A new kind is five lines.** `defineKind` takes an id and a unit table; aliases,
   arithmetic and `in` conversion are generated. Built-ins use the same public API.
 
@@ -193,9 +224,9 @@ page under [`docs/packages/`](docs/packages/).
 | [`@smartput/mass`](docs/packages/mass.md) | Milligram to ton, with the imperial pounds and ounces. |
 | [`@smartput/area`](docs/packages/area.md) | Square metres, hectares, acres. |
 | [`@smartput/volume`](docs/packages/volume.md) | Litres, millilitres, cubic metres, and the two gallons. |
-| [`@smartput/angle`](docs/packages/angle.md) | Degree, radian, gradian, turn — with a 30-digit π. |
+| [`@smartput/angle`](docs/packages/angle.md) | Degree, radian, gradian, turn, with a 30-digit π. |
 | [`@smartput/speed`](docs/packages/speed.md) | m/s, km/h, mph, knots. |
-| [`@smartput/temperature`](docs/packages/temperature.md) | Celsius, Fahrenheit, Kelvin — plus the delta kind beside them. |
+| [`@smartput/temperature`](docs/packages/temperature.md) | Celsius, Fahrenheit, Kelvin, plus the delta kind beside them. |
 | [`@smartput/energy`](docs/packages/energy.md) | Joule, calorie, watt-hour, electronvolt. |
 | [`@smartput/power`](docs/packages/power.md) | Watt to horsepower, bridging energy and duration. |
 | [`@smartput/datasize`](docs/packages/datasize.md) | Bytes and bits, decimal and binary prefixes. |
@@ -219,7 +250,7 @@ page under [`docs/packages/`](docs/packages/).
 
 | Package | |
 | --- | --- |
-| [`@smartput/range-core`](docs/packages/range-core.md) | Endpoints, ordering, windows — the machinery every range kind shares. |
+| [`@smartput/range-core`](docs/packages/range-core.md) | Endpoints, ordering, windows: the machinery every range kind shares. |
 | [`@smartput/range`](docs/packages/range.md) | Numeric and measured ranges: `10–20 km`. |
 | [`@smartput/date-range`](docs/packages/date-range.md) | `last week`, `March 3–7`, `between May and June`. |
 | [`@smartput/time-range`](docs/packages/time-range.md) | `9am–5pm`, with no date on either end. |
