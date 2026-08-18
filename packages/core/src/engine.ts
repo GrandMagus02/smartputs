@@ -12,6 +12,7 @@ import {
 } from "./errors";
 import { Evaluator } from "./eval/evaluator";
 import { buildRegistry, NUMBER_KIND, type Registry } from "./kind/registry";
+import { type Node, walk } from "./parse/ast";
 import { createResolver } from "./parse/candidates";
 import type { Token } from "./parse/lex";
 import { Normalizer } from "./parse/normalize";
@@ -20,7 +21,7 @@ import { Tokenizer, type TokenStream } from "./parse/tokenizer";
 import { Printer } from "./print/print";
 import type { CueHit } from "./scan/cues";
 import { DEFAULT_CUE_WINDOW, DEFAULT_MAX_SPAN, Scanner } from "./scan/scan";
-import type { Resolution } from "./solve/solver";
+import type { Rejection, Resolution } from "./solve/solver";
 import { Solver } from "./solve/solver-class";
 import { weightBreakdown } from "./solve/weights";
 import type {
@@ -183,7 +184,37 @@ export interface Explanation {
     units: string[];
     contributions: Array<{ selector: string; value: number; layer: number }>;
   }>;
+  /**
+   * Why the input succeeded or failed.
+   *
+   * `explain` used to let a `SmartputError` out, which made the one API whose
+   * job is to say why an input failed unusable on exactly the inputs that
+   * failed — a caller had to catch the error to find out that the explanation
+   * it wanted did not exist. Every `SmartputError` is an outcome now; anything
+   * else is a bug in a stage and still propagates.
+   */
+  outcome: { status: "ok" } | { status: "error"; error: SmartputError };
+  /**
+   * Every (op, leftKind, rightKind) the solver enumerated and found no
+   * signature for, with node ids and spans indexing `input`.
+   *
+   * Not "empty unless the input failed", which is the wording the design
+   * reached for and the code cannot honour: a rejected pair is data about an
+   * input that succeeded too. `10 m + 5 h` resolves as a duration *because*
+   * `+ | length | duration` was tried and rejected, and hiding that from the
+   * explanation would hide the reason the winner won. It is empty when every
+   * assignment typed — which is the common case, and the whole of it for an
+   * input with one reading per slot.
+   */
+  rejections: Rejection[];
 }
+
+/**
+ * Re-exported here because it is `Explanation.rejections`' element type and a
+ * consumer cannot name a field's type it has no path to. Its home stays
+ * `solve/solver.ts`, which is the stage that produces one.
+ */
+export type { Rejection } from "./solve/solver";
 
 /** Readings kept per mark before truncation. */
 const DEFAULT_MAX_READINGS = 3;
@@ -436,12 +467,52 @@ function toResult(program: Program, resolution: Resolution, ctx: EngineCtx): Res
  * contribution rows, where every summand of `score` gets a row so
  * `Σcontributions === score`.
  */
+/**
+ * Every reading the parser attached to a slot, in tree order.
+ *
+ * The success path takes its candidates off the assignments instead, and that
+ * is deliberate rather than an oversight: an assignment is a *chosen* reading,
+ * and the list of chosen ones is what an explanation of a resolved input is
+ * about — changing it would move every recorded parity fixture to say the same
+ * thing in a different order. This is the door for the path that has no
+ * assignments at all, where the alternative is an explanation of a failure with
+ * an empty `candidates` list: exactly the readings a caller needs to see to
+ * understand why nothing typed.
+ */
+function candidatesOf(root: Node): Candidate[] {
+  const candidates: Candidate[] = [];
+  const add = (list: readonly Candidate[]): void => {
+    for (const candidate of list) {
+      if (
+        !candidates.some((c) => c.kind === candidate.kind && c.unit === candidate.unit)
+      ) {
+        candidates.push(candidate);
+      }
+    }
+  };
+  walk(root, (node) => {
+    if (node.type === "quantity" || node.type === "literal") add(node.candidates);
+    else if (node.type === "convert") add(node.target);
+  });
+  return candidates;
+}
+
+/**
+ * `program` is optional because an explanation of a *parse* failure has no
+ * program and is still an explanation — `source`/`mapSpan` come from the token
+ * stream (or from the caller's own string, when even normalization refused),
+ * which is what keeps `tokens` mapped and `input` honest on every path.
+ */
 function toExplanation(
-  program: Program,
+  source: string,
+  mapSpan: (span: Span) => Span,
+  program: Program | undefined,
   streamTokens: readonly Token[],
   assignments: Resolution[],
   weights: Weights | undefined,
   ctx: EngineCtx,
+  outcome: Explanation["outcome"],
+  rejections: Rejection[],
 ): Explanation {
   const { registry, opts } = ctx;
   // `opts.locales`, not `ctx.format`: layer 1 is every installed language's
@@ -450,7 +521,7 @@ function toExplanation(
   const layers = weightLayers(opts.locales, opts, weights);
   const tokens: Token[] = streamTokens.map((t) => ({
     ...t,
-    ...program.input.mapSpan({ start: t.start, end: t.end }),
+    ...mapSpan({ start: t.start, end: t.end }),
   }));
 
   const candidates: Candidate[] = [];
@@ -463,11 +534,16 @@ function toExplanation(
       }
     }
   }
+  if (candidates.length === 0 && program !== undefined) {
+    candidates.push(...candidatesOf(program.root));
+  }
 
   return {
-    input: program.input.source,
+    input: source,
     tokens,
     candidates,
+    outcome,
+    rejections,
     assignments: assignments.map((a) => {
       const chosen = Object.values(a.choices);
       return {
@@ -692,7 +768,11 @@ export function createEngine(callerOpts: EngineOptions): Engine {
   };
   const tokenize = (input: string, call?: EvalOptions): TokenStream => {
     const normalized = stages.normalizer.run(input);
-    if (normalized.empty) throw new UnitParseError(input);
+    // The whole string, even when it is empty: `spans: []` would say "somewhere
+    // in here" about an input with no `here` at all, and the property test next
+    // door in `properties.test.ts` holds every input-side error to naming one.
+    if (normalized.empty)
+      throw new UnitParseError(input, undefined, [{ start: 0, end: input.length }]);
     const tz = call?.timeZone === undefined ? undefined : { timeZone: call.timeZone };
     return stages.tokenizer.run(normalized, tz);
   };
@@ -733,22 +813,60 @@ export function createEngine(callerOpts: EngineOptions): Engine {
       return ctxFor(call).evaluator.run(resolved.program, resolved.resolution).value;
     },
     explain(input, call) {
-      const stream = tokenize(input, call);
-      const program = parserFor(call).run(stream);
-      const assignments = stages.solver.all(program, call);
       // `ctxFor(call)`, not `ctx`: nothing `toExplanation` reads depends on
       // the format locale today, but calling it through the same door every
       // other entry point uses is what keeps that true — and it is also what
       // makes `explain(input, { format: "zz" })` report the bad id rather
       // than quietly explaining under a different language than `evaluate`
-      // would have used.
-      return toExplanation(
-        program,
-        stream.tokens,
-        assignments,
-        call?.weights,
-        ctxFor(call),
-      );
+      // would have used. Outside the try, because naming a locale that is not
+      // installed is a wiring error and not a reading of the input.
+      const explainCtx = ctxFor(call);
+      const rejections: Rejection[] = [];
+      // Filled as far as the pipeline gets, which is the whole point: an
+      // explanation of a parse failure that lists no tokens explains nothing.
+      let source = input;
+      let mapSpan: (span: Span) => Span = (span) => span;
+      let tokens: readonly Token[] = [];
+      let program: Program | undefined;
+      try {
+        const stream = tokenize(input, call);
+        source = stream.input.source;
+        mapSpan = (span) => stream.input.mapSpan(span);
+        tokens = stream.tokens;
+        program = parserFor(call).run(stream);
+        const assignments = stages.solver.all(program, {
+          ...call,
+          onReject: (r) => rejections.push(r),
+        });
+        return toExplanation(
+          source,
+          mapSpan,
+          program,
+          tokens,
+          assignments,
+          call?.weights,
+          explainCtx,
+          { status: "ok" },
+          rejections,
+        );
+      } catch (e) {
+        // A SmartputError is an OUTCOME — saying why an input failed is this
+        // method's whole job, and throwing the reason away in order to report
+        // it was the defect. Anything else is a bug in a stage and still
+        // propagates.
+        if (!(e instanceof SmartputError)) throw e;
+        return toExplanation(
+          source,
+          mapSpan,
+          program,
+          tokens,
+          [],
+          call?.weights,
+          explainCtx,
+          { status: "error", error: e },
+          rejections,
+        );
+      }
     },
     complete(input, call) {
       return [...completerFor(call).run(input, call)];

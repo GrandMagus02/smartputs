@@ -153,6 +153,24 @@ export function parse(
   const peek = (): Token | undefined => tokens[pos];
   const span = (a: Span, b: Span): Span => ({ start: a.start, end: b.end });
 
+  /**
+   * The span of the token the parser choked on, already mapped to the caller's
+   * string, or a zero-width span at the end of it when the input simply ran
+   * out ("1 kg in", "(1 + 2").
+   *
+   * Every `UnitParseError` this file raises goes through it. A bare
+   * `UnitParseError(input)` said "cannot parse this" about the whole string and
+   * left a caller wanting to underline the problem with nothing to underline —
+   * and the two are not the same error to a person: "1 kg 2 kg" fails at the
+   * second quantity, not at the first.
+   */
+  const here = (): Span => {
+    const t = peek();
+    return t === undefined
+      ? { start: input.length, end: input.length }
+      : mapSpan({ start: t.start, end: t.end });
+  };
+
   const claimedValue = (r: LiteralReading): Value =>
     Object.freeze({
       kind: r.kind,
@@ -180,13 +198,14 @@ export function parse(
 
   function parseAtom(): Node {
     const token = peek();
-    if (token === undefined) throw new UnitParseError(input);
+    if (token === undefined) throw new UnitParseError(input, undefined, [here()]);
 
     if (token.type === "lparen") {
       pos += 1;
       const inner = parseExpr(0);
       const close = peek();
-      if (close === undefined || close.type !== "rparen") throw new UnitParseError(input);
+      if (close === undefined || close.type !== "rparen")
+        throw new UnitParseError(input, undefined, [here()]);
       pos += 1;
       return inner;
     }
@@ -309,7 +328,7 @@ export function parse(
       }
     }
 
-    throw new UnitParseError(input);
+    throw new UnitParseError(input, undefined, [here()]);
   }
 
   function parseExpr(minBinding: number): Node {
@@ -325,7 +344,7 @@ export function parse(
         if (CONVERT_BINDING < minBinding) break;
         pos += 1;
         const unit = peek();
-        if (unit === undefined) throw new UnitParseError(input);
+        if (unit === undefined) throw new UnitParseError(input, undefined, [here()]);
 
         // A kind claimed the target and marked the claim targetable: "japan to
         // ukraine", "3pm in japan". The matcher already built the Value and
@@ -370,7 +389,7 @@ export function parse(
               if (!claimed.has(`${c.kind}\u0000${c.unit}`)) target.push(c);
           }
 
-          if (target.length === 0) throw new UnitParseError(input);
+          if (target.length === 0) throw new UnitParseError(input, undefined, [here()]);
           pos += 1;
           {
             const { nodeId, demoted: operand } = demote(left);
@@ -387,7 +406,7 @@ export function parse(
           continue;
         }
 
-        if (unit.type !== "word") throw new UnitParseError(input);
+        if (unit.type !== "word") throw new UnitParseError(input, undefined, [here()]);
         const target = resolver.resolve(unit.text, runOf(unit));
         if (target.length === 0) {
           throw new NoCandidateError(input, unit.text, resolver.nearest(unit.text), [
@@ -456,6 +475,6 @@ export function parse(
   }
 
   const node = parseExpr(0);
-  if (pos !== tokens.length) throw new UnitParseError(input);
+  if (pos !== tokens.length) throw new UnitParseError(input, undefined, [here()]);
   return node;
 }

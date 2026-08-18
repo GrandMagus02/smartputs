@@ -3,9 +3,35 @@ import { NUMBER_KIND, opKey, type Registry } from "../kind/registry";
 import type { Node, NodeId } from "../parse/ast";
 import { walk } from "../parse/ast";
 import type { Program } from "../parse/program";
-import type { Candidate, KindId } from "../types";
+import type { Candidate, KindId, Span } from "../types";
 
 const CONTEXT_BONUS = 30;
+
+/**
+ * One (op, left, right) the solver enumerated and found no signature for.
+ *
+ * The knowledge already existed and was thrown away: `solve` knew it had tried
+ * `mass / length` for "10 kg / 2 m" and reported *mass and duration*, because
+ * the old report re-walked the tree for two operand kinds instead of asking
+ * the walk that had actually failed. Keeping the rejections is what lets
+ * `DimensionMismatchError.tried` name every pair and `Explanation.rejections`
+ * list them with the text each one came from.
+ *
+ * `spans` is `[left, right]` and indexes the caller's string, not the
+ * normalized one — `solve` maps them on the way into the sink, so nothing
+ * downstream has to remember which of the two coordinate systems it holds.
+ * For a `convert` the pair is the operand and the target word; the keyword
+ * between them is the gap, which is how `DimensionMismatchError` gets its
+ * three-span `[left, operator, right]` without a token stream in hand.
+ */
+export interface Rejection {
+  node: NodeId;
+  /** An `OpSymbol` or `"in"`. Never the literal "operation". */
+  op: string;
+  left: KindId;
+  right: KindId;
+  spans: [Span, Span];
+}
 
 export interface Resolution {
   /**
@@ -113,11 +139,20 @@ function collectSlots(
   return slots;
 }
 
-/** Returns the kind of `node` under `choices`, or null when no op signature applies. */
+/**
+ * Returns the kind of `node` under `choices`, or null when no op signature
+ * applies.
+ *
+ * `reject` is optional and every caller that only wants the kind — the two
+ * scoring walks below — passes none and pays nothing. `solve` passes one from
+ * exactly one place, the terminal call on a *complete* assignment, so a pair is
+ * recorded once per assignment rather than once per partial walk.
+ */
 function typeOf(
   node: Node,
   choices: Readonly<Record<NodeId, Candidate>>,
   registry: Registry,
+  reject?: (r: Rejection) => void,
 ): KindId | null {
   switch (node.type) {
     case "number":
@@ -127,21 +162,43 @@ function typeOf(
     case "literal":
       return choices[node.id]?.kind ?? null;
     case "unary":
-      return typeOf(node.operand, choices, registry);
+      return typeOf(node.operand, choices, registry, reject);
     case "convert": {
-      const operand = typeOf(node.operand, choices, registry);
+      const operand = typeOf(node.operand, choices, registry, reject);
       const target = choices[node.id];
       if (operand === null || target === undefined) return null;
       // Take the result from the signature rather than assuming it is the
       // target's own kind: the signature is already in hand, and a declared
       // cross-kind `in` need not be an identity on kind.
-      return registry.ops.get(opKey("in", operand, target.kind))?.result ?? null;
+      const sig = registry.ops.get(opKey("in", operand, target.kind));
+      if (sig === undefined) {
+        reject?.({
+          node: node.id,
+          op: "in",
+          left: operand,
+          right: target.kind,
+          spans: [node.operand.span, node.targetSpan],
+        });
+        return null;
+      }
+      return sig.result;
     }
     case "binary": {
-      const left = typeOf(node.left, choices, registry);
-      const right = typeOf(node.right, choices, registry);
+      const left = typeOf(node.left, choices, registry, reject);
+      const right = typeOf(node.right, choices, registry, reject);
       if (left === null || right === null) return null;
-      return registry.ops.get(opKey(node.op, left, right))?.result ?? null;
+      const sig = registry.ops.get(opKey(node.op, left, right));
+      if (sig === undefined) {
+        reject?.({
+          node: node.id,
+          op: node.op,
+          left,
+          right,
+          spans: [node.left.span, node.right.span],
+        });
+        return null;
+      }
+      return sig.result;
     }
   }
 }
@@ -218,6 +275,13 @@ export function solve(
      * directly is trusted with it exactly as they are trusted with `weights`.
      */
     cues?: Readonly<Record<KindId, number>>;
+    /**
+     * Told about every pair this solve found no signature for, deduplicated,
+     * in enumeration order. `explain` supplies one; `evaluate` does not, and
+     * the rejections are still collected either way because the throw below
+     * needs them — the sink only decides whether anyone else hears.
+     */
+    onReject?: (r: Rejection) => void;
   },
 ): Resolution[] {
   const root = program.root;
@@ -237,13 +301,32 @@ export function solve(
     cueBonus: number;
   }> = [];
 
+  // Keyed by node, op and the two kinds: the same pair reached from two
+  // assignments that differ somewhere else is one rejection, and the map's
+  // insertion order is enumeration order, which is what makes "the first one"
+  // below a stable choice rather than an arbitrary one.
+  const rejected = new Map<string, Rejection>();
+  const sink = (r: Rejection): void => {
+    const key = `${r.node}|${r.op}|${r.left}|${r.right}`;
+    if (rejected.has(key)) return;
+    // Mapped here rather than at either end: a `Rejection` that sometimes
+    // indexes the normalized text and sometimes the caller's is a span bug
+    // waiting for the first input normalization changes the length of.
+    const mapped: Rejection = {
+      ...r,
+      spans: [program.input.mapSpan(r.spans[0]), program.input.mapSpan(r.spans[1])],
+    };
+    rejected.set(key, mapped);
+    opts.onReject?.(mapped);
+  };
+
   const enumerate = (
     index: number,
     choices: Record<NodeId, Candidate>,
     weight: number,
   ): void => {
     if (index === slots.length) {
-      const kind = typeOf(root, choices, registry);
+      const kind = typeOf(root, choices, registry, sink);
       if (kind === null) return;
       const bonus = contextBonus(root, choices, registry);
       const signature = signatureWeight(root, choices, registry);
@@ -270,12 +353,41 @@ export function solve(
   enumerate(0, {}, 0);
 
   if (viable.length === 0) {
+    const all = [...rejected.values()];
+    const first = all[0];
+    if (first !== undefined) {
+      // The operator's own span is the gap between the two operands. Both ends
+      // are already source-relative, so the gap is too — deriving it here is
+      // what lets the error quote `10 kg`, `/` and `2 m` without the solver
+      // ever holding a token.
+      throw new DimensionMismatchError(
+        opts.input,
+        first.op,
+        first.left,
+        first.right,
+        all.map((r) => [r.left, r.right] as const),
+        [
+          first.spans[0],
+          { start: first.spans[0].end, end: first.spans[1].start },
+          first.spans[1],
+        ],
+      );
+    }
+    // No rejection recorded means no assignment ever reached an operator: a
+    // slot was emptied by `kinds`/`locales` before enumeration could type
+    // anything. That is the case `reportedOperands` was written for, and it
+    // stays — there is no failing pair to name, only the operands that would
+    // have been read.
     const operands = reportedOperands(root, opts.kinds, opts.locales);
+    const left = operands[0] ?? "unknown";
+    const right = operands[1] ?? "unknown";
     throw new DimensionMismatchError(
       opts.input,
-      "operation",
-      operands[0] ?? "unknown",
-      operands[1] ?? "unknown",
+      "in",
+      left,
+      right,
+      [[left, right]],
+      [program.input.mapSpan(root.span)],
     );
   }
 

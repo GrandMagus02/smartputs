@@ -18,7 +18,7 @@ import { createFacades } from "./facade/index";
 import { defineKind } from "./kind/define";
 import { composeLocale } from "./locale/compose";
 import { defineLanguage } from "./locale/define";
-import type { LiteralMatcher, Value } from "./types";
+import type { LiteralMatcher, Value, Weights } from "./types";
 
 const engine = createEngine({
   locales: [composeLocale(en, BUILTIN_EN)],
@@ -1052,4 +1052,62 @@ test("the contribution rows still sum to the score with a cue applied", () => {
     const sum = assignment.contributions.reduce((total, c) => total + c.value, 0);
     expect(sum).toBeCloseTo(assignment.score, 10);
   }
+});
+
+/**
+ * R-E1: `explain` is the one API whose job is to say why an input failed, and
+ * it used to let the failure out instead of reporting it — unusable on exactly
+ * the inputs a caller reaches for it with. Every `SmartputError` is an
+ * `outcome` now; anything else is a bug in a stage and still propagates.
+ */
+test("explain returns an Explanation for input evaluate throws on", () => {
+  const ex = engine.explain("100 km / 2 h in km/h");
+  expect(ex.outcome.status).toBe("error");
+  expect(ex.tokens.length).toBeGreaterThan(0);
+  expect(ex.candidates.length).toBeGreaterThan(0);
+  expect(ex.rejections.length).toBeGreaterThan(0);
+  for (const r of ex.rejections) {
+    expect(r.spans[0].end).toBeGreaterThan(r.spans[0].start);
+    expect(r.op).not.toBe("operation");
+  }
+});
+
+test("explain on a good input reports ok and no rejections", () => {
+  const ex = engine.explain("1.5 kg in lb");
+  expect(ex.outcome).toEqual({ status: "ok" });
+  expect(ex.rejections).toEqual([]);
+});
+
+test("explain returns for every error class rather than throwing", () => {
+  for (const input of ["10 kg / 2 m", "5 zorkmids", "1h30m", ""]) {
+    const ex = engine.explain(input);
+    expect(ex.input).toBe(input);
+    expect(["ok", "error"]).toContain(ex.outcome.status);
+  }
+});
+
+test("a mismatch names the operator and every pair the solver tried", () => {
+  try {
+    engine.evaluate("10 kg / 2 m");
+    throw new Error("expected DimensionMismatchError");
+  } catch (e) {
+    const err = e as DimensionMismatchError;
+    expect(err).toBeInstanceOf(DimensionMismatchError);
+    expect(err.op).toBe("/");
+    expect(err.spans).toHaveLength(3);
+    expect(err.tried.length).toBeGreaterThan(1);
+    expect(err.tried).toContainEqual(["mass", "length"]);
+  }
+});
+
+test("a non-SmartputError still propagates out of explain: it is a bug, not an outcome", () => {
+  const hostile = new Proxy(
+    {},
+    {
+      get() {
+        throw new TypeError("boom");
+      },
+    },
+  ) as unknown as Weights;
+  expect(() => engine.explain("1 kg", { weights: hostile })).toThrow(TypeError);
 });

@@ -2,7 +2,7 @@ import { AmbiguityError } from "../errors";
 import type { Registry } from "../kind/registry";
 import type { Program } from "../parse/program";
 import type { KindId, ResultCandidate } from "../types";
-import { type Resolution, solve } from "./solver";
+import { type Rejection, type Resolution, solve } from "./solver";
 
 export interface SolverOptions {
   registry: Registry;
@@ -27,6 +27,16 @@ export interface SolveScope {
    * the domain may pass it to `evaluate`/`suggest` directly.
    */
   cues?: Readonly<Record<KindId, number>>;
+  /**
+   * Told about every (op, left, right) this solve found no signature for.
+   *
+   * Named here and not only on `solve`'s own options because this interface is
+   * the door `createEngine` hands the caller's whole options object through —
+   * a field `SolveScope` does not name is a field `Solver` silently drops, as
+   * this interface's own doc comment above warns. `explain` is the one caller
+   * that passes it; nothing else pays for it.
+   */
+  onReject?: (r: Rejection) => void;
 }
 
 /**
@@ -57,6 +67,7 @@ export class Solver {
       ...(opts?.kinds ? { kinds: opts.kinds } : {}),
       ...(opts?.locales ? { locales: opts.locales } : {}),
       ...(opts?.cues ? { cues: opts.cues } : {}),
+      ...(opts?.onReject ? { onReject: opts.onReject } : {}),
     });
   }
 

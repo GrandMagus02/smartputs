@@ -3,11 +3,14 @@ import { english } from "@smartput/core/locale/en";
 import { BUILTIN_KINDS } from "@smartput/kinds";
 import BUILTIN_EN from "@smartput/kinds/locale/en";
 import { Decimal } from "./decimal";
+import { createEngine } from "./engine";
+import { SmartputError, TooAmbiguousError } from "./errors";
 import { fromCanonical, toCanonical } from "./eval/convert";
 import { formatValue } from "./format/format";
 import { buildRegistry, NUMBER_KIND } from "./kind/registry";
 import { composeLocale } from "./locale/compose";
 import { parseNumber } from "./locale/number";
+import { parseCorpus } from "./testing/corpus";
 
 const en = composeLocale(english, BUILTIN_EN);
 
@@ -209,5 +212,50 @@ test("affine round-trips are exact at the anchor points", () => {
     const canonical = toCanonical(new Decimal(expected), temp, unit, { locale: "en" });
     const back = fromCanonical(canonical, temp, unit, { locale: "en" });
     expect(back.toString()).toBe(expected);
+  }
+});
+
+/**
+ * Every error a person can reach by typing points at the text that caused it.
+ *
+ * The corpus is the green half — the rows here all evaluate, so it proves the
+ * property is not vacuously true by silence — and the list under it is the red
+ * half: one input per throw site this codebase has, so a throw site that
+ * forgets its span is caught by the file that names the property rather than by
+ * a reviewer.
+ *
+ * `TooAmbiguousError` is the one exemption, and it is a ruling rather than an
+ * oversight (§E.2): it is about the whole input — too many readings of it —
+ * and there is no single span to underline. It keeps `spans: []`.
+ */
+const CORPUS_INPUTS: string[] = [
+  ...parseCorpus(await Bun.file(new URL("../corpus/en.tsv", import.meta.url)).text())
+    .map((row) => row[0])
+    .filter((row): row is string => row !== undefined),
+  // No signature for the pair, at a binary and at a convert.
+  "10 kg / 2 m",
+  "30 hours in sqm",
+  // A word no alias reaches, beside a number and after `in`.
+  "5 zorkmids",
+  "10 km in zorkmids",
+  // The parser's own refusals: nothing at all, a dangling `in`, an unclosed
+  // paren, a leftover token, and a run of digits and letters it cannot split.
+  "",
+  "1 kg in",
+  "(1 + 2",
+  "1 kg 2 kg",
+  "1h30m",
+];
+
+test("every SmartputError raised over the corpus carries a span", () => {
+  const engine = createEngine({ locales: [en], kinds: BUILTIN_KINDS });
+  for (const input of CORPUS_INPUTS) {
+    try {
+      engine.evaluate(input);
+    } catch (e) {
+      if (!(e instanceof SmartputError)) throw e;
+      if (e instanceof TooAmbiguousError) continue;
+      expect([input, e.spans.length > 0]).toEqual([input, true]);
+    }
   }
 });
