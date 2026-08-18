@@ -37,3 +37,9 @@ hundert Sekunden	duration	100	100 Sekunden
 1 Tag geteilt durch 4	duration	21600	0,25 Tage
 # Three prepositions introduce a conversion target, not one.
 1 Woche nach Stunden	duration	604800	168 Stunden
+# Die Zählfrage: Plural in Singular ist "wie viele Minuten in einer Stunde",
+# und die Antwort steht in der linken Einheit. Deutsch schlüsselt seine Formen
+# nach Kasus *und* Numerus, weshalb der Numerus erfragt und nicht am Schlüssel
+# abgelesen wird.
+Minuten in Stunde	duration	3600	60 Minuten
+Stunde in Minuten	duration	3600	60 Minuten

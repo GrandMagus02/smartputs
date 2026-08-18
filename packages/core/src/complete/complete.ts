@@ -3,6 +3,7 @@ import { type Registry, wordsFor } from "../kind/registry";
 import { editDistance, nearestWord } from "../parse/distance";
 import { resolveWeight } from "../solve/weights";
 import type { CompleteCtx, KindId, Locale, Span, Weights } from "../types";
+import { type CompletionContext, conversionHead, convertibleKinds } from "./context";
 import { leadingCount, trailingFragment } from "./fragment";
 import { prefixQuality, scaleFit, TYPO_PENALTY } from "./score";
 
@@ -69,14 +70,38 @@ export function complete(args: {
   layers: (Weights | undefined)[];
   input: string;
   opts?: CompleteOptions;
+  /** What the words before the fragment say about it. Omitted: they say
+   * nothing, and every kind is offered — which is what this function did
+   * before the seam existed. */
+  context?: CompletionContext;
 }): Completion[] {
-  const { registry, locale, layers, input, opts } = args;
+  const { registry, locale, layers, input, opts, context } = args;
 
   const fragment = trailingFragment(input);
   if (fragment === null) return [];
 
   const folded = fragment.text.normalize("NFKC").toLocaleLowerCase(locale.id);
   const count = leadingCount(input, fragment.span.start, locale) ?? undefined;
+
+  /**
+   * The kinds this fragment is allowed to be, or undefined for "any" — which
+   * is both "the fragment is not a conversion target" and "it is one, but the
+   * head reads as nothing yet". Both are the same offer: everything.
+   *
+   * Undefined rather than a set of every kind, so the ordinary path pays one
+   * `!== undefined` instead of a lookup per row, and so the two reasons for
+   * not narrowing cannot be told apart by accident downstream.
+   *
+   * Narrowing is a hard filter and not a penalty, because the rows it removes
+   * are not merely unlikely: `evaluate("30 hours in sqm")` throws
+   * `DimensionMismatchError`, so an offer of "sqm" here is an offer to write
+   * an input the engine will refuse. A ranking demotion would still leave it
+   * reachable, and a completion list is a promise that the row works.
+   */
+  const head =
+    context === undefined ? null : conversionHead(input, fragment.span.start, locale);
+  const sources = head === null ? [] : (context?.sourceKinds(head) ?? []);
+  const allowed = sources.length === 0 ? undefined : convertibleKinds(registry, sources);
 
   // Best row per (kind, unit): "mi" and "mile" are the same unit, and offering
   // both would fill the list with near-duplicates. Mirrors resolve(). A
@@ -92,6 +117,7 @@ export function complete(args: {
   const offer = (alias: string, typo: number) => {
     for (const entry of registry.aliasIndex.get(alias) ?? []) {
       if (opts?.kinds !== undefined && !opts.kinds.includes(entry.kind)) continue;
+      if (allowed !== undefined && !allowed.has(entry.kind)) continue;
 
       const kind = registry.kinds.get(entry.kind);
       if (kind === undefined) continue;
@@ -249,6 +275,10 @@ export function complete(args: {
     // is the expensive thing on the keystroke path, and a kind the caller has
     // excluded has nothing to say.
     if (opts?.kinds !== undefined && !opts.kinds.includes(kindId)) continue;
+    // Same reason the line above is here rather than in the loop below: a kind
+    // the target cannot be has nothing to say, and asking a gazetteer anyway is
+    // the expensive half of a keystroke.
+    if (allowed !== undefined && !allowed.has(kindId)) continue;
 
     // One row per distinct insertion, within this kind. A completion IS its
     // `text` — the whole input rewritten — so two rows carrying the same string

@@ -55,3 +55,10 @@
 # finds nothing and the row is offered as one of the unit, which selects the
 # singular. "2 km in mile" evaluates.
 2 km in mil	length	mi	2 km in mile
+# A conversion target is offered only units the left side actually converts
+# to. "s" prefixes "second", and it also prefixes "sqm", "sqcm" and "sqkm" —
+# three areas, and `evaluate("30 hours in sqm")` throws DimensionMismatch. The
+# head decides: duration in, duration out.
+30 hours in s	duration	s	30 hours in second
+# The head is the whole expression left of the keyword, not the unit beside it.
+10 kg + 5 lb in g	mass	g	10 kg + 5 lb in gram

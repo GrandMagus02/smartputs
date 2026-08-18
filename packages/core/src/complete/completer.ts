@@ -2,6 +2,7 @@ import { deepFreeze } from "../freeze";
 import type { Registry } from "../kind/registry";
 import type { Locale, Weights } from "../types";
 import { type CompleteOptions, type Completion, complete } from "./complete";
+import type { CompletionContext } from "./context";
 
 export interface AutocompleterOptions {
   registry: Registry;
@@ -10,6 +11,12 @@ export interface AutocompleterOptions {
    * over the asymmetry. */
   locale: Locale;
   layers: (Weights | undefined)[];
+  /**
+   * What the words around a fragment say about which kinds it may be — the
+   * conversion target narrowing. Optional, and omitting it is the pre-seam
+   * behaviour: every kind is offered for every fragment.
+   */
+  context?: CompletionContext;
 }
 
 /**
@@ -34,10 +41,12 @@ export class Autocompleter {
   private readonly registry: Registry;
   private readonly locale: Locale;
   private readonly layers: (Weights | undefined)[];
+  private readonly context: CompletionContext | undefined;
 
   constructor(cfg: AutocompleterOptions) {
     this.registry = cfg.registry;
     this.locale = cfg.locale;
+    this.context = cfg.context;
     // Copied, not aliased: `layers` is an array the caller could keep pushing
     // onto after construction, and a frozen `Autocompleter` promising no
     // state between runs would otherwise still see it move.
@@ -58,6 +67,7 @@ export class Autocompleter {
         layers: this.layers,
         input,
         ...(opts !== undefined ? { opts } : {}),
+        ...(this.context !== undefined ? { context: this.context } : {}),
       }),
     );
   }

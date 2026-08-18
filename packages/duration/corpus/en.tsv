@@ -14,3 +14,17 @@ one hour	duration	3600	1 hour
 45 minutes	duration	2700	45 minutes
 1.5 h in min	duration	5400	90 minutes
 2 days + 12 hours	duration	216000	2.5 days
+# A plural unit inside a singular one is a count, not a conversion: "how many
+# minutes in an hour", written the way a search box takes it. The answer comes
+# back in the *left* unit, which is the one thing that separates this reading
+# from the conversion it looks like.
+minutes in hour	duration	3600	60 minutes
+seconds in minute	duration	60	60 seconds
+days in week	duration	604800	7 days
+# The mirrored spelling — singular, then plural — is the conversion of one it
+# has always been, and lands on the same number from the other side.
+hour in minutes	duration	3600	60 minutes
+# Neither shape: a singular left operand, or a plural right one, leaves nothing
+# to count inside, so both stay conversions of the implied 1.
+minute in hours	duration	60	0.016666666666666666666666667 hours
+minutes in hours	duration	60	0.016666666666666666666666667 hours

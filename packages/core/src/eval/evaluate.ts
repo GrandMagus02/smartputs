@@ -1,12 +1,13 @@
 import { Decimal } from "../decimal";
-import { DimensionMismatchError, DivideByZeroError } from "../errors";
+import { CountQueryError, DimensionMismatchError, DivideByZeroError } from "../errors";
 import { deepFreeze } from "../freeze";
 import { NUMBER_KIND, opKey, type Registry } from "../kind/registry";
 import type { Node } from "../parse/ast";
 import type { Program } from "../parse/program";
 import type { Resolution } from "../solve/solver";
 import type { Assumption, EvalCtx, OpSignature, RateLookup, Value } from "../types";
-import { toCanonical } from "./convert";
+import { fromCanonical, toCanonical } from "./convert";
+import { countQueryOf } from "./count";
 
 export interface EvalResult {
   value: Value;
@@ -24,6 +25,9 @@ export interface EvaluateOptions {
   /** Significant digits a comparison rounds to. See `COMPARE_PRECISION`. */
   comparePrecision?: number | "exact";
 }
+
+/** The count a bare unit word stands for, and the one a count query asks about. */
+const ONE = new Decimal(1);
 
 export function evaluateNode(opts: EvaluateOptions): EvalResult {
   const { program, resolution, registry, locale, input, rates, comparePrecision } = opts;
@@ -120,6 +124,51 @@ export function evaluateNode(opts: EvaluateOptions): EvalResult {
             unit: target.unit,
             ...(operand.meta ? { meta: operand.meta } : {}),
           });
+
+        // "minutes in hour" is not the conversion its shape says it is — see
+        // `count.ts`. The two operands trade places: the implied 1 belongs to
+        // the singular word on the right, and the answer comes back in the
+        // plural word on the left. Nothing else about the conversion changes,
+        // and in particular it is the *same* signature that applies it, so a
+        // kind with a custom `in` (a rate lookup, a zone shift) counts through
+        // its own rule rather than through a ratio this file invented.
+        const count = countQueryOf(n, resolution, registry, program.input.text, locale);
+        if (count !== undefined) {
+          const kind = registry.kinds.get(count.kind);
+          if (kind !== undefined) {
+            const meta = kindMeta[count.kind];
+            const conv = {
+              locale,
+              ...(meta ? { meta } : {}),
+              ...(rates ? { rates } : {}),
+            };
+            const one: Value = deepFreeze({
+              kind: count.kind,
+              canonical: toCanonical(ONE, kind, count.per, conv),
+              unit: count.per,
+              ...(meta ? { meta } : {}),
+            });
+            const counted = deepFreeze(
+              sig.apply(one, { ...rhs, unit: count.unit }, ctxFor(one)),
+            );
+            // The question is how many fit, and "none, but here is a fraction"
+            // is not an answer to it. A reading that comes back below one is
+            // the units written the wrong way round — "hours in minute" — and
+            // the mirrored spelling that does have a whole answer is one word
+            // away, so refusing says more than 0.017 would.
+            if (fromCanonical(counted.canonical, kind, count.unit, conv).lt(1)) {
+              throw new CountQueryError(
+                input,
+                count.kind,
+                count.unit,
+                count.per,
+                count.unitWord,
+                count.perWord,
+              );
+            }
+            return counted;
+          }
+        }
         return deepFreeze(sig.apply(operand, rhs, ctxFor(operand)));
       }
 

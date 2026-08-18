@@ -881,39 +881,6 @@
           "score": 10
         },
         {
-          "alias": "м2",
-          "span": {
-            "start": 7,
-            "end": 8
-          },
-          "text": "2 км в м2",
-          "kind": "area",
-          "unit": "m2",
-          "score": -1
-        },
-        {
-          "alias": "мб",
-          "span": {
-            "start": 7,
-            "end": 8
-          },
-          "text": "2 км в мегабайт",
-          "kind": "datasize",
-          "unit": "mb",
-          "score": -1
-        },
-        {
-          "alias": "мс",
-          "span": {
-            "start": 7,
-            "end": 8
-          },
-          "text": "2 км в мілісекунда",
-          "kind": "duration",
-          "unit": "ms",
-          "score": -1
-        },
-        {
           "alias": "мм",
           "span": {
             "start": 7,
@@ -925,59 +892,15 @@
           "score": -1
         },
         {
-          "alias": "мг",
+          "alias": "миль",
           "span": {
             "start": 7,
             "end": 8
           },
-          "text": "2 км в міліграм",
-          "kind": "mass",
-          "unit": "mg",
-          "score": -1
-        },
-        {
-          "alias": "м3",
-          "span": {
-            "start": 7,
-            "end": 8
-          },
-          "text": "2 км в м3",
-          "kind": "volume",
-          "unit": "m3",
-          "score": -1
-        },
-        {
-          "alias": "мл",
-          "span": {
-            "start": 7,
-            "end": 8
-          },
-          "text": "2 км в мілілітр",
-          "kind": "volume",
-          "unit": "ml",
-          "score": -1
-        },
-        {
-          "alias": "міб",
-          "span": {
-            "start": 7,
-            "end": 8
-          },
-          "text": "2 км в мебібайт",
-          "kind": "datasize",
-          "unit": "mib",
-          "score": -2
-        },
-        {
-          "alias": "мдж",
-          "span": {
-            "start": 7,
-            "end": 8
-          },
-          "text": "2 км в мегаджоуль",
-          "kind": "energy",
-          "unit": "mj",
-          "score": -2
+          "text": "2 км в миля",
+          "kind": "length",
+          "unit": "mi",
+          "score": -3
         }
       ]
     },
@@ -2496,39 +2419,6 @@
           "score": 10
         },
         {
-          "alias": "cm",
-          "span": {
-            "start": 8,
-            "end": 9
-          },
-          "text": "212 F в сантиметр",
-          "kind": "length",
-          "unit": "cm",
-          "score": -1
-        },
-        {
-          "alias": "cm2",
-          "span": {
-            "start": 8,
-            "end": 9
-          },
-          "text": "212 F в cm2",
-          "kind": "area",
-          "unit": "cm2",
-          "score": -2
-        },
-        {
-          "alias": "cal",
-          "span": {
-            "start": 8,
-            "end": 9
-          },
-          "text": "212 F в калорія",
-          "kind": "energy",
-          "unit": "cal",
-          "score": -2
-        },
-        {
           "alias": "c",
           "span": {
             "start": 8,
@@ -3247,28 +3137,6 @@
           "kind": "datasize",
           "unit": "b",
           "score": 10
-        },
-        {
-          "alias": "біт",
-          "span": {
-            "start": 8,
-            "end": 9
-          },
-          "text": "1 кіб в біт",
-          "kind": "datarate",
-          "unit": "bps",
-          "score": -2
-        },
-        {
-          "alias": "бпм",
-          "span": {
-            "start": 8,
-            "end": 9
-          },
-          "text": "1 кіб в бпм",
-          "kind": "tempo",
-          "unit": "bpm",
-          "score": -2
         }
       ]
     },
@@ -9098,6 +8966,135 @@
     },
     "coerce": {
       "error": "NoCandidateError: Unknown unit \"мил\". Did you mean: милі, миль, милю?"
+    }
+  },
+  "2 год в с": {
+    "evaluate": {
+      "ok": {
+        "kind": "duration",
+        "canonical": "7200",
+        "unit": "s",
+        "formatted": "7 200 секунд",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 9
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "duration",
+          "canonical": "7200",
+          "formatted": "7 200 секунд",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "2",
+            "start": 0,
+            "end": 1
+          },
+          {
+            "type": "word",
+            "text": "год",
+            "start": 2,
+            "end": 5
+          },
+          {
+            "type": "keyword",
+            "keyword": "in",
+            "start": 6,
+            "end": 7
+          },
+          {
+            "type": "word",
+            "text": "с",
+            "start": 8,
+            "end": 9
+          }
+        ],
+        "candidates": [
+          {
+            "kind": "duration",
+            "unit": "s",
+            "weight": 0,
+            "form": "с"
+          },
+          {
+            "kind": "duration",
+            "unit": "h",
+            "weight": 0,
+            "form": "год"
+          }
+        ],
+        "assignments": [
+          {
+            "kind": "duration",
+            "score": 0,
+            "confidence": 1,
+            "units": ["s", "h"],
+            "contributions": [
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "contextBonus",
+                "value": 0,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "с",
+          "span": {
+            "start": 8,
+            "end": 9
+          },
+          "text": "2 год в секунда",
+          "kind": "duration",
+          "unit": "s",
+          "score": 10
+        }
+      ]
+    },
+    "coerce": {
+      "ok": {
+        "kind": "duration",
+        "canonical": "7200",
+        "unit": "s"
+      }
     }
   }
 }

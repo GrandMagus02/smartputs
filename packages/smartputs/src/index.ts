@@ -21,6 +21,7 @@ export {
   buildRegistry,
   COMPARE_PRECISION,
   COMPARISON_OPS,
+  CountQueryError,
   CUE_CEILING,
   cardinalNumerals,
   cardinalSpeller,

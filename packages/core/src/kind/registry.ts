@@ -1,3 +1,4 @@
+import { Decimal } from "../decimal";
 import { KindConflictError, UnknownKindError } from "../errors";
 import type {
   Kind,
@@ -6,6 +7,7 @@ import type {
   Locale,
   OpSignature,
   OpSymbol,
+  Slot,
   UnitWords,
   Vocabulary,
 } from "../types";
@@ -46,10 +48,37 @@ export interface CueEntry {
   readonly locale: string;
 }
 
+/**
+ * One reading of one *inflected* word: which (kind, unit) it spells in which
+ * language, and whether that spelling is the language's singular.
+ *
+ * `aliasIndex` cannot answer this. It folds every alias of a unit — symbol,
+ * abbreviation, singular and plural alike — into one flat list, which is
+ * exactly right for "what does this word mean" and useless for "was it
+ * written plural". A vocabulary already declares the difference in `forms`;
+ * this index is that declaration made queryable, and the only reader is
+ * `eval/count.ts`, where the singular/plural pairing of a bare "minutes in
+ * hour" decides whether the input is a conversion or a count.
+ *
+ * A surface can appear as both — German's "Löffel" is one spoon and several —
+ * and then both entries are present, which is how a reader tells "plural" from
+ * "unmarked" rather than guessing.
+ */
+export interface FormEntry {
+  readonly kind: KindId;
+  readonly unit: string;
+  /** The language that spells the unit this way, for `AliasEntry.locale`'s reason. */
+  readonly locale: string;
+  /** False for the form this language selects at a count of one. */
+  readonly plural: boolean;
+}
+
 export interface Registry {
   kinds: Map<KindId, NormalizedKind>;
   ops: Map<string, OpSignature>;
   aliasIndex: Map<string, AliasEntry[]>;
+  /** Case-folded inflected word -> every (kind, unit, number) it spells. */
+  formIndex: Map<string, FormEntry[]>;
   /** Case-folded cue word -> every kind that claims it. Read only by `scan`. */
   cueIndex: Map<string, CueEntry[]>;
   /**
@@ -61,6 +90,26 @@ export interface Registry {
   /** `${locale}|${kind}|${unit}` -> the words that (locale, kind, unit) has. */
   words: Map<string, UnitWords>;
 }
+
+/** The count `selectForm` is asked about to learn which key is a language's singular. */
+const ONE = new Decimal(1);
+
+/**
+ * The counts asked about to learn which keys are plural. Two and five are the
+ * Slavic split (`few` against `many`); zero, eleven and a hundred are the three
+ * places a language that ties its categories to the last digits — Polish, Welsh
+ * — answers differently from both. Any key no probe reaches is treated as
+ * carrying no number at all.
+ */
+const PLURAL_PROBES = [0, 2, 5, 11, 100].map((n) => new Decimal(n));
+
+/**
+ * Every slot a form can be selected for, asked in turn because a language may
+ * key its table on case as well as on number: German's `dat-one` is a singular
+ * that only the dative slot ever names, and a probe that asked about one slot
+ * would file it under neither number.
+ */
+const FORM_SLOTS: Slot[] = ["bare", "after-number", "conversion-target"];
 
 export function opKey(op: OpSymbol, left: KindId, right: KindId): string {
   return `${op}|${left}|${right}`;
@@ -289,5 +338,89 @@ export function buildRegistry(kinds: Kind[], locales: readonly Locale[] = []): R
     }
   }
 
-  return { kinds: normalized, ops, aliasIndex, cueIndex, literals, words };
+  // Pass 5c: form index — the same words as pass 5, kept apart by grammatical
+  // number instead of flattened together with the symbols.
+  //
+  // Built on demand rather than here, and that is not about the cost. Deciding
+  // which key is a language's singular means *asking* the language, and
+  // `selectForm` is a hook a caller may be watching: `print.test.ts` installs a
+  // spy over it and asserts the exact list of calls the printer made. A build
+  // that asked hundreds of questions before the printer asked its first would
+  // have failed that test for a reason with nothing to do with printing. Only
+  // `eval/count.ts` reads this index, so most engines never build it at all.
+  //
+  // Number is read off the language by *probing* `selectForm` rather than by
+  // looking for the key `"one"`. A `forms` table is keyed by whatever its
+  // language returns, and two things break the CLDR-category assumption:
+  // German keys on case as well as number (`nom-one`, `dat-other`), so no key
+  // is spelled `one` at all; and a Slavic language answers `few` at two and
+  // `many` at five, so no single probe finds every plural. Asking every slot
+  // at every probe count is what makes "Stunde" singular in both of German's
+  // cases and "Minuten" plural in both.
+  const languages = new Map(locales.map((l) => [l.id, l.language]));
+  const buildFormIndex = (): Map<string, FormEntry[]> => {
+    const index = new Map<string, FormEntry[]>();
+    for (const kindId of kindIds) {
+      const kind = normalized.get(kindId);
+      if (kind === undefined) continue;
+      for (const unitName of [...kind.units.keys()].sort()) {
+        for (const localeId of readIds) {
+          const forms = words.get(wordsKey(localeId, kindId, unitName))?.forms;
+          const language = languages.get(localeId);
+          if (forms === undefined || language === undefined) continue;
+          const ask = (count: Decimal): Set<string> =>
+            new Set(
+              FORM_SLOTS.map((slot) =>
+                language.selectForm({ count, kind: kindId, unit: unitName, slot }),
+              ),
+            );
+          const singular = ask(ONE);
+          const plural = new Set<string>();
+          for (const probe of PLURAL_PROBES)
+            for (const key of ask(probe)) if (!singular.has(key)) plural.add(key);
+          for (const category of Object.keys(forms).sort()) {
+            const word = forms[category];
+            if (word === undefined || word === "") continue;
+            // A key that is neither — a case form no count ever selects — says
+            // nothing about number and is left out, so a word spelled only
+            // that way stays unmarked rather than counting as plural.
+            const isPlural = plural.has(category);
+            if (!isPlural && !singular.has(category)) continue;
+            const fold = word.toLocaleLowerCase(localeId);
+            const list = index.get(fold) ?? [];
+            const seen = list.some(
+              (e) =>
+                e.kind === kindId &&
+                e.unit === unitName &&
+                e.locale === localeId &&
+                e.plural === isPlural,
+            );
+            if (!seen)
+              list.push({
+                kind: kindId,
+                unit: unitName,
+                locale: localeId,
+                plural: isPlural,
+              });
+            index.set(fold, list);
+          }
+        }
+      }
+    }
+    return index;
+  };
+  let formIndex: Map<string, FormEntry[]> | undefined;
+
+  return {
+    kinds: normalized,
+    ops,
+    aliasIndex,
+    get formIndex() {
+      formIndex ??= buildFormIndex();
+      return formIndex;
+    },
+    cueIndex,
+    literals,
+    words,
+  };
 }

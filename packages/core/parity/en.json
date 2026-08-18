@@ -897,65 +897,10 @@
             "start": 8,
             "end": 9
           },
-          "text": "2 km in minute",
-          "kind": "duration",
-          "unit": "min",
-          "score": 10
-        },
-        {
-          "alias": "m",
-          "span": {
-            "start": 8,
-            "end": 9
-          },
           "text": "2 km in metre",
           "kind": "length",
           "unit": "m",
           "score": 10
-        },
-        {
-          "alias": "m2",
-          "span": {
-            "start": 8,
-            "end": 9
-          },
-          "text": "2 km in m2",
-          "kind": "area",
-          "unit": "m2",
-          "score": -1
-        },
-        {
-          "alias": "mb",
-          "span": {
-            "start": 8,
-            "end": 9
-          },
-          "text": "2 km in megabyte",
-          "kind": "datasize",
-          "unit": "mb",
-          "score": -1
-        },
-        {
-          "alias": "ms",
-          "span": {
-            "start": 8,
-            "end": 9
-          },
-          "text": "2 km in millisecond",
-          "kind": "duration",
-          "unit": "ms",
-          "score": -1
-        },
-        {
-          "alias": "mj",
-          "span": {
-            "start": 8,
-            "end": 9
-          },
-          "text": "2 km in megajoule",
-          "kind": "energy",
-          "unit": "mj",
-          "score": -1
         },
         {
           "alias": "mi",
@@ -977,28 +922,6 @@
           "text": "2 km in millimetre",
           "kind": "length",
           "unit": "mm",
-          "score": -1
-        },
-        {
-          "alias": "mg",
-          "span": {
-            "start": 8,
-            "end": 9
-          },
-          "text": "2 km in milligram",
-          "kind": "mass",
-          "unit": "mg",
-          "score": -1
-        },
-        {
-          "alias": "mw",
-          "span": {
-            "start": 8,
-            "end": 9
-          },
-          "text": "2 km in megawatt",
-          "kind": "power",
-          "unit": "mw",
           "score": -1
         }
       ]
@@ -2373,39 +2296,6 @@
           "score": 10
         },
         {
-          "alias": "cm",
-          "span": {
-            "start": 9,
-            "end": 10
-          },
-          "text": "212 F in centimetre",
-          "kind": "length",
-          "unit": "cm",
-          "score": -1
-        },
-        {
-          "alias": "cm2",
-          "span": {
-            "start": 9,
-            "end": 10
-          },
-          "text": "212 F in cm2",
-          "kind": "area",
-          "unit": "cm2",
-          "score": -2
-        },
-        {
-          "alias": "cal",
-          "span": {
-            "start": 9,
-            "end": 10
-          },
-          "text": "212 F in calorie",
-          "kind": "energy",
-          "unit": "cal",
-          "score": -2
-        },
-        {
           "alias": "c",
           "span": {
             "start": 9,
@@ -3124,39 +3014,6 @@
           "kind": "datasize",
           "unit": "b",
           "score": 10
-        },
-        {
-          "alias": "bps",
-          "span": {
-            "start": 9,
-            "end": 10
-          },
-          "text": "1 kib in bps",
-          "kind": "datarate",
-          "unit": "bps",
-          "score": -2
-        },
-        {
-          "alias": "btu",
-          "span": {
-            "start": 9,
-            "end": 10
-          },
-          "text": "1 kib in btu",
-          "kind": "energy",
-          "unit": "btu",
-          "score": -2
-        },
-        {
-          "alias": "bpm",
-          "span": {
-            "start": 9,
-            "end": 10
-          },
-          "text": "1 kib in bpm",
-          "kind": "tempo",
-          "unit": "bpm",
-          "score": -2
         }
       ]
     },
@@ -7667,17 +7524,6 @@
           "score": -1
         },
         {
-          "alias": "milligram",
-          "span": {
-            "start": 8,
-            "end": 11
-          },
-          "text": "2 km in milligram",
-          "kind": "mass",
-          "unit": "mg",
-          "score": -6
-        },
-        {
           "alias": "millimeter",
           "span": {
             "start": 8,
@@ -7687,33 +7533,303 @@
           "kind": "length",
           "unit": "mm",
           "score": -7
-        },
-        {
-          "alias": "milliliter",
-          "span": {
-            "start": 8,
-            "end": 11
-          },
-          "text": "2 km in millilitre",
-          "kind": "volume",
-          "unit": "ml",
-          "score": -7
-        },
-        {
-          "alias": "millisecond",
-          "span": {
-            "start": 8,
-            "end": 11
-          },
-          "text": "2 km in millisecond",
-          "kind": "duration",
-          "unit": "ms",
-          "score": -8
         }
       ]
     },
     "coerce": {
       "error": "NoCandidateError: Unknown unit \"mil\". Did you mean: mile, mi, ml?"
+    }
+  },
+  "30 hours in s": {
+    "evaluate": {
+      "ok": {
+        "kind": "duration",
+        "canonical": "108000",
+        "unit": "s",
+        "formatted": "108,000 seconds",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 13
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "duration",
+          "canonical": "108000",
+          "formatted": "108,000 seconds",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "30",
+            "start": 0,
+            "end": 2
+          },
+          {
+            "type": "word",
+            "text": "hours",
+            "start": 3,
+            "end": 8
+          },
+          {
+            "type": "keyword",
+            "keyword": "in",
+            "start": 9,
+            "end": 11
+          },
+          {
+            "type": "word",
+            "text": "s",
+            "start": 12,
+            "end": 13
+          }
+        ],
+        "candidates": [
+          {
+            "kind": "duration",
+            "unit": "s",
+            "weight": 0,
+            "form": "s"
+          },
+          {
+            "kind": "duration",
+            "unit": "h",
+            "weight": 0,
+            "form": "hours"
+          }
+        ],
+        "assignments": [
+          {
+            "kind": "duration",
+            "score": 0,
+            "confidence": 1,
+            "units": ["s", "h"],
+            "contributions": [
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "contextBonus",
+                "value": 0,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "s",
+          "span": {
+            "start": 12,
+            "end": 13
+          },
+          "text": "30 hours in second",
+          "kind": "duration",
+          "unit": "s",
+          "score": 10
+        }
+      ]
+    },
+    "coerce": {
+      "ok": {
+        "kind": "duration",
+        "canonical": "108000",
+        "unit": "s"
+      }
+    }
+  },
+  "10 kg + 5 lb in g": {
+    "evaluate": {
+      "ok": {
+        "kind": "mass",
+        "canonical": "12267.96185",
+        "unit": "g",
+        "formatted": "12,267.96185 grams",
+        "confidence": 1,
+        "spans": [
+          {
+            "start": 0,
+            "end": 17
+          }
+        ],
+        "assumptions": []
+      }
+    },
+    "suggest": {
+      "ok": [
+        {
+          "kind": "mass",
+          "canonical": "12267.96185",
+          "formatted": "12,267.96185 grams",
+          "confidence": 1
+        }
+      ]
+    },
+    "explain": {
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "10",
+            "start": 0,
+            "end": 2
+          },
+          {
+            "type": "word",
+            "text": "kg",
+            "start": 3,
+            "end": 5
+          },
+          {
+            "type": "op",
+            "op": "+",
+            "start": 6,
+            "end": 7
+          },
+          {
+            "type": "number",
+            "text": "5",
+            "start": 8,
+            "end": 9
+          },
+          {
+            "type": "word",
+            "text": "lb",
+            "start": 10,
+            "end": 12
+          },
+          {
+            "type": "keyword",
+            "keyword": "in",
+            "start": 13,
+            "end": 15
+          },
+          {
+            "type": "word",
+            "text": "g",
+            "start": 16,
+            "end": 17
+          }
+        ],
+        "candidates": [
+          {
+            "kind": "mass",
+            "unit": "g",
+            "weight": 0,
+            "form": "g"
+          },
+          {
+            "kind": "mass",
+            "unit": "kg",
+            "weight": 0,
+            "form": "kg"
+          },
+          {
+            "kind": "mass",
+            "unit": "lb",
+            "weight": 0,
+            "form": "lb"
+          }
+        ],
+        "assignments": [
+          {
+            "kind": "mass",
+            "score": 30,
+            "confidence": 1,
+            "units": ["g", "kg", "lb"],
+            "contributions": [
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "prior",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "analyzer",
+                "value": 0,
+                "layer": 0
+              },
+              {
+                "selector": "contextBonus",
+                "value": 30,
+                "layer": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complete": {
+      "ok": [
+        {
+          "alias": "g",
+          "span": {
+            "start": 16,
+            "end": 17
+          },
+          "text": "10 kg + 5 lb in gram",
+          "kind": "mass",
+          "unit": "g",
+          "score": 10
+        }
+      ]
+    },
+    "coerce": {
+      "ok": {
+        "kind": "mass",
+        "canonical": "12267.96185",
+        "unit": "g"
+      }
     }
   }
 }

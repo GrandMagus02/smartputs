@@ -1,5 +1,6 @@
 import type { CompleteOptions, Completion } from "./complete/complete";
 import { Autocompleter } from "./complete/completer";
+import type { CompletionContext } from "./complete/context";
 import type { Decimal } from "./decimal";
 import {
   KindConflictError,
@@ -642,7 +643,53 @@ export function createEngine(callerOpts: EngineOptions): Engine {
   // output language without a per-call input language would be half an
   // override. It stays on the engine's format locale.
   const completerFor = (call?: EvalOptions) =>
-    new Autocompleter({ registry, locale: format, layers: layers(call?.weights) });
+    new Autocompleter({
+      registry,
+      locale: format,
+      layers: layers(call?.weights),
+      context: contextFor(call),
+    });
+  /**
+   * The completer's view of the words it is not completing (§4.7's seam).
+   *
+   * `complete("30 hours in s")` used to offer `second` beside `sqm`, `sqcm` and
+   * `sqkm` — every unit whose name starts with "s", including three the same
+   * engine's `evaluate` refuses with `DimensionMismatchError`, because no `in`
+   * signature takes a duration to an area. The completer reads a raw string and
+   * cannot know that; the parser and the solver already do, and this hands them
+   * over rather than restating what a conversion means in a second place.
+   *
+   * `kinds` is deliberately not forwarded: it is the caller's filter on the
+   * rows being *offered*, and applying it to the head would make
+   * `complete("30 hours in mi", { kinds: ["length"] })` read the head as
+   * nothing and narrow nothing — the opposite of what the filter asks for. The
+   * weights are forwarded because they only reorder readings, which is exactly
+   * the ranking this should agree with.
+   *
+   * Every `SmartputError` is an empty answer, which reads as "no narrowing".
+   * Half a conversion — "30 hours in " a keystroke ago, or a head still being
+   * typed — is the normal case here, not a failure, and a completer that threw
+   * on it would throw on most keystrokes.
+   */
+  const contextFor = (call?: EvalOptions): CompletionContext => {
+    const headOpts: EvalOptions | undefined =
+      call?.weights === undefined ? undefined : { weights: call.weights };
+    return {
+      sourceKinds(head) {
+        try {
+          const program = compile(head, headOpts);
+          const kinds: KindId[] = [];
+          for (const resolution of stages.solver.all(program, headOpts)) {
+            if (!kinds.includes(resolution.kind)) kinds.push(resolution.kind);
+          }
+          return kinds;
+        } catch (e) {
+          if (e instanceof SmartputError) return [];
+          throw e;
+        }
+      },
+    };
+  };
   const tokenize = (input: string, call?: EvalOptions): TokenStream => {
     const normalized = stages.normalizer.run(input);
     if (normalized.empty) throw new UnitParseError(input);

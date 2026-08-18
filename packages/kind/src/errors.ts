@@ -217,3 +217,46 @@ export class KeywordConflictError extends SmartputError {
     this.locales = locales;
   }
 }
+
+/**
+ * A "how many X in a Y" reading that has no answer, because fewer than one X
+ * fits inside one Y — "hours in minute", "kilograms in gram".
+ *
+ * The reading itself is real: a plural unit word, `in`, a singular unit word,
+ * and no count anywhere is English asking how many of the first fit in one of
+ * the second (`eval/count.ts` is where that is decided). What makes this an
+ * error rather than a fraction is that the question is only ever asked the
+ * way round that has a whole answer. Nobody types "hours in minute" meaning
+ * 0.017 hours; they have written the two units the wrong way round, and
+ * answering anything hides that. The mirrored spelling — "hour in minutes" —
+ * is a plain conversion and still resolves.
+ */
+export class CountQueryError extends SmartputError {
+  readonly kind: KindId;
+  /** The unit being counted — the plural word's unit, the one on the left. */
+  readonly unit: string;
+  /** The unit one of which was to hold them — the singular word's, on the right. */
+  readonly per: string;
+  /** The two words as typed, which is what the message quotes. */
+  readonly unitWord: string;
+  readonly perWord: string;
+  constructor(
+    input: string,
+    kind: KindId,
+    unit: string,
+    per: string,
+    unitWord: string,
+    perWord: string,
+  ) {
+    super(
+      `${JSON.stringify(input)} counts ${unitWord} inside one ${perWord}, and fewer than one fits. Did you mean ${JSON.stringify(`${perWord} in ${unitWord}`)}?`,
+      input,
+    );
+    this.name = "CountQueryError";
+    this.kind = kind;
+    this.unit = unit;
+    this.per = per;
+    this.unitWord = unitWord;
+    this.perWord = perWord;
+  }
+}

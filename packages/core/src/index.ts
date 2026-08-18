@@ -2,6 +2,7 @@ export type { CompleteOptions, Completion } from "./complete/complete";
 export { complete } from "./complete/complete";
 export type { AutocompleterOptions } from "./complete/completer";
 export { Autocompleter } from "./complete/completer";
+export type { CompletionContext } from "./complete/context";
 export { EXACT_BONUS, LENGTH_PENALTY, SCALE_BONUS } from "./complete/score";
 export { Decimal } from "./decimal";
 export type {

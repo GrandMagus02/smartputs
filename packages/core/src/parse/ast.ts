@@ -24,6 +24,16 @@ export interface QuantityNode {
   value: Decimal;
   candidates: Candidate[];
   span: Span;
+  /**
+   * The count is the parser's, not the writer's: "kg" alone is one kilogram,
+   * and `value` is the 1 nobody typed.
+   *
+   * Recorded rather than inferred from `value.eq(1)`, because "1 kg" and "kg"
+   * are different inputs that would produce the same node. `eval/count.ts` is
+   * the difference's only reader, and reading it wrong would turn the explicit
+   * "1 minute in hours" into a count query.
+   */
+  implied?: true;
 }
 
 /**

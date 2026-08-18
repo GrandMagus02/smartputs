@@ -334,6 +334,40 @@ test("engine.complete honours a per-call weights override", () => {
   expect(boosted[0]?.kind).toBe("duration");
 });
 
+test("engine.complete narrows a conversion target to what converts", () => {
+  // The bug this exists for: "s" prefixes "second" and it also prefixes "sqm",
+  // "sqcm" and "sqkm", and no `in` signature takes a duration to an area — so
+  // three of the four rows offered an input the same engine refuses.
+  const rows = engine.complete("30 hours in s");
+  expect(rows.map((r) => `${r.kind}:${r.unit}`)).toEqual(["duration:s"]);
+  expect(() => engine.evaluate("30 hours in sqm")).toThrow(DimensionMismatchError);
+});
+
+test("engine.complete reads the whole head, not just the unit beside it", () => {
+  const rows = engine.complete("10 kg + 5 lb in g");
+  expect(rows.every((r) => r.kind === "mass")).toBe(true);
+  expect(rows[0]?.text).toBe("10 kg + 5 lb in gram");
+});
+
+test("engine.complete narrows by the head's kind, not by the fragment's", () => {
+  // "c" prefixes centimetre, Celsius and calorie, and the head decides which
+  // of the three the target can be.
+  expect(engine.complete("3 inches in c").map((r) => r.kind)).toEqual(["length"]);
+  expect(engine.complete("100 c in f").every((r) => r.kind !== "length")).toBe(true);
+});
+
+test("engine.complete narrows nothing outside a conversion target", () => {
+  const kinds = new Set(engine.complete("30 hours s").map((r) => r.kind));
+  expect(kinds.has("area")).toBe(true);
+});
+
+test("engine.complete narrows nothing when the head reads as nothing", () => {
+  // "30 zzz" has no reading, so there is no kind to convert *from* and the
+  // list stays as wide as it was.
+  const kinds = new Set(engine.complete("30 zzz in s").map((r) => r.kind));
+  expect(kinds.has("area")).toBe(true);
+});
+
 test("engine.complete never throws on half-typed input", () => {
   for (const input of ["", " ", "10 kg +", "(((", "10 zzz", "30"]) {
     expect(Array.isArray(engine.complete(input))).toBe(true);

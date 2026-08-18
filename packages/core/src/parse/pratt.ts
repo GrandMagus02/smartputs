@@ -302,6 +302,7 @@ export function parse(
           id: id(),
           type: "quantity",
           value: IMPLIED_COUNT,
+          implied: true,
           candidates,
           span: { start: token.start, end: token.end },
         };

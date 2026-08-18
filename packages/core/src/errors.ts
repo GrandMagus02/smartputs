@@ -11,6 +11,7 @@
 // published surface a list of names instead of a forwarding address.
 export {
   AmbiguityError,
+  CountQueryError,
   DimensionMismatchError,
   DivideByZeroError,
   KeywordConflictError,

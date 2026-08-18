@@ -591,12 +591,30 @@ export const BUDGETS: EntrySpec[] = [
   // skips the line-boundary check rather than misreading the whole source as
   // the gap. Same reachability path as above; the facade still only reports
   // core's growth.
+  //
+  // 2026-08-18, context-aware completion: 83_766 -> 84_834 B min, 30_301 ->
+  // 30_623 B gzip. `complete()` now narrows a conversion target to the kinds
+  // the head actually converts to, which is `complete/context.ts` (the keyword
+  // walk back from the fragment and the `in`-signature set) plus the engine's
+  // `contextFor` — a head parse and solve wired into `completerFor`. Reachable
+  // from `createEngine` like everything above it, so the growth is core's and
+  // the facade reports it.
+  //
+  // 2026-08-18, the count query: 84_834 -> 87_070 B min, 30_623 -> 31_444 B
+  // gzip. "minutes in hour" is a question, not a conversion, and telling the
+  // two apart is three pieces of real code — `eval/count.ts` (the reading),
+  // the registry's lazily-built `formIndex` (which spelling of a unit is
+  // plural, probed off `selectForm` rather than assumed), and the branch in
+  // `evaluate` that swaps the operands and refuses an answer below one. Every
+  // row below that moved by 30-100 B moved for the registry half alone; this
+  // row carries the evaluator's too, because it is the one that reaches
+  // `evaluate`.
   {
     label: "smartputs root (the facade over core)",
     from: "smartputs",
     names: ["createEngine"],
-    min: 83_800,
-    gzip: 30_320,
+    min: 87_100,
+    gzip: 31_450,
   },
   {
     label: "kind root (defineKind, with Decimal behind it)",
@@ -721,15 +739,15 @@ export const BUDGETS: EntrySpec[] = [
     label: "rate/locale/en (a vocabulary outside the kind packages)",
     from: "@smartput/rate/locale/en",
     names: ["default"],
-    min: 35_950,
+    min: 36_000,
     gzip: 14_200,
   },
   {
     label: "datetime/locale/en (a vocabulary outside the kind packages)",
     from: "@smartput/datetime/locale/en",
     names: ["default"],
-    min: 35_850,
-    gzip: 14_400,
+    min: 35_900,
+    gzip: 14_450,
   },
 
   // The same claim for the class barrel, which had no row at all. Spec §8 says
@@ -808,7 +826,7 @@ export const BUDGETS: EntrySpec[] = [
     label: "geo root (search and ranking, no data at all)",
     from: "@smartput/geo",
     names: ["Geo", "rank"],
-    min: 49_500,
+    min: 49_550,
     gzip: 19_700,
   },
   // The providers entry point, measured apart from the root for the reason it is
@@ -876,8 +894,8 @@ export const BUDGETS: EntrySpec[] = [
     label: "datetime root (no holiday data)",
     from: "@smartput/datetime",
     names: ["datetime"],
-    min: 144_700,
-    gzip: 50_800,
+    min: 144_750,
+    gzip: 50_850,
     floor: 138_000,
   },
   {
@@ -938,15 +956,15 @@ export const BUDGETS: EntrySpec[] = [
     label: "date",
     from: "@smartput/date",
     names: ["date"],
-    min: 145_800,
-    gzip: 50_900,
+    min: 145_850,
+    gzip: 50_950,
     floor: 138_000,
   },
   {
     label: "time",
     from: "@smartput/time",
     names: ["time"],
-    min: 146_050,
+    min: 146_150,
     gzip: 51_000,
     floor: 138_000,
   },
@@ -958,15 +976,15 @@ export const BUDGETS: EntrySpec[] = [
     label: "range-core",
     from: "@smartput/range-core",
     names: ["WINDOWS", "startOfWeek"],
-    min: 145_100,
-    gzip: 50_800,
+    min: 145_200,
+    gzip: 50_850,
     floor: 138_000,
   },
   {
     label: "date-range",
     from: "@smartput/date-range",
     names: ["dateRange"],
-    min: 149_450,
+    min: 149_550,
     gzip: 52_000,
     floor: 138_000,
   },
@@ -974,7 +992,7 @@ export const BUDGETS: EntrySpec[] = [
     label: "time-range",
     from: "@smartput/time-range",
     names: ["timeRange"],
-    min: 147_400,
+    min: 147_450,
     gzip: 51_500,
     floor: 138_000,
   },
@@ -997,7 +1015,7 @@ export const BUDGETS: EntrySpec[] = [
     label: "datetime-range root (no holiday data)",
     from: "@smartput/datetime-range",
     names: ["datetimeRange"],
-    min: 148_200,
+    min: 148_300,
     gzip: 51_850,
     floor: 138_000,
   },
@@ -1015,7 +1033,7 @@ export const BUDGETS: EntrySpec[] = [
     label: "datetime-range holiday",
     from: "@smartput/datetime-range/holiday",
     names: ["datetimeRangeHoliday"],
-    min: 1_587_200,
+    min: 1_587_300,
     gzip: 292_000,
   },
   {
@@ -1026,7 +1044,7 @@ export const BUDGETS: EntrySpec[] = [
     label: "range",
     from: "@smartput/range",
     names: ["RANGE_KINDS"],
-    min: 43_650,
+    min: 43_700,
     gzip: 17_300,
   },
   {
@@ -1039,8 +1057,8 @@ export const BUDGETS: EntrySpec[] = [
     label: "range/class",
     from: "@smartput/range/class",
     names: ["Range"],
-    min: 43_650,
-    gzip: 17_300,
+    min: 43_750,
+    gzip: 17_350,
   },
   // Every row from here to the end of the range block was re-measured when
   // comparison shipped, and moved by 5-48 B. Nothing in those packages changed:
@@ -1084,8 +1102,8 @@ export const BUDGETS: EntrySpec[] = [
     label: "query root (grammar + schema, no dialect)",
     from: "@smartput/query",
     names: ["QueryEngine", "defineSchema"],
-    min: 59_550,
-    gzip: 22_000,
+    min: 59_650,
+    gzip: 22_050,
   },
   {
     label: "query/sql",

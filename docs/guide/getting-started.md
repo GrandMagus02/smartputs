@@ -78,6 +78,40 @@ result.confidence; // 1
   :examples="['1 kg + 500 g', '2 wk', '3 lbs', '1,500 g', '90 min in h', '(1 + 2) * 3']"
   hint="The canonical value is always in the kind's base unit; the displayed unit follows the left operand." />
 
+### How many X in a Y
+
+`minutes in hour` is not the conversion it looks like. Written plural, then
+singular, with no count anywhere, it is the question — *how many minutes are in
+an hour* — and the answer comes back in the unit on the **left**:
+
+```ts
+engine.evaluate("minutes in hour").formatted; // "60 minutes"
+engine.evaluate("grams in kilogram").formatted; // "1,000 grams"
+```
+
+Everything else keeps converting the implied 1, so the shapes stay distinct:
+
+| Input | Reads as | Answer |
+| --- | --- | --- |
+| `minutes in hour` | how many minutes fit in one hour | `60 minutes` |
+| `hour in minutes` | one hour, converted | `60 minutes` |
+| `minute in hours` | one minute, converted | `0.0166… hours` |
+| `10 minutes in hours` | ten minutes, converted | `0.1666… hours` |
+
+The count only exists in the direction that has one. `hours in minute` asks how
+many hours fit in a minute, and since fewer than one does, it raises
+[`CountQueryError`](/guide/errors) naming the spelling that would have worked
+rather than answering `0.0166`.
+
+A symbol carries no grammatical number, so `min in h` is still a conversion —
+and a language whose vocabulary spells one word for both numbers (Dutch's
+`uur`) never reaches this reading at all.
+
+<SpEvaluate
+  model-value="minutes in hour"
+  :examples="['minutes in hour', 'hour in minutes', 'days in week', 'bytes in kilobyte', 'hours in minute']"
+  hint="Plural in singular counts; every other shape converts the implied 1." />
+
 ## Six entry points
 
 `evaluate()` is strict and throws. It is the wrong choice for a keystroke-rate

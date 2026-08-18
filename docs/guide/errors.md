@@ -37,6 +37,7 @@ try {
 | `LocaleMismatchError` | `composeLocale`: a vocabulary whose `locale` is not the language's `id` | `locale`, `vocabularyLocale`, `kind` |
 | `VocabularyConflictError` | `composeLocale`: two vocabularies for one kind in one language | `locale`, `kind` |
 | `KeywordConflictError` | registration: two installed languages read one spelling as two *different* connectives | `surface`, `keywords`, `locales` |
+| `CountQueryError` | `hours in minute` — a count query whose answer would be less than one | `kind`, `unit`, `per`, `unitWord`, `perWord` |
 | `DivideByZeroError` | explicit; wraps the `Decimal` throw | — |
 | `MissingRateError` | an FX pair is absent from the snapshot, or no `rates` were supplied | `from`, `to`, `asOf` |
 | `RateProviderError` | a rate provider's fetch failed or returned something unusable | `provider` |
@@ -50,7 +51,7 @@ SmartputError) … }` covers both packages.
 
 <SpEvaluate
   model-value="10 zz"
-  :examples="['10 zz', '10 m', '5 kg + 3 km', '1 kg +', 'nonsense', '1 km / 0']"
+  :examples="['10 zz', '10 m', '5 kg + 3 km', '1 kg +', 'nonsense', '1 km / 0', 'hours in minute']"
   hint="NoCandidateError suggests the nearest registered units rather than failing blankly." />
 
 ## Two rules worth relying on

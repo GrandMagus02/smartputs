@@ -552,3 +552,74 @@ test("the fuzzy pass never reaches a kind's own completions", () => {
   expect(seen).toHaveLength(1);
   expect(seen[0]?.fragment).toBe("klogram");
 });
+
+// ---------------------------------------------------------------------------
+// The conversion target position.
+// ---------------------------------------------------------------------------
+
+/** `complete()` with a context that answers `heads` and records what it asked. */
+const withContext = (heads: Record<string, string[]>) => {
+  const asked: string[] = [];
+  const rows = (input: string) =>
+    complete({
+      registry,
+      locale: en,
+      layers: [english.weights],
+      input,
+      context: {
+        sourceKinds(head) {
+          asked.push(head);
+          return heads[head] ?? [];
+        },
+      },
+    });
+  return { rows, asked };
+};
+
+test("a conversion target offers only kinds the left side converts to", () => {
+  const { rows } = withContext({ "30 hours": ["duration"] });
+  const kinds = new Set(rows("30 hours in s").map((r) => r.kind));
+  expect(kinds).toEqual(new Set(["duration"]));
+  expect(rows("30 hours in s")[0]?.text).toBe("30 hours in second");
+});
+
+test("the same fragment outside a target position is unnarrowed", () => {
+  const { rows, asked } = withContext({ "30 hours": ["duration"] });
+  expect(rows("s").map((r) => r.kind)).toContain("area");
+  // Not a target position, so the context was never consulted.
+  expect(asked).toEqual([]);
+});
+
+test("a head that reads as nothing narrows nothing", () => {
+  const { rows, asked } = withContext({});
+  expect(rows("30 hz in s").map((r) => r.kind)).toContain("area");
+  expect(asked).toEqual(["30 hz"]);
+});
+
+test("an ambiguous head keeps every kind its readings convert to", () => {
+  const { rows } = withContext({ "3 in": ["length", "duration"] });
+  const kinds = new Set(rows("3 in in c").map((r) => r.kind));
+  expect(kinds.has("length")).toBe(true);
+  expect(kinds.has("temperature")).toBe(false);
+  expect(kinds.has("energy")).toBe(false);
+});
+
+test("a kind's own completer is never asked when the target cannot be it", () => {
+  seen = [];
+  const rows = probeRun([places(gazetteer)], "30 hours in kyi", undefined, [
+    english.weights,
+  ]);
+  expect(rows.some((r) => r.kind === "place")).toBe(true);
+  expect(seen).toHaveLength(1);
+
+  seen = [];
+  const narrowed = complete({
+    registry: buildRegistry([...BUILTIN_KINDS, places(gazetteer)], [en]),
+    locale: en,
+    layers: [english.weights],
+    input: "30 hours in kyi",
+    context: { sourceKinds: () => ["duration"] },
+  });
+  expect(narrowed).toEqual([]);
+  expect(seen).toEqual([]);
+});
