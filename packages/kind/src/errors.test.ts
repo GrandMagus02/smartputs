@@ -97,3 +97,63 @@ test("a missing rate names the pair and the snapshot date", () => {
   expect(err.message).toContain("JPY");
   expect(err.message).toContain("2026-08-04");
 });
+
+// R-E1: the probe reported `op: "operation"` and one pair of kinds, so
+// "10 kg / 2 m" blamed MASS AND DURATION — a duration nobody typed. The
+// message now quotes the operands as written and lists every pair enumerated.
+test("DimensionMismatchError names the operator and every pair tried", () => {
+  const err = new DimensionMismatchError(
+    "10 kg / 2 m",
+    "/",
+    "mass",
+    "length",
+    [
+      ["mass", "length"],
+      ["mass", "duration"],
+    ],
+    [
+      { start: 0, end: 5 },
+      { start: 6, end: 7 },
+      { start: 8, end: 11 },
+    ],
+  );
+  expect(err.op).toBe("/");
+  expect(err.tried).toEqual([
+    ["mass", "length"],
+    ["mass", "duration"],
+  ]);
+  expect(err.spans).toHaveLength(3);
+  expect(err.message).toBe(
+    "Cannot apply / to `10 kg` and `2 m`: no signature for mass / length or mass / duration",
+  );
+});
+
+test("one pair reads as one clause", () => {
+  const err = new DimensionMismatchError(
+    "1 kg + 1 s",
+    "+",
+    "mass",
+    "duration",
+    [["mass", "duration"]],
+    [
+      { start: 0, end: 4 },
+      { start: 5, end: 6 },
+      { start: 7, end: 10 },
+    ],
+  );
+  expect(err.message).toBe(
+    "Cannot apply + to `1 kg` and `1 s`: no signature for mass + duration",
+  );
+});
+
+test("with no spans the message falls back to naming the kinds", () => {
+  const err = new DimensionMismatchError("x", "*", "mass", "length");
+  expect(err.message).toBe(
+    "Cannot apply * to mass and length: no signature for mass * length",
+  );
+});
+
+test("UnitParseError carries the span of what could not be parsed", () => {
+  const err = new UnitParseError("5 ft 3", undefined, [{ start: 5, end: 6 }]);
+  expect(err.spans).toEqual([{ start: 5, end: 6 }]);
+});

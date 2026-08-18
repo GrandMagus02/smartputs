@@ -16,8 +16,13 @@ export class SmartputError extends Error {
 
 export class UnitParseError extends SmartputError {
   readonly kind: KindId | undefined;
-  constructor(input: string, kind?: KindId) {
-    super(`Cannot parse ${JSON.stringify(input)} as a quantity`, input);
+  /**
+   * `spans` is optional and defaults to empty, so every existing throw site
+   * still compiles; the ones that know which token defeated them pass the
+   * offending span, and a caller that highlights input gets it for free.
+   */
+  constructor(input: string, kind?: KindId, spans: Span[] = []) {
+    super(`Cannot parse ${JSON.stringify(input)} as a quantity`, input, spans);
     this.name = "UnitParseError";
     this.kind = kind;
   }
@@ -45,16 +50,60 @@ export class NoCandidateError extends SmartputError {
   }
 }
 
+/**
+ * The operands' SOURCE TEXT is what the message quotes, not their kinds alone:
+ * "Cannot apply / to mass and duration" sent a reader looking for a duration
+ * they never typed, when the truth was that the engine had read their "m" as
+ * minutes. Naming the text and then every pair it tried says both halves.
+ *
+ * `tried` is every (left, right) the solver enumerated and found no signature
+ * for, deduplicated, in enumeration order. The old message named one pair —
+ * whichever the first failing assignment happened to hold — which is why
+ * "10 kg / 2 m" reported mass and duration and read as a bug in the message.
+ *
+ * The ruling `op` records: it is an `OpSymbol` or `"in"`, and never the string
+ * "operation". A message that will not say which operator failed is a message
+ * that cannot be acted on.
+ *
+ * `tried` and `spans` both default, so a throw site that knows neither still
+ * compiles and still produces the one-pair message.
+ */
 export class DimensionMismatchError extends SmartputError {
   readonly left: KindId;
   readonly right: KindId;
+  /** An `OpSymbol` or `"in"`. Never the literal "operation". */
   readonly op: string;
-  constructor(input: string, op: string, left: KindId, right: KindId) {
-    super(`Cannot apply ${op} to ${left} and ${right}`, input);
+  readonly tried: ReadonlyArray<readonly [KindId, KindId]>;
+  constructor(
+    input: string,
+    op: string,
+    left: KindId,
+    right: KindId,
+    tried: ReadonlyArray<readonly [KindId, KindId]> = [[left, right]],
+    spans: Span[] = [],
+  ) {
+    // spans is [left operand, operator, right operand]; the operator's own
+    // span is skipped because `op` already spells it.
+    const [leftSpan, , rightSpan] = spans;
+    const quote = (s: Span | undefined): string | undefined =>
+      s === undefined ? undefined : `\`${input.slice(s.start, s.end)}\``;
+    const quotedLeft = quote(leftSpan);
+    const quotedRight = quote(rightSpan);
+    const operands =
+      quotedLeft !== undefined && quotedRight !== undefined
+        ? `${quotedLeft} and ${quotedRight}`
+        : `${left} and ${right}`;
+    const pairs = tried.map(([a, b]) => `${a} ${op} ${b}`);
+    const listed =
+      pairs.length <= 1
+        ? (pairs[0] ?? `${left} ${op} ${right}`)
+        : `${pairs.slice(0, -1).join(", ")} or ${pairs[pairs.length - 1]}`;
+    super(`Cannot apply ${op} to ${operands}: no signature for ${listed}`, input, spans);
     this.name = "DimensionMismatchError";
+    this.op = op;
     this.left = left;
     this.right = right;
-    this.op = op;
+    this.tried = tried;
   }
 }
 
