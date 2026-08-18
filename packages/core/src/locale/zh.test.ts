@@ -500,18 +500,23 @@ describe("what an unspaced language exposes that the seams do not cover", () => 
     expect(evaluate("5千克换算克")).toBe("5,000克");
   });
 
-  test("a digit written tight against an operator is absorbed into it", () => {
-    // `lex` appends a letter run's trailing digits to the last word it
-    // segmented — the rule that makes the unit alias "m2" reachable at all. In a
-    // language that writes no spaces, the word before the digits is frequently
-    // the operator: "5千克加3千克" lexes 加3 as a single word, and the sum never
-    // parses.
+  test("a digit written tight against an operator is no longer absorbed into it", () => {
+    // This row used to record a limitation, and the digit-inside-run split in
+    // `lex` is what removed it. `lex`
+    // appends a letter run's trailing digits to the last word it segmented —
+    // the rule that makes the unit alias "m2" reachable at all — and in a
+    // language that writes no spaces the word before the digits is frequently
+    // the operator, so "5千克加3千克" lexed 加3 as one word and the sum never
+    // parsed. Now a digit run *followed by a letter* ends the word unless some
+    // vocabulary spells a unit that way, so 加3 splits while "cm2を" stays
+    // whole, and the unspaced sum reads.
     //
-    // Not fixable from a language: the rule lives in `lex`, before `segment` is
-    // consulted, and the substring contract means a hook cannot hand back a
-    // word that spans the digits either. Spelling the operand dodges it
-    // completely, which is the row above, and a single space restores it.
-    expect(() => engine.evaluate("5千克加3千克")).toThrow();
+    // The workarounds this row was written to document keep working, and that
+    // is the point of leaving all three here: the fix is additive, not a
+    // different grammar. Chinese gets it for free from a rule added for
+    // "1h30m", which is the argument for putting it in `lex` rather than in a
+    // language.
+    expect(evaluate("5千克加3千克")).toBe("8千克");
     expect(evaluate("5千克加 3千克")).toBe("8千克");
     expect(evaluate("5千克加三千克")).toBe("8千克");
   });

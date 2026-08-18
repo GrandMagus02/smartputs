@@ -1,5 +1,10 @@
 import { expect, test } from "bun:test";
-import { composeLocale } from "../locale/compose";
+import { english } from "@smartput/core/locale/en";
+import { BUILTIN_KINDS } from "@smartput/kinds";
+import BUILTIN_EN from "@smartput/kinds/locale/en";
+import { createEngine } from "../engine";
+import { UnitParseError } from "../errors";
+import { buildKeywords, composeLocale } from "../locale/compose";
 import { defineLanguage } from "../locale/define";
 import { lex } from "./lex";
 
@@ -205,4 +210,81 @@ test("word runs are split by the locale segmenter when provided", () => {
     "公斤",
     "克",
   ]);
+});
+
+// --- The digit-inside-run split, and ruling R-B1 -------------------------
+
+// The oracle `lex` takes as its fourth argument. An engine passes
+// `MatchCtx.isUnitAlias`, which asks the registry; a test names the surfaces it
+// wants to talk about, so these cases stay readable without a registry.
+const keywords = buildKeywords([en]);
+const UNIT_ALIASES = new Set(["ft", "in", "cm", "m", "km", "h", "min", "s"]);
+const isUnitAlias = (text: string) => UNIT_ALIASES.has(text.toLowerCase());
+
+const shapes = (s: string) =>
+  lex(s, en, keywords, isUnitAlias).map((t) => `${t.type}:${"text" in t ? t.text : ""}`);
+
+test("a digit run followed by a letter splits the word run", () => {
+  expect(shapes("1h30m")).toEqual(["number:1", "word:h", "number:30", "word:m"]);
+  expect(shapes("5ft3in")).toEqual(["number:5", "word:ft", "number:3", "word:in"]);
+});
+
+test("trailing digits stay inside the word: m2, km2 and ft3 are units", () => {
+  expect(shapes("30 m2")).toEqual(["number:30", "word:m2"]);
+  expect(shapes("30 km2")).toEqual(["number:30", "word:km2"]);
+  expect(shapes("4 ft3")).toEqual(["number:4", "word:ft3"]);
+});
+
+test("a run some vocabulary spells as a unit stays whole even when a letter follows", () => {
+  // The case the split asks the alias oracle about at all, and the reason a
+  // purely positional rule was not enough: an unspaced language writes its
+  // particle straight against the unit, so "5000cm2をm2" would otherwise cut the
+  // registered alias "cm2" into "cm" and a 2 — taking every CJK area and volume
+  // row in the corpus with it. Registered beats positional.
+  const ja = composeLocale(
+    defineLanguage({
+      id: "ja",
+      numberFormat: "intl",
+      segment: (run) => (run === "をm" ? ["を", "m"] : [run]),
+      keywords: {},
+      selectForm: () => "other",
+    }),
+  );
+  const knows = (text: string) => ["cm2", "m2"].includes(text);
+  expect(
+    lex("5000cm2\u3092m2", ja, buildKeywords([ja]), knows).map(
+      (t) => `${t.type}:${"text" in t ? t.text : ""}`,
+    ),
+  ).toEqual(["number:5000", "word:cm2", "word:\u3092", "word:m2"]);
+});
+
+test("spans index the source across a split", () => {
+  const [, h, thirty, m] = lex("1h30m", en, keywords, isUnitAlias);
+  expect([h?.start, h?.end]).toEqual([1, 2]);
+  expect([thirty?.start, thirty?.end]).toEqual([2, 4]);
+  expect([m?.start, m?.end]).toEqual([4, 5]);
+});
+
+test("R-B1: `in` re-lexes as a word only where it cannot be the conversion keyword", () => {
+  const at = (s: string, start: number) =>
+    lex(s, en, keywords, isUnitAlias).find((t) => t.start === start)?.type;
+  expect(lex("5 ft 3 in", en, keywords, isUnitAlias).at(-1)?.type).toBe("word");
+  expect(at("5 ft 3 in + 1 ft", 7)).toBe("word"); // an operator follows
+  expect(at("5 ft 3 in cm", 7)).toBe("keyword"); // a unit follows: still converts
+  expect(
+    lex("5 ft 3 in in cm", en, keywords, isUnitAlias).filter((t) => t.type === "keyword"),
+  ).toHaveLength(1);
+  expect(at("10 km in m", 6)).toBe("keyword"); // no regression on the ordinary case
+});
+
+test("with no alias oracle nothing re-lexes: the default keeps every existing caller", () => {
+  expect(lex("5 ft 3 in", en, keywords).at(-1)?.type).toBe("keyword");
+});
+
+test('a split run fails at the parser, not at the resolver: `Unknown unit "h30"` is gone', () => {
+  const engine = createEngine({
+    locales: [composeLocale(english, BUILTIN_EN)],
+    kinds: BUILTIN_KINDS,
+  });
+  expect(() => engine.evaluate("1h30m")).toThrow(UnitParseError);
 });

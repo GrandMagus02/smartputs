@@ -82,7 +82,10 @@ export class Tokenizer {
   run(input: string | NormalizedInput, opts?: { timeZone?: string }): TokenStream {
     const normalized = typeof input === "string" ? this.normalizer.run(input) : input;
 
-    const lexed = lex(normalized.text, this.locale, this.keywords);
+    // Built before `lex` rather than after it, because `lex` now reads
+    // `isUnitAlias` too: ruling R-B1 asks whether some installed vocabulary
+    // spells a unit `in` before it will re-lex the conversion keyword as one.
+    // One context, one registry query, two readers.
     const matchCtx: MatchCtx = {
       locale: this.locale.id,
       now: this.now(),
@@ -90,6 +93,7 @@ export class Tokenizer {
       isUnitAlias: (text) =>
         this.registry.aliasIndex.has(text.toLocaleLowerCase(this.locale.id)),
     };
+    const lexed = lex(normalized.text, this.locale, this.keywords, matchCtx.isUnitAlias);
     const tokens = foldWordOps(
       foldNumerals(
         foldLiterals(lexed, normalized.text, this.registry, matchCtx),

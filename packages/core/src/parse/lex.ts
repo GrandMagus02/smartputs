@@ -256,6 +256,39 @@ function recordRuns(tokens: Token[], input: string): Token[] {
 }
 
 /**
+ * What comes after position `from`, to the resolution ruling R-B1 needs: is
+ * there anything at all, is it arithmetic, is it another `in`, or is it
+ * something a conversion could target?
+ *
+ * A character scan rather than a lookahead over tokens, because at the point
+ * R-B1 asks, the tokens after `from` do not exist yet — `lex` is one pass and
+ * the question is about the input, not about a token list. Three of the four
+ * answers are cheap and exact (end of input, an operator, a keyword spelled
+ * `in`); everything else is `"other"`, which is the answer that keeps the
+ * conversion reading, so the fallback is always the conservative one.
+ *
+ * Only a plain space is skipped, and that is enough: `normalize()` folds every
+ * whitespace run to one before `lex` ever runs.
+ */
+function nextSignificant(
+  input: string,
+  from: number,
+  keywords: ReadonlyMap<string, Keyword>,
+  localeId: string,
+): "end" | "op" | "in" | "other" {
+  let at = from;
+  while (input[at] === " ") at += 1;
+  if (at >= input.length) return "end";
+  const ch = input[at] as string;
+  if (OPS[ch] !== undefined) return "op";
+  if (COMPARISONS.some(([text]) => input.startsWith(text, at))) return "op";
+  let end = at;
+  while (end < input.length && /\p{L}/u.test(input[end] as string)) end += 1;
+  const word = input.slice(at, end).toLocaleLowerCase(localeId);
+  return keywords.get(word) === "in" ? "in" : "other";
+}
+
+/**
  * @param locale The *format* locale: number grammar and segmentation belong to
  * the one language the engine speaks (I8), and so does the case fold below.
  * @param keywords Every installed language's connectives, folded by
@@ -265,11 +298,18 @@ function recordRuns(tokens: Token[], input: string): Token[] {
  * engine passes the many-locale map, because reading two languages' units
  * while reading one language's connectives would leave "5 кг in grams"
  * readable and "5 кг в грамах" not.
+ * @param isUnitAlias Whether some installed vocabulary spells a unit that way —
+ * `MatchCtx.isUnitAlias`, the registry query the `Tokenizer` already builds for
+ * the literal fold. Read only by ruling R-B1 below. Defaults to "nothing is a
+ * unit", so every caller who composes the passes by hand keeps the lexing it
+ * had: the re-lex is a capability an engine opts into by having a registry, not
+ * a change to what three arguments mean.
  */
 export function lex(
   input: string,
   locale: Locale,
   keywords: ReadonlyMap<string, Keyword> = buildKeywords([locale]),
+  isUnitAlias: (text: string) => boolean = () => false,
 ): Token[] {
   const { group, decimal } = numberSymbols(locale.language);
   const tokens: Token[] = [];
@@ -441,12 +481,42 @@ export function lex(
       // "1 sqm" evaluated. Segmentation still runs over the letters alone --
       // Intl.Segmenter would keep "m2" whole, but a locale `segment` hook
       // returning substrings of its input cannot be asked to.
-      while (i < input.length && isDigit(input[i] as string)) i += 1;
-      const digits = input.slice(letterEnd, i);
+      //
+      // A digit sequence FOLLOWED BY A LETTER ends the word instead: "h30m" is
+      // an hour, thirty, a minute, and "ft3in" is five feet three inches. That
+      // is how people write a compound quantity without spaces, and before this
+      // the whole run went to the resolver as one word — `Unknown unit "h30"`.
+      // Trailing digits with nothing after them still stay attached, because
+      // that is the case the paragraph above is about and "30 m2" has to keep
+      // reading as thirty square metres.
+      //
+      // Followed by a letter is not enough on its own, and a language that
+      // writes no spaces is what proves it: "5000cm2をm2" puts a particle
+      // straight after the alias, so the positional rule alone would cut "cm2"
+      // into "cm" and 2 and break every CJK area and volume row in the corpus.
+      // So the run stays whole when some installed vocabulary actually spells a
+      // unit that way — the same `isUnitAlias` oracle ruling R-B1 reads below,
+      // asked about the word the digits would attach to. Registered beats
+      // positional; nothing else does, so "h30" and "加3", which no vocabulary
+      // claims, split as they should.
+      //
+      // The digits are not consumed here when the run splits: `i` stays at the
+      // end of the letters and the main loop's number branch picks them up on
+      // its next turn, which is what keeps every token's `start`/`end` an index
+      // into the source and `Result.spans` pointing into the caller's string.
+      let digitEnd = letterEnd;
+      while (digitEnd < input.length && isDigit(input[digitEnd] as string)) digitEnd += 1;
       const run = input.slice(start, letterEnd);
       const words = locale.language.segment
         ? locale.language.segment(run)
         : defaultSegment(run, locale.id);
+      const splits =
+        digitEnd > letterEnd &&
+        digitEnd < input.length &&
+        isLetter(input[digitEnd] as string) &&
+        !isUnitAlias((words.at(-1) ?? "") + input.slice(letterEnd, digitEnd));
+      i = splits ? letterEnd : digitEnd;
+      const digits = splits ? "" : input.slice(letterEnd, digitEnd);
       let offset = start;
       for (const [index, word] of words.entries()) {
         const at = input.indexOf(word, offset);
@@ -460,8 +530,32 @@ export function lex(
         // raw case preserved. The map's keys are already folded, each under
         // its own contributing language's id — see `buildKeywords`.
         const keyword = keywords.get(text.toLocaleLowerCase(locale.id));
+        // Ruling R-B1. "5 ft 3 in" ends in a keyword and throws today, so
+        // nothing that works can regress: this branch fires only in the
+        // positions where the conversion reading is impossible.
+        //
+        // Three conditions, all required. Preceded by a number, because `in` as
+        // a unit is a count of inches. At end of input, or followed by an
+        // operator or another `in`, because a conversion keyword needs a target
+        // after it and these are the positions where none can follow — "5 ft 3
+        // in cm" still converts, and "5 ft 3 in in cm" now means what it says.
+        // And spelled as a unit by some installed vocabulary, because a
+        // language that does not write the inch this way has no reading to
+        // offer and the keyword is all there ever was.
+        //
+        // Deliberately not generalised past `in`: it is the only connective in
+        // any installed language that collides with a unit alias, and a rule
+        // that re-lexed any keyword on positional evidence alone would be
+        // guessing on behalf of languages nobody has read yet.
+        const canBeInch =
+          keyword === "in" &&
+          tokens.at(-1)?.type === "number" &&
+          ["end", "op", "in"].includes(
+            nextSignificant(input, wordEnd, keywords, locale.id),
+          ) &&
+          isUnitAlias(text);
         tokens.push(
-          keyword === undefined
+          keyword === undefined || canBeInch
             ? { type: "word", text, start: wordStart, end: wordEnd }
             : { type: "keyword", keyword, start: wordStart, end: wordEnd },
         );

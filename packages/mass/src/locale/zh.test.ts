@@ -224,14 +224,19 @@ describe("mass zh vocabulary", () => {
     expect(() => e.evaluate("十克")).toThrow();
   });
 
-  test("an operator needs a space when its operand is written in digits", () => {
-    // The second finding `@smartput/core/locale/zh` reports rather than fixes.
-    // `lex` appends a letter run's trailing digits to the last segmented word —
-    // the rule that makes the "m2" alias reachable — and in an unspaced language
-    // the word before the digits is often the operator, so 加3 becomes one word
-    // and never parses. Spelling the operand dodges it; one space restores it.
+  test("an operator no longer needs a space when its operand is written in digits", () => {
+    // This row used to record the second finding `@smartput/core/locale/zh`
+    // reported rather than fixed: `lex` appended a letter run's trailing digits
+    // to the last segmented word — the rule that makes the "m2" alias reachable
+    // — and in an unspaced language the word before the digits is often the
+    // operator, so 加3 became one word and never parsed.
+    //
+    // The digit-inside-run split ended it. A digit run followed by a letter now
+    // ends the word unless some vocabulary spells a unit that way, so 加3 splits
+    // while 平方米2 and "cm2" stay whole. Chinese gets this from a rule added
+    // for "1h30m", which is the argument for it living in `lex`.
     const e = engine();
-    expect(() => e.evaluate("5千克加3千克")).toThrow();
+    expect(e.evaluate("5千克加3千克").formatted).toBe("8千克");
     expect(e.evaluate("5千克 加 3千克").formatted).toBe("8千克");
   });
 

@@ -165,10 +165,14 @@ describe("temperature zh vocabulary", () => {
   // records as the workaround for the lexer's trailing-digit rule: 「20摄氏加5摄氏」
   // lexes 加5 as one word and never parses, while spelling the operand keeps the
   // whole expression inside one Han run that `chinese.segment` cuts correctly.
-  test("an unspaced Chinese sum works when the operand is spelled", () => {
+  test("an unspaced Chinese sum works whether the operand is spelled or digits", () => {
+    // The digits row threw until the lexer learned to end a word at a digit run
+    // followed by a letter: 减20 was one word and no operator reached the
+    // parser. Both spellings read now, and the spaced form is kept beside them
+    // because the fix is additive.
     const e = engine();
     expect(e.evaluate("三十摄氏减二十摄氏").formatted).toBe("10°C");
-    expect(() => e.evaluate("30摄氏减20摄氏")).toThrow();
+    expect(e.evaluate("30摄氏减20摄氏").formatted).toBe("10°C");
     expect(e.evaluate("30摄氏 减 20摄氏").formatted).toBe("10°C");
   });
 
