@@ -45,3 +45,6 @@
 10 किलोग्राम भाग 4	mass	2500	2.5 किलोग्राम
 2 किलोग्राम को ग्राम	mass	2000	2,000 ग्राम
 2 किलोग्राम से ग्राम	mass	2000	2,000 ग्राम
+# The `+` nobody typed: two adjacent masses in strictly descending units are a
+# sum, which is how a recipe and a scale readout get written.
+1 किलोग्राम 200 ग्राम	mass	1200	1.2 किलोग्राम

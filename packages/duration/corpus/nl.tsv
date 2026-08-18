@@ -33,3 +33,7 @@ een uur	duration	3600	1 uur
 # Two prepositions introduce a conversion target, and Dutch has no case, so
 # the target is spelled exactly like a bare quantity.
 1 week naar dagen	duration	604800	7 dagen
+# The `+` nobody typed: two adjacent durations in strictly descending units
+# are a sum, which is how a cooking time and a stopwatch reading get written.
+# The answer comes back in the left unit, exactly as "1 h + 30 min" does.
+1 h 30 min	duration	5400	1,5 uur

@@ -34,3 +34,6 @@ doscientos cinco kilómetros	length	205000	205 kilómetros
 10 km entre 4	length	2500	2,5 kilómetros
 # "a" is the second conversion preposition, beside "en".
 2 km a metros	length	2000	2.000 metros
+# The `+` nobody typed: two adjacent lengths in strictly descending units are a
+# sum, which is how a tape measure gets read out loud.
+1 m 50 cm	length	1.5	1,5 metros

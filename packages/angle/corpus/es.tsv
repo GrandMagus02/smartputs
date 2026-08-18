@@ -33,3 +33,6 @@ doscientos gones	angle	3.141592653589793238462643383	200 gradianes
 90 grados más 90 grados	angle	3.141592653589793238462643384	180 grados
 # "a" is the second conversion preposition beside "en".
 90 grados a radianes	angle	1.570796326794896619231321692	1,5708 radianes
+# The `+` nobody typed: a full revolution plus a bit, which is how a rotation
+# gets dictated. The classic "30 deg 15 arcmin" waits on an arcminute unit.
+1 vuelta 30 grados	angle	6.806784082777885350002393998	1,0833 vueltas

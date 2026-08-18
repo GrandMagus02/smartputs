@@ -38,3 +38,7 @@ bir saat	duration	3600	1 saat
 10 DAKIKA	duration	600	10 dakika
 # The operators are bare words, none of them two-token.
 1 gün bölü 4	duration	21600	0,25 gün
+# The `+` nobody typed: two adjacent durations in strictly descending units
+# are a sum, which is how a cooking time and a stopwatch reading get written.
+# The answer comes back in the left unit, exactly as "1 h + 30 min" does.
+1 h 30 min	duration	5400	1,5 saat

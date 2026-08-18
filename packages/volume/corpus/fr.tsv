@@ -35,3 +35,6 @@ quatre-vingt-dix litres	volume	90	90 litres
 2 l vers ml	volume	2	2 000 millilitres
 2 l fois 3	volume	6	6 litres
 2 l multiplié par 3	volume	6	6 litres
+# The `+` nobody typed: two adjacent volumes in strictly descending units are a
+# sum, which is how a jug and a recipe get written.
+1 l 500 ml	volume	1.5	1,5 litre

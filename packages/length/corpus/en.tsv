@@ -14,3 +14,6 @@ one kilometre	length	1000	1 kilometre
 1,500 mm in m	length	1.5	1.5 metres
 5280 ft in mi	length	1609.344	1 mile
 two hundred and five km	length	205000	205 kilometres
+# The `+` nobody typed: two adjacent lengths in strictly descending units are a
+# sum, which is how a tape measure gets read out loud.
+1 m 50 cm	length	1.5	1.5 metres

@@ -25,3 +25,6 @@
 # `кубометр` written out, which is how the cubic metre is said rather than
 # printed — the symbol stays `м³`.
 2 кубометри	volume	2000	2 м³
+# The `+` nobody typed: two adjacent volumes in strictly descending units are a
+# sum, which is how a jug and a recipe get written.
+1 л 500 мл	volume	1.5	1,5 літра

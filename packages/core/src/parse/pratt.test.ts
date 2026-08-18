@@ -7,6 +7,7 @@ import { composeLocale } from "../locale/compose";
 import { defineLanguage } from "../locale/define";
 import { defineVocabulary } from "../locale/vocabulary";
 import type { Candidate } from "../types";
+import { walk } from "./ast";
 import { createResolver } from "./candidates";
 import { lex } from "./lex";
 import { foldLiterals } from "./literals";
@@ -444,4 +445,104 @@ test("a chain whose second operand is not a unit word is left to arithmetic", ()
   // decline it rather than reach for a table entry that cannot exist.
   const node = derivedAst("10 km in km / 2");
   expect(node.type).toBe("binary");
+});
+
+// --- The compound fold (spec §B.2, parser half) ----------------------------
+
+/**
+ * Two kinds with the same three units, one of which opted into folding and one
+ * of which did not. Same units on both so the only difference between a fold
+ * and a refusal is `compound`, not the vocabulary.
+ */
+const compoundLength = defineKind({
+  id: "length",
+  value: {
+    mode: "ratio",
+    canonical: "m",
+    units: { cm: new Decimal("0.01"), m: 1, km: 1000 },
+  },
+  compound: true,
+});
+const plainSize = defineKind({
+  id: "size",
+  value: { mode: "ratio", canonical: "b", units: { b: 1, kb: 1000, gb: 1000000 } },
+});
+const compoundEn = composeLocale(en.language, [
+  defineVocabulary({
+    locale: "en",
+    kind: "length",
+    units: {
+      cm: { aliases: ["cm"] },
+      m: { aliases: ["m"] },
+      km: { aliases: ["km"] },
+    },
+  }),
+  defineVocabulary({
+    locale: "en",
+    kind: "size",
+    units: {
+      b: { aliases: ["b"] },
+      kb: { aliases: ["kb"] },
+      gb: { aliases: ["gb"] },
+    },
+  }),
+]);
+const compoundRegistry = buildRegistry([number, compoundLength, plainSize], [compoundEn]);
+const compoundResolver = createResolver({
+  registry: compoundRegistry,
+  locales: [compoundEn],
+  format: compoundEn,
+  layers: [],
+});
+const compoundAst = (input: string) =>
+  parse(lex(input, compoundEn), compoundResolver, input);
+
+test("two adjacent descending quantities fold into an implicit +", () => {
+  const node = compoundAst("1 km 200 m");
+  expect(node).toMatchObject({ type: "binary", op: "+", implicit: "compound" });
+  if (node.type !== "binary") throw new Error("unreachable");
+  expect(node.left).toMatchObject({ type: "quantity" });
+  expect(node.right).toMatchObject({ type: "quantity" });
+});
+
+test("the fold's span covers both quantities", () => {
+  const input = "1 km 200 m";
+  const node = compoundAst(input);
+  expect(input.slice(node.span.start, node.span.end)).toBe("1 km 200 m");
+});
+
+test("a folded chain is left-associative and its ids stay dense", () => {
+  const node = compoundAst("1 km 200 m 50 cm");
+  expect(node).toMatchObject({ type: "binary", op: "+", implicit: "compound" });
+  if (node.type !== "binary") throw new Error("unreachable");
+  // ((km + m) + cm), so the third part compares against metres, not kilometres.
+  expect(node.left).toMatchObject({ type: "binary", op: "+" });
+  const ids: number[] = [];
+  walk(node, (n) => ids.push(n.id));
+  expect([...ids].sort((a, b) => a - b)).toEqual([0, 1, 2, 3, 4]);
+  // Parent before children, matching `walk`.
+  expect(ids[0]).toBe(0);
+});
+
+test("equal or ascending units do not fold", () => {
+  expect(() => compoundAst("3 m 4 m")).toThrow(UnitParseError);
+  expect(() => compoundAst("200 m 1 km")).toThrow(UnitParseError);
+});
+
+test("a kind without `compound` does not fold, however it is ordered", () => {
+  expect(() => compoundAst("1 gb 500 kb")).toThrow(UnitParseError);
+});
+
+test("an operator between two quantities is still the operator", () => {
+  const node = compoundAst("1 km + 200 m");
+  expect(node).toMatchObject({ type: "binary", op: "+" });
+  if (node.type !== "binary") throw new Error("unreachable");
+  expect(node.implicit).toBeUndefined();
+});
+
+test("a bare unit word after a quantity is not a fold", () => {
+  // "1 km m" has no number in front of the second unit, so there is no second
+  // quantity to fold — the parser must not invent the count here the way the
+  // bare-word atom does.
+  expect(() => compoundAst("1 km m")).toThrow(UnitParseError);
 });

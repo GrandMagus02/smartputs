@@ -30,6 +30,15 @@ export interface NormalizedKind {
   id: KindId;
   spec: RatioSpec | OpaqueSpec;
   prior: number;
+  /**
+   * Whether adjacent quantities of this kind fold into a sum — `Kind.compound`,
+   * defaulted here so no reader has to spell `?? false` for itself.
+   *
+   * Read only by the parser, through the resolver: `parse/pratt.ts` needs the
+   * ratio of one unit to know that "1 h 30 min" descends, and asking the
+   * registry costs nothing next to the alias lookup it has already done.
+   */
+  compound: boolean;
   units: Map<string, NormalizedUnit>;
   literals: LiteralMatcher[];
   ops: OpSignature[];
@@ -98,6 +107,9 @@ export function normalizeKind(k: Kind): NormalizedKind {
     id: k.id,
     spec: k.value,
     prior: k.prior ?? 0,
+    // Off by default, and off is right for most kinds: an opt-in field with a
+    // false default is what keeps a kind that says nothing behaving as it did.
+    compound: k.compound ?? false,
     units,
     literals: [...(k.literals ?? [])],
     // Copy, never alias: the descriptor's ops array is deep-frozen, and the

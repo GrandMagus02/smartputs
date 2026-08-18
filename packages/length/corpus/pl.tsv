@@ -47,3 +47,6 @@ dwieście pięć kilometrów	length	205000	205 kilometrów
 # target, and only "w" governs the locative that `selectForm` reads.
 2 km na metry	length	2000	2 000 metrów
 2 km do metrów	length	2000	2 000 metrów
+# The `+` nobody typed: two adjacent lengths in strictly descending units are a
+# sum, which is how a tape measure gets read out loud.
+1 m 50 cm	length	1.5	1,5 metra

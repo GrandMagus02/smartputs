@@ -33,3 +33,7 @@
 # `keywords.by` serves multiply and divide.
 2 часа умножить на 3	duration	21600	6 часов
 1 день разделить на 4	duration	21600	0,25 дня
+# The `+` nobody typed: two adjacent durations in strictly descending units
+# are a sum, which is how a cooking time and a stopwatch reading get written.
+# The answer comes back in the left unit, exactly as "1 h + 30 min" does.
+1 ч 30 мин	duration	5400	1,5 часа

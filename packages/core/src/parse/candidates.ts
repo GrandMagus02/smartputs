@@ -1,3 +1,4 @@
+import { Decimal } from "../decimal";
 import { derivedUnitOf, opKey, type Registry } from "../kind/registry";
 import { createAnalyzerChain } from "../locale/analyze";
 import { resolveWeight } from "../solve/weights";
@@ -51,6 +52,24 @@ export interface Resolver {
    * for, so no kind is enumerated that could not have produced the value.
    */
   derived(left: DerivedOperand, op: "*" | "/", right: DerivedOperand): Candidate[];
+  /**
+   * The scale of one unit of a kind that opted into `compound` folding, or
+   * `null` for every kind that did not — spec §B.2.
+   *
+   * The parser needs it to answer one question: does "1 h 30 min" descend? It
+   * lives on the resolver for the reason `derived` does — `Parser` is
+   * constructed with a resolver and nothing else, and the resolver is already
+   * the parser's one window onto the registry. Refusing here rather than in
+   * `pratt.ts` is what keeps the opt-in a single gate: a kind that did not
+   * declare `compound` has no ratio to compare and therefore no fold, and core
+   * never has to name duration or length to arrange that.
+   *
+   * `null` and not `undefined` for a missing unit too, because "this unit
+   * cannot take part" is one answer however it arises, and a caller that had to
+   * tell the two apart would be reaching for a distinction the fold does not
+   * have.
+   */
+  compoundRatio(kind: KindId, unit: string): Decimal | null;
   nearest(surface: string): string[];
 }
 
@@ -59,6 +78,9 @@ export interface DerivedOperand {
   surface: string;
   position?: WordPosition;
 }
+
+/** The count a unit ratio is asked about when nothing is being evaluated yet. */
+const ONE = new Decimal(1);
 
 /**
  * Two edits from what was typed, which is as far as a suggestion is worth
@@ -331,6 +353,33 @@ export function createResolver(args: {
         }
       }
       return found.size === 1 ? [...found.values()] : [];
+    },
+
+    compoundRatio(kind, unit) {
+      const k = args.registry.kinds.get(kind);
+      // Three gates, and the first is the whole opt-in: a kind that said
+      // nothing about folding gets no answer. `mode === "ratio"` after it
+      // because an opaque kind's units are labels — the identity ratio
+      // `normalizeKind` gives them is there to keep conversion total, not to
+      // order two country codes.
+      if (k === undefined || !k.compound || k.spec.mode !== "ratio") return null;
+      const def = k.units.get(unit);
+      if (def === undefined) return null;
+      try {
+        // A ratio may be a function of its context — money's is a rate lookup —
+        // and the parser has no evaluation context to offer it. A compound kind
+        // is one whose units are fixed scales, so the stand-in below is enough
+        // for every kind that can legitimately opt in; a kind whose ratio needs
+        // more throws, and a throw is read as "not orderable here" rather than
+        // being allowed to fail the parse. That is the conservative direction:
+        // the input goes back to being the parse error it was before the fold.
+        return def.ratio({
+          self: { kind, canonical: ONE, unit },
+          locale: args.format.id,
+        });
+      } catch {
+        return null;
+      }
     },
 
     // A literal never went through the analyzer chain — its matcher already

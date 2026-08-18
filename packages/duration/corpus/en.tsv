@@ -28,3 +28,9 @@ hour in minutes	duration	3600	60 minutes
 # to count inside, so both stay conversions of the implied 1.
 minute in hours	duration	60	0.0167 hours
 minutes in hours	duration	60	0.0167 hours
+# The `+` nobody typed: two adjacent durations in strictly descending units
+# are a sum, which is how a cooking time and a stopwatch reading get written.
+# The answer comes back in the left unit, exactly as "1 h + 30 min" does.
+1 h 30 min	duration	5400	1.5 hours
+# And the round trip: what the fold prints has to read back as itself.
+1.5 hours	duration	5400	1.5 hours

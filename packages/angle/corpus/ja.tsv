@@ -46,3 +46,6 @@
 180度 割る 4	angle	0.7853981633974483096156608458	45度
 # The katakana operator beside the native one — both are ordinary Japanese.
 90度 プラス 90度	angle	3.141592653589793238462643384	180度
+# The `+` nobody typed: a full revolution plus a bit, which is how a rotation
+# gets dictated. The classic "30 deg 15 arcmin" waits on an arcminute unit.
+1回転30度	angle	6.806784082777885350002393998	1.0833回転

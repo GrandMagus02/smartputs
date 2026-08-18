@@ -31,3 +31,7 @@
 # The word operators need whitespace, as in Japanese and Chinese.
 10분 더하기 5시간	duration	18600	310분
 1일간 나누기 4	duration	21600	0.25일간
+# The `+` nobody typed: two adjacent durations in strictly descending units
+# are a sum, which is how a cooking time and a stopwatch reading get written.
+# The answer comes back in the left unit, exactly as "1 h + 30 min" does.
+1시간30분	duration	5400	1.5시간

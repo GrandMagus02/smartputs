@@ -39,3 +39,6 @@ iki yüz grad	angle	3.141592653589793238462643383	200 grad
 # The operators are all bare words, none of them two-token.
 45 derece çarpı 2	angle	1.570796326794896619231321692	90 derece
 180 derece bölü 4	angle	0.7853981633974483096156608458	45 derece
+# The `+` nobody typed: a full revolution plus a bit, which is how a rotation
+# gets dictated. The classic "30 deg 15 arcmin" waits on an arcminute unit.
+1 devir 30 derece	angle	6.806784082777885350002393998	1,0833 devir

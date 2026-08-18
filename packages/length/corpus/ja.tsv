@@ -39,3 +39,6 @@
 2キロメートル 足す 500メートル	length	2500	2.5キロメートル
 # The katakana operator beside the native one — both are ordinary Japanese.
 2キロメートル プラス 500メートル	length	2500	2.5キロメートル
+# The `+` nobody typed: two adjacent lengths in strictly descending units are a
+# sum, which is how a tape measure gets read out loud.
+1メートル50センチメートル	length	1.5	1.5メートル

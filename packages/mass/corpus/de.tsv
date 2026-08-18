@@ -44,3 +44,6 @@ zweihundertfünf Kilogramm	mass	205000	205 Kilogramm
 # into one, the way English folds "divided by".
 2 kg mal 3	mass	6000	6 Kilogramm
 10 kg geteilt durch 4	mass	2500	2,5 Kilogramm
+# The `+` nobody typed: two adjacent masses in strictly descending units are a
+# sum, which is how a recipe and a scale readout get written.
+1 kg 200 g	mass	1200	1,2 Kilogramm

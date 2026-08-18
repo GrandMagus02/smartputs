@@ -44,3 +44,6 @@
 2 लीटर से मिलीलीटर	volume	2	2,000 मिलीलीटर
 2 लीटर गुणा 3	volume	6	6 लीटर
 10 लीटर भाग 4	volume	2.5	2.5 लीटर
+# The `+` nobody typed: two adjacent volumes in strictly descending units are a
+# sum, which is how a jug and a recipe get written.
+1 लीटर 500 मिलीलीटर	volume	1.5	1.5 लीटर

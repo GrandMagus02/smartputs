@@ -37,3 +37,7 @@
 2 दिन घटा 12 घंटे	duration	129600	1.5 दिन
 # हफ़्ता is an alias that reads and never prints; सप्ताह is the printed word.
 1 हफ़्ता	duration	604800	1 सप्ताह
+# The `+` nobody typed: two adjacent durations in strictly descending units
+# are a sum, which is how a cooking time and a stopwatch reading get written.
+# The answer comes back in the left unit, exactly as "1 h + 30 min" does.
+1 घंटा 30 मिनट	duration	5400	1.5 घंटे

@@ -42,3 +42,6 @@ dwieście pięć litrów	volume	205	205 litrów
 # folded into one.
 2 l razy 3	volume	6	6 litrów
 10 l podzielić przez 4	volume	2.5	2,5 litra
+# The `+` nobody typed: two adjacent volumes in strictly descending units are a
+# sum, which is how a jug and a recipe get written.
+1 l 500 ml	volume	1.5	1,5 litra

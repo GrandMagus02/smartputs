@@ -45,3 +45,6 @@
 2 كيلوغرام في غرام	mass	2000	2,000 غرام
 2 كيلوغرام ضرب 3	mass	6000	6 كيلوغرامات
 10 كيلوغرام قسمة على 4	mass	2500	2.5 كيلوغرام
+# The `+` nobody typed: two adjacent masses in strictly descending units are a
+# sum, which is how a recipe and a scale readout get written.
+1 كيلوغرام 200 غرام	mass	1200	1.2 كيلوغرام

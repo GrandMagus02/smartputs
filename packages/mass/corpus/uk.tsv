@@ -26,3 +26,6 @@
 2 тонни	mass	2000000	2 тонни
 21 кілограм	mass	21000	21 кілограм
 2 кілограми	mass	2000	2 кілограми
+# The `+` nobody typed: two adjacent masses in strictly descending units are a
+# sum, which is how a recipe and a scale readout get written.
+1 кг 200 г	mass	1200	1,2 кілограма

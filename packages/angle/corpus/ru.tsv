@@ -37,3 +37,6 @@
 # "до" is a second conversion preposition beside "в", and it lands on the same
 # form "в" does: the result has a magnitude, so the nominative axis decides.
 90 градусов до радианов	angle	1.570796326794896619231321692	1,5708 радиана
+# The `+` nobody typed: a full revolution plus a bit, which is how a rotation
+# gets dictated. The classic "30 deg 15 arcmin" waits on an arcminute unit.
+1 оборот 30 градусов	angle	6.806784082777885350002393998	1,0833 оборота

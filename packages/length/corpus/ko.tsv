@@ -42,3 +42,6 @@
 2킬로미터 곱하기 3	length	6000	6킬로미터
 10킬로미터 나누기 4	length	2500	2.5킬로미터
 1미터 더하기 50센티미터	length	1.5	1.5미터
+# The `+` nobody typed: two adjacent lengths in strictly descending units are a
+# sum, which is how a tape measure gets read out loud.
+1미터50센티미터	length	1.5	1.5미터

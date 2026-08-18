@@ -14,3 +14,6 @@ one kilogram	mass	1000	1 kilogram
 2.5 tonnes in kg	mass	2500000	2,500 kilograms
 1 lb in oz	mass	453.59237	16 ounces
 1.5 kilograms	mass	1500	1.5 kilograms
+# The `+` nobody typed: two adjacent masses in strictly descending units are a
+# sum, which is how a recipe and a scale readout get written.
+1 kg 200 g	mass	1200	1.2 kilograms

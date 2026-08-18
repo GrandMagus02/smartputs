@@ -40,3 +40,6 @@
 2리터 곱하기 3	volume	6	6리터
 10리터 나누기 4	volume	2.5	2.5리터
 1리터 더하기 500밀리리터	volume	1.5	1.5리터
+# The `+` nobody typed: two adjacent volumes in strictly descending units are a
+# sum, which is how a jug and a recipe get written.
+1리터500밀리리터	volume	1.5	1.5리터

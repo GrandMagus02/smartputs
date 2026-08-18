@@ -40,3 +40,6 @@
 2 لتر في مل	volume	2	2,000 مليلتر
 2 لتر ضرب 3	volume	6	6 لترات
 10 لتر قسمة على 4	volume	2.5	2.5 لتر
+# The `+` nobody typed: two adjacent volumes in strictly descending units are a
+# sum, which is how a jug and a recipe get written.
+1 لتر 500 مليلتر	volume	1.5	1.5 لتر

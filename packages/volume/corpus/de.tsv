@@ -42,3 +42,6 @@ zweihundertfünf Liter	volume	205	205 Liter
 # into one, the way English folds "divided by".
 2 l mal 3	volume	6	6 Liter
 10 l geteilt durch 4	volume	2.5	2,5 Liter
+# The `+` nobody typed: two adjacent volumes in strictly descending units are a
+# sum, which is how a jug and a recipe get written.
+1 l 500 ml	volume	1.5	1,5 Liter

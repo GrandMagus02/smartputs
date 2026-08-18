@@ -35,3 +35,6 @@
 # One row this file cannot have, named rather than left as a hole: Indonesian
 # is the only language here with no cardinals table in core, so there is no
 # spelled number to write and "satu putaran" does not parse.
+# The `+` nobody typed: a full revolution plus a bit, which is how a rotation
+# gets dictated. The classic "30 deg 15 arcmin" waits on an arcminute unit.
+1 putaran 30 derajat	angle	6.806784082777885350002393998	1,0833 putaran

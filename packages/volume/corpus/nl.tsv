@@ -38,3 +38,6 @@ tweehonderdvijf liter	volume	205	205 liter
 # operator, folded the way English folds "divided by".
 2 l maal 3	volume	6	6 liter
 10 l gedeeld door 4	volume	2.5	2,5 liter
+# The `+` nobody typed: two adjacent volumes in strictly descending units are a
+# sum, which is how a jug and a recipe get written.
+1 l 500 ml	volume	1.5	1,5 liter

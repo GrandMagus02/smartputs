@@ -42,3 +42,6 @@
 10リットル 割る 4	volume	2.5	2.5リットル
 # The katakana operator beside the native one — both are ordinary Japanese.
 2リットル プラス 500ミリリットル	volume	2.5	2.5リットル
+# The `+` nobody typed: two adjacent volumes in strictly descending units are a
+# sum, which is how a jug and a recipe get written.
+1リットル500ミリリットル	volume	1.5	1.5リットル

@@ -38,3 +38,6 @@ duzentos e cinco quilômetros	length	205000	205 quilômetros
 10 km sobre 4	length	2500	2,5 quilômetros
 # "para" is the second conversion preposition, beside "em".
 2 km para metros	length	2000	2.000 metros
+# The `+` nobody typed: two adjacent lengths in strictly descending units are a
+# sum, which is how a tape measure gets read out loud.
+1 m 50 cm	length	1.5	1,5 metro

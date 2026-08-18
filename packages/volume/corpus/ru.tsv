@@ -37,3 +37,6 @@
 # Both operators are two tokens, and both hang off "на" as `keywords.by`.
 2 л умножить на 3	volume	6	6 литров
 10 л разделить на 4	volume	2.5	2,5 литра
+# The `+` nobody typed: two adjacent volumes in strictly descending units are a
+# sum, which is how a jug and a recipe get written.
+1 л 500 мл	volume	1.5	1,5 литра

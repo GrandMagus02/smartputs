@@ -35,3 +35,6 @@ doscientos cinco litros	volume	205	205 litros
 2 l a ml	volume	2	2.000 mililitros
 2 l por 3	volume	6	6 litros
 10 l entre 4	volume	2.5	2,5 litros
+# The `+` nobody typed: two adjacent volumes in strictly descending units are a
+# sum, which is how a jug and a recipe get written.
+1 l 500 ml	volume	1.5	1,5 litros

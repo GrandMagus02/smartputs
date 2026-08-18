@@ -44,3 +44,6 @@
 # 换算 and 转换 are verbs rather than prepositions, and both introduce a target
 # on their own.
 2千克换算克	mass	2000	2,000克
+# The `+` nobody typed: two adjacent masses in strictly descending units are a
+# sum, which is how a recipe and a scale readout get written.
+1千克200克	mass	1200	1.2千克

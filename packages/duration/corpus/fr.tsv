@@ -32,3 +32,7 @@ quatre-vingt-dix minutes	duration	5400	90 minutes
 1,5 heure en minutes	duration	5400	90 minutes
 # Two prepositions introduce a conversion target.
 1 semaine vers jours	duration	604800	7 jours
+# The `+` nobody typed: two adjacent durations in strictly descending units
+# are a sum, which is how a cooking time and a stopwatch reading get written.
+# The answer comes back in the left unit, exactly as "1 h + 30 min" does.
+1 h 30 min	duration	5400	1,5 heure

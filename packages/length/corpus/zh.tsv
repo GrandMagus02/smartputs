@@ -38,3 +38,6 @@
 # 换算 and 转换 are verbs rather than prepositions, and both introduce a
 # target on their own.
 2公里换算米	length	2000	2,000米
+# The `+` nobody typed: two adjacent lengths in strictly descending units are a
+# sum, which is how a tape measure gets read out loud.
+1米50厘米	length	1.5	1.5米

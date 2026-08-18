@@ -40,3 +40,6 @@
 90 درجة في راديان	angle	1.570796326794896619231321692	1.5708 راديان
 45 درجة ضرب 2	angle	1.570796326794896619231321692	90 درجة
 180 درجة قسمة على 4	angle	0.7853981633974483096156608458	45 درجة
+# The `+` nobody typed: a full revolution plus a bit, which is how a rotation
+# gets dictated. The classic "30 deg 15 arcmin" waits on an arcminute unit.
+1 دورة 30 درجة	angle	6.806784082777885350002393998	1.0833 دورة

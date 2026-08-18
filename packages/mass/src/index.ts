@@ -11,6 +11,9 @@ export const mass = defineKind({
     canonical: MASS_UNITS.canonical,
     units: decimalRatios(MASS_UNITS),
   },
+  // "1 kg 200 g", "5 lb 4 oz" — a recipe and a scale readout. Two adjacent
+  // masses in strictly descending units fold into a sum.
+  compound: true,
   // Physics, not language (ruling R3): the magnitude band people actually type
   // each unit in, inclusive at both ends, read only by completion's `scaleFit`.
   // It stayed on the kind when the words left for `./locale/en` because a

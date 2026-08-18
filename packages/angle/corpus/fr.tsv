@@ -33,3 +33,6 @@ quatre-vingt-dix degrés en radians	angle	1.570796326794896619231321692	1,5708 r
 180 degrés divisé par 4	angle	0.7853981633974483096156608458	45 degrés
 # "vers" is the second conversion preposition beside "en".
 90 degrés vers grades	angle	1.570796326794896619231321692	100 grades
+# The `+` nobody typed: a full revolution plus a bit, which is how a rotation
+# gets dictated. The classic "30 deg 15 arcmin" waits on an arcminute unit.
+1 tour 30 degrés	angle	6.806784082777885350002393998	1,0833 tour

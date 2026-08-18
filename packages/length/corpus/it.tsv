@@ -34,3 +34,6 @@ duecentocinque chilometri	length	205000	205 chilometri
 10 km diviso 4	length	2500	2,5 chilometri
 # "a" is the second conversion preposition, beside "in".
 2 km a metri	length	2000	2.000 metri
+# The `+` nobody typed: two adjacent lengths in strictly descending units are a
+# sum, which is how a tape measure gets read out loud.
+1 m 50 cm	length	1.5	1,5 metri

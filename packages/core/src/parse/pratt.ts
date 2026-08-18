@@ -229,6 +229,91 @@ export function parse(
     };
   };
 
+  /**
+   * The candidates of the rightmost quantity in `node`, or undefined when
+   * `node` has none — which is every atom that is not a quantity or a chain of
+   * them.
+   *
+   * The right *spine*, not the root, because a fold is left-associative: "1 h
+   * 30 min 30 s" has to compare seconds against minutes, not against hours, or
+   * the third part would be measured against a unit two steps away and a chain
+   * that descends one step at a time would be refused.
+   */
+  const rightmostCandidates = (node: Node): Candidate[] | undefined => {
+    if (node.type === "quantity") return node.candidates;
+    if (node.type === "binary") return rightmostCandidates(node.right);
+    return undefined;
+  };
+
+  /**
+   * The `<number> <unit>` sitting after `left`, folded into `left + right`, or
+   * undefined when the two are not a compound — spec §B.2.
+   *
+   * Two adjacent quantities of one kind, in descending units, is how people
+   * write durations and lengths: "1 h 30 min", "1 kg 200 g". The engine has
+   * `+`; the person did not type it. No new weight and no new selector — the
+   * `+` signature the kind already carries prices the result, which is also
+   * what settles "1 h 30 m": `+` needs one kind on both sides, so `m` reads as
+   * minutes by dimension and metres never had a path to reach.
+   *
+   * Both tests are per *pair of candidates*, never per token: the kind has to
+   * have opted in (`compoundRatio` answers null for every kind that did not),
+   * and it has to order the left unit strictly above the right one. Strictly,
+   * because "3 m 4 m" is two lengths written beside each other, which nobody
+   * does on purpose and which is worth failing on. Offered by `some` rather
+   * than demanded of every shared kind, because the parser must not rank: one
+   * kind reading the pair as a compound is enough evidence to build the sum,
+   * and choosing between kinds is the solver's job on the node it gets.
+   *
+   * Nothing here can turn a working input into a different one. Two quantities
+   * with no operator between them is a `UnitParseError` today at every position
+   * this is reached from, so the fold only ever converts a refusal into a
+   * reading.
+   */
+  const tryCompound = (left: Node): Node | undefined => {
+    const numberToken = tokens[pos];
+    const unitToken = tokens[pos + 1];
+    if (numberToken?.type !== "number" || unitToken?.type !== "word") return undefined;
+
+    const leftCandidates = rightmostCandidates(left);
+    if (leftCandidates === undefined) return undefined;
+    const rightCandidates = resolver.resolve(unitToken.text, runOf(unitToken));
+    if (rightCandidates.length === 0) return undefined;
+
+    const descends = leftCandidates.some((lc) =>
+      rightCandidates.some((rc) => {
+        if (rc.kind !== lc.kind) return false;
+        const lr = resolver.compoundRatio(lc.kind, lc.unit);
+        const rr = resolver.compoundRatio(rc.kind, rc.unit);
+        return lr !== null && rr !== null && lr.gt(rr);
+      }),
+    );
+    if (!descends) return undefined;
+
+    pos += 2;
+    // `demote` before the right operand draws its id, not after: the wrap takes
+    // over `left`'s id and shifts `left`'s whole subtree up by one, so an id
+    // handed out before that shift would collide with the shifted subtree and
+    // `buildProgram` would fail on two nodes sharing one.
+    const { nodeId, demoted } = demote(left);
+    const right: Node = {
+      id: id(),
+      type: "quantity",
+      value: numberToken.value,
+      candidates: rightCandidates,
+      span: span(numberToken, unitToken),
+    };
+    return {
+      id: nodeId,
+      type: "binary",
+      op: "+",
+      implicit: "compound",
+      left: demoted,
+      right,
+      span: span(demoted.span, right.span),
+    };
+  };
+
   function parseAtom(): Node {
     const token = peek();
     if (token === undefined) throw new UnitParseError(input, undefined, [here()]);
@@ -314,13 +399,22 @@ export function parse(
         }
         if (candidates.length > 0) {
           pos += 1;
-          return {
+          let node: Node = {
             id: id(),
             type: "quantity",
             value: token.value,
             candidates,
             span: span(token, next),
           };
+          // "1 h 30 min 30 s" is three parts, so the fold repeats rather than
+          // firing once — each turn measures the next unit against the one the
+          // last turn appended, which is what `rightmostCandidates` reads.
+          for (;;) {
+            const folded = tryCompound(node);
+            if (folded === undefined) break;
+            node = folded;
+          }
+          return node;
         }
       }
       return {

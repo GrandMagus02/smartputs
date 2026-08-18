@@ -37,3 +37,6 @@
 10 l bagi 4	volume	2.5	2,5 liter
 2 l tambah 500 ml	volume	2.5	2,5 liter
 2 l kurang 250 ml	volume	1.75	1,75 liter
+# The `+` nobody typed: two adjacent volumes in strictly descending units are a
+# sum, which is how a jug and a recipe get written.
+1 l 500 ml	volume	1.5	1,5 liter

@@ -21,6 +21,9 @@ export const volume = defineKind({
     canonical: VOLUME_UNITS.canonical,
     units: decimalRatios(VOLUME_UNITS),
   },
+  // "1 l 500 ml", "1 gal 2 qt" — a jug and a recipe. Two adjacent volumes in
+  // strictly descending units fold into a sum.
+  compound: true,
   // Physics, not language (spec §4): the magnitude band people type each unit
   // in, read only by completion's `scaleFit`.
   typical: {

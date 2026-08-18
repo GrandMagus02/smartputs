@@ -38,3 +38,6 @@
 1 km kurang 250 m	length	750	0,75 kilometer
 # "dalam" is the second conversion preposition, beside "ke".
 2 km dalam meter	length	2000	2.000 meter
+# The `+` nobody typed: two adjacent lengths in strictly descending units are a
+# sum, which is how a tape measure gets read out loud.
+1 m 50 cm	length	1.5	1,5 meter

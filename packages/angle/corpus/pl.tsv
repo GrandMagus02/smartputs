@@ -38,3 +38,6 @@ dwieście gradów	angle	3.141592653589793238462643383	200 gradów
 # form comes off the nominative axis and the locative is never reached here.
 90 stopni na radiany	angle	1.570796326794896619231321692	1,5708 radiana
 90 stopni do radianów	angle	1.570796326794896619231321692	1,5708 radiana
+# The `+` nobody typed: a full revolution plus a bit, which is how a rotation
+# gets dictated. The classic "30 deg 15 arcmin" waits on an arcminute unit.
+1 obrót 30 stopni	angle	6.806784082777885350002393998	1,0833 obrotu

@@ -24,3 +24,7 @@
 21 день	duration	1814400	21 день
 2 дні	duration	172800	2 дні
 5 днів	duration	432000	5 днів
+# The `+` nobody typed: two adjacent durations in strictly descending units
+# are a sum, which is how a cooking time and a stopwatch reading get written.
+# The answer comes back in the left unit, exactly as "1 h + 30 min" does.
+1 год 30 хв	duration	5400	1,5 години

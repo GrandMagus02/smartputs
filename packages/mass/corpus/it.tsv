@@ -38,3 +38,6 @@ duecentocinque chilogrammi	mass	205000	205 chilogrammi
 10 kg diviso 4	mass	2500	2,5 chilogrammi
 # "a" is the second conversion preposition, beside "in".
 2 kg a grammi	mass	2000	2.000 grammi
+# The `+` nobody typed: two adjacent masses in strictly descending units are a
+# sum, which is how a recipe and a scale readout get written.
+1 kg 200 g	mass	1200	1,2 chilogrammi

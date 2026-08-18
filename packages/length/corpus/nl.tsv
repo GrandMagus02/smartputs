@@ -36,3 +36,6 @@ tweehonderdvijf kilometer	length	205000	205 kilometer
 2 km maal 3	length	6000	6 kilometer
 2 km keer 3	length	6000	6 kilometer
 10 km gedeeld door 4	length	2500	2,5 kilometer
+# The `+` nobody typed: two adjacent lengths in strictly descending units are a
+# sum, which is how a tape measure gets read out loud.
+1 m 50 cm	length	1.5	1,5 meter

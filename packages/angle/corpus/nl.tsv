@@ -33,3 +33,6 @@ tweehonderd gon	angle	3.141592653589793238462643383	200 gon
 180 graden gedeeld door 4	angle	0.7853981633974483096156608458	45 graden
 # "naar" is the second conversion preposition beside "in".
 90 graden naar gon	angle	1.570796326794896619231321692	100 gon
+# The `+` nobody typed: a full revolution plus a bit, which is how a rotation
+# gets dictated. The classic "30 deg 15 arcmin" waits on an arcminute unit.
+1 omwenteling 30 graden	angle	6.806784082777885350002393998	1,0833 omwentelingen

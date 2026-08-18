@@ -46,3 +46,6 @@
 # 换算 and 转换 are verbs rather than prepositions, and both introduce a target
 # on their own.
 2升换算毫升	volume	2	2,000毫升
+# The `+` nobody typed: two adjacent volumes in strictly descending units are a
+# sum, which is how a jug and a recipe get written.
+1升500毫升	volume	1.5	1.5升

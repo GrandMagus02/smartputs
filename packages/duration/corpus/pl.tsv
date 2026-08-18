@@ -36,3 +36,7 @@ jedna godzina	duration	3600	1 godzina
 # the locative — "w godzinach" up in the spine — so the vocabulary carries a
 # case axis on top of the four number categories; after "do" it is not.
 1 tydzień do dni	duration	604800	7 dni
+# The `+` nobody typed: two adjacent durations in strictly descending units
+# are a sum, which is how a cooking time and a stopwatch reading get written.
+# The answer comes back in the left unit, exactly as "1 h + 30 min" does.
+1 h 30 min	duration	5400	1,5 godziny

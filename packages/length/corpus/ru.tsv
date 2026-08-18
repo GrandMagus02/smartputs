@@ -40,3 +40,6 @@
 10 км разделить на 4	length	2500	2,5 километра
 # "до" is the second conversion preposition, beside "в".
 2 км до метров	length	2000	2 000 метров
+# The `+` nobody typed: two adjacent lengths in strictly descending units are a
+# sum, which is how a tape measure gets read out loud.
+1 м 50 см	length	1.5	1,5 метра

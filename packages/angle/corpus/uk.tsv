@@ -21,3 +21,6 @@
 11 градусів	angle	0.1919862177193762534616059845	11 градусів
 2 градуси	angle	0.03490658503988659153847381537	2 градуси
 1,5 градуса	angle	0.02617993877991494365385536153	1,5 градуса
+# The `+` nobody typed: a full revolution plus a bit, which is how a rotation
+# gets dictated. The classic "30 deg 15 arcmin" waits on an arcminute unit.
+1 оберт 30 градусів	angle	6.806784082777885350002393998	1,0833 оберта

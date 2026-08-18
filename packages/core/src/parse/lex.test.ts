@@ -3,7 +3,6 @@ import { english } from "@smartput/core/locale/en";
 import { BUILTIN_KINDS } from "@smartput/kinds";
 import BUILTIN_EN from "@smartput/kinds/locale/en";
 import { createEngine } from "../engine";
-import { UnitParseError } from "../errors";
 import { buildKeywords, composeLocale } from "../locale/compose";
 import { defineLanguage } from "../locale/define";
 import { lex } from "./lex";
@@ -281,10 +280,16 @@ test("with no alias oracle nothing re-lexes: the default keeps every existing ca
   expect(lex("5 ft 3 in", en, keywords).at(-1)?.type).toBe("keyword");
 });
 
-test('a split run fails at the parser, not at the resolver: `Unknown unit "h30"` is gone', () => {
+test('a split run reads as the compound it is: `Unknown unit "h30"` is gone', () => {
   const engine = createEngine({
     locales: [composeLocale(english, BUILTIN_EN)],
     kinds: BUILTIN_KINDS,
   });
-  expect(() => engine.evaluate("1h30m")).toThrow(UnitParseError);
+  // The split is this file's half of §B; the parser's fold is the other. When
+  // the split landed alone this asserted a `UnitParseError` — the run reached
+  // the parser as four tokens instead of dying on `Unknown unit "h30"` in the
+  // resolver — and now that `duration` has opted into folding, the four tokens
+  // are an hour and a half. Both halves are asserted here because either one
+  // alone leaves the input broken in a way only the other can see.
+  expect(engine.evaluate("1h30m").formatted).toBe("1.5 hours");
 });

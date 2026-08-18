@@ -62,6 +62,18 @@ export interface BinaryNode {
   left: Node;
   right: Node;
   span: Span;
+  /**
+   * The `+` nobody typed. "1 h 30 min" is two adjacent quantities of one kind
+   * in strictly descending units, which is how people write durations and
+   * lengths, and the parser folds them into the sum the engine already knows
+   * how to price — no new operator, no new weight, no new signature.
+   *
+   * Recorded rather than left invisible so `explain` can show the operator as
+   * the parser's rather than claim the writer wrote it, and so a compound
+   * *print* mode ("1 h 30 min" back out again) has something to key on when it
+   * lands. Absent on every operator that was actually typed.
+   */
+  implicit?: "compound";
 }
 
 export interface UnaryNode {

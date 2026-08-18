@@ -55,3 +55,6 @@ dwieście pięć kilogramów	mass	205000	205 kilogramów
 # target, and only "w" governs the locative that `selectForm` reads.
 2 kg na gramy	mass	2000	2 000 gramów
 2 kg do gramów	mass	2000	2 000 gramów
+# The `+` nobody typed: two adjacent masses in strictly descending units are a
+# sum, which is how a recipe and a scale readout get written.
+1 kg 200 g	mass	1200	1,2 kilograma

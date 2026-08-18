@@ -39,3 +39,6 @@ zweihundert Gon	angle	3.141592653589793238462643383	200 Gon
 # rather than a letter, so `lex` drops it and the sentence reads as a bare
 # number. The one printed form in this package that cannot be read back.
 90°	number	90	90
+# The `+` nobody typed: a full revolution plus a bit, which is how a rotation
+# gets dictated. The classic "30 deg 15 arcmin" waits on an arcminute unit.
+1 umdrehung 30 grad	angle	6.806784082777885350002393998	1,0833 Umdrehungen

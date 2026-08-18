@@ -39,3 +39,6 @@ iki yüz beş litre	volume	205	205 litre
 # The operators are bare words, none of them two-token.
 2 l çarpı 3	volume	6	6 litre
 10 l bölü 4	volume	2.5	2,5 litre
+# The `+` nobody typed: two adjacent volumes in strictly descending units are a
+# sum, which is how a jug and a recipe get written.
+1 l 500 ml	volume	1.5	1,5 litre

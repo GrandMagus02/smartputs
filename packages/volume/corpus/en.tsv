@@ -14,3 +14,6 @@ one litre	volume	1	1 litre
 2 pints in l	volume	0.946352946	0.9464 litres
 1.5 l	volume	1.5	1.5 litres
 250 ml in l	volume	0.25	0.25 litres
+# The `+` nobody typed: two adjacent volumes in strictly descending units are a
+# sum, which is how a jug and a recipe get written.
+1 l 500 ml	volume	1.5	1.5 litres

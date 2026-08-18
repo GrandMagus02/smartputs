@@ -47,3 +47,6 @@
 10 кг разделить на 4	mass	2500	2,5 килограмма
 # "до" is the second conversion preposition, beside "в".
 2 кг до граммов	mass	2000	2 000 граммов
+# The `+` nobody typed: two adjacent masses in strictly descending units are a
+# sum, which is how a recipe and a scale readout get written.
+1 кг 200 г	mass	1200	1,2 килограмма

@@ -30,3 +30,7 @@ duecentocinque secondi	duration	205	205 secondi
 1 ora	duration	3600	1 ora
 5 ore	duration	18000	5 ore
 1 giorno	duration	86400	1 giorno
+# The `+` nobody typed: two adjacent durations in strictly descending units
+# are a sum, which is how a cooking time and a stopwatch reading get written.
+# The answer comes back in the left unit, exactly as "1 h + 30 min" does.
+1 h 30 min	duration	5400	1,5 ore

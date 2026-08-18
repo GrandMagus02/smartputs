@@ -11,6 +11,11 @@ export const datasize = defineKind({
     canonical: DATASIZE_UNITS.canonical,
     units: decimalRatios(DATASIZE_UNITS),
   },
+  // No `compound: true`, and the omission is a decision rather than an
+  // oversight: nobody writes "1 gb 500 mb". A file size is one number in one
+  // unit, so folding two of them would only ever turn a typo into an answer —
+  // and the units here are ordered exactly the way a fold would want, which is
+  // why the refusal has to be stated rather than left to the ordering test.
   // Physics, not language (ruling R3): the magnitude band people actually type
   // each unit in, inclusive at both ends, read only by completion's `scaleFit`.
   // The binary units band to 1024 where their decimal twins band to 1000,

@@ -14,3 +14,6 @@ one turn	angle	6.283185307179586476925286767	1 turn
 1.5 rad	angle	1.5	1.5 radians
 100 gon in grad	angle	1.570796326794896619231321692	100 gradians
 2 revolutions in deg	angle	12.56637061435917295385057353	720 degrees
+# The `+` nobody typed: a full revolution plus a bit, which is how a rotation
+# gets dictated. The classic "30 deg 15 arcmin" waits on an arcminute unit.
+1 turn 30 deg	angle	6.806784082777885350002393998	1.0833 turns

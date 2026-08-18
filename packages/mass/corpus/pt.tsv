@@ -38,3 +38,6 @@ duzentos e cinco quilogramas	mass	205000	205 quilogramas
 10 kg sobre 4	mass	2500	2,5 quilogramas
 # "para" is the second conversion preposition, beside "em".
 2 kg para gramas	mass	2000	2.000 gramas
+# The `+` nobody typed: two adjacent masses in strictly descending units are a
+# sum, which is how a recipe and a scale readout get written.
+1 kg 200 g	mass	1200	1,2 quilograma

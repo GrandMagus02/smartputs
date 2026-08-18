@@ -36,3 +36,7 @@
 # The digits and separators are Latin. `ar` resolves to a `latn` numbering
 # system, so "," groups and "." is the decimal point inside right-to-left text.
 100000 ثانية	duration	100000	100,000 ثانية
+# The `+` nobody typed: two adjacent durations in strictly descending units
+# are a sum, which is how a cooking time and a stopwatch reading get written.
+# The answer comes back in the left unit, exactly as "1 h + 30 min" does.
+1 ساعة 30 دقيقة	duration	5400	1.5 ساعة

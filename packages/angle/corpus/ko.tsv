@@ -37,3 +37,6 @@
 # The operators are native Korean verbal nouns and stand as separate tokens.
 2회전 곱하기 3	angle	37.69911184307751886155172059	6회전
 180도 나누기 4	angle	0.7853981633974483096156608458	45도
+# The `+` nobody typed: a full revolution plus a bit, which is how a rotation
+# gets dictated. The classic "30 deg 15 arcmin" waits on an arcminute unit.
+1회전30도	angle	6.806784082777885350002393998	1.0833회전

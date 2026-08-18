@@ -42,3 +42,6 @@
 2 किलोमीटर गुणा 3	length	6000	6 किलोमीटर
 10 किलोमीटर भाग 4	length	2500	2.5 किलोमीटर
 2 किलोमीटर को मीटर	length	2000	2,000 मीटर
+# The `+` nobody typed: two adjacent lengths in strictly descending units are a
+# sum, which is how a tape measure gets read out loud.
+1 मीटर 50 सेंटीमीटर	length	1.5	1.5 मीटर

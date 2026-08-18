@@ -33,3 +33,6 @@ duecentocinque litri	volume	205	205 litri
 2 l a ml	volume	2	2.000 millilitri
 2 l per 3	volume	6	6 litri
 10 l diviso 4	volume	2.5	2,5 litri
+# The `+` nobody typed: two adjacent volumes in strictly descending units are a
+# sum, which is how a jug and a recipe get written.
+1 l 500 ml	volume	1.5	1,5 litri

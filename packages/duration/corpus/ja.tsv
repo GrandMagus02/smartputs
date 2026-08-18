@@ -35,3 +35,7 @@
 2時間 かける 3	duration	21600	6時間
 1日 わる 4	duration	21600	0.25日
 10分 足す 5時間	duration	18600	310分
+# The `+` nobody typed: two adjacent durations in strictly descending units
+# are a sum, which is how a cooking time and a stopwatch reading get written.
+# The answer comes back in the left unit, exactly as "1 h + 30 min" does.
+1時間30分	duration	5400	1.5時間

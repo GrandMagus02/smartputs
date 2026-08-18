@@ -28,3 +28,7 @@ doscientos cinco segundos	duration	205	205 segundos
 1 semana a días	duration	604800	7 días
 1 segundo	duration	1	1 segundo
 5 días	duration	432000	5 días
+# The `+` nobody typed: two adjacent durations in strictly descending units
+# are a sum, which is how a cooking time and a stopwatch reading get written.
+# The answer comes back in the left unit, exactly as "1 h + 30 min" does.
+1 h 30 min	duration	5400	1,5 horas

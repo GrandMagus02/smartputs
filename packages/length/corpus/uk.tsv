@@ -32,3 +32,6 @@
 # Latin aliases still read on a Ukrainian engine: `aliasesFor` reuses the
 # one alias map in units.ts, so a developer typing `km` is understood.
 2 km	length	2000	2 кілометри
+# The `+` nobody typed: two adjacent lengths in strictly descending units are a
+# sum, which is how a tape measure gets read out loud.
+1 м 50 см	length	1.5	1,5 метра

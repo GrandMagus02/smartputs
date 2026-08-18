@@ -18,7 +18,11 @@ describe("mass en vocabulary", () => {
   });
 
   test("the kind itself carries no English word", () => {
-    expect(JSON.stringify(mass)).not.toMatch(/kilogram|pound|ounce|tonne/i);
+    // Word boundaries, and they earn their keep: `Kind.compound` serialises as
+    // the key "compound", which contains "pound" and turned this assertion into
+    // a failure the moment mass opted into the fold. A field name is not an
+    // English word for a unit, and `\b` is what says so.
+    expect(JSON.stringify(mass)).not.toMatch(/\b(kilogram|pound|ounce|tonne)/i);
   });
 
   test("an engine built from it reads and writes English mass", () => {

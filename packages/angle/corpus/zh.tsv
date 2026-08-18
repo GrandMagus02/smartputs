@@ -49,3 +49,6 @@
 # 换算, 到 and 为 all introduce a target, and none of them needs a space.
 90度到弧度	angle	1.570796326794896619231321692	1.5708弧度
 90度为圈	angle	1.570796326794896619231321692	0.25圈
+# The `+` nobody typed: a full revolution plus a bit, which is how a rotation
+# gets dictated. The classic "30 deg 15 arcmin" waits on an arcminute unit.
+1圈30度	angle	6.806784082777885350002393998	1.0833圈
