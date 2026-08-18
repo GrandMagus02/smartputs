@@ -274,6 +274,64 @@ The keyboard behaviour for that surface lives in
 `docs/.vitepress/theme/useCompletions.ts`, written before Reka UI was in the
 project — it is a fair side-by-side of what a primitive library saves you.
 
+## Two things people type that the engine now reads
+
+Both of these used to be errors, and both of them are things a person types into
+a form without thinking twice. Neither needs any configuration.
+
+### One quantity, written in two units
+
+A height is `5 ft 3 inches`. A cooking time is `1 h 30 min`. A weight on a
+kitchen scale is `1 kg 200 g`. Nobody writes the `+`, and the engine no longer
+asks for it:
+
+```ts
+engine.evaluate("1 h 30 min").formatted;   // "1.5 hours"
+engine.evaluate("1 kg 200 g").formatted;   // "1.2 kilograms"
+engine.evaluate("1h30m").formatted;        // "1.5 hours" — no spaces needed
+```
+
+The fold is deliberately narrow, because a field that guesses is worse than a
+field that refuses. All four of these have to hold:
+
+- **One kind reads both words.** `10 kg 5 s` still fails.
+- **Strictly descending units.** `3 m 4 m` is a typo, not a compound, and
+  `30 min 1 h` is nobody's way of writing an hour and a half.
+- **The kind opted in.** `duration`, `length`, `mass`, `volume` and `angle`
+  declare `compound`. `datasize` declines — nobody writes `1 gb 500 mb` — and
+  `temperature` must not have it at all, because `20 c 5 f` is not a
+  temperature.
+- **Everything else stays an expression.** A compound is an operand like any
+  other: `1 h 30 min in min` is `90 minutes`, and `1 h 30 min + 30 min` is
+  `2 hours`.
+
+One case still fails, and it is worth knowing before a user finds it: `5 ft 3 in`
+throws, while `5 ft 3 inches` works. English `length` withholds `in` as a unit
+alias on purpose — registering it makes `in 3 days` read as an all-units phrase —
+so the trailing `in` stays the conversion keyword. If your field is a height
+field, say `inches` in the placeholder.
+
+### Numbers written the way the user's language writes them
+
+On an engine with more than one language installed, a run of digits is read once
+per installed number grammar, and the readings are ranked rather than one being
+picked:
+
+```
+"1 000,5 кг"   → 1000.5 kg   (Ukrainian groups with a space, points with a comma)
+"1.000,5 kg"   → 1000.5 kg   (German groups with a dot)
+"1,000.5 kg"   → 1000.5 kg   (English groups with a comma)
+```
+
+Nothing about the field changes; the unit word beside the digits is what settles
+them, because a reading whose grammar agrees with the language that listed the
+unit scores higher. For a form this matters most in the case where there is *no*
+unit to agree with: a bare `1,000` keeps reading the way the engine's own
+language reads it rather than becoming an `AmbiguityError` on every thousand
+somebody types. See
+[the grammar selector](/guide/weights#the-grammar-selector-for-digits-rather-than-words)
+if you want to pin it instead.
+
 ## Validating a form, not a field
 
 `useField` gives you `valid` and `markTouched` so a submit handler stays four

@@ -22,6 +22,7 @@ Each milestone is independently shippable and gets its own implementation plan.
 | **Stages** | `createEngine`'s 329-line closure split into [seven frozen, config-holding stage classes](/api/stages): `Program` and stable node ids replace a bare AST, `Resolution` (renamed from `Assignment`) is keyed by id instead of node object, and the [`Printer`](/api/printer) is the one genuinely new stage. Two behaviour changes: `Result.spans` now indexes the caller's string, and every public output is deep-frozen. | **Shipped** |
 | **Query** | `@smartput/query`: a clause grammar over a declared schema, schema linking off the kind system, and a dialect-free IR with `SqlCompiler` and `MongoCompiler` on top of it. Core takes no change at all. | **Shipped** |
 | **Comparison** | Six comparison operators, `@smartput/boolean`, and a tolerance at the precision the engine displays. Core's changes: six `OpSymbol`s, `OpaqueSpec.ordered`, `EvalCtx.comparePrecision`. | **Shipped** |
+| **Second pass** | Seven defects a probe found, fixed as [seams rather than special cases](#the-second-pass-and-the-four-rulings-it-cost): a number reading per installed grammar, compound quantities (`1 h 30 min`), a display precision separate from the arithmetic, derived result units (`km / h` → `km/h`), a non-throwing `explain`, `@smartput/kind/contracts`, and per-kind config off `EngineOptions.context`. | **Shipped** |
 | **M7** | `@smartput/http`, meta-package, npm release. | Planned |
 
 M1 carried the only real invention risk. Most of what came after it is
@@ -96,6 +97,129 @@ What fell out for free: `nice`, `mobile` and `split` became places without
 costing any input its reading, `90210` stayed 90,210 with a postcode ranked
 underneath it, and the eighteen hand-written zones in `@smartput/datetime`
 stopped being the only places the engine knows.
+
+## The second pass, and the four rulings it cost
+
+Every milestone above added a capability. The second pass added none: a probe of
+the shipped engine found seven defects, and this section is what each one cost
+core, because **this file is what the next person reads before proposing another
+core change** and a list of conclusions without their trades teaches nobody
+anything.
+
+The shape of the whole pass is one claim, and the byte budgets are the evidence
+for it: two new kinds of evidence reach the solver — a number reading and a
+derived-unit target — and everything else is a table built at boot, an opt-in
+field with a false or undefined default, or a policy only the `Printer` reads.
+No kind package learned anything about core. The `smartputs root` row in
+`check-size.ts`, which is the only measured row that reaches `createEngine`,
+moved by 10.7 KB; the fifteen rows that reach only `@smartput/kind` moved by
+between 1 and 133 B. That asymmetry is the pass staying on the engine's side of
+the wall, stated as a number rather than as an intention.
+
+**A number is a reading, not a fact.** `1,000` is a thousand in English and one
+in German, and the tokenizer had been reading every input under the *format*
+locale's grammar alone — so on a multi-locale engine a German word next to a
+German number produced an English number at full confidence. A digit run now
+carries one reading per installed grammar, and the solver picks one the way it
+already picked between a metre and a minute: `Resolution` gained a `numbers`
+map, `collectSlots` gained a number slot, and `weights.ts` gained a `grammar:`
+selector beside `locale:`. What forced it into core rather than into a plugin is
+that nothing outside the solver can rank: a lexer can produce the readings, only
+the search can choose between them.
+
+**Two adjacent quantities may be one quantity.** `1 h 30 min`, `5 ft 3 inches`,
+`1 kg 200 g` — every one of them threw before, which is what made the fold
+purely additive: no input changed meaning. The cost to core is one opt-in field,
+`Kind.compound`, plus a fold in the Pratt parser that inserts the `+` nobody
+typed. Five kinds set it — `duration`, `length`, `mass`, `volume`, `angle` — and
+the two that decline are the argument for the field being opt-in. `datasize`
+declines because nobody writes `1 gb 500 mb`; `temperature` must not have it at
+all, since two temperatures do not add, and `c > f` by ratio, so an ordering
+rule alone would have let `20 c 5 f` through. The lexer changed with it — a digit run followed by a letter now splits
+the word it sits in, so `1h30m` arrives as four tokens — and trailing digits
+deliberately do not, because kinds spell area and volume `m2` and `ft3`.
+
+**Display is not arithmetic.** `1.5 kg in lb` printed
+`3.306933932773163710844607 pounds`, because `formatPrecision` was doing two
+jobs: it exists so a round trip through a non-terminating ratio does not surface
+noise, and comparison reuses it. Both are correctness figures, and neither is
+what a person wants to read. `EngineOptions.display` is now a
+separate policy — four fraction digits, never below three significant — read by
+the `Printer` and by nothing else, so `Result.value.canonical` and
+`Result.value.raw` are untouched at 28 and 26 digits. `UnitWords.tight` came
+with it, a property of the *word* rather than of the kind: `%` and `°C` print
+tight against the number, `kg` does not.
+
+**A unit can be derived rather than declared.** `100 km / 2 h` printed
+`50 kilometres` — the kind was right and the unit was a lie. `Registry` now
+builds a `derivedUnits` table at boot from **ratio equality**: `kph` is
+`(km, /, h)` because the numbers agree, not because somebody spelled it `km/h`.
+That is what makes `mi / h → mph` free, and it is also why `nmi / h → knot` does
+not work — `@smartput/length` has no nautical mile, so nothing in the registry
+carries the ratio `knot` is a quotient of. The day it gains one, `knot` derives
+itself with no code change, and there is a test that says so.
+
+**`explain` never throws.** The one API whose job is to say why an input failed
+was unusable on exactly the inputs that failed. `Explanation.outcome` carries
+the `SmartputError` instead, `Explanation.rejections` lists every pair the
+solver refused, and every input error now carries spans that index the caller's
+string. `DimensionMismatchError` gained `op` and `tried` in the same pass:
+`10 kg / 2 m` used to report *mass and duration*, naming whichever failing
+assignment came first, and now names both pairs and quotes the operands.
+
+**Two seams that are only shapes.** `@smartput/kind/contracts` is a types-only
+subpath holding the shapes packages already agree on structurally — `PlaceMeta`,
+`RangeMeta`, `InstantMeta` — and its `check-size` row is 0 B, which is the
+proof rather than the claim. `EngineOptions.context` is per-kind configuration
+keyed by kind id and opaque to core; `rates` and `rounding` are money's, and
+every milestone that needed engine-level configuration had been adding a field
+beside them. `now` and `timeZone` deliberately stayed where they are — they are
+engine semantics several kinds share, not one plugin's table.
+
+### The four rulings, with what each of them costs
+
+A ruling is a trade, and a trade written down as its conclusion alone is a trap
+for whoever reads it next. Each of these gave something up.
+
+- **R-A1 — the format locale's number grammar carries +1 by default; agreement
+  with a unit word is worth +2.** *What it buys:* a bare `1,000` on a
+  multi-locale engine keeps reading the way the engine's own language reads it.
+  *What it costs:* the default is a thumb on the scale, not neutrality. At 0 the
+  honest answer to an unaccompanied `1,000` is "ambiguous", and `evaluate` would
+  have thrown `AmbiguityError` on every thousand a user types — so the ruling
+  chose a defensible answer over an accurate refusal, and a unit word beside the
+  digits is what overturns it.
+- **R-B1 — a trailing `in` re-lexes as an inch only where it cannot be the
+  conversion keyword.** *What it buys:* `5 ft 3 in` becomes sayable, and
+  `5 ft 3 in cm` still converts, because a unit follows the keyword.
+  *What it costs:* the re-lex shipped **inert**. English `length` withholds `in`
+  as an alias on purpose — registering it makes `@smartput/datetime`'s accept
+  gate read `in 3 days` as an all-units phrase — so `isUnitAlias("in")` is false
+  and `5 ft 3 in` still throws today, while `5 ft 3 inches` folds. That is
+  pinned by a test named for the cost, so the day the vocabulary gains `in`, the
+  test is what says so.
+- **R-C1 — display defaults to 4 fraction digits with a floor of 3 significant;
+  money is exempt.** *What it buys:* `1234567.891` keeps its cents, which a pure
+  significant-digit rule would have eaten, and a scientific caller sets
+  `display` once. *What it costs:* `formatted` no longer round-trips exactly,
+  only idempotently. The round-trip guard still exists — it now asserts equality
+  at display precision, with a second test asserting the old exact equality
+  against `Result.value.raw` through the `Printer` — but the guarantee a caller
+  can state about `formatted` is genuinely weaker than it was. Comparison is
+  untouched: `comparePrecision` still reads `formatPrecision`, so
+  `1 km / 3 * 3 = 1 km` stays true.
+- **R-F1 — contracts are a subpath of `@smartput/kind`, not a package.**
+  *What it buys:* no `check-deps` exemption (a types-only package would still
+  have to be a real `dependency` for published `.d.ts` to resolve) and no
+  thirty-eighth name to claim. *What it costs:* the shapes live in the kind
+  layer rather than in a neutral one, so a package that wants a contract takes
+  `@smartput/kind` — which every package already depends on, which is exactly
+  why the trade was acceptable and would not have been for anything else.
+
+What fell out for free: `50 km/h in mph` works, because a derived unit is a
+conversion target like any declared one, and the target prune the same change
+needed turned `10 km in m + 5` from *length and duration* into a smaller
+enumeration with a better error.
 
 ## Comparison, and the three fields it cost
 

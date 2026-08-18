@@ -458,6 +458,38 @@ export const BUDGETS: EntrySpec[] = [
   // `./aliases`, `./vocabulary` and `./errors` subpaths. The tight ceiling on the
   // `length/locale/en` row below is what enforces that, and it is the only thing
   // that does.
+  //
+  // 2026-08-19, the second pass (defects A-G): sixteen ceilings move, and the
+  // split between them is the finding, not the totals. One row reaches
+  // `createEngine` and grew by 10_731 B min; the other fifteen reach only
+  // `@smartput/kind`, and every one of them grew by between 1 and 133 B.
+  //
+  // The fifteen small ones are `kind/errors.ts` and nothing else. A
+  // `KindMismatchError` now names the operator it was raised for and every kind
+  // pair it tried, and every error class carries a span — +319 B min in that
+  // module measured alone (3_349 -> 3_668, minified with imports external). A
+  // row links whichever fraction of that its own graph reaches, and the
+  // measured spread is exactly that fraction:
+  //
+  //   rate/locale/en           36_073   datetime/locale/en       35_986
+  //   geo root                 49_617   query root               59_695
+  //   range                    43_773   range/class              43_798
+  //   datetime root           144_833   datetime/holiday      1_579_001
+  //   date                    145_916   time                    146_202
+  //   range-core              145_245   date-range              149_587
+  //   time-range              147_522   datetime-range root     148_346
+  //   datetime-range holiday 1_587_354
+  //
+  // Not one of the pass's seven features is reachable from any of them. The
+  // number grammars, the compound fold, the derived-unit table, the display
+  // policy, the non-throwing `explain` and the plugin context all sit behind
+  // `createEngine`, which is why fifteen rows move by ~100 B and one moves by
+  // ten kilobytes. That asymmetry is what these ceilings are for: it is the
+  // measured evidence that a pass aimed at the engine stayed on the engine's
+  // side of the wall instead of leaking into every vocabulary in the repo. The
+  // trade is stated plainly rather than hidden in a total — ~100 B on fifteen
+  // rows that were already paying for `@smartput/kind`, for an error that can
+  // say which operator failed and where.
   {
     label: "angle/validate parseAngle only",
     from: "@smartput/angle/validate",
@@ -627,12 +659,43 @@ export const BUDGETS: EntrySpec[] = [
   // row below that moved by 30-100 B moved for the registry half alone; this
   // row carries the evaluator's too, because it is the one that reaches
   // `evaluate`.
+  //
+  // 2026-08-19, the second pass (defects A-G): 87_070 -> 97_801 B min, 31_444
+  // -> 34_829 B gzip. The largest move this row has ever taken, and it is seven
+  // features deep, so it is attributed rather than asserted. Each module below
+  // was minified on its own with every import external, once at 46d8f77 and
+  // once at HEAD; the deltas are per-module sizes, not bundle contributions, so
+  // they apportion the growth rather than summing to it exactly:
+  //
+  //   solve/solver.ts      +2_069  number slots in `collectSlots`/`enumerate`
+  //   engine.ts            +1_683  `explain` never throws; `context` config
+  //   parse/pratt.ts       +1_460  the compound fold, derived-unit targets
+  //   kind/registry.ts     +1_443  the derived-unit table, built at boot
+  //   parse/lex.ts           +985  per-grammar digit scan, digit-run split
+  //   parse/candidates.ts    +762  one number reading per installed grammar
+  //   format/format.ts       +460  the display precision policy
+  //   print/print.ts         +390  display rounding and tight symbol spacing
+  //   locale/number.ts       +353  grammars derived from `locales`
+  //   eval/evaluate.ts       +337  derived result units
+  //   solve/weights.ts       +280  the `grammar:` selector
+  //
+  // That is 10_222 B of the 10_731 measured here. The remainder is
+  // `kind/errors.ts` (+319, and see the header above for the fifteen rows that
+  // pay only that) plus a handful of modules under 50 B each.
+  //
+  // One spec estimate was wrong, and it is recorded rather than rounded away:
+  // §A.4 costed the per-grammar loop at "under 300 B" and `lex.ts` moved by
+  // 985. The estimate was not wrong about the loop — §A.2's grammar loop and
+  // §B.2's digit-run split and `in`-as-inch re-lex all landed in the one
+  // module, and the spec costed only the first of the three. A per-defect byte
+  // estimate is only meaningful per *module*, which is the lesson worth
+  // carrying into the next spec.
   {
     label: "smartputs root (the facade over core)",
     from: "smartputs",
     names: ["createEngine"],
-    min: 87_100,
-    gzip: 31_450,
+    min: 97_850,
+    gzip: 34_850,
   },
   {
     label: "kind root (defineKind, with Decimal behind it)",
@@ -774,14 +837,14 @@ export const BUDGETS: EntrySpec[] = [
     label: "rate/locale/en (a vocabulary outside the kind packages)",
     from: "@smartput/rate/locale/en",
     names: ["default"],
-    min: 36_000,
+    min: 36_100,
     gzip: 14_200,
   },
   {
     label: "datetime/locale/en (a vocabulary outside the kind packages)",
     from: "@smartput/datetime/locale/en",
     names: ["default"],
-    min: 35_900,
+    min: 36_000,
     gzip: 14_450,
   },
 
@@ -861,8 +924,8 @@ export const BUDGETS: EntrySpec[] = [
     label: "geo root (search and ranking, no data at all)",
     from: "@smartput/geo",
     names: ["Geo", "rank"],
-    min: 49_550,
-    gzip: 19_700,
+    min: 49_650,
+    gzip: 19_750,
   },
   // The providers entry point, measured apart from the root for the reason it is
   // a separate export: a consumer who only wants the types and the ranking must
@@ -929,8 +992,8 @@ export const BUDGETS: EntrySpec[] = [
     label: "datetime root (no holiday data)",
     from: "@smartput/datetime",
     names: ["datetime"],
-    min: 144_750,
-    gzip: 50_850,
+    min: 144_850,
+    gzip: 50_900,
     floor: 138_000,
   },
   {
@@ -940,7 +1003,7 @@ export const BUDGETS: EntrySpec[] = [
     label: "datetime/holiday (the opt-in cost)",
     from: "@smartput/datetime/holiday",
     names: ["datetimeWithHolidays"],
-    min: 1_579_000,
+    min: 1_579_050,
     gzip: 288_000,
   },
   {
@@ -991,7 +1054,7 @@ export const BUDGETS: EntrySpec[] = [
     label: "date",
     from: "@smartput/date",
     names: ["date"],
-    min: 145_850,
+    min: 145_950,
     gzip: 50_950,
     floor: 138_000,
   },
@@ -999,8 +1062,8 @@ export const BUDGETS: EntrySpec[] = [
     label: "time",
     from: "@smartput/time",
     names: ["time"],
-    min: 146_150,
-    gzip: 51_000,
+    min: 146_250,
+    gzip: 51_050,
     floor: 138_000,
   },
   {
@@ -1011,7 +1074,7 @@ export const BUDGETS: EntrySpec[] = [
     label: "range-core",
     from: "@smartput/range-core",
     names: ["WINDOWS", "startOfWeek"],
-    min: 145_200,
+    min: 145_250,
     gzip: 50_850,
     floor: 138_000,
   },
@@ -1019,16 +1082,16 @@ export const BUDGETS: EntrySpec[] = [
     label: "date-range",
     from: "@smartput/date-range",
     names: ["dateRange"],
-    min: 149_550,
-    gzip: 52_000,
+    min: 149_600,
+    gzip: 52_050,
     floor: 138_000,
   },
   {
     label: "time-range",
     from: "@smartput/time-range",
     names: ["timeRange"],
-    min: 147_450,
-    gzip: 51_500,
+    min: 147_550,
+    gzip: 51_550,
     floor: 138_000,
   },
   {
@@ -1050,8 +1113,8 @@ export const BUDGETS: EntrySpec[] = [
     label: "datetime-range root (no holiday data)",
     from: "@smartput/datetime-range",
     names: ["datetimeRange"],
-    min: 148_300,
-    gzip: 51_850,
+    min: 148_350,
+    gzip: 51_900,
     floor: 138_000,
   },
   {
@@ -1068,7 +1131,7 @@ export const BUDGETS: EntrySpec[] = [
     label: "datetime-range holiday",
     from: "@smartput/datetime-range/holiday",
     names: ["datetimeRangeHoliday"],
-    min: 1_587_300,
+    min: 1_587_400,
     gzip: 292_000,
   },
   {
@@ -1079,8 +1142,8 @@ export const BUDGETS: EntrySpec[] = [
     label: "range",
     from: "@smartput/range",
     names: ["RANGE_KINDS"],
-    min: 43_700,
-    gzip: 17_300,
+    min: 43_800,
+    gzip: 17_350,
   },
   {
     // The `./class` subpath, measured to record that it is an *ergonomics* door
@@ -1092,7 +1155,7 @@ export const BUDGETS: EntrySpec[] = [
     label: "range/class",
     from: "@smartput/range/class",
     names: ["Range"],
-    min: 43_750,
+    min: 43_800,
     gzip: 17_350,
   },
   // Every row from here to the end of the range block was re-measured when
@@ -1137,8 +1200,8 @@ export const BUDGETS: EntrySpec[] = [
     label: "query root (grammar + schema, no dialect)",
     from: "@smartput/query",
     names: ["QueryEngine", "defineSchema"],
-    min: 59_650,
-    gzip: 22_050,
+    min: 59_700,
+    gzip: 22_100,
   },
   {
     label: "query/sql",

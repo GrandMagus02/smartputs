@@ -12,14 +12,15 @@ to influence the ranking.
 
 ## Selectors
 
-A selector names a set of candidates. Four shapes:
+A selector names a set of candidates. Five shapes:
 
 ```ts
 type Selector =
   | `token:${string}`     // one surface form, any kind    "token:m"
   | `${KindId}:${string}` // one unit of one kind          "duration:min"
   | KindId                // every unit of a kind          "length"
-  | `locale:${string}`;   // every spelling one language owns   "locale:uk"
+  | `locale:${string}`    // every spelling one language owns   "locale:uk"
+  | `grammar:${string}`;  // every number one language's digits produce "grammar:de"
 
 type Weights = Record<Selector, number>;
 ```
@@ -34,6 +35,43 @@ first installed language that lists it, so on a `[en, uk]` engine `kg` is an
 `{ "locale:uk": 5 }` moves `5 кг` and never `5 kg`. Use it to prefer, or
 disfavour, the spellings a language uniquely owns — not to break a tie between
 two languages over one word.
+
+### The grammar selector, for digits rather than words
+
+`locale:` weights a *word*. `grammar:` weights a *number*, and it exists because
+`1,000` is two different numbers depending on who typed it: a thousand in
+English, one point nought in German. On an engine with more than one language
+installed, the digits are a choice the solver has to make, exactly like `m`
+being a metre or a minute — so they are scored the same way, over the same four
+layers.
+
+```ts
+// An engine with both German and English installed. "1,000" is a thousand to
+// one of them and one to the other; the weight says which.
+engine.evaluate("1,000 kg", { weights: { "grammar:de": 5 } });  // 1 kilogram
+```
+
+One selector per **locale**, not per grammar, because a grammar is shared: `en`,
+`ja` and `hi` all group with `,` and point with `.`, and `{ "grammar:ja": 5 }`
+is meant to lift a language's digits rather than a punctuation convention. Every
+locale that reads a run of digits that way gets a row, and the rows sum.
+
+Two things do the ranking before any weight you write:
+
+- **The engine's own layer carries `grammar:<format>` at 1** ([ruling
+  R-A1](/guide/roadmap#the-second-pass-and-the-four-rulings-it-cost)). A bare
+  `1,000` with no unit beside it keeps reading the way the engine's own language
+  reads it, instead of becoming a coin flip that throws `AmbiguityError` on
+  every thousand a user types.
+- **A unit word beside the digits is worth +2**, charged once per number slot
+  whose grammar agrees with the language that listed the unit. That is what
+  makes `"1.000,5 kg"` read as German on an `[en, de]` engine without anybody
+  configuring anything: `kg` is a word both languages list, but `1.000,5` is
+  only a German number, and the two agree. A weight of 5 overturns both.
+
+`explain()` lists the `grammar:` rows and the agreement bonus beside the unit
+rows, so a surprising reading of a number is inspectable the same way a
+surprising reading of a word is.
 
 ## Weights are plain numbers and they add
 
@@ -72,9 +110,17 @@ raw(candidate)    = Σ matching selectors      // all four layers
                   + hintBonus                 // opts.kinds, or the coerce() target
                   − 15 × editDistance         // only if the surface had to be corrected
 
-score(assignment) = Σ raw over its candidates
+raw(number)       = Σ matching `grammar:` selectors   // all four layers
+                  + 2 per slot whose grammar agrees with a unit beside it
+
+score(assignment) = Σ raw over its candidates and its number readings
 confidence        = softmax(score over all consistent assignments)
 ```
+
+An assignment chooses a unit for every word *and* a grammar for every run of
+digits the installed languages disagree about, which is why the number line is
+there. On a single-language engine there is nothing to disagree about, the
+number term is always zero, and the sum is what it always was.
 
 `contextBonus` is why `10 m + 5 min` needs no configuration at all: the
 `duration` reading of `m` has a sibling it can legally combine with, and the
