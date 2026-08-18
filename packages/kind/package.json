@@ -32,6 +32,11 @@
       "types": "./dist/errors.d.ts",
       "default": "./dist/errors.js"
     },
+    "./contracts": {
+      "bun": "./src/contracts.ts",
+      "types": "./dist/contracts.d.ts",
+      "default": "./dist/contracts.js"
+    },
     "./define": {
       "bun": "./src/define.ts",
       "types": "./dist/define.d.ts",

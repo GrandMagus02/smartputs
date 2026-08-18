@@ -38,6 +38,13 @@ export interface EntrySpec {
    * than the default band allows.
    */
   floor?: number;
+  /**
+   * This entry exports no runtime name at all, and the budget is that it never
+   * starts to. `names` is empty, the synthetic entry is a bare side-effect
+   * import, and the "nothing was kept" guard below is skipped — for a row like
+   * `@smartput/kind/contracts`, keeping nothing IS the measurement.
+   */
+  typesOnly?: boolean;
 }
 
 /**
@@ -192,7 +199,12 @@ async function measureHere(spec: EntrySpec): Promise<Sizes> {
     .map((name, index) => (name === locals[index] ? name : `${name} as ${locals[index]}`))
     .join(", ");
 
-  const source = `import { ${clause} } from ${JSON.stringify(spec.from)};
+  // A types-only entry is imported for its side effects and nothing else,
+  // because it has none of either: no name to bind, and so no keep-alive to
+  // write. What the bundler emits for it is the whole claim of the row.
+  const source = spec.typesOnly
+    ? `import ${JSON.stringify(spec.from)};\n`
+    : `import { ${clause} } from ${JSON.stringify(spec.from)};
 (globalThis as Record<string, unknown>).__keep = [${locals.join(", ")}];
 `;
   const slug = spec.label.replace(/[^a-z0-9]+/gi, "-");
@@ -226,12 +238,17 @@ async function measureHere(spec: EntrySpec): Promise<Sizes> {
     // A tree-shaken-to-nothing bundle means the symbol did not exist or the
     // keep-alive failed. This catches only the degenerate case; the floor in
     // the runner below is what catches a bundle that is merely far too small.
-    if (text.length < 32) {
+    if (!spec.typesOnly && text.length < 32) {
       throw new Error(`${spec.label}: bundle is ${text.length} bytes — nothing was kept`);
     }
 
     const bytes = new TextEncoder().encode(text);
-    return { min: bytes.byteLength, gzip: Bun.gzipSync(bytes).byteLength };
+    // An empty payload gzips to a ~20 B header and no content. Reporting the
+    // header would make a 0 B row impossible to write, and it would be
+    // measuring the container rather than the thing: nothing compresses to
+    // nothing.
+    const gzip = bytes.byteLength === 0 ? 0 : Bun.gzipSync(bytes).byteLength;
+    return { min: bytes.byteLength, gzip };
   } finally {
     await unlink(entry).catch(() => {});
   }
@@ -251,6 +268,7 @@ export async function measureEntry(spec: EntrySpec): Promise<Sizes> {
     label: spec.label,
     from: spec.from,
     names: spec.names,
+    typesOnly: spec.typesOnly,
   });
   const proc = Bun.spawn(["bun", "run", SELF, "--measure", request], {
     cwd: rootDir,
@@ -622,6 +640,23 @@ export const BUDGETS: EntrySpec[] = [
     names: ["defineKind"],
     min: 33_500,
     gzip: 13_350,
+  },
+  {
+    // The proof of ruling R-F1. `@smartput/kind/contracts` declares the shapes
+    // kinds agree on — `PlaceMeta`, `RangeMeta`, `InstantMeta`, `MoneyContext` —
+    // and declaring a shape is not code, so a consumer who imports one pays
+    // nothing for it. That is the entire argument for a subpath over a
+    // `@smartput/contracts` package, and this row is the argument measured.
+    //
+    // Zero, and the row exists to keep it zero: the moment someone puts a const
+    // or a function in `contracts.ts`, every package that imports a shape starts
+    // paying for it, and this row fails OVER on the first build.
+    label: "kind/contracts (types only — the proof of ruling R-F1)",
+    from: "@smartput/kind/contracts",
+    names: [],
+    typesOnly: true,
+    min: 0,
+    gzip: 0,
   },
   // Naming a kind's words used to cost the same 33 KB, and now costs 272 B.
   //

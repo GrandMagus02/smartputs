@@ -32,6 +32,11 @@ test("every budget is two-sided, and the floor rejects a shaken-away graph", () 
   // which cleared the old 32-byte "nothing was kept" check and printed OK
   // against a 1300 B budget.
   for (const spec of BUDGETS) {
+    // A types-only row is the one exception, and it is the inverse case rather
+    // than a hole in this one: `@smartput/kind/contracts` claims to bundle to
+    // nothing, so "the graph was shaken away" is what it asserts, not what it
+    // guards against. Its own two-sided check is the next test.
+    if (spec.typesOnly === true) continue;
     const floor = floorOf(spec);
     expect({ label: spec.label, positive: floor > 0 }).toEqual({
       label: spec.label,
@@ -48,6 +53,43 @@ test("every budget is two-sided, and the floor rejects a shaken-away graph", () 
       rejectsStub: true,
     });
   }
+});
+
+test("a types-only row budgets zero at both ends and names no export", () => {
+  // Ruling R-F1's proof. A row that claims 0 B has to claim it exactly: a
+  // ceiling above zero would let a const slip into `contracts.ts` unnoticed,
+  // which is the only failure this row exists to catch.
+  const typesOnly = BUDGETS.filter((spec) => spec.typesOnly === true);
+  expect(typesOnly.map((spec) => spec.from)).toContain("@smartput/kind/contracts");
+  for (const spec of typesOnly) {
+    expect({
+      label: spec.label,
+      min: spec.min,
+      gzip: spec.gzip,
+      names: spec.names,
+    }).toEqual({
+      label: spec.label,
+      min: 0,
+      gzip: 0,
+      names: [],
+    });
+    expect({ label: spec.label, floor: floorOf(spec) }).toEqual({
+      label: spec.label,
+      floor: 0,
+    });
+  }
+});
+
+test("a types-only entry measures zero rather than failing the keep-alive guard", async () => {
+  const { min, gzip } = await measureEntry({
+    label: "kind/contracts probe",
+    from: "@smartput/kind/contracts",
+    names: [],
+    typesOnly: true,
+    min: 0,
+    gzip: 0,
+  });
+  expect({ min, gzip }).toEqual({ min: 0, gzip: 0 });
 });
 
 test("the class barrel is measured, not just the validate barrel", () => {

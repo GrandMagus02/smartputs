@@ -167,41 +167,11 @@ export interface RateLookup {
 }
 
 /**
- * What a `place` Value carries on `meta`, declared here for the same reason as
- * `RateLookup`: `@smartput/geo` produces it and the datetime and money kinds
- * read it, so the contract lives in the one package all three already depend on
- * and none of them imports another.
- *
- * The rejected alternative was injecting a `PlaceLookup` into datetime, which
- * would have made datetime's construction depend on geo being present to serve
- * a case that a plain string on `meta` already covers: the datetime bridge
- * reads `zone`, the money bridge reads `currency`, and neither needs to know
- * what a city is.
+ * @deprecated Import from `@smartput/kind/contracts`. Re-exported here for one
+ * release so a consumer pinned to the old path keeps compiling — ruling R-F1
+ * moved the declaration, not the name.
  */
-export interface PlaceMeta {
-  /** GeoNames feature id. Stable, and the Value's canonical. */
-  readonly geonameId: number;
-  /**
-   * The place's own display name — "Japan", "Athens", "Los Angeles".
-   *
-   * Here rather than left to the formatter to look up, because the lookup a
-   * formatter could do is by `country`, and that returns the *country's* name
-   * for a city: it rendered "athens" as "Greece — … 11M" while this same meta
-   * said 664,046. A city table big enough to answer the question properly is
-   * the one thing the formatter must not import, since reaching it statically
-   * links the whole gazetteer into every bundle.
-   */
-  readonly name: string;
-  /** IANA zone. Always present: a country carries its capital's zone. */
-  readonly zone: string;
-  /** ISO 4217. Present on countries; on a city, its country's. */
-  readonly currency: string;
-  readonly lat: number;
-  readonly lon: number;
-  readonly population: number;
-  /** ISO 3166-1 alpha-2, lowercased. Equals the Value's `unit`. */
-  readonly country: string;
-}
+export type { PlaceMeta } from "./contracts";
 
 export interface EvalCtx {
   readonly self: Value;
@@ -214,6 +184,15 @@ export interface EvalCtx {
   readonly input?: string;
   /** The engine's injected rate table, when one was supplied. */
   readonly rates?: RateLookup;
+  /**
+   * Per-kind configuration, keyed by kind id and opaque to core (§G). A kind
+   * casts its own slot to the contract it published — `@smartput/rate` reads
+   * `ctx.context?.money as MoneyContext` from `@smartput/kind/contracts`.
+   *
+   * This is where `rates`/`rounding` go once their deprecation lapses: they are
+   * one plugin's table on an options object every plugin shares.
+   */
+  readonly context?: Readonly<Record<KindId, unknown>>;
   /**
    * Records an assumption made while converting. Supplied by the evaluator;
    * absent during a standalone conversion, which has no Result to attach to.
@@ -556,6 +535,17 @@ export interface Kind {
    * band is never a penalty.
    */
   typical?: Readonly<Record<string, [number, number]>>;
+  /**
+   * Adjacent quantities of this kind, in strictly descending units and with no
+   * operator between them, fold into a sum: "1 h 30 min", "5 ft 3 in". Off by
+   * default, and off is right for most kinds — `datasize` does not want
+   * "1 gb 500 mb", and `temperature` must not have it at all, since two
+   * adjacent temperatures do not add.
+   *
+   * Read by the parser (`parse/pratt.ts`), never by the solver: the fold builds
+   * an ordinary `+` node and the signature that already exists prices it.
+   */
+  compound?: boolean;
   literals?: LiteralMatcher[];
   /**
    * Beside the vocabulary, never instead of it. A unit's aliases keep
@@ -682,6 +672,14 @@ export interface ExpressionParts {
 export interface UnitWords {
   readonly aliases: readonly string[];
   readonly symbol?: string;
+  /**
+   * The symbol is written against the number with no space — "50%", "20°C",
+   * "£22.94". Default false, which is "12 kg" spacing.
+   *
+   * A property of the WORD, not of the kind: `%` is tight and `kg` is not, and
+   * both belong to kinds whose other units disagree with them.
+   */
+  readonly tight?: boolean;
   /** Keys are whatever this language's `selectForm` returns. */
   readonly forms?: Readonly<Record<string, string>>;
 }
