@@ -284,8 +284,15 @@ describe("German's forms print", () => {
     ["7 Meter", "7 Meter"],
     // A fraction is CLDR `other` in German as in English, and the decimal
     // comma comes from `numberFormat: "intl"` under the `de` tag — the format
-    // locale's number grammar, not the reading one's.
-    ["1.5 Meilen", "1,5 Meilen"],
+    // locale's number grammar, not the reading one's. English digits beside an
+    // English word, printed German, is the row that says so.
+    ["1.5 miles", "1,5 Meilen"],
+    // The same fraction typed in German. Both halves are written in it on
+    // purpose: since number readings became solver slots, `Meilen` is a word
+    // only German spells, so the German reading of the digits takes the
+    // agreement bonus and beats the engine's `grammar:en` point (ruling R-A1)
+    // — "1.5 Meilen" is fifteen miles on this engine, not one and a half.
+    ["1,5 Meilen", "1,5 Meilen"],
     // The group separator German writes, which is neither English's `,` nor
     // Ukrainian's U+00A0.
     ["10 Kilometer in Meter", "10.000 Meter"],
