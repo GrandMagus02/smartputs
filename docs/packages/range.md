@@ -330,8 +330,8 @@ only an upper bound reports a vanished graph as a triumph.
 
 | Import | Minified | Gzipped |
 | --- | --- | --- |
-| range | ≤ 43.6 kB | ≤ 17.3 kB |
-| range/class | ≤ 43.6 kB | ≤ 17.3 kB |
+| range | ≤ 43.7 kB | ≤ 17.3 kB |
+| range/class | ≤ 43.8 kB | ≤ 17.4 kB |
 
 ## Dependencies
 

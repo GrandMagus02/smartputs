@@ -65,7 +65,7 @@ be edited after an engine has read it.
 
 Type-only exports are erased and do not appear here.
 
-`AmbiguityError` · `BOOLEAN_KIND` · `BOOLEAN_UNIT` · `COMPARE_PRECISION` · `COMPARISON_OPS` · `Decimal` · `DimensionMismatchError` · `DivideByZeroError` · `KeywordConflictError` · `KindConflictError` · `LocaleMismatchError` · `MissingRateError` · `NUMBER_KIND` · `NoCandidateError` · `PERCENT_KIND` · `RateProviderError` · `RatesNotReadyError` · `SmartputError` · `TooAmbiguousError` · `UnitParseError` · `UnknownKindError` · `VocabularyConflictError` · `aliasesFor` · `decimalRatios` · `deepFreeze` · `defineKind` · `defineVocabulary` · `deriveValue` · `generateComparisonOps` · `generateRatioOps` · `normalizeKind`
+`AmbiguityError` · `BOOLEAN_KIND` · `BOOLEAN_UNIT` · `COMPARE_PRECISION` · `COMPARISON_OPS` · `CountQueryError` · `Decimal` · `DimensionMismatchError` · `DivideByZeroError` · `KeywordConflictError` · `KindConflictError` · `LocaleMismatchError` · `MissingRateError` · `NUMBER_KIND` · `NoCandidateError` · `PERCENT_KIND` · `RateProviderError` · `RatesNotReadyError` · `SmartputError` · `TooAmbiguousError` · `UnitParseError` · `UnknownKindError` · `VocabularyConflictError` · `aliasesFor` · `decimalRatios` · `deepFreeze` · `defineKind` · `defineVocabulary` · `deriveValue` · `generateComparisonOps` · `generateRatioOps` · `normalizeKind`
 
 ## Dependencies
 

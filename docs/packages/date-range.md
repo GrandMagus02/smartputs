@@ -40,7 +40,7 @@ only an upper bound reports a vanished graph as a triumph.
 
 | Import | Minified | Gzipped |
 | --- | --- | --- |
-| date-range | ≤ 149 kB | ≤ 52.0 kB |
+| date-range | ≤ 150 kB | ≤ 52.0 kB |
 
 ## Dependencies
 

@@ -84,7 +84,7 @@ graph as a triumph.
 
 | Import | Minified | Gzipped |
 | --- | --- | --- |
-| query root (grammar + schema, no dialect) | ≤ 59.5 kB | ≤ 22.0 kB |
+| query root (grammar + schema, no dialect) | ≤ 59.6 kB | ≤ 22.1 kB |
 | query/sql | ≤ 3.3 kB | ≤ 1.4 kB |
 | query/mongo | ≤ 4.6 kB | ≤ 1.9 kB |
 

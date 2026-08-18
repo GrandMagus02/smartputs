@@ -18,7 +18,8 @@ export const en: LocaleSpecificConfig<DefaultTheme.Config> & {
 
   themeConfig: {
     nav: [
-      { text: "Guide", link: "/guide/", activeMatch: "/guide/" },
+      { text: "Guide", link: "/guide/", activeMatch: "^/guide/(?!examples)" },
+      { text: "Examples", link: "/guide/examples/", activeMatch: "/guide/examples/" },
       { text: "Packages", link: "/packages/", activeMatch: "/packages/" },
       { text: "API", link: "/api/", activeMatch: "/api/" },
       { text: "Playground", link: "/playground" },
@@ -47,6 +48,23 @@ export const en: LocaleSpecificConfig<DefaultTheme.Config> & {
             { text: "Completion", link: "/guide/completion" },
             { text: "Locales", link: "/guide/locales" },
             { text: "Errors", link: "/guide/errors" },
+          ],
+        },
+        // Seven fields, each wired end to end. They sit under /guide because
+        // they are prose about building, and they are their own section
+        // because "how do I make the Figma box" is the question people arrive
+        // with — not one they think to look for under "Building with it".
+        {
+          text: "Examples",
+          items: [
+            { text: "All examples", link: "/guide/examples/" },
+            { text: "Dimension input", link: "/guide/examples/dimension-input" },
+            { text: "Date field", link: "/guide/examples/date-field" },
+            { text: "Duration field", link: "/guide/examples/duration-field" },
+            { text: "Money field", link: "/guide/examples/money-field" },
+            { text: "Filter bar", link: "/guide/examples/filter-bar" },
+            { text: "Command palette", link: "/guide/examples/command-palette" },
+            { text: "Pasted column", link: "/guide/examples/pasted-column" },
           ],
         },
         {

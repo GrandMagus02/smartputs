@@ -13,6 +13,9 @@ hero:
       text: Get started
       link: /guide/getting-started
     - theme: alt
+      text: Examples
+      link: /guide/examples/
+    - theme: alt
       text: Playground
       link: /playground
     - theme: alt

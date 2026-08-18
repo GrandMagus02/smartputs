@@ -85,6 +85,9 @@ spreadsheet references, natural-language sentences, historical FX by date.
 ## Next
 
 - [Getting started](/guide/getting-started) — install and evaluate something.
+- [Examples](/guide/examples/) — seven fields built on it, end to end: the
+  Figma-style dimension box, a date field with no calendar, a launcher, a
+  filter bar.
 - [The pipeline](/guide/pipeline) — the seven stages, with each one inspectable.
 - [Packages](/packages/) — one page per package, each with a live demo, its
   unit table and what it weighs. Money, dates, ranges, places, querying and

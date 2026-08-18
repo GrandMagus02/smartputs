@@ -76,7 +76,7 @@ graph as a triumph.
 | Import | Minified | Gzipped |
 | --- | --- | --- |
 | datetime/locale/en (a vocabulary outside the kind packages) | ≤ 35.9 kB | ≤ 14.4 kB |
-| datetime root (no holiday data) | ≤ 145 kB | ≤ 50.8 kB |
+| datetime root (no holiday data) | ≤ 145 kB | ≤ 50.9 kB |
 | datetime/holiday (the opt-in cost) | ≤ 1579 kB | ≤ 288 kB |
 
 ---

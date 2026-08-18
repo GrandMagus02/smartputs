@@ -4,10 +4,14 @@ import { h } from "vue";
 import DemoShell from "./components/DemoShell.vue";
 import HeroCalculator from "./components/HeroCalculator.vue";
 import PageActions from "./components/PageActions.vue";
+import SpCatalog from "./components/SpCatalog.vue";
+import SpCommandPalette from "./components/SpCommandPalette.vue";
 import SpComplete from "./components/SpComplete.vue";
 import SpConvert from "./components/SpConvert.vue";
 import SpCustomKind from "./components/SpCustomKind.vue";
+import SpDateField from "./components/SpDateField.vue";
 import SpDatetime from "./components/SpDatetime.vue";
+import SpDimensionInput from "./components/SpDimensionInput.vue";
 import SpDuration from "./components/SpDuration.vue";
 import SpEvaluate from "./components/SpEvaluate.vue";
 import SpExplain from "./components/SpExplain.vue";
@@ -22,6 +26,7 @@ import SpMathSpeech from "./components/SpMathSpeech.vue";
 import SpMathSteps from "./components/SpMathSteps.vue";
 import SpMathSystem from "./components/SpMathSystem.vue";
 import SpMoney from "./components/SpMoney.vue";
+import SpPastedColumn from "./components/SpPastedColumn.vue";
 import SpQuery from "./components/SpQuery.vue";
 import SpRange from "./components/SpRange.vue";
 import SpResult from "./components/SpResult.vue";
@@ -47,6 +52,8 @@ export default {
   enhanceApp({ app }) {
     // Registered globally so Markdown can use them without an import block.
     app.component("DemoShell", DemoShell);
+    // The card grid: the packages catalog, and the examples index.
+    app.component("SpCatalog", SpCatalog);
     app.component("SpResult", SpResult);
     app.component("SpEvaluate", SpEvaluate);
     app.component("SpSuggest", SpSuggest);
@@ -76,5 +83,10 @@ export default {
     app.component("SpMathAnalyze", SpMathAnalyze);
     app.component("SpMathMatrix", SpMathMatrix);
     app.component("SpMathSpeech", SpMathSpeech);
+    // One per recipe under /guide/examples.
+    app.component("SpDimensionInput", SpDimensionInput);
+    app.component("SpDateField", SpDateField);
+    app.component("SpCommandPalette", SpCommandPalette);
+    app.component("SpPastedColumn", SpPastedColumn);
   },
 } satisfies Theme;

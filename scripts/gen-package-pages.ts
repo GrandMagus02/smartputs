@@ -616,6 +616,108 @@ export const DEMOS: Record<string, string> = {
 };
 
 /**
+ * One line a person could type into a field, per package — the input the
+ * catalog card carries under the summary.
+ *
+ * The input and never the output: a card cannot run the engine, and a printed
+ * result nobody computed is the one thing every live demo on this site exists
+ * to avoid. Most of these are the first row of that package's `DEMOS` entry,
+ * which `gen-readmes.ts` already evaluates; the rest are the call a package
+ * with no expression to type is used through.
+ */
+export const EXAMPLES: Record<string, string> = {
+  core: "1 kg + 500 g",
+  kind: 'defineKind({ id: "css" })',
+  kinds: "BUILTIN_KINDS",
+  shared: 'parseLength("30 cm")',
+  smartputs: "bun i smartputs",
+
+  angle: "90 deg in rad",
+  area: "1 ha in m2",
+  boolean: "1 kg > 900 g",
+  datarate: "1 gbps in mbps",
+  datasize: "1 GiB in MiB",
+  duration: "30 h - 30 min",
+  energy: "1 kWh in J",
+  length: "2 km in m",
+  mass: "1 kg + 500 g",
+  measure: "12 pt in mm",
+  number: "(1 + 2) * 3",
+  percent: "20% of 250",
+  power: "1 hp in W",
+  speed: "100 kph in mph",
+  temperature: "212 F in C",
+  tempo: "120 bpm in hz",
+  volume: "500 ml + 1 l",
+
+  currency: "30 usd",
+  rate: "30 usd in gbp",
+
+  date: "next friday",
+  datetime: "3pm in tokyo",
+  holiday: "christmas",
+  time: "3pm",
+  timezone: "gmt+3",
+
+  "date-range": "last week",
+  "datetime-range": "yesterday morning",
+  range: "last three",
+  "range-core": "whole week",
+  "time-range": "9am to 5pm",
+
+  distance: "haversine(kyiv, warsaw)",
+  geo: "muenchen",
+
+  math: "x^2 - 5x + 6 = 0",
+  query: "orders over 500 usd",
+};
+
+/**
+ * The card icon, by group and then by package. Only names this site already
+ * uses appear here: an icon set is resolved at build time by UnoCSS, and a
+ * name that is not in `@iconify-json/hugeicons` renders as an empty box rather
+ * than as an error anybody would notice.
+ */
+const GROUP_ICONS: Record<string, string> = {
+  Engine: "i-hugeicons-puzzle",
+  Kinds: "i-hugeicons-shapes",
+  Money: "i-hugeicons-money-01",
+  "Dates and time": "i-hugeicons-date-time",
+  Ranges: "i-hugeicons-sliders-horizontal",
+  Places: "i-hugeicons-map-pin",
+  "Math and queries": "i-hugeicons-summation-01",
+};
+
+/** Per-package overrides, matching the result-card icons in `theme/engine.ts`. */
+const PACKAGE_ICONS: Record<string, string> = {
+  angle: "i-hugeicons-triangle",
+  area: "i-hugeicons-square",
+  datarate: "i-hugeicons-hard-drive",
+  datasize: "i-hugeicons-hard-drive",
+  duration: "i-hugeicons-timer-01",
+  length: "i-hugeicons-ruler",
+  mass: "i-hugeicons-weight-scale",
+  measure: "i-hugeicons-ruler",
+  number: "i-hugeicons-hashtag",
+  percent: "i-hugeicons-percent",
+  speed: "i-hugeicons-dashboard-speed-01",
+  temperature: "i-hugeicons-thermometer",
+  volume: "i-hugeicons-test-tube-01",
+  math: "i-hugeicons-summation-01",
+  query: "i-hugeicons-computer-terminal-01",
+  shared: "i-hugeicons-checkmark-square-01",
+  smartputs: "i-hugeicons-package",
+  core: "i-hugeicons-calculator",
+  boolean: "i-hugeicons-checkmark-square-01",
+};
+
+export function iconFor(pkg: string): string {
+  return (
+    PACKAGE_ICONS[pkg] ?? GROUP_ICONS[META[pkg]?.group ?? ""] ?? "i-hugeicons-package"
+  );
+}
+
+/**
  * Hand-written guide prose, by basename under `docs/_prose/`. These files were
  * `/guide/money`, `/guide/places` and the rest until one package's story stopped
  * being split across two trees that had to be kept in sync.
@@ -899,16 +1001,19 @@ because it has none.\n`
 
 function indexPage(names: string[]): string {
   const groups = GROUP_ORDER.map((group) => {
-    const rows = names
-      .filter((name) => META[name]?.group === group)
-      .map(
-        (name) =>
-          `| [\`@smartput/${name}\`](/packages/${name}) | ${META[name]?.summary} |`,
-      );
-    return rows.length === 0
-      ? ""
-      : `## ${group}\n\n| Package | What it is |\n| --- | --- |\n${rows.join("\n")}\n`;
+    const members = names.filter((name) => META[name]?.group === group);
+    return members.length === 0 ? "" : `## ${group}\n\n<SpCatalog group="${group}" />\n`;
   }).filter((section) => section !== "");
+
+  // The cards are Vue and the page is also a corpus: `vitepress-plugin-llms`
+  // ships this file's Markdown as `/packages.md`, and a reader with no browser
+  // — an agent, a `curl`, a person with JavaScript off — would otherwise find
+  // seven headings and no packages under them. So the same rows stay here as
+  // one generated table, folded away for everyone who can see the grid.
+  const rows = names.map(
+    (name) =>
+      `| [\`${specifierOf(name)}\`](/packages/${name}) | ${META[name]?.summary} | \`${EXAMPLES[name]}\` |`,
+  );
 
   return `---
 title: Packages
@@ -917,17 +1022,68 @@ description: Every published package, what it is, what it costs, and what it dep
 
 # Packages
 
-${names.length} packages, one page each. Every table on those pages is read from
-the source it describes — the manifest's \`exports\`, the kind's \`UnitTable\`,
-the rows of \`check-size.ts\` — so none of them can drift from the code without
-the build noticing.
+${names.length} packages, one card each — the line under a package is what you
+would type into it. Every table on the page a card opens is read from the source
+it describes — the manifest's \`exports\`, the kind's \`UnitTable\`, the rows of
+\`check-size.ts\` — so none of them can drift from the code without the build
+noticing.
 
 The shape is always the same: **core** is the engine and knows nothing about
 metres; **shared** is the engine-free parser; each kind is a table plus three
 doors onto it; and anything that costs real bytes — a gazetteer, a holiday rule
 table — is its own package so that not importing it is possible.
 
+Looking for what to *build* with them instead? The [examples](/guide/examples/)
+are seven fields, each wired end to end.
+
 ${groups.join("\n")}
+<details class="sp-details">
+<summary>Every package as one table</summary>
+
+| Package | What it is | Reads |
+| --- | --- | --- |
+${rows.join("\n")}
+
+</details>
+`;
+}
+
+/**
+ * The card rows, emitted for `SpCatalog.vue` to render.
+ *
+ * Data and not markup: the index page is Markdown, and thirty-eight cards
+ * written into it as HTML would be thirty-eight blocks of generated markup in a
+ * file people read diffs of. This way the generator owns the facts, the
+ * component owns the card, and the examples index under /guide reuses the same
+ * component with rows of its own.
+ */
+function catalogModule(names: string[]): string {
+  const rows = GROUP_ORDER.flatMap((group) => {
+    const members = names.filter((name) => META[name]?.group === group);
+    if (members.length === 0) return [];
+    return [
+      `  {\n    group: ${JSON.stringify(group)},\n    items: [`,
+      ...members.map(
+        (name) =>
+          `      {\n        title: ${JSON.stringify(specifierOf(name))},\n` +
+          `        summary: ${JSON.stringify(META[name]?.summary ?? "")},\n` +
+          `        example: ${JSON.stringify(EXAMPLES[name] ?? "")},\n` +
+          `        link: "/packages/${name}",\n` +
+          `        icon: ${JSON.stringify(iconFor(name))},\n      },`,
+      ),
+      "    ],\n  },",
+    ];
+  });
+
+  return `import type { CatalogGroup } from "./catalog";
+
+// Generated by scripts/gen-package-pages.ts. Do not edit — run
+// \`bun run docs:packages\` instead.
+export const PACKAGE_CATALOG: readonly CatalogGroup[] = [
+${rows.join("\n")}
+];
+
+export default PACKAGE_CATALOG;
 `;
 }
 
@@ -952,6 +1108,14 @@ if (import.meta.main) {
   const undemoed = dirs.filter((name) => DEMOS[name] === undefined);
   if (undemoed.length > 0) {
     console.error(`gen-package-pages: no demo for ${undemoed.join(", ")}`);
+    process.exit(1);
+  }
+
+  const unexampled = dirs.filter((name) => EXAMPLES[name] === undefined);
+  if (unexampled.length > 0) {
+    // Same reason as the demo check above: a card with no example line is a
+    // card that says less than the table it replaced.
+    console.error(`gen-package-pages: no catalog example for ${unexampled.join(", ")}`);
     process.exit(1);
   }
 
@@ -996,6 +1160,31 @@ export default packagesSidebar;
 `;
   }
 
+  /**
+   * Emitted TypeScript, run through the repo's own formatter.
+   *
+   * The generated modules are checked in and `bun run lint` reads them, so a
+   * generator whose output biome would reformat makes every regeneration dirty
+   * the tree. Piping through `biome format` is the only version of this that
+   * cannot drift from the config in `biome.json` — matching its line-breaking
+   * by hand is a second formatter waiting to disagree with the first.
+   */
+  async function formatted(source: string, path: string): Promise<string> {
+    const biome = Bun.spawn(["bunx", "biome", "format", `--stdin-file-path=${path}`], {
+      stdin: new TextEncoder().encode(source),
+      stdout: "pipe",
+      stderr: "pipe",
+    });
+    const [out, code] = await Promise.all([
+      new Response(biome.stdout).text(),
+      biome.exited,
+    ]);
+    if (code !== 0) {
+      throw new Error(`gen-package-pages: biome format failed for ${path}`);
+    }
+    return out;
+  }
+
   await mkdir(outDir, { recursive: true });
   for (const name of dirs) {
     const meta = META[name];
@@ -1005,10 +1194,14 @@ export default packagesSidebar;
   await writeFile(`${outDir}/index.md`, indexPage(dirs));
   await writeFile(
     `${rootDir}/docs/.vitepress/locales/packages-sidebar.ts`,
-    sidebarModule(dirs),
+    await formatted(sidebarModule(dirs), "packages-sidebar.ts"),
+  );
+  await writeFile(
+    `${rootDir}/docs/.vitepress/theme/packages-catalog.ts`,
+    await formatted(catalogModule(dirs), "packages-catalog.ts"),
   );
 
   console.log(
-    `gen-package-pages: wrote ${dirs.length + 1} pages to docs/packages, and the sidebar`,
+    `gen-package-pages: wrote ${dirs.length + 1} pages to docs/packages, the sidebar and the catalog`,
   );
 }
