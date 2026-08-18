@@ -33,8 +33,16 @@ import {
  *   bun run publish-packages --dry-run           # stage + pack, publish nothing
  *   bun run publish-packages --only @smartput/kind,@smartput/shared
  *   bun run publish-packages --version 0.1.0     # stamp a first version everywhere
- *   bun run publish-packages --ci                # token from NPM_TOKEN, no prompts
+ *   bun run publish-packages --ci                # token, or trusted-publisher OIDC, no prompts
  *   bun run publish-packages --no-open           # do not open the token page
+ *
+ * `--ci` authenticates two ways, tried in that order: `NPM_TOKEN`/`NODE_AUTH_TOKEN`
+ * if set, otherwise npm's own trusted-publisher OIDC exchange — which needs
+ * nothing from this script beyond the `id-token: write` permission a GitHub
+ * Actions job grants, but needs a trusted publisher configured for the package
+ * on npmjs.com first (Settings → Trusted Publisher, one GitHub Actions
+ * workflow per package). A package with neither 403s; that reads as an auth
+ * failure and is really "nobody told npm to trust this workflow yet".
  */
 
 const REGISTRY = "https://registry.npmjs.org";
@@ -238,9 +246,17 @@ async function publishStaged(
 ): Promise<boolean> {
   const npmrc = `${staged.stagedDir}/.npmrc-publish`;
   const host = REGISTRY.replace(/^https?:/, "");
-  await writeFile(npmrc, `${host}/:_authToken=${token}\nregistry=${REGISTRY}\n`, {
-    mode: 0o600,
-  });
+  // No token at all is the trusted-publisher path: npm exchanges GitHub's own
+  // OIDC token for a short-lived one at publish time, using the workflow
+  // identity a package owner configured on npmjs.com — nothing in this file
+  // authenticates the call, so there is no `_authToken` line to write. That
+  // exchange reads `ACTIONS_ID_TOKEN_REQUEST_TOKEN`/`_URL` off the process
+  // environment `run()` already inherits; this config only ever pins the
+  // registry so the call cannot fall back to whatever `~/.npmrc` says.
+  const lines = token
+    ? [`${host}/:_authToken=${token}`, `registry=${REGISTRY}`]
+    : [`registry=${REGISTRY}`];
+  await writeFile(npmrc, `${lines.join("\n")}\n`, { mode: 0o600 });
 
   const publish = async (otp?: string) =>
     run(
@@ -389,8 +405,19 @@ async function main() {
   );
 
   const ciToken = process.env.NPM_TOKEN ?? process.env.NODE_AUTH_TOKEN ?? "";
-  if (args.ci && !ciToken) {
-    console.error("--ci needs NPM_TOKEN (or NODE_AUTH_TOKEN) in the environment.");
+  // The OIDC exchange trusted publishing runs on: present exactly when the
+  // job declared `id-token: write`, absent on a pull request checkout (GitHub
+  // never grants it there) and on any run outside Actions. A `--ci` run needs
+  // one or the other — a bare token for a registry that has no trusted
+  // publisher configured yet, or this for one that does.
+  const hasOidc = Boolean(
+    process.env.ACTIONS_ID_TOKEN_REQUEST_TOKEN &&
+      process.env.ACTIONS_ID_TOKEN_REQUEST_URL,
+  );
+  if (args.ci && !ciToken && !hasOidc) {
+    console.error(
+      "--ci needs NPM_TOKEN (or NODE_AUTH_TOKEN), or a job with `id-token: write` for npm's trusted-publisher OIDC exchange.",
+    );
     process.exit(1);
   }
 

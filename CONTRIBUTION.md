@@ -157,10 +157,15 @@ Releases are automatic. Merging to `main` runs `.github/workflows/release.yml`, 
 4. publishes to npm in dependency order with provenance, and cuts a GitHub release per
    package.
 
-It needs one repository secret, `NPM_TOKEN`, with publish rights to the `@smartput`
-scope.
+It authenticates to npm via [trusted publishing](https://docs.npmjs.com/trusted-publishers)
+— OIDC, not a stored secret. Each package needs a trusted publisher configured once on
+npmjs.com (package Settings -> Trusted Publisher -> GitHub Actions, this repo, workflow
+file `release.yml`); a package with none configured 403s on publish without holding up
+the others. If `NPM_TOKEN` is ever set as a repository secret it is read as a fallback,
+for a package that cannot use OIDC yet.
 
-**The first publish is manual**, because 37 package names have to be claimed:
+**The first publish is manual**, because a name has to exist before npm will let you
+attach a trusted publisher to it, and because 37 package names have to be claimed:
 
 ```sh
 bun run publish-packages --dry-run --version 0.1.0   # stage everything, publish nothing
