@@ -216,3 +216,38 @@ test("a money facade has no dpi surface", () => {
   expect(() => q.dpi).not.toThrow();
   expect(q.dpi).toBeUndefined();
 });
+
+// A table nobody should be quoted: 1 EUR buys 2 dollars and 10 hryvnia. It
+// exists to be the losing side of the precedence tests below, so a formatted
+// amount that came from it is unmistakable.
+const staleRates = snapshot("EUR", "2000-01-01", { USD: 2, UAH: 10, GBP: 1 });
+
+test("context.money.rates is read wherever the deprecated rates option was", () => {
+  const e = createEngine({
+    locales: [en],
+    kinds: [number, money],
+    context: { money: { rates } },
+  });
+  // Both stages, on purpose: `usd` is authored through the rate table by the
+  // evaluator and `uah` by the printer, so a `context` that reached only one
+  // of them would still answer — with the other one's number, or with
+  // MissingRateError.
+  expect(e.evaluate("100 usd in uah").formatted).toBe("₴4,136.36");
+  expect(e.evaluate("30 usd").meta.ratesAsOf).toBe("2026-08-04");
+});
+
+test("an explicit context.money wins over the deprecated rates field", () => {
+  const e = createEngine({
+    locales: [en],
+    kinds: [number, money],
+    rates: staleRates,
+    context: { money: { rates } },
+  });
+  expect(e.evaluate("100 usd in uah").formatted).toBe("₴4,136.36");
+  expect(e.evaluate("30 usd").meta.ratesAsOf).toBe("2026-08-04");
+});
+
+test("the deprecated rates field still works on its own", () => {
+  const e = createEngine({ locales: [en], kinds: [number, money], rates });
+  expect(e.evaluate("100 usd in uah").formatted).toBe("₴4,136.36");
+});

@@ -1,3 +1,4 @@
+import type { KindContext } from "@smartput/kind/contracts";
 import { deepFreeze } from "../freeze";
 import type { Registry } from "../kind/registry";
 import type { Program } from "../parse/program";
@@ -16,6 +17,8 @@ export interface EvaluatorOptions {
   locale: string;
   kindMeta?: Record<KindId, Record<string, unknown>>;
   rates?: RateLookup;
+  /** Per-kind configuration, keyed by kind id and opaque to core — §G. */
+  context?: KindContext;
   /** Significant digits a comparison rounds to; `"exact"` turns the guard off. */
   comparePrecision?: number | "exact";
 }
@@ -36,6 +39,7 @@ export class Evaluator {
   private readonly locale: string;
   private readonly kindMeta?: Record<KindId, Record<string, unknown>>;
   private readonly rates?: RateLookup;
+  private readonly context?: KindContext;
   private readonly comparePrecision?: number | "exact";
 
   constructor(cfg: EvaluatorOptions) {
@@ -49,6 +53,11 @@ export class Evaluator {
     // held by reference, same as `Tokenizer`/`Parser` hold theirs.
     if (cfg.kindMeta !== undefined) this.kindMeta = Object.freeze({ ...cfg.kindMeta });
     if (cfg.rates !== undefined) this.rates = cfg.rates;
+    // By reference, with `rates` and `registry`: a context slot is a plugin's
+    // own table, built once by whoever configured the engine, and copying one
+    // level would freeze the bag while leaving every slot inside it mutable —
+    // a guarantee too shallow to be worth its cost.
+    if (cfg.context !== undefined) this.context = cfg.context;
     if (cfg.comparePrecision !== undefined) this.comparePrecision = cfg.comparePrecision;
     Object.freeze(this);
   }
@@ -62,6 +71,7 @@ export class Evaluator {
       input: program.input.source,
       ...(this.kindMeta !== undefined ? { kindMeta: this.kindMeta } : {}),
       ...(this.rates !== undefined ? { rates: this.rates } : {}),
+      ...(this.context !== undefined ? { context: this.context } : {}),
       ...(this.comparePrecision !== undefined
         ? { comparePrecision: this.comparePrecision }
         : {}),

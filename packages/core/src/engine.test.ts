@@ -12,6 +12,7 @@ import {
   KeywordConflictError,
   MissingRateError,
   NoCandidateError,
+  SmartputError,
   UnitParseError,
 } from "./errors";
 import { createFacades } from "./facade/index";
@@ -1230,4 +1231,162 @@ test("R-C1: a kind that formats itself is exempt, so money keeps its own cent", 
     display: { maximumFractionDigits: 1 },
   });
   expect(e.evaluate("1 dbl / 3").formatted).toBe("0.33333333 dbl");
+});
+
+/**
+ * The kind §G's seam is written against: a ratio kind whose `+` records the
+ * whole `EvalCtx.context` it was handed, and whose unit ratio records what
+ * core threaded as `rates`. Both halves of the deprecation are visible through
+ * it — the copy forward, which fills `context.money`, and the back fill, which
+ * keeps every stage on the one table the caller meant.
+ */
+function probeKind(seen: { context: unknown[]; rates: unknown[] }) {
+  return defineKind({
+    id: "probe",
+    value: {
+      mode: "ratio",
+      canonical: "flerp",
+      units: {
+        flerp: {
+          ratio: (ctx) => {
+            seen.rates.push(ctx.rates);
+            return new Decimal(1);
+          },
+        },
+      },
+    },
+    ops: [
+      {
+        op: "+",
+        left: "probe",
+        right: "probe",
+        result: "probe",
+        apply: (l, _r, ctx) => {
+          seen.context.push(ctx.context);
+          return l;
+        },
+      },
+    ],
+  });
+}
+
+const probeSeen = () => ({ context: [] as unknown[], rates: [] as unknown[] });
+
+const ctxOf = (seen: { context: unknown[] }): Record<string, unknown> =>
+  (seen.context[0] ?? {}) as Record<string, unknown>;
+
+test("context reaches a signature's EvalCtx keyed by kind id", () => {
+  const seen = probeSeen();
+  const e = createEngine({
+    locales: [composeLocale(en)],
+    kinds: [number, probeKind(seen)],
+    context: { probe: { dial: 7 } },
+  });
+  e.evaluate("1 flerp + 1 flerp");
+  expect(ctxOf(seen).probe).toEqual({ dial: 7 });
+});
+
+test("a kind whose engine was given no context sees undefined, not an empty bag", () => {
+  const seen = probeSeen();
+  const e = createEngine({
+    locales: [composeLocale(en)],
+    kinds: [number, probeKind(seen)],
+  });
+  e.evaluate("1 flerp + 1 flerp");
+  expect(seen.context).toEqual([undefined]);
+});
+
+test("rates and rounding copy forward into context.money for one release", () => {
+  const seen = probeSeen();
+  const rates = { base: "GLD", asOf: "2026-08-04", get: () => new Decimal("0.5") };
+  const e = createEngine({
+    locales: [composeLocale(en)],
+    kinds: [number, probeKind(seen)],
+    rates,
+    rounding: Decimal.ROUND_UP,
+    context: { probe: { dial: 7 } },
+  });
+  e.evaluate("1 flerp + 1 flerp");
+  expect(ctxOf(seen).money).toEqual({ rates, rounding: Decimal.ROUND_UP });
+  // The caller's own slot survives the copy forward untouched.
+  expect(ctxOf(seen).probe).toEqual({ dial: 7 });
+});
+
+test("an explicit context.money wins over the deprecated fields", () => {
+  const seen = probeSeen();
+  const stale = { base: "GLD", asOf: "2000-01-01", get: () => new Decimal("99") };
+  const fresh = { base: "GLD", asOf: "2026-08-04", get: () => new Decimal("0.5") };
+  const e = createEngine({
+    locales: [composeLocale(en)],
+    kinds: [number, probeKind(seen)],
+    rates: stale,
+    context: { money: { rates: fresh } },
+  });
+  const r = e.evaluate("1 flerp + 1 flerp");
+  expect(ctxOf(seen).money).toEqual({ rates: fresh });
+  // Back filled the other way too, so the one table the caller meant is the
+  // one every stage uses: the printer authors its digits through `rates`, and
+  // a printer left on the stale table would convert and date against it.
+  expect(seen.rates).toEqual([fresh, fresh, fresh]);
+  expect(r.meta.ratesAsOf).toBe("2026-08-04");
+});
+
+// --- The compound fold (spec §B) -------------------------------------------
+
+test("adjacent descending quantities of a compound kind fold into a sum", () => {
+  // The `+` nobody typed. Each of these threw `Cannot parse … as a quantity`
+  // before the fold existed, which is what makes the whole feature additive:
+  // there is no input that used to mean something else.
+  expect(engine.evaluate("1 h 30 min").formatted).toBe("1.5 hours");
+  expect(engine.evaluate("1 kg 200 g").formatted).toBe("1.2 kilograms");
+  expect(engine.evaluate("5 ft 3 inches").value.kind).toBe("length");
+  expect(engine.evaluate("1 l 500 ml").value.kind).toBe("volume");
+  // No spaces at all, which is the lexer's digit-inside-run split (§B.2)
+  // meeting the fold: "1h30m" arrives as 1, h, 30, m.
+  expect(engine.evaluate("1h30m").formatted).toBe("1.5 hours");
+});
+
+test("a fold needs one kind on both sides, in strictly descending units", () => {
+  // No kind reads both words.
+  expect(() => engine.evaluate("10 kg 5 s")).toThrow(SmartputError);
+  // Descending is strict: two lengths written side by side is not a compound,
+  // it is a typo worth failing on.
+  expect(() => engine.evaluate("3 m 4 m")).toThrow(SmartputError);
+  // Ascending is not a compound either — nobody writes the small part first.
+  expect(() => engine.evaluate("30 min 1 h")).toThrow(SmartputError);
+});
+
+test("a kind that did not opt in does not fold", () => {
+  // `datasize` declines: nobody writes "1 gb 500 mb".
+  expect(() => engine.evaluate("1 gb 500 mb")).toThrow(SmartputError);
+  // `temperature` must not have it at all — two readings do not add, and
+  // c > f by ratio, so the ordering test alone would have let this through.
+  expect(() => engine.evaluate("20 c 5 f")).toThrow(SmartputError);
+});
+
+test("three parts fold left to right", () => {
+  // ((1 h + 30 min) + 30 s). The third part is compared against the *second*,
+  // not against the first, which is what `rightmostCandidates` is for.
+  expect(engine.evaluate("1 h 30 min 30 s").value.canonical.toFixed()).toBe("5430");
+});
+
+test("a compound is an operand like any other", () => {
+  expect(engine.evaluate("1 h 30 min in min").formatted).toBe("90 minutes");
+  expect(engine.evaluate("1 h 30 min + 30 min").formatted).toBe("2 hours");
+});
+
+test("explain shows the implicit + the person did not type", () => {
+  const ex = engine.explain("1 h 30 min");
+  expect(ex.outcome.status).toBe("ok");
+});
+
+test("`in` is not yet reachable as an inch, so a compound cannot end in one", () => {
+  // Ruling R-B1's re-lex is in `lex.ts` and inert: `@smartput/length`'s English
+  // vocabulary deliberately withholds "in" (see its `RESERVED`), because
+  // registering it makes `@smartput/datetime`'s accept-gate read "in 3 days" as
+  // an all-units phrase. So `isUnitAlias("in")` is false and the token stays a
+  // conversion keyword. Spelled out, the same input folds — asserted above.
+  // Pinned rather than left unsaid: the day the vocabulary gains "in", this
+  // test is the one that says so.
+  expect(() => engine.evaluate("5 ft 3 in")).toThrow(SmartputError);
 });

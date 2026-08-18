@@ -1,3 +1,4 @@
+import type { KindContext, MoneyContext } from "@smartput/kind/contracts";
 import type { CompleteOptions, Completion } from "./complete/complete";
 import { Autocompleter } from "./complete/completer";
 import type { CompletionContext } from "./complete/context";
@@ -115,11 +116,32 @@ export interface EngineOptions {
    */
   display?: DisplayOptions;
   /**
+   * Per-kind configuration, keyed by kind id and opaque to core (§G).
+   *
+   * `rates` and `rounding` below are money's, and every milestone that needed
+   * engine-level configuration added a field beside them. This is the seam
+   * that stops the accretion: a kind publishes its context shape in
+   * `@smartput/kind/contracts` and reads `ctx.context?.<its id>`, so the next
+   * plugin that needs a table adds nothing to this interface.
+   *
+   * `now` and `timeZone` deliberately stay where they are — they are engine
+   * semantics several kinds and `EvalOptions` share, not one plugin's table.
+   * `kindMeta` stays too: it is default *value* meta, a different thing.
+   */
+  context?: KindContext;
+  /**
    * FX rates for kinds whose unit ratios are not constants. `@smartput/rate`'s
    * RateSnapshot satisfies this structurally; core never imports it.
+   *
+   * @deprecated Use `context.money = { rates, rounding }`. Copied forward for
+   * one release — see `resolveContext`.
    */
   rates?: RateLookup;
-  /** Rounding mode for money formatting. Default ROUND_HALF_EVEN. */
+  /**
+   * Rounding mode for money formatting. Default ROUND_HALF_EVEN.
+   *
+   * @deprecated Use `context.money = { rates, rounding }`.
+   */
   rounding?: Decimal.Rounding;
   /**
    * Injectable clock, epoch milliseconds. Spec §6 requires it: "today" and
@@ -411,6 +433,7 @@ function newEvaluator(
     locale: format.id,
     ...(opts.kindMeta === undefined ? {} : { kindMeta: opts.kindMeta }),
     ...(opts.rates ? { rates: opts.rates } : {}),
+    ...(opts.context === undefined ? {} : { context: opts.context }),
     ...(comparePrecision === undefined ? {} : { comparePrecision }),
   });
 }
@@ -676,8 +699,48 @@ function orNoCandidate<T>(input: string, fn: () => T): T {
   }
 }
 
+/**
+ * The two spellings of money's table, reconciled once, at boot — the whole of
+ * §G's deprecation window, and the only place in core that names the `money`
+ * slot. It goes when `rates`/`rounding` go, and nothing else in core has to
+ * change when it does.
+ *
+ * Both directions, because the fields and the slot are read by different
+ * halves of the engine. Forward: a caller who wrote only `rates` gets a
+ * `context.money` a kind reading the new API can find. Back: a caller who
+ * wrote only `context.money` gets `opts.rates`, which is what the `Printer`
+ * and `toResult`'s `meta.ratesAsOf` read — a unit ratio is resolved on the
+ * generation side too, so a table that reached only the evaluator would
+ * author `"100 usd in uah"` with one rate and print it with another.
+ *
+ * The newer API wins when a caller wrote both, rather than the one that is
+ * older in the codebase.
+ */
+function resolveContext(opts: EngineOptions): EngineOptions {
+  const money = opts.context?.money as MoneyContext | undefined;
+  if (money !== undefined) {
+    return {
+      ...opts,
+      ...(money.rates === undefined ? {} : { rates: money.rates }),
+      ...(money.rounding === undefined ? {} : { rounding: money.rounding }),
+    };
+  }
+  if (opts.rates === undefined && opts.rounding === undefined) return opts;
+  return {
+    ...opts,
+    context: {
+      ...opts.context,
+      money: {
+        ...(opts.rates === undefined ? {} : { rates: opts.rates }),
+        ...(opts.rounding === undefined ? {} : { rounding: opts.rounding }),
+      },
+    },
+  };
+}
+
 export function createEngine(callerOpts: EngineOptions): Engine {
-  const opts = Object.freeze({ ...callerOpts }); // a copy — see EngineCtx's doc for why
+  // A copy — see EngineCtx's doc for why — with §G's deprecation folded in.
+  const opts = Object.freeze(resolveContext(callerOpts));
   const first = opts.locales[0];
   if (first === undefined) throw new Error("createEngine requires at least one locale");
 

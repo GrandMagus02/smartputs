@@ -1,3 +1,4 @@
+import type { KindContext } from "@smartput/kind/contracts";
 import { Decimal } from "../decimal";
 import { CountQueryError, DimensionMismatchError, DivideByZeroError } from "../errors";
 import { deepFreeze } from "../freeze";
@@ -22,6 +23,13 @@ export interface EvaluateOptions {
   input: string;
   kindMeta?: Readonly<Record<string, Readonly<Record<string, unknown>>>>;
   rates?: RateLookup;
+  /**
+   * Per-kind configuration, keyed by kind id and opaque to core (§G). Rides on
+   * both the `EvalCtx` a signature's `apply` gets and the `ConversionCtx` a
+   * unit ratio gets, because a plugin whose table decides an arithmetic result
+   * decides a conversion by the same table — money's rate is read from both.
+   */
+  context?: KindContext;
   /** Significant digits a comparison rounds to. See `COMPARE_PRECISION`. */
   comparePrecision?: number | "exact";
 }
@@ -30,7 +38,16 @@ export interface EvaluateOptions {
 const ONE = new Decimal(1);
 
 export function evaluateNode(opts: EvaluateOptions): EvalResult {
-  const { program, resolution, registry, locale, input, rates, comparePrecision } = opts;
+  const {
+    program,
+    resolution,
+    registry,
+    locale,
+    input,
+    rates,
+    context,
+    comparePrecision,
+  } = opts;
   const kindMeta = opts.kindMeta ?? {};
   const assumptions: Assumption[] = [];
   const seen = new Set<string>();
@@ -49,6 +66,7 @@ export function evaluateNode(opts: EvaluateOptions): EvalResult {
     input,
     note,
     ...(rates ? { rates } : {}),
+    ...(context ? { context } : {}),
     ...(comparePrecision === undefined ? {} : { comparePrecision }),
   });
 
@@ -116,6 +134,7 @@ export function evaluateNode(opts: EvaluateOptions): EvalResult {
             locale,
             ...(meta ? { meta } : {}),
             ...(rates ? { rates } : {}),
+            ...(context ? { context } : {}),
           }),
           unit: choice.unit,
           ...(meta ? { meta } : {}),
@@ -169,6 +188,7 @@ export function evaluateNode(opts: EvaluateOptions): EvalResult {
               locale,
               ...(meta ? { meta } : {}),
               ...(rates ? { rates } : {}),
+              ...(context ? { context } : {}),
             };
             const one: Value = deepFreeze({
               kind: count.kind,

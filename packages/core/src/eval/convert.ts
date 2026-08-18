@@ -1,3 +1,4 @@
+import type { KindContext } from "@smartput/kind/contracts";
 import { Decimal } from "../decimal";
 import type { NormalizedKind } from "../kind/define";
 import type { EvalCtx, RateLookup, Value } from "../types";
@@ -19,6 +20,13 @@ export interface ConversionCtx {
   readonly locale: string;
   readonly meta?: Record<string, unknown>;
   readonly rates?: RateLookup;
+  /**
+   * Per-kind configuration, keyed by kind id and opaque to core (§G). Here for
+   * the same reason `rates` is: a unit whose ratio is a function of a plugin's
+   * table reads that table off the ctx, and after §G the table arrives in a
+   * slot rather than in a field of its own.
+   */
+  readonly context?: KindContext;
 }
 
 function evalCtxFor(kind: NormalizedKind, unit: string, ctx: ConversionCtx): EvalCtx {
@@ -28,7 +36,12 @@ function evalCtxFor(kind: NormalizedKind, unit: string, ctx: ConversionCtx): Eva
     unit,
     ...(ctx.meta ? { meta: ctx.meta } : {}),
   };
-  return { self, locale: ctx.locale, ...(ctx.rates ? { rates: ctx.rates } : {}) };
+  return {
+    self,
+    locale: ctx.locale,
+    ...(ctx.rates ? { rates: ctx.rates } : {}),
+    ...(ctx.context ? { context: ctx.context } : {}),
+  };
 }
 
 function unitOf(kind: NormalizedKind, unit: string) {

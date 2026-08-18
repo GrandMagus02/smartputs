@@ -10,8 +10,23 @@ import {
   type Value,
 } from "@smartput/core";
 import { CURRENCIES, formatAmount } from "@smartput/currency";
+import type { MoneyContext } from "@smartput/kind/contracts";
 
 const CANONICAL = "eur";
+
+/**
+ * The table this package converts by, from wherever the engine was configured
+ * with it — §G. `context.money` is the API; `ctx.rates` is the field it
+ * deprecates, kept as the fallback for its release. Both are read here rather
+ * than reconciled at the call sites, so the two spellings cannot answer
+ * differently in a ratio and in a signature.
+ *
+ * No `rounding` twin: that one is read by the `format` hook off a `FormatCtx`,
+ * which core builds from its own options and never from a context slot.
+ */
+function ratesOf(ctx: EvalCtx) {
+  return (ctx.context?.money as MoneyContext | undefined)?.rates ?? ctx.rates;
+}
 
 /**
  * One currency's ratio to the canonical euro, resolved from the injected
@@ -22,7 +37,7 @@ function rateRatio(code: string): UnitDef {
   const upper = code.toUpperCase();
   return {
     ratio: (ctx) => {
-      const rates = ctx.rates;
+      const rates = ratesOf(ctx);
       if (rates === undefined) {
         throw new MissingRateError(ctx.input ?? "", upper, "EUR", "");
       }
@@ -50,7 +65,7 @@ function rateRatio(code: string): UnitDef {
  * in a nested expression is harmless.
  */
 function noteCross(ctx: EvalCtx, l: Value, r: Value): void {
-  const base = ctx.rates?.base;
+  const base = ratesOf(ctx)?.base;
   const from = l.unit.toUpperCase();
   const to = r.unit.toUpperCase();
   if (base === undefined || from === to || from === base || to === base) return;
@@ -164,7 +179,7 @@ export const money: Kind = defineKind({
             ctx.input ?? "",
             currency.toUpperCase(),
             CANONICAL.toUpperCase(),
-            ctx.rates?.asOf ?? "",
+            ratesOf(ctx)?.asOf ?? "",
           );
         }
         // Deliberately no meta. `in|money|money` sources it from the target
