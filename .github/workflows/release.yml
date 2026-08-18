@@ -82,12 +82,56 @@ jobs:
         if: steps.plan.outputs.count == '0' && !inputs.publish_only
         run: echo "No releasable commits since the last tags."
 
+      # Versions and changelogs are written to disk here, but this is as far
+      # as anything permanent goes until npm confirms it. Everything below —
+      # the git commit, the tags, the push, the GitHub releases — waits on
+      # `Publish to npm` succeeding, in that order, on purpose: a version this
+      # repo has tagged and pushed is a promise that the same version exists
+      # on the registry, and the one thing worse than a failed release is a
+      # green-looking `main` that made that promise and did not keep it. The
+      # run that failed here before this reordering did exactly that — it
+      # tagged and half-pushed 35 packages nothing had published yet.
       - name: Write versions and changelogs
         if: steps.plan.outputs.count != '0' && !inputs.publish_only
         run: bun run scripts/release.ts
 
+      # `--ci` authenticates via npm's trusted-publisher OIDC exchange, using
+      # the `id-token: write` permission above — no npm token lives in this
+      # repo. That needs a trusted publisher configured per package on
+      # npmjs.com first (Settings -> Trusted Publisher -> GitHub Actions,
+      # this repo, workflow file `release.yml`); a package with none 403s.
+      # `NPM_TOKEN` is read as a fallback if that secret ever gets set, so a
+      # package that cannot use OIDC yet is not a reason to block the rest.
+      #
+      # Reads the versions `Write versions and changelogs` just put on disk —
+      # `stageAll` takes them from `packages/*/package.json` directly, not
+      # from git, so nothing here needs that write committed first. And it is
+      # resumable on its own terms: before publishing anything it asks the
+      # registry what already exists and skips it, so a rerun of this same
+      # plan — which recomputes identically, because nothing before this
+      # point ever got committed — picks up exactly where a partial failure
+      # left off instead of re-publishing or renumbering what already shipped.
+      - name: Publish to npm
+        id: publish
+        if: steps.plan.outputs.count != '0' || inputs.publish_only
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          if [ "${{ inputs.publish_only }}" = "true" ]; then
+            bun run scripts/publish.ts --ci --skip-checks
+          else
+            bun run scripts/publish.ts --ci --skip-checks --only "${{ steps.plan.outputs.names }}"
+          fi
+
+      # The real, permanent version bump. Gated on `Publish to npm` actually
+      # succeeding — not merely having run — so a failed or partial publish
+      # leaves the repo exactly as it found it: no commit, no tag, nothing
+      # for the next run to disagree with. That next run recomputes the same
+      # plan from the same last-real tags and the publish step's own registry
+      # check resumes it; this step never gets a chance to tag a version that
+      # is not actually on npm.
       - name: Commit, tag and push
-        if: steps.plan.outputs.count != '0' && !inputs.publish_only
+        if: steps.plan.outputs.count != '0' && !inputs.publish_only && steps.publish.outcome == 'success'
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -99,26 +143,8 @@ jobs:
           ' | while read -r tag; do git tag -a "$tag" -m "$tag"; done
           git push --follow-tags origin HEAD:main
 
-      # `--ci` authenticates via npm's trusted-publisher OIDC exchange, using
-      # the `id-token: write` permission above — no npm token lives in this
-      # repo. That needs a trusted publisher configured per package on
-      # npmjs.com first (Settings -> Trusted Publisher -> GitHub Actions,
-      # this repo, workflow file `release.yml`); a package with none 403s.
-      # `NPM_TOKEN` is read as a fallback if that secret ever gets set, so a
-      # package that cannot use OIDC yet is not a reason to block the rest.
-      - name: Publish to npm
-        if: steps.plan.outputs.count != '0' || inputs.publish_only
-        env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: |
-          if [ "${{ inputs.publish_only }}" = "true" ]; then
-            bun run scripts/publish.ts --ci --skip-checks
-          else
-            bun run scripts/publish.ts --ci --skip-checks --only "${{ steps.plan.outputs.names }}"
-          fi
-
       - name: Cut GitHub releases
-        if: steps.plan.outputs.count != '0' && !inputs.publish_only
+        if: steps.plan.outputs.count != '0' && !inputs.publish_only && steps.publish.outcome == 'success'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |

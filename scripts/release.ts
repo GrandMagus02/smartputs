@@ -107,6 +107,21 @@ export function bumpOf(commits: Commit[], currentMajor: number): Bump {
   return bump;
 }
 
+/**
+ * Whether a commit is one `changelogEntry`'s sections would ever print — a
+ * releasing type, or breaking. Everything else (`chore`, `docs`, `build`, a
+ * `refactor` with no `!`) is real history that legitimately touched the
+ * directory and still says nothing about why the package moved, which is
+ * exactly the distinction the backfill in `gen-changelogs.ts` needs and a bare
+ * commit count does not give it: the repo's own `chore(release)` commits touch
+ * every package's manifest and changelog in one sweep, so a package that only
+ * ever appears in those would otherwise read as "commits" with an empty body
+ * instead of "dependency" with the one sentence that explains it.
+ */
+export function isReleaseNoteworthy(commit: Commit): boolean {
+  return commit.breaking || BUMP_OF[commit.type] !== undefined;
+}
+
 export function nextVersion(version: string, bump: Bump): string {
   const [major, minor, patch] = version.split(".").map(Number);
   if (bump === "major") return `${major + 1}.0.0`;
@@ -145,6 +160,40 @@ export function compareVersions(a: string, b: string): number {
   return am - bm || an - bn || ap - bp;
 }
 
+/** Every path a commit touched, scoped to one directory. */
+async function pathsTouched(hash: string, dir: string): Promise<string[]> {
+  const out = await git([
+    "diff-tree",
+    "--no-commit-id",
+    "--name-only",
+    "-r",
+    hash,
+    "--",
+    dir,
+  ]);
+  return out
+    .split("\n")
+    .map((p) => p.trim())
+    .filter(Boolean);
+}
+
+/**
+ * A commit whose only footprint in `dir` is that package's own `README.md`.
+ *
+ * The README is generated (`scripts/gen-readmes.ts`), from the manifest, the
+ * exports map and prose that mostly lives elsewhere — so a commit that moves
+ * only that file did not change anything about the package a release should
+ * speak to. Left uncaught, a change anywhere upstream of the generator (the
+ * shared prose in `docs/_prose`, another package's own README linking back)
+ * regenerates every downstream README as a side effect, and a `feat:` commit
+ * that touches ten unrelated packages' READMEs would otherwise minor-bump
+ * every one of them for a change none of them made.
+ */
+async function isReadmeOnly(hash: string, dir: string): Promise<boolean> {
+  const paths = await pathsTouched(hash, dir);
+  return paths.length > 0 && paths.every((p) => p === `${dir}/README.md`);
+}
+
 /**
  * Commits that touched a package directory: since `from` (or the whole
  * history) and up to `to`, which the changelog backfill points at a tag rather
@@ -157,15 +206,22 @@ export async function commitsFor(
 ): Promise<Commit[]> {
   const range = from ? `${from}..${to}` : to;
   const log = await git(["log", range, "--format=%x1e%H%x1f%s%x1f%b", "--", dir]);
-  return log
+  const records = log
     .split("\u001e")
     .map((record) => record.trim())
     .filter(Boolean)
     .map((record) => {
       const [hash, subject, body = ""] = record.split("\u001f");
-      return parseCommit(hash, subject, body);
-    })
-    .filter((c): c is Commit => c !== undefined);
+      return { hash, commit: parseCommit(hash, subject, body) };
+    });
+
+  const kept: Commit[] = [];
+  for (const { hash, commit } of records) {
+    if (commit === undefined) continue;
+    if (await isReadmeOnly(hash, dir)) continue;
+    kept.push(commit);
+  }
+  return kept;
 }
 
 /** Reverse dependency edges, over runtime and peer deps only. */

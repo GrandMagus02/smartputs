@@ -1,6 +1,13 @@
 import { rootDir } from "./build";
 import { readWorkspace } from "./pack";
-import { changelogEntry, commitsFor, compareVersions, git, type Plan } from "./release";
+import {
+  changelogEntry,
+  commitsFor,
+  compareVersions,
+  git,
+  isReleaseNoteworthy,
+  type Plan,
+} from "./release";
 
 /**
  * Writes every package's CHANGELOG.md from the tags it already carries.
@@ -43,11 +50,20 @@ async function render(name: string, dir: string): Promise<string | undefined> {
   for (const [index, version] of versions.entries()) {
     const tag = `${name}@${version}`;
     const previous = versions[index - 1];
-    const commits = await commitsFor(
+    const touched = await commitsFor(
       dir,
       previous ? `${name}@${previous}` : undefined,
       tag,
     );
+    // `changelogEntry` decides "Released to pick up a dependency" purely from
+    // an empty `commits` array, so the array handed to it has to already be
+    // the filtered one. Left as every commit that touched the path, a
+    // package whose only touches were the repo's own `chore(release)` sweep
+    // (which rewrites every manifest and changelog in one commit) would carry
+    // a non-empty, entirely non-releasing commit list — `changelogEntry`
+    // would see "not empty" and print nothing at all, the one outcome worse
+    // than either a commit list or the one-sentence dependency note.
+    const commits = touched.filter(isReleaseNoteworthy);
     const plan: Plan = {
       name,
       dir,
@@ -55,9 +71,6 @@ async function render(name: string, dir: string): Promise<string | undefined> {
       to: version,
       bump: "minor",
       commits,
-      // `reason` only decides the wording when there are no commits, and the
-      // first release of a package that has never been touched on its own is
-      // exactly that case: it moved because a dependency did.
       reason: commits.length === 0 ? "dependency" : "commits",
     };
     entries.push(changelogEntry(plan, await dateOf(tag)));
