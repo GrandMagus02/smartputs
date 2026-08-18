@@ -7,7 +7,7 @@
     "docs"
   ],
   "scripts": {
-    "prepare": "git config core.hooksPath .githooks",
+    "prepare": "git rev-parse --git-dir >/dev/null 2>&1 && git config core.hooksPath .githooks || exit 0",
     "test": "bun test",
     "build": "bun run scripts/build.ts",
     "docs:packages": "bun run scripts/gen-package-pages.ts",
