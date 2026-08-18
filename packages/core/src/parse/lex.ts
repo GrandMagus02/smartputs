@@ -1,11 +1,43 @@
 import type { Decimal } from "../decimal";
 import { buildKeywords } from "../locale/compose";
-import { numberSymbols, parseNumber } from "../locale/number";
+import { type Grammar, grammarsFor, parseNumber } from "../locale/number";
 import type { Keyword, LiteralReading, Locale, OpSymbol, WordPosition } from "../types";
+
+/**
+ * One way the installed grammars read a digit run, and who reads it that way.
+ *
+ * `"1,5"` is fifteen to an English reader and one and a half to a German one;
+ * both are evidence, and neither is a winner until the solver has weighed the
+ * unit word beside it. So a reading is data with a provenance, exactly as a
+ * unit `Candidate` is — ambiguity is weighted, never deleted.
+ */
+export interface NumberReading {
+  readonly value: Decimal;
+  /** Locale ids whose grammar produced this value. Sorted. */
+  readonly locales: readonly string[];
+}
 
 export interface NumberToken {
   type: "number";
+  /**
+   * The format locale's reading, or the first one when no installed grammar of
+   * the format locale accepted the run. Every existing reader of `.value` —
+   * `coerce`, `validate`, the completer, the evaluator when nothing overrode
+   * the slot — keeps the answer it had.
+   */
   value: Decimal;
+  /**
+   * Every reading of this run, one per accepting grammar, deduplicated by
+   * value. Length 1 for `"15"`, and for anything at all on a single-grammar
+   * engine.
+   *
+   * Optional, and absent rather than defaulted, because `lex` is not the only
+   * producer of a number token: `foldNumerals` builds one out of spelled words
+   * ("twenty two"), where the claim *is* the reading and there is no run of
+   * digits to scan. Absent means "one reading, the value above", which is what
+   * a reader that ignores this field already assumes.
+   */
+  readings?: readonly NumberReading[];
   text: string;
   start: number;
   end: number;
@@ -298,6 +330,13 @@ function nextSignificant(
  * engine passes the many-locale map, because reading two languages' units
  * while reading one language's connectives would leave "5 кг in grams"
  * readable and "5 кг в грамах" not.
+ * @param grammars The distinct number grammars of the installed locales, from
+ * `grammarsFor`. Defaults to this locale's own single grammar, so a caller who
+ * composes the passes by hand lexes digits exactly as it did before grammars
+ * existed. An engine passes every installed one, because reading digits is
+ * many-locale for the same reason reading words is: a German number written
+ * beside a German unit word was being read under English's grammar and
+ * answered at full confidence.
  * @param isUnitAlias Whether some installed vocabulary spells a unit that way —
  * `MatchCtx.isUnitAlias`, the registry query the `Tokenizer` already builds for
  * the literal fold. Read only by ruling R-B1 below. Defaults to "nothing is a
@@ -310,8 +349,8 @@ export function lex(
   locale: Locale,
   keywords: ReadonlyMap<string, Keyword> = buildKeywords([locale]),
   isUnitAlias: (text: string) => boolean = () => false,
+  grammars: readonly Grammar[] = grammarsFor([locale]),
 ): Token[] {
-  const { group, decimal } = numberSymbols(locale.language);
   const tokens: Token[] = [];
   let i = 0;
 
@@ -375,28 +414,53 @@ export function lex(
     isLetter(input[at - 1] as string) &&
     isLetter(input[at + 1] ?? "");
 
-  // `normalize()` folds every whitespace run to a plain space before `lex` runs,
-  // so a language whose group separator is a *non-breaking* space never sees its
-  // own separator here: Ukrainian groups with U+00A0 and French ICU with U+202F,
-  // and by this point the formatter's own "2\u00A0000" has arrived as "2 000".
-  // Accepting the folded form is what makes such a language's output re-readable
-  // — without it `evaluate(evaluate("2 кг в грамах").formatted)` lexes two
-  // numbers and throws, which is the gap `@smartput/datarate` and
-  // `@smartput/tempo` each pinned while waiting for this.
-  //
-  // The lookahead is what keeps it from swallowing a word boundary: a group
-  // separator is followed by exactly three digits, so "2 000 г" is one number
-  // while "2 3 кг" stays two tokens. A language that declares a plain space as
-  // its separator outright (`numberFormat: { group: " " }`) is left on the
-  // unconditional branch below, where it already was.
-  const groupFoldsToSpace = group !== " " && /\s/.test(group);
-  const isFoldedGroup = (at: number) =>
-    groupFoldsToSpace &&
-    input[at] === " " &&
-    isDigit(input[at + 1] ?? "") &&
-    isDigit(input[at + 2] ?? "") &&
-    isDigit(input[at + 3] ?? "") &&
-    !isDigit(input[at + 4] ?? "");
+  /**
+   * How far `grammar` reads the digit run starting at `from`, after backing off
+   * a trailing separator that turned out to be punctuation.
+   *
+   * Per grammar and not once for the format locale, which is the whole of this
+   * task at the lexing end: the same source characters mean different things to
+   * different grammars, so "1 000,5" runs to seven characters under Ukrainian's
+   * and stops at one under English's, and the caller compares the two.
+   *
+   * `normalize()` folds every whitespace run to a plain space before `lex` runs,
+   * so a language whose group separator is a *non-breaking* space never sees its
+   * own separator here: Ukrainian groups with U+00A0 and French ICU with U+202F,
+   * and by this point the formatter's own "2\u00A0000" has arrived as "2 000".
+   * Accepting the folded form is what makes such a language's output re-readable
+   * — without it `evaluate(evaluate("2 кг в грамах").formatted)` lexes two
+   * numbers and throws, which is the gap `@smartput/datarate` and
+   * `@smartput/tempo` each pinned while waiting for this.
+   *
+   * The lookahead is what keeps it from swallowing a word boundary: a group
+   * separator is followed by exactly three digits, so "2 000 г" is one number
+   * while "2 3 кг" stays two tokens. A grammar that declares a plain space as
+   * its separator outright (`numberFormat: { group: " " }`) is left on the
+   * unconditional branch, where it already was.
+   */
+  const scanRun = (from: number, grammar: Grammar): number => {
+    const groupFoldsToSpace = grammar.group !== " " && /\s/.test(grammar.group);
+    const isFoldedGroup = (at: number) =>
+      groupFoldsToSpace &&
+      input[at] === " " &&
+      isDigit(input[at + 1] ?? "") &&
+      isDigit(input[at + 2] ?? "") &&
+      isDigit(input[at + 3] ?? "") &&
+      !isDigit(input[at + 4] ?? "");
+    let at = from;
+    while (
+      at < input.length &&
+      (isDigit(input[at] as string) ||
+        input[at] === grammar.group ||
+        input[at] === grammar.decimal ||
+        isFoldedGroup(at))
+    ) {
+      at += 1;
+    }
+    // A trailing group/decimal symbol is punctuation, not part of the number.
+    while (at > from && !isDigit(input[at - 1] as string)) at -= 1;
+    return at;
+  };
 
   while (i < input.length) {
     const ch = input[i] as string;
@@ -442,24 +506,58 @@ export function lex(
 
     if (isDigit(ch)) {
       const start = i;
-      while (
-        i < input.length &&
-        (isDigit(input[i] as string) ||
-          input[i] === group ||
-          input[i] === decimal ||
-          isFoldedGroup(i))
-      ) {
-        i += 1;
+      const scans = grammars.map((grammar) => {
+        const end = scanRun(start, grammar);
+        return {
+          grammar,
+          end,
+          value: end > start ? parseNumber(input.slice(start, end), grammar) : null,
+        };
+      });
+      // The maximal run, over every grammar including the ones that then failed
+      // to parse it. A grammar that stopped earlier was reading a word boundary
+      // where another grammar reads a separator — English stopping at "1" in
+      // "1 000,5" — so its shorter reading is not a rival reading of this run,
+      // it is a reading of a different run and is dropped. A grammar that
+      // consumed the whole run and could not parse it takes no reading with it,
+      // but it does not shorten the run either.
+      const end = Math.max(...scans.map((scan) => scan.end));
+      const byValue = new Map<string, { value: Decimal; locales: string[] }>();
+      for (const scan of scans) {
+        if (scan.end !== end || scan.value === null) continue;
+        const key = scan.value.toString();
+        const hit = byValue.get(key);
+        if (hit === undefined)
+          byValue.set(key, { value: scan.value, locales: [...scan.grammar.locales] });
+        else
+          for (const id of scan.grammar.locales)
+            if (!hit.locales.includes(id)) hit.locales.push(id);
       }
-      // A trailing group/decimal symbol is punctuation, not part of the number.
-      while (i > start && !isDigit(input[i - 1] as string)) i -= 1;
-      const text = input.slice(start, i);
-      const value = parseNumber(text, locale.language);
-      if (value === null) {
+      const readings: NumberReading[] = [...byValue.values()].map((reading) => ({
+        value: reading.value,
+        locales: reading.locales.sort(),
+      }));
+      const chosen =
+        readings.find((reading) => reading.locales.includes(locale.id)) ?? readings[0];
+      // Every grammar rejected the run: it is not a number, and `lex` steps one
+      // character and resynchronises exactly as it always has.
+      if (chosen === undefined) {
         i = start + 1;
         continue;
       }
-      tokens.push({ type: "number", value, text, start, end: i });
+      tokens.push({
+        type: "number",
+        // The format locale's reading, with the first as the fallback for a run
+        // only some other installed grammar could read at all ("1 000,5" on an
+        // engine formatting in English). Ranking the readings against each other
+        // is the solver's job; this is only what a reader who asks for one gets.
+        value: chosen.value,
+        readings,
+        text: input.slice(start, end),
+        start,
+        end,
+      });
+      i = end;
       continue;
     }
 

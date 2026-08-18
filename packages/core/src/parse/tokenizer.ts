@@ -1,6 +1,7 @@
 import { deepFreeze } from "../freeze";
 import type { Registry } from "../kind/registry";
 import { buildKeywords } from "../locale/compose";
+import { type Grammar, grammarsFor } from "../locale/number";
 import type { Keyword, Locale, MatchCtx, Weights } from "../types";
 import { lex, type Token } from "./lex";
 import { foldLiterals } from "./literals";
@@ -54,6 +55,7 @@ export class Tokenizer {
   private readonly locale: Locale;
   private readonly locales: readonly Locale[];
   private readonly keywords: ReadonlyMap<string, Keyword>;
+  private readonly grammars: readonly Grammar[];
   private readonly weights: readonly (Weights | undefined)[];
   private readonly registry: Registry;
   private readonly now: () => number;
@@ -68,6 +70,22 @@ export class Tokenizer {
     // building it in the constructor is what makes a bad configuration fail
     // where the stack names the line that wired it (I9).
     this.keywords = buildKeywords(this.locales);
+    // Derived from the installed locales, not from one `numberFormat` taken
+    // from the format one: reading digits is many-locale for the same reason
+    // reading words is. Before this, a German number written beside a German
+    // unit word was read under English's grammar and answered at full
+    // confidence, because the whole tokenizer was built from `format`.
+    //
+    // The format locale leads the list so that its grammar is the one a token's
+    // `value` takes and the one a run only it can read falls back to; `format`
+    // itself stays output-only, exactly as `EvalOptions.format` documents. It is
+    // named again here because `locales` is a caller's array and nothing
+    // guarantees the format locale is in it.
+    //
+    // In the constructor, like `keywords`: it is a pure function of the
+    // installed languages, and an engine that lexes on every keystroke should
+    // pay for the `Intl.NumberFormat` probes behind it once.
+    this.grammars = grammarsFor([this.locale, ...this.locales]);
     this.weights = cfg.weights ?? [];
     this.registry = cfg.registry;
     this.now = cfg.now ?? (() => Date.now());
@@ -93,7 +111,13 @@ export class Tokenizer {
       isUnitAlias: (text) =>
         this.registry.aliasIndex.has(text.toLocaleLowerCase(this.locale.id)),
     };
-    const lexed = lex(normalized.text, this.locale, this.keywords, matchCtx.isUnitAlias);
+    const lexed = lex(
+      normalized.text,
+      this.locale,
+      this.keywords,
+      matchCtx.isUnitAlias,
+      this.grammars,
+    );
     const tokens = foldWordOps(
       foldNumerals(
         foldLiterals(lexed, normalized.text, this.registry, matchCtx),

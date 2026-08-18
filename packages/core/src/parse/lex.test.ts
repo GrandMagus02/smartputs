@@ -5,7 +5,8 @@ import BUILTIN_EN from "@smartput/kinds/locale/en";
 import { createEngine } from "../engine";
 import { buildKeywords, composeLocale } from "../locale/compose";
 import { defineLanguage } from "../locale/define";
-import { lex } from "./lex";
+import { type Grammar, grammarsFor } from "../locale/number";
+import { lex, type NumberToken } from "./lex";
 
 const en = composeLocale(
   defineLanguage({
@@ -292,4 +293,149 @@ test('a split run reads as the compound it is: `Unknown unit "h30"` is gone', ()
   // are an hour and a half. Both halves are asserted here because either one
   // alone leaves the input broken in a way only the other can see.
   expect(engine.evaluate("1h30m").formatted).toBe("1.5 hours");
+});
+
+// --- One reading per installed number grammar ----------------------------
+
+/**
+ * The languages this section installs beside `en` and `uk`, for their number
+ * grammars alone: `de` groups with "." and points with ",", `fr` groups with
+ * U+202F, `ja` shares English's pair exactly. Their vocabularies are empty
+ * because nothing here resolves a unit — what is under test is which digits a
+ * run of them can be read as.
+ */
+const de = composeLocale(
+  defineLanguage({
+    id: "de",
+    numberFormat: "intl",
+    keywords: {},
+    selectForm: () => "other",
+  }),
+);
+const fr = composeLocale(
+  defineLanguage({
+    id: "fr",
+    numberFormat: "intl",
+    keywords: {},
+    selectForm: () => "other",
+  }),
+);
+const ja = composeLocale(
+  defineLanguage({
+    id: "ja",
+    numberFormat: "intl",
+    keywords: {},
+    selectForm: () => "other",
+  }),
+);
+
+const readingsOf = (input: string, grammars: readonly Grammar[]) =>
+  (lex(input, en, keywords, isUnitAlias, grammars)[0] as NumberToken).readings ?? [];
+
+test("grammarsFor collapses installed locales to distinct (group, decimal) pairs", () => {
+  const gs = grammarsFor([en, de, fr, uk, ja]);
+  const pairs = gs.map((g) => `${g.group}|${g.decimal}`);
+  // Distinct pairs, not distinct locales: seventeen installed languages collapse
+  // to three or four grammars, which is what keeps the per-grammar scan below
+  // from being a per-language one.
+  expect(new Set(pairs).size).toBe(pairs.length);
+  expect(gs.find((g) => g.group === "," && g.decimal === ".")?.locales).toEqual([
+    "en",
+    "ja",
+  ]);
+  expect(gs.find((g) => g.group === "." && g.decimal === ",")?.locales).toEqual(["de"]);
+});
+
+test("a run with no separator has exactly one reading and is never a slot", () => {
+  const tok = lex(
+    "15 kg",
+    en,
+    keywords,
+    isUnitAlias,
+    grammarsFor([en, de]),
+  )[0] as NumberToken;
+  expect(tok.readings).toHaveLength(1);
+  expect(tok.readings?.[0]?.locales).toEqual(["de", "en"]);
+  expect(tok.value.toFixed()).toBe("15");
+});
+
+test("a separated run keeps every grammar that accepts the whole run", () => {
+  const tok = lex(
+    "1,5 kg",
+    en,
+    keywords,
+    isUnitAlias,
+    grammarsFor([en, de]),
+  )[0] as NumberToken;
+  expect(tok.readings?.map((r) => r.value.toFixed()).sort()).toEqual(["1.5", "15"]);
+  // The format locale's reading is what `.value` carries, so every existing
+  // reader of `.value` — the completer, `coerce`, `validate` — keeps the answer
+  // it had. Ranking the other reading against this one is the solver's job.
+  expect(tok.value.toFixed()).toBe("15");
+  expect(tok.readings?.find((r) => r.value.toFixed() === "1.5")?.locales).toEqual(["de"]);
+});
+
+test("a run one grammar rejects drops that grammar", () => {
+  // German cannot read "1,00,000": its decimal is the comma and there are two
+  // of them. English can, and *does* — group placement is deliberately not
+  // validated, because the `(",", ".")` grammar is Hindi's too and the Hindi
+  // corpus pins "12,34,567" as 1234567 in nine packages. A grammar is dropped
+  // for a run it cannot parse at all, never for a run it groups unusually.
+  expect(readingsOf("1,00,000", grammarsFor([en, de]))).toEqual([
+    expect.objectContaining({ locales: ["en"] }),
+  ]);
+  expect(readingsOf("1,00,000", grammarsFor([en, de]))[0]?.value.toFixed()).toBe(
+    "100000",
+  );
+});
+
+test("the maximal run wins: a grammar that stopped early read a word boundary", () => {
+  // Ukrainian groups with a non-breaking space, which `normalize()` has already
+  // folded to a plain one by the time `lex` runs. English stops at "1" — for
+  // English a space inside a number *is* a word boundary — so its reading
+  // covers less of the source than Ukrainian's and is dropped rather than
+  // ranked, and the token spans the whole run.
+  const tok = lex(
+    "1 000,5 кг",
+    en,
+    keywords,
+    isUnitAlias,
+    grammarsFor([en, uk]),
+  )[0] as NumberToken;
+  expect(tok).toMatchObject({ type: "number", text: "1 000,5", start: 0, end: 7 });
+  expect(tok.readings?.map((r) => r.value.toFixed())).toEqual(["1000.5"]);
+  // No reading carries the format locale, so `.value` falls back to the first.
+  expect(tok.value.toFixed()).toBe("1000.5");
+});
+
+test("a run every grammar rejects is not a number, and the lexer resynchronises as before", () => {
+  // "1.5.6" is two decimal points under English and a space-grouped run under
+  // Ukrainian that stops at "1", so nothing accepts the maximal run. What
+  // happens next is deliberately unchanged: `lex` steps one character and
+  // finds "5.6", exactly as it did before grammars existed. The invariant this
+  // task carries is that a single-grammar engine sees no change at all, and
+  // this resync is part of what it sees.
+  const tokens = lex("1.5.6", en, keywords, isUnitAlias, grammarsFor([en, uk]));
+  expect(tokens.map((t) => `${t.type}:${"text" in t ? t.text : ""}`)).toEqual([
+    "number:5.6",
+  ]);
+  expect((tokens[0] as NumberToken).readings?.map((r) => r.locales)).toEqual([["en"]]);
+  expect(lex("1.5.6", en).map((t) => `${t.type}:${"text" in t ? t.text : ""}`)).toEqual([
+    "number:5.6",
+  ]);
+});
+
+test("a single-grammar engine sees exactly one reading", () => {
+  const tok = lex(
+    "1,000.5 kg",
+    en,
+    keywords,
+    isUnitAlias,
+    grammarsFor([en]),
+  )[0] as NumberToken;
+  expect(tok.readings).toHaveLength(1);
+  expect(tok.value.toFixed()).toBe("1000.5");
+  // And the default parameter is that same one-grammar list, so a caller who
+  // composes the passes by hand keeps the lexing it had.
+  expect(lex("1,000.5 kg", en)[0]).toMatchObject({ text: "1,000.5", end: 7 });
 });

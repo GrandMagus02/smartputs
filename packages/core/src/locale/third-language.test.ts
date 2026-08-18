@@ -9,6 +9,7 @@ import { createEngine } from "../engine";
 import { KeywordConflictError, NoCandidateError } from "../errors";
 import { buildRegistry } from "../kind/registry";
 import { createResolver } from "../parse/candidates";
+import type { NumberToken } from "../parse/lex";
 import { Normalizer } from "../parse/normalize";
 import { Parser } from "../parse/program";
 import { Tokenizer } from "../parse/tokenizer";
@@ -640,4 +641,41 @@ describe("what a third language exposes that the helpers do not cover", () => {
     expect(spell(new Decimal(21))).toBe("zwanzig ein");
     expect(spell(new Decimal(100))).toBe("ein hundert");
   });
+});
+
+/**
+ * Three languages, three thousands-and-decimal spellings, one engine.
+ *
+ * This is the claim §A of the second-pass spec exists to make, and it needs a
+ * third language to make it: with `en` and `uk` alone the two grammars share
+ * no character, so a run that one reads the other stops at and the ranking
+ * never has to happen. German's `(".", ",")` overlaps both — its group is
+ * English's decimal, its decimal is Ukrainian's — so each of these three runs
+ * is readable by more than one installed grammar and every one of them has to
+ * come out as the value its writer meant.
+ *
+ * At the lexer, not at `evaluate`: which of several readings wins is the
+ * solver's ranking, and that is Task 12's test. What is asserted here is that
+ * the reading exists at all — before this, digits were read under the *format*
+ * locale's grammar and nothing else, so a German word next to a German number
+ * produced an English number at full confidence.
+ */
+test("an en+uk+de engine reads each thousand-and-decimal spelling to its intended value", () => {
+  const locales = [en, uk, de];
+  const tokenizer = new Tokenizer({
+    locale: en,
+    locales,
+    registry: buildRegistry(BUILTIN_KINDS, locales),
+  });
+  const values = (input: string) =>
+    ((tokenizer.run(input).tokens[0] as NumberToken).readings ?? []).map((r) =>
+      r.value.toFixed(),
+    );
+
+  // Ukrainian: a group separator that `normalize()` has folded to a plain space.
+  expect(values("1 000,5 кг")).toContain("1000.5");
+  // German: the group separator English reads as a decimal point.
+  expect(values("1.000,5 kg")).toContain("1000.5");
+  // English: the group separator German reads as a decimal comma.
+  expect(values("1,000.5 kg")).toContain("1000.5");
 });
