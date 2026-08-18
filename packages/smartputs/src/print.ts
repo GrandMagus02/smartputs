@@ -11,6 +11,8 @@
 
 export type * from "@smartput/core/print";
 export {
+  applyDisplay,
+  DEFAULT_DISPLAY,
   DISPLAY_PRECISION,
   formatNumber,
   formatValue,
