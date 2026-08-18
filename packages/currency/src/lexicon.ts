@@ -28,12 +28,22 @@ export function currencyVocabulary(locale = "en"): Vocabulary {
     // one (ruling R8): the renderer's no-symbol branch joins number and unit
     // without a space, so a missing symbol would move a byte rather than fail.
     //
+    // `tight: true` (ruling R-C1) records how money is written — "$22.94",
+    // "€0.05", the symbol against the digits — now that a symbol takes a space
+    // by default. It changes no output today: the `money` kind formats through
+    // its own `format` hook (`@smartput/rate`), which is `formatAmount` and
+    // glues the symbol itself, and that hook is exactly the money exemption
+    // from the display policy. This makes the vocabulary agree with the
+    // formatter rather than leaving the two to disagree the day a caller
+    // renders a currency through the default path.
+    //
     // Copied rather than referenced: `defineVocabulary` deep-freezes what it
     // is given, and handing it `CURRENCIES`' own arrays would freeze the
     // exported table out from under every other reader of it.
     units[code] = {
       aliases: [...def.aliases],
       symbol: def.symbol,
+      tight: true,
       ...(def.display ? { forms: { ...def.display } } : {}),
     };
   }

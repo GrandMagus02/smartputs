@@ -166,8 +166,8 @@ describe("power ru vocabulary", () => {
     expect(e.evaluate("5 kw").formatted).toBe("5 киловатт");
     // `hp` renders through its symbol, tight against the number, because the
     // phrase Russian actually says cannot be read back as one token.
-    expect(e.evaluate("150 hp").formatted).toBe("150лс");
-    expect(e.evaluate("150 лс").formatted).toBe("150лс");
+    expect(e.evaluate("150 hp").formatted).toBe("150 лс");
+    expect(e.evaluate("150 лс").formatted).toBe("150 лс");
   });
 
   test("round-trips its own output", () => {

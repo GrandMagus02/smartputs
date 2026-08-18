@@ -91,6 +91,7 @@ export default defineVocabulary({
     deg: {
       aliases: [...alias("deg"), "derajat", "°"],
       symbol: "°",
+      tight: true,
       forms: { other: "derajat" },
     },
     // Both names already come from `units.ts`; what this entry decides is which

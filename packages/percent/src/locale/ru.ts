@@ -88,6 +88,7 @@ export default defineVocabulary({
         "проц",
       ],
       symbol: "%",
+      tight: true,
     },
   },
 });

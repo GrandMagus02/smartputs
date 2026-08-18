@@ -175,7 +175,7 @@ describe("power pt vocabulary", () => {
     expect(engine.evaluate("2 kw para watts").formatted).toBe("2.000 watts");
     // `hp` prints its symbol tight against the number, because it has no forms
     // to print instead.
-    expect(engine.evaluate("150 hp").formatted).toBe("150hp");
+    expect(engine.evaluate("150 hp").formatted).toBe("150 hp");
   });
 
   test("its own output reads back to the same value", () => {

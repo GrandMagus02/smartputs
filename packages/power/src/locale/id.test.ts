@@ -192,8 +192,8 @@ describe("power id vocabulary", () => {
     // The one unit with no Indonesian noun, printing on its symbol and set tight
     // by `defaultRenderQuantity` — the cost `@smartput/core/locale/id` takes
     // when it declines a `renderQuantity`, bounded here to a single unit.
-    expect(engine.evaluate("2 hp").formatted).toBe("2hp");
-    expect(engine.evaluate("2 horsepower").formatted).toBe("2hp");
+    expect(engine.evaluate("2 hp").formatted).toBe("2 hp");
+    expect(engine.evaluate("2 horsepower").formatted).toBe("2 hp");
   });
 
   test("its own output reads back to the same value", () => {

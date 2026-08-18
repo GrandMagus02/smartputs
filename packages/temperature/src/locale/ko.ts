@@ -127,18 +127,18 @@ const temperatureKo: readonly Vocabulary[] = [
     locale: "ko",
     kind: "temperature",
     units: {
-      c: { aliases: [...alias("c"), ...KOREAN.c], symbol: "°C" },
-      f: { aliases: [...alias("f"), ...KOREAN.f], symbol: "°F" },
-      k: { aliases: [...alias("k"), ...KOREAN.k], symbol: "K" },
+      c: { aliases: [...alias("c"), ...KOREAN.c], symbol: "°C", tight: true },
+      f: { aliases: [...alias("f"), ...KOREAN.f], symbol: "°F", tight: true },
+      k: { aliases: [...alias("k"), ...KOREAN.k], symbol: "K", tight: true },
     },
   }),
   defineVocabulary({
     locale: "ko",
     kind: "tempdelta",
     units: {
-      c: { aliases: [...deltaAlias("c"), ...KOREAN.c], symbol: "°C" },
-      f: { aliases: [...deltaAlias("f"), ...KOREAN.f], symbol: "°F" },
-      k: { aliases: [...deltaAlias("k"), ...KOREAN.k], symbol: "K" },
+      c: { aliases: [...deltaAlias("c"), ...KOREAN.c], symbol: "°C", tight: true },
+      f: { aliases: [...deltaAlias("f"), ...KOREAN.f], symbol: "°F", tight: true },
+      k: { aliases: [...deltaAlias("k"), ...KOREAN.k], symbol: "K", tight: true },
     },
   }),
 ];

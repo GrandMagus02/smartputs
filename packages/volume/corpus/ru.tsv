@@ -31,7 +31,7 @@
 5 пинт	volume	2.365882365	5 пинт
 # `кубометр` is written out, which is how the cubic metre is said rather than
 # printed — the unit carries no `forms`, so the symbol is what comes back.
-2 кубометра	volume	2000	2м³
+2 кубометра	volume	2000	2 м³
 # "до" is the third conversion preposition beside "в" and "у".
 2 л до миллилитров	volume	2	2 000 миллилитров
 # Both operators are two tokens, and both hang off "на" as `keywords.by`.

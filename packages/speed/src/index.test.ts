@@ -16,5 +16,5 @@ test("length over duration is a speed", () => {
 });
 
 test("a speed converts to another speed unit", () => {
-  expect(engine.evaluate("100 km / 1 h in kph").formatted).toBe("100kph");
+  expect(engine.evaluate("100 km / 1 h in kph").formatted).toBe("100 km/h");
 });

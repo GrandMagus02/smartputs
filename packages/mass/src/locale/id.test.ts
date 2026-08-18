@@ -182,7 +182,7 @@ describe("mass id vocabulary", () => {
     // The one unit with no word answers with its symbol, set tight because
     // `indonesian` ships no `renderQuantity` — see `@smartput/area/locale/id`,
     // where the same branch is the language's one recorded cost.
-    expect(e.evaluate("3 ounce").formatted).toBe("3oz");
+    expect(e.evaluate("3 ounce").formatted).toBe("3 oz");
   });
 
   test("its own output reads back to the same value", () => {

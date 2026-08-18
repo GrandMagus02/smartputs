@@ -88,6 +88,7 @@ export default defineVocabulary({
         "फीसदी",
       ],
       symbol: "%",
+      tight: true,
     },
   },
 });

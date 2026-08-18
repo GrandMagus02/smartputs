@@ -31,12 +31,18 @@ const alias = (unit: PercentUnit) => aliasesFor(PERCENT_UNITS, unit);
  * is explicit all the same (ruling R8): the renderer's no-symbol branch joins
  * number and unit without a space, so a unit that forgot its symbol would move
  * a byte rather than fail.
+ *
+ * `tight: true` is the other half of that (ruling R-C1): a symbol now takes a
+ * space unless its word says it is written against the number, and `%` is the
+ * clearest case there is — "20%", never "20 %", in every locale this package
+ * ships. It is a property of the WORD, not of the kind, which is why it sits
+ * here and not on the kind next door.
  */
 export default defineVocabulary({
   locale: "en",
   kind: "percent",
   units: {
-    "%": { aliases: alias("%"), symbol: "%" },
+    "%": { aliases: alias("%"), symbol: "%", tight: true },
   },
   // Weights are single digits, clamped per kind per mark by `CUE_CEILING`
   // (4) -- see `duration`'s table for the derivation. A cue ranks readings

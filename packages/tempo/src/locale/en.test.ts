@@ -34,8 +34,8 @@ describe("tempo en vocabulary", () => {
       locales: [composeLocale(english, [tempoEn])],
       kinds: [tempo],
     });
-    expect(engine.evaluate("120 bpm").formatted).toBe("120bpm");
+    expect(engine.evaluate("120 bpm").formatted).toBe("120 bpm");
     expect(engine.evaluate("2 hertz").formatted).toBe("2 hertz");
-    expect(engine.evaluate("3 hz in bpm").formatted).toBe("180bpm");
+    expect(engine.evaluate("3 hz in bpm").formatted).toBe("180 bpm");
   });
 });

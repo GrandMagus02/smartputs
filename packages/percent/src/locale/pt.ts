@@ -90,6 +90,7 @@ export default defineVocabulary({
         "percentuais",
       ],
       symbol: "%",
+      tight: true,
     },
   },
 });

@@ -33,7 +33,7 @@ describe("area en vocabulary", () => {
     expect(engine.evaluate("3 acres").formatted).toBe("3 acres");
     // The squared units carry no `forms`, so they render through the symbol
     // branch — number and symbol with no space, exactly as before the move.
-    expect(engine.evaluate("2 m2 + 1 m2").formatted).toBe("3m²");
-    expect(engine.evaluate("2 km²").formatted).toBe("2km²");
+    expect(engine.evaluate("2 m2 + 1 m2").formatted).toBe("3 m²");
+    expect(engine.evaluate("2 km²").formatted).toBe("2 km²");
   });
 });

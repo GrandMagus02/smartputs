@@ -12,8 +12,8 @@
 20% dari 50	number	10	10
 90 derajat ke radian	angle	1.570796326794896619231321692	1,5707963267948966192313217 radian
 1 kib ke byte	datasize	1024	1.024 byte
-3 m * 4 m	area	12	12m²
-100 km / 2 jam	speed	13.88888888888888888888888889	13,888888888888888888888889m/s
+3 m * 4 m	area	12	12 m²
+100 km / 2 jam	speed	13.88888888888888888888888889	13,888888888888888888888889 m/s
 # "." groups and "," is the decimal point — the Dutch pair, which is where
 # Indonesian orthography got it.
 1.500 g	mass	1500	1.500 gram

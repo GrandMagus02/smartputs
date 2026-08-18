@@ -1,16 +1,16 @@
 # input	kind	canonical	formatted
-120 bpm	tempo	120	120bpm
+120 bpm	tempo	120	120 bpm
 120 bpm in ms	duration	0.5	500 milliseconds
 120 bpm in s	duration	0.5	0.5 seconds
-500 ms in bpm	tempo	120	120bpm
-1 s in bpm	tempo	60	60bpm
+500 ms in bpm	tempo	120	120 bpm
+1 s in bpm	tempo	60	60 bpm
 60 bpm in s	duration	1	1 second
-2 hz in bpm	tempo	120	120bpm
+2 hz in bpm	tempo	120	120 bpm
 120 bpm in hz	tempo	120	2 hertz
-120 bpm + 8 bpm	tempo	128	128bpm
-140 bpm - 20 bpm	tempo	120	120bpm
-60 bpm * 2	tempo	120	120bpm
-120 bpm / 2	tempo	60	60bpm
--10 bpm	tempo	-10	-10bpm
-one bpm	tempo	1	1bpm
-174 bpm	tempo	174	174bpm
+120 bpm + 8 bpm	tempo	128	128 bpm
+140 bpm - 20 bpm	tempo	120	120 bpm
+60 bpm * 2	tempo	120	120 bpm
+120 bpm / 2	tempo	60	60 bpm
+-10 bpm	tempo	-10	-10 bpm
+one bpm	tempo	1	1 bpm
+174 bpm	tempo	174	174 bpm

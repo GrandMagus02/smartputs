@@ -139,33 +139,36 @@ describe("datarate id vocabulary", () => {
     // and the grouping, which is exactly what the vocabulary's doc comment
     // claims — a file that added nothing to `aliases` should be measurable only
     // in those two columns.
-    expect(engine.evaluate("100 mbps").formatted).toBe("100Mbps");
-    expect(engine.evaluate("2 bps").formatted).toBe("2bps");
+    expect(engine.evaluate("100 mbps").formatted).toBe("100 Mbps");
+    expect(engine.evaluate("2 bps").formatted).toBe("2 bps");
     // Conversions, with both particles the language lists under `in`: "ke" is
     // the directional "to" and "dalam" is "in". The group separator is a full
     // stop — the exact inverse of English — so "2.000" is two thousand.
-    expect(engine.evaluate("2 gbps dalam mbps").formatted).toBe("2.000Mbps");
-    expect(engine.evaluate("2 gbps ke mbps").formatted).toBe("2.000Mbps");
+    expect(engine.evaluate("2 gbps dalam mbps").formatted).toBe("2.000 Mbps");
+    expect(engine.evaluate("2 gbps ke mbps").formatted).toBe("2.000 Mbps");
     // A sum landing on a fraction, which is where the decimal comma shows. Both
     // spellings of addition: the symbol, and the Indonesian word "tambah".
-    expect(engine.evaluate("1 mbps + 500 kbps").formatted).toBe("1,5Mbps");
-    expect(engine.evaluate("1 mbps tambah 500 kbps").formatted).toBe("1,5Mbps");
+    expect(engine.evaluate("1 mbps + 500 kbps").formatted).toBe("1,5 Mbps");
+    expect(engine.evaluate("1 mbps tambah 500 kbps").formatted).toBe("1,5 Mbps");
     // "1,5" is one and a half here and "1.500" is fifteen hundred, so the two
     // separators are pinned against each other rather than one at a time.
-    expect(engine.evaluate("1,5 gbps").formatted).toBe("1,5Gbps");
-    expect(engine.evaluate("1.500 kbps").formatted).toBe("1.500kbps");
+    expect(engine.evaluate("1,5 gbps").formatted).toBe("1,5 Gbps");
+    expect(engine.evaluate("1.500 kbps").formatted).toBe("1.500 kbps");
   });
 
-  test("the symbol prints tight, and that is the language's own cost", () => {
-    // Recorded as an assertion rather than left in prose. Indonesian follows SI
-    // in spacing a symbol from its number, and `defaultRenderQuantity` sets one
-    // tight; `@smartput/core/locale/id` declines a `renderQuantity` on the
-    // reasoning that every translated Indonesian unit carries a `forms` row and
-    // therefore takes the spacing word branch. This kind carries none — it
-    // cannot, "megabit per detik" is three words — so it is the counter-example,
-    // and the fix belongs in the language file rather than in five vocabularies
-    // that would each have to agree about a space.
-    expect(engine.evaluate("100 mbps").formatted).not.toContain(" ");
+  test("the symbol prints spaced, which is what Indonesian asked for all along", () => {
+    // This test used to assert the opposite, and the comment under it named the
+    // fix: Indonesian follows SI in spacing a symbol from its number, but
+    // `defaultRenderQuantity` set one tight, and `@smartput/core/locale/id`
+    // declined a `renderQuantity` on the reasoning that every translated
+    // Indonesian unit carries a `forms` row and therefore takes the spacing
+    // word branch. This kind carries none — it cannot, "megabit per detik" is
+    // three words — so it was the counter-example.
+    //
+    // Ruling R-C1 moved the default the other way for every language at once:
+    // a symbol takes a space unless its word declares `UnitWords.tight`, so
+    // nothing here had to change and no vocabulary had to agree about a space.
+    expect(engine.evaluate("100 mbps").formatted).toBe("100 Mbps");
   });
 
   test("its own output reads back to the same value", () => {

@@ -28,10 +28,73 @@ export type { FormatOptions } from "../types";
  */
 export const DISPLAY_PRECISION = 26;
 
+/**
+ * What `Result.formatted` keeps. Ruling R-C1.
+ *
+ * Distinct from `DISPLAY_PRECISION` (26) above, which is the ROUND-TRIP AND
+ * COMPARISON GUARD and keeps both its meaning and its default. This policy runs
+ * after it, never before, so `Result.value.canonical` and `Result.value.raw`
+ * are untouched at 28 and 26 digits and `comparePrecision` still decides that
+ * `1 km / 3 * 3 = 1 km` (ruling C4).
+ *
+ * Four fraction digits, chosen against six and against a pure
+ * significant-digit rule: four is what a pocket calculator and a Soulver-class
+ * tool show, and a significant-digit rule makes `1234567.891` lose its cents.
+ * The three-digit significant floor is what stops `0.00001234 g` printing as
+ * `0`.
+ *
+ * Money is exempt, and the exemption is enforced at the call site rather than
+ * here: a money kind formats through its own `format` hook, which rounds by the
+ * currency's minor units under `rounding`, and re-rounding a cent to a general
+ * policy would be core deciding a domain question.
+ */
+export interface DisplayOptions {
+  /** Fraction digits `formatted` keeps at most. Default 4. Trailing zeros are dropped. */
+  maximumFractionDigits?: number;
+  /** Significant digits `formatted` never drops below, so a small value is not rounded to 0. Default 3. */
+  minimumSignificantDigits?: number;
+}
+
+export const DEFAULT_DISPLAY: Required<DisplayOptions> = Object.freeze({
+  maximumFractionDigits: 4,
+  minimumSignificantDigits: 3,
+});
+
+/**
+ * `FormatOptions` plus the display policy. A separate type rather than a field
+ * on `FormatOptions` itself because `FormatOptions` is `@smartput/kind`'s, and
+ * a kind's own `format` hook is precisely the path this policy does not run on
+ * (the money exemption above).
+ */
+export type FormatOptionsWithDisplay = FormatOptions & { display?: DisplayOptions };
+
+/**
+ * Applies the display policy, or nothing at all when there is no policy —
+ * `undefined` is "leave the guard digits alone", which is what every caller
+ * that has not opted in gets and why this file's other outputs do not move.
+ */
+export function applyDisplay(
+  value: Decimal,
+  display: DisplayOptions | undefined,
+): Decimal {
+  if (display === undefined) return value;
+  const maxFraction =
+    display.maximumFractionDigits ?? DEFAULT_DISPLAY.maximumFractionDigits;
+  const minSignificant =
+    display.minimumSignificantDigits ?? DEFAULT_DISPLAY.minimumSignificantDigits;
+  if (value.isZero()) return value;
+  const rounded = value.toDecimalPlaces(maxFraction);
+  // Zero is the case the floor exists for: 0.00001234 rounds to 0 at four
+  // places, and zero has no significant digits to compare, so it always falls
+  // through to the floor rather than being reported as nothing.
+  if (!rounded.isZero() && rounded.sd() >= minSignificant) return rounded;
+  return value.toSignificantDigits(minSignificant);
+}
+
 export function formatNumber(
   value: Decimal,
   language: Language,
-  opts: FormatOptions = {},
+  opts: FormatOptionsWithDisplay = {},
 ): string {
   // Intl cannot take a Decimal, and Number() would lose precision on long
   // values, so reformat the digit string by hand using the locale's own
@@ -75,7 +138,7 @@ export function formatValue(
   value: Value,
   registry: Registry,
   locale: Locale,
-  opts: FormatOptions = {},
+  opts: FormatOptionsWithDisplay = {},
 ): string {
   const kind = registry.kinds.get(value.kind);
   if (kind === undefined) return value.canonical.toFixed();
@@ -128,8 +191,12 @@ export function formatValue(
   // significant digit of every kind: `1 km / 3` renders
   // 0.33333333333333333333333333 by default and ...334 under ROUND_UP, which
   // is guard-digit noise being promoted to a policy.
-  const { rounding: _hookOnly, ...trim } = opts;
-  const numberText = formatNumber(authored, language, trim);
+  const { rounding: _hookOnly, display, ...trim } = opts;
+  // `display` runs here and only here: after `fromCanonical` has authored the
+  // value and before the digits are grouped, so what it rounds is the number
+  // the reader sees and never the one `Result.value` carries.
+  const shown = applyDisplay(authored, display);
+  const numberText = formatNumber(shown, language, trim);
   if (value.kind === NUMBER_KIND) return numberText;
 
   const words = wordsFor(registry, locale.id, value.kind, value.unit);
@@ -138,13 +205,34 @@ export function formatValue(
   // is why Ukrainian's case government after `in` is only correct through the
   // Printer, and saying so is cheaper than inventing a slot to guess with.
   const slot = "bare" as const;
-  const key = selectForm({ count: authored, slot });
+  const key = selectForm({ count: shown, slot });
   const form = words?.forms?.[key];
+
+  // `UnitWords.tight` is the word saying it is written against the number —
+  // "50%", "20°C". Everything else takes a space, which is the reverse of
+  // what this used to do: a unit with no `forms` fell through to its symbol and
+  // `defaultRenderQuantity` glued it, so "100kph" and "120bpm" were the NORMAL
+  // output and "1.5 kilograms" the exception. Reading a declared flag rather
+  // than inferring one from the absence of a word is what makes "50 km/h" and
+  // "5%" both right.
+  //
+  // Handed over as `gap` rather than as a new `QuantityParts` field: `gap` is
+  // already "the separator the caller resolved", a language that assembles its
+  // own quantity already honours it, and the alternative would be two ways to
+  // say the same thing to the same renderer.
+  //
+  // Passed ONLY when the word asked to be glued. The spaced case is the
+  // language's own default now (`defaultRenderQuantity` spaces all three
+  // branches), and sending `" "` for it would overrule every language that
+  // sets nothing off from a number — ja, zh and ko all read `p.gap ?? ""` and
+  // would start printing "100 メートル".
+  const glued = form === undefined && words?.symbol !== undefined && words.tight === true;
 
   return renderQuantity({
     number: numberText,
     ...(form !== undefined ? { form } : {}),
     ...(words?.symbol !== undefined ? { symbol: words.symbol } : {}),
+    ...(glued ? { gap: "" } : {}),
     slot,
   });
 }

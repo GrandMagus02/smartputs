@@ -107,12 +107,12 @@ describe("tempo uk vocabulary", () => {
     expect(e.evaluate("1,5 герца").formatted).toBe("1,5 герца");
     // bpm has no forms, so the renderer stays on the symbol and sets it tight
     // against the number — the same shape `en` prints "120bpm" through.
-    expect(e.evaluate("120 bpm").formatted).toBe("120бпм");
-    expect(e.evaluate("120 бпм").formatted).toBe("120бпм");
-    expect(e.evaluate("120 ударів").formatted).toBe("120бпм");
+    expect(e.evaluate("120 bpm").formatted).toBe("120 бпм");
+    expect(e.evaluate("120 бпм").formatted).toBe("120 бпм");
+    expect(e.evaluate("120 ударів").formatted).toBe("120 бпм");
     // Two conversions, one in each direction across the ratio. Both print as
     // finished quantities rather than targets, so hz comes back nominative.
-    expect(e.evaluate("3 гц в bpm").formatted).toBe("180бпм");
+    expect(e.evaluate("3 гц в bpm").formatted).toBe("180 бпм");
     expect(e.evaluate("120 bpm в герцах").formatted).toBe("2 герци");
     // Latin in, Ukrainian out: a uk engine reads both scripts, because the
     // aliases derive from the one alias map in `units.ts` before the Cyrillic
@@ -189,7 +189,7 @@ describe("tempo uk vocabulary", () => {
     }
     const e = engine();
     const printed = e.evaluate("120 bpm").formatted;
-    expect(printed).toBe("120бпм");
+    expect(printed).toBe("120 бпм");
     expect(e.evaluate(printed).value?.unit).toBe("bpm");
     // The other half was core's rather than this file's — Ukrainian groups
     // thousands with U+00A0, `normalize()` folds it to a plain space, and

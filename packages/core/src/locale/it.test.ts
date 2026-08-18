@@ -429,6 +429,6 @@ describe("italian number–noun agreement", () => {
         unit: "kg",
         slot: "after-number",
       }),
-    ).toBe("unokg");
+    ).toBe("uno kg");
   });
 });

@@ -1,16 +1,16 @@
 # input	kind	canonical	formatted
-3 m * 4 m	area	12	12m²
-1 hectare in m2	area	10000	10,000m²
-1 acre in m2	area	4046.8564224	4,046.8564224m²
+3 m * 4 m	area	12	12 m²
+1 hectare in m2	area	10000	10,000 m²
+1 acre in m2	area	4046.8564224	4,046.8564224 m²
 2 km2 in hectare	area	2000000	200 hectares
-5000 cm2 in m2	area	0.5	0.5m²
-10 m2 + 5 m2	area	15	15m²
+5000 cm2 in m2	area	0.5	0.5 m²
+10 m2 + 5 m2	area	15	15 m²
 1 hectare - 2500 m2	area	7500	0.75 hectares
-3 m2 * 4	area	12	12m²
-100 m2 / 4	area	25	25m²
--5 m2	area	-5	-5m²
-2 sqkm in sqm	area	2000000	2,000,000m²
-1 m2 in cm2	area	1	10,000cm²
+3 m2 * 4	area	12	12 m²
+100 m2 / 4	area	25	25 m²
+-5 m2	area	-5	-5 m²
+2 sqkm in sqm	area	2000000	2,000,000 m²
+1 m2 in cm2	area	1	10,000 cm²
 two hectares	area	20000	2 hectares
-1 km * 1 km	area	1000000	1,000,000m²
-12 m2	area	12	12m²
+1 km * 1 km	area	1000000	1,000,000 m²
+12 m2	area	12	12 m²

@@ -187,15 +187,15 @@ describe("speed pt vocabulary", () => {
     // Conversions, with both prepositions the language lists under `in`: knots
     // in, the Portuguese compound out, joined to the number with no space
     // because `kph` has no forms.
-    expect(engine.evaluate("10 nós em kph").formatted).toBe("18,52km/h");
+    expect(engine.evaluate("10 nós em kph").formatted).toBe("18,52 km/h");
     expect(engine.evaluate("37,04 kph para nós").formatted).toBe("20 nós");
     // Latin abbreviations still read: a Portuguese speaker types "mps" and
     // "kmh" as readily as anything this file adds.
-    expect(engine.evaluate("3 mps").formatted).toBe("3m/s");
-    expect(engine.evaluate("1 kmh").formatted).toBe("1km/h");
-    expect(engine.evaluate("60 mph").formatted).toBe("60mi/h");
+    expect(engine.evaluate("3 mps").formatted).toBe("3 m/s");
+    expect(engine.evaluate("1 kmh").formatted).toBe("1 km/h");
+    expect(engine.evaluate("60 mph").formatted).toBe("60 mi/h");
     // Grouping is a full stop, from CLDR through `numberFormat: "intl"`.
-    expect(engine.evaluate("2000 kph").formatted).toBe("2.000km/h");
+    expect(engine.evaluate("2000 kph").formatted).toBe("2.000 km/h");
   });
 
   test("its own output reads back to the same value", () => {
@@ -228,13 +228,13 @@ describe("speed pt vocabulary", () => {
     expect(bridged.value?.unit).toBe("mps");
     // 100 km/h is 100000/3600 m/s. Asserted through a conversion so the
     // repeating decimal stays out of the expectation.
-    expect(wired.evaluate("100 km / h em kph").formatted).toBe("100km/h");
+    expect(wired.evaluate("100 km / h em kph").formatted).toBe("100 km/h");
     // The Portuguese nouns reach the same place, which is the whole point of
     // leaving them to the length vocabulary.
-    expect(wired.evaluate("100 quilômetros / hora em kph").formatted).toBe("100km/h");
+    expect(wired.evaluate("100 quilômetros / hora em kph").formatted).toBe("100 km/h");
     expect(wired.evaluate("1852 metros / hora em nós").formatted).toBe("1 nó");
     // And the imperial row, whose symbol is the one an English contraction
     // would have spelled undecomposably.
-    expect(wired.evaluate("60 milhas / hora em mph").formatted).toBe("60mi/h");
+    expect(wired.evaluate("60 milhas / hora em mph").formatted).toBe("60 mi/h");
   });
 });

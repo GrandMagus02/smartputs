@@ -119,22 +119,22 @@ describe("datarate es vocabulary", () => {
   test("an engine built from it reads and writes Spanish datarate", () => {
     // Spanish noun in, Spanish symbol out, joined tight because this kind
     // declares no forms.
-    expect(engine.evaluate("100 megabits").formatted).toBe("100Mbps");
-    expect(engine.evaluate("100 megas").formatted).toBe("100Mbps");
+    expect(engine.evaluate("100 megabits").formatted).toBe("100 Mbps");
+    expect(engine.evaluate("100 megas").formatted).toBe("100 Mbps");
     // Latin abbreviations still read: the aliases derive from the one map in
     // `units.ts` before the Spanish spellings are appended to it.
-    expect(engine.evaluate("100 mbps").formatted).toBe("100Mbps");
+    expect(engine.evaluate("100 mbps").formatted).toBe("100 Mbps");
     // A conversion, written with "en" — the locative preposition the language
     // lists first under `in`. The group separator is a full stop, which is what
     // `Intl.NumberFormat("es")` produces on this runtime; "2.000" is two
     // thousand megabits per second and not two of them.
-    expect(engine.evaluate("2 gbps en mbps").formatted).toBe("2.000Mbps");
+    expect(engine.evaluate("2 gbps en mbps").formatted).toBe("2.000 Mbps");
     // ...and with "a", the directional preposition listed beside it.
-    expect(engine.evaluate("2 gbps a mbps").formatted).toBe("2.000Mbps");
+    expect(engine.evaluate("2 gbps a mbps").formatted).toBe("2.000 Mbps");
     // A sum landing on a fraction, which is where the decimal comma shows.
     // Spelled with a comma on purpose: "1.5" is not a Spanish number, so a test
     // written with one would be exercising the group separator instead.
-    expect(engine.evaluate("1 mbps + 500 kbps").formatted).toBe("1,5Mbps");
+    expect(engine.evaluate("1 mbps + 500 kbps").formatted).toBe("1,5 Mbps");
   });
 
   test("its own output reads back to the same value", () => {

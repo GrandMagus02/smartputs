@@ -1,20 +1,20 @@
 # input	kind	canonical	formatted
-100 mbps	datarate	100000000	100Mbps
-1 gbps en mbps	datarate	1000000000	1.000Mbps
-500 MB / 20 s	datarate	200000000	200Mbps
+100 mbps	datarate	100000000	100 Mbps
+1 gbps en mbps	datarate	1000000000	1.000 Mbps
+500 MB / 20 s	datarate	200000000	200 Mbps
 100 mbps * 1 min	datasize	750000000	750.000.000 bytes
 1 min * 100 mbps	datasize	750000000	750.000.000 bytes
 1 GB / 100 mbps	duration	80	80 segundos
-100 mbps + 50 mbps	datarate	150000000	150Mbps
-200 mbps - 50 mbps	datarate	150000000	150Mbps
-2 mbps * 3	datarate	6000000	6Mbps
-1 gbps / 4	datarate	250000000	0,25Gbps
--10 mbps	datarate	-10000000	-10Mbps
-8000 bps en kbps	datarate	8000	8kbps
-doscientos megabits	datarate	200000000	200Mbps
+100 mbps + 50 mbps	datarate	150000000	150 Mbps
+200 mbps - 50 mbps	datarate	150000000	150 Mbps
+2 mbps * 3	datarate	6000000	6 Mbps
+1 gbps / 4	datarate	250000000	0,25 Gbps
+-10 mbps	datarate	-10000000	-10 Mbps
+8000 bps en kbps	datarate	8000	8 kbps
+doscientos megabits	datarate	200000000	200 Mbps
 # "." groups and "," marks the decimal.
-1.234.567 bps	datarate	1234567	1.234.567bps
-1,5 gbps	datarate	1500000000	1,5Gbps
+1.234.567 bps	datarate	1234567	1.234.567 bps
+1,5 gbps	datarate	1500000000	1,5 Gbps
 # A fraction takes the **plural** in Spanish — "1,5 gigabytes", never
 # "1,5 gigabyte". French and Portuguese put the same number in the singular,
 # which is the sharpest disagreement in this package's fifteen tables.
@@ -29,14 +29,14 @@ doscientos megabits	datarate	200000000	200Mbps
 1 octeto	datasize	1	1 byte
 # "megas" is what a Spanish speaker calls a megabit per second when talking
 # about a connection, and it is listed in both numbers.
-100 megas	datarate	100000000	100Mbps
+100 megas	datarate	100000000	100 Mbps
 # `por` is `times` and `entre` is `over` — so Spanish cannot say "dividido
 # por", which would be two operators in a row.
-2 mbps por 3	datarate	6000000	6Mbps
-10 gbps entre 4	datarate	2500000000	2,5Gbps
+2 mbps por 3	datarate	6000000	6 Mbps
+10 gbps entre 4	datarate	2500000000	2,5 Gbps
 # `a` beside `en` as a second conversion preposition.
-1 gbps a mbps	datarate	1000000000	1.000Mbps
+1 gbps a mbps	datarate	1000000000	1.000 Mbps
 # "megabit" and "megabyte" are one letter apart and name two kinds, and the
 # factor of 8 between them is the one the bridge signatures write out.
-100 megabit	datarate	100000000	100Mbps
+100 megabit	datarate	100000000	100 Mbps
 100 megabyte	datasize	100000000	100 megabytes

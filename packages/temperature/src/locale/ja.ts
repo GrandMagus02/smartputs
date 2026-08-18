@@ -117,18 +117,18 @@ const temperatureJa: readonly Vocabulary[] = [
     locale: "ja",
     kind: "temperature",
     units: {
-      c: { aliases: [...alias("c"), ...JAPANESE.c], symbol: "°C" },
-      f: { aliases: [...alias("f"), ...JAPANESE.f], symbol: "°F" },
-      k: { aliases: [...alias("k"), ...JAPANESE.k], symbol: "K" },
+      c: { aliases: [...alias("c"), ...JAPANESE.c], symbol: "°C", tight: true },
+      f: { aliases: [...alias("f"), ...JAPANESE.f], symbol: "°F", tight: true },
+      k: { aliases: [...alias("k"), ...JAPANESE.k], symbol: "K", tight: true },
     },
   }),
   defineVocabulary({
     locale: "ja",
     kind: "tempdelta",
     units: {
-      c: { aliases: [...deltaAlias("c"), ...JAPANESE.c], symbol: "°C" },
-      f: { aliases: [...deltaAlias("f"), ...JAPANESE.f], symbol: "°F" },
-      k: { aliases: [...deltaAlias("k"), ...JAPANESE.k], symbol: "K" },
+      c: { aliases: [...deltaAlias("c"), ...JAPANESE.c], symbol: "°C", tight: true },
+      f: { aliases: [...deltaAlias("f"), ...JAPANESE.f], symbol: "°F", tight: true },
+      k: { aliases: [...deltaAlias("k"), ...JAPANESE.k], symbol: "K", tight: true },
     },
   }),
 ];

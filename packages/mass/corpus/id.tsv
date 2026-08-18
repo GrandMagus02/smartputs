@@ -26,8 +26,8 @@
 # the number closes up against it. `ons` is 100 g in Indonesian — a wet-market
 # unit inherited from Dutch — so the vocabulary refuses the word rather than
 # answer 3.5× wrong, and leaves the English spellings to read.
-2 oz	mass	56.69904625	2oz
-16 ounces	mass	453.59237	16oz
+2 oz	mass	56.69904625	2 oz
+16 ounces	mass	453.59237	16 oz
 # No spelled cardinals. `@smartput/core` ships a `<lang>-cardinals` file for
 # fourteen of the fifteen non-English languages here and none for `id`, so
 # "satu kilogram" does not parse and this corpus records digits only.

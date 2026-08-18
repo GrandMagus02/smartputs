@@ -162,7 +162,7 @@ describe("volume id vocabulary", () => {
     // The one unit with no word answers with its symbol, set tight because
     // `indonesian` ships no `renderQuantity` — the language's one recorded cost,
     // and the same string `en` and `uk` already produce.
-    expect(e.evaluate("1,5 m3").formatted).toBe("1,5m³");
+    expect(e.evaluate("1,5 m3").formatted).toBe("1,5 m³");
   });
 
   test("its own output reads back to the same value", () => {

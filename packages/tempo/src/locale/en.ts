@@ -27,7 +27,9 @@ const alias = (unit: TempoUnit) => aliasesFor(TEMPO_UNITS, unit);
  * `bpm` carries no `forms`. "Beats per minute" is a compound the lexer cannot
  * read back, and a written-out name that never parses back is a dead end for
  * completion — the same reason `speed`'s mps and kph carry none. Absent forms
- * keep `formatValue` on the symbol, so a tempo prints as "120bpm". `hz` does
+ * keep `formatValue` on the symbol, so a tempo prints as "120 bpm" — neither
+ * unit declares `tight`, which is for a symbol written against the number
+ * ("50%", "20°C") rather than for an abbreviation read as a word. `hz` does
  * declare its two English categories, both spelled "hertz": it is a single word
  * that is also its own plural, and it is already an alias, so it round-trips.
  */

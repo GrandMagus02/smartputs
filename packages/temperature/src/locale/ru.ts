@@ -122,18 +122,18 @@ const temperatureRu: readonly Vocabulary[] = [
     locale: "ru",
     kind: "temperature",
     units: {
-      c: { aliases: [...alias("c"), ...CYRILLIC.c], symbol: "°C" },
-      f: { aliases: [...alias("f"), ...CYRILLIC.f], symbol: "°F" },
-      k: { aliases: [...alias("k"), ...CYRILLIC.k], symbol: "K" },
+      c: { aliases: [...alias("c"), ...CYRILLIC.c], symbol: "°C", tight: true },
+      f: { aliases: [...alias("f"), ...CYRILLIC.f], symbol: "°F", tight: true },
+      k: { aliases: [...alias("k"), ...CYRILLIC.k], symbol: "K", tight: true },
     },
   }),
   defineVocabulary({
     locale: "ru",
     kind: "tempdelta",
     units: {
-      c: { aliases: [...deltaAlias("c"), ...CYRILLIC.c], symbol: "°C" },
-      f: { aliases: [...deltaAlias("f"), ...CYRILLIC.f], symbol: "°F" },
-      k: { aliases: [...deltaAlias("k"), ...CYRILLIC.k], symbol: "K" },
+      c: { aliases: [...deltaAlias("c"), ...CYRILLIC.c], symbol: "°C", tight: true },
+      f: { aliases: [...deltaAlias("f"), ...CYRILLIC.f], symbol: "°F", tight: true },
+      k: { aliases: [...deltaAlias("k"), ...CYRILLIC.k], symbol: "K", tight: true },
     },
   }),
 ];

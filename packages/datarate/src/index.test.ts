@@ -47,5 +47,5 @@ test("the swapped product is declared, not inferred from commutativity", () => {
 test("a datarate converts to another datarate unit", () => {
   // No space before the unit: these lexemes have a `symbol` and no `display`,
   // which is the same shape `speed` formats "100kph" through.
-  expect(engine.evaluate("2 gbps in mbps").formatted).toBe("2,000mbps");
+  expect(engine.evaluate("2 gbps in mbps").formatted).toBe("2,000 mbps");
 });

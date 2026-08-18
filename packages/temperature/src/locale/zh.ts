@@ -136,18 +136,18 @@ const temperatureZh: readonly Vocabulary[] = [
     locale: "zh",
     kind: "temperature",
     units: {
-      c: { aliases: [...alias("c"), ...CHINESE.c], symbol: "°C" },
-      f: { aliases: [...alias("f"), ...CHINESE.f], symbol: "°F" },
-      k: { aliases: [...alias("k"), ...CHINESE.k], symbol: "K" },
+      c: { aliases: [...alias("c"), ...CHINESE.c], symbol: "°C", tight: true },
+      f: { aliases: [...alias("f"), ...CHINESE.f], symbol: "°F", tight: true },
+      k: { aliases: [...alias("k"), ...CHINESE.k], symbol: "K", tight: true },
     },
   }),
   defineVocabulary({
     locale: "zh",
     kind: "tempdelta",
     units: {
-      c: { aliases: [...deltaAlias("c"), ...CHINESE.c], symbol: "°C" },
-      f: { aliases: [...deltaAlias("f"), ...CHINESE.f], symbol: "°F" },
-      k: { aliases: [...deltaAlias("k"), ...CHINESE.k], symbol: "K" },
+      c: { aliases: [...deltaAlias("c"), ...CHINESE.c], symbol: "°C", tight: true },
+      f: { aliases: [...deltaAlias("f"), ...CHINESE.f], symbol: "°F", tight: true },
+      k: { aliases: [...deltaAlias("k"), ...CHINESE.k], symbol: "K", tight: true },
     },
   }),
 ];

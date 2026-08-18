@@ -504,7 +504,7 @@ describe("the numeral agrees in gender with the noun it counts", () => {
         unit: "kg",
         slot: "after-number",
       }),
-    ).toBe("unkg");
+    ).toBe("un kg");
   });
 
   test("every feminine spelling it can emit is one the numeral table reads", () => {

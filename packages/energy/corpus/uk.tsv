@@ -9,11 +9,11 @@
 1 МДж в кДж	energy	1000000	1 000 кілоджоулів
 500 Дж + 500 Дж	energy	1000	1 000 джоулів
 2 кДж * 3	energy	6000	6 кілоджоулів
-1 mwh в kwh	energy	3600000000	1 000кВт·год
--1 kwh	energy	-3600000	-1кВт·год
+1 mwh в kwh	energy	3600000000	1 000 кВт·год
+-1 kwh	energy	-3600000	-1 кВт·год
 один кілоджоуль	energy	1000	1 кілоджоуль
 1000 кал в ккал	energy	4184	1 кілокалорія
-2,5 kwh	energy	9000000	2,5кВт·год
+2,5 kwh	energy	9000000	2,5 кВт·год
 # The watt-hour's Ukrainian symbol is `кВт·год`, a middle dot rather than
 # an operator, so it is one word token and reads as a unit — which is what
 # this row is here to hold. `kwh` above is the Latin alias for the same

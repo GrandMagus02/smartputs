@@ -143,16 +143,16 @@ describe("tempo id vocabulary", () => {
     // `defaultRenderQuantity` sets a symbol against the number; `hz` has a word
     // and is spaced. The split is the cost `@smartput/core/locale/id` takes when
     // it declines a `renderQuantity`, and it is asserted rather than described.
-    expect(engine.evaluate("120 bpm").formatted).toBe("120bpm");
+    expect(engine.evaluate("120 bpm").formatted).toBe("120 bpm");
     expect(engine.evaluate("2 hz").formatted).toBe("2 hertz");
     // The Indonesian noun for the beat is a way in and never a way out.
     expect(engine.evaluate("120 ketukan").value.unit).toBe("bpm");
-    expect(engine.evaluate("120 ketukan").formatted).toBe("120bpm");
+    expect(engine.evaluate("120 ketukan").formatted).toBe("120 bpm");
     // The bare verb root is deliberately unclaimed, so it fails loudly rather
     // than quietly meaning something.
     expect(() => engine.evaluate("120 ketuk")).toThrow();
     // Conversions, with both particles the language lists under `in`.
-    expect(engine.evaluate("2 hz dalam bpm").formatted).toBe("120bpm");
+    expect(engine.evaluate("2 hz dalam bpm").formatted).toBe("120 bpm");
     expect(engine.evaluate("60 bpm ke hz").formatted).toBe("1 hertz");
     // A sum landing on a fraction, in both spellings of addition. Written with a
     // comma on purpose: "1.5" is fifteen hundred here, so a test spelled with a
@@ -162,10 +162,10 @@ describe("tempo id vocabulary", () => {
     expect(engine.evaluate("1 hz tambah 30 bpm").formatted).toBe("1,5 hertz");
     // The remaining word operators the language claims.
     expect(engine.evaluate("2 hz kurang 30 bpm").formatted).toBe("1,5 hertz");
-    expect(engine.evaluate("60 bpm kali 2").formatted).toBe("120bpm");
+    expect(engine.evaluate("60 bpm kali 2").formatted).toBe("120 bpm");
     expect(engine.evaluate("3 hz bagi 2").formatted).toBe("1,5 hertz");
     // Grouping is a full stop, from CLDR through `numberFormat: "intl"`.
-    expect(engine.evaluate("2000 bpm").formatted).toBe("2.000bpm");
+    expect(engine.evaluate("2000 bpm").formatted).toBe("2.000 bpm");
   });
 
   test("its own output reads back to the same value", () => {

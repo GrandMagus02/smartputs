@@ -113,18 +113,18 @@ const temperatureId: readonly Vocabulary[] = [
     locale: "id",
     kind: "temperature",
     units: {
-      c: { aliases: alias("c"), symbol: "°C" },
-      f: { aliases: alias("f"), symbol: "°F" },
-      k: { aliases: alias("k"), symbol: "K" },
+      c: { aliases: alias("c"), symbol: "°C", tight: true },
+      f: { aliases: alias("f"), symbol: "°F", tight: true },
+      k: { aliases: alias("k"), symbol: "K", tight: true },
     },
   }),
   defineVocabulary({
     locale: "id",
     kind: "tempdelta",
     units: {
-      c: { aliases: deltaAlias("c"), symbol: "°C" },
-      f: { aliases: deltaAlias("f"), symbol: "°F" },
-      k: { aliases: deltaAlias("k"), symbol: "K" },
+      c: { aliases: deltaAlias("c"), symbol: "°C", tight: true },
+      f: { aliases: deltaAlias("f"), symbol: "°F", tight: true },
+      k: { aliases: deltaAlias("k"), symbol: "K", tight: true },
     },
   }),
 ];

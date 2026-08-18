@@ -339,7 +339,7 @@ describe("the numeral agrees in gender with the noun it counts", () => {
         unit: "kg",
         slot: "after-number",
       }),
-    ).toBe("1,5kg");
+    ).toBe("1,5 kg");
   });
 
   test("every feminine the renderer can write is a word the table reads", () => {

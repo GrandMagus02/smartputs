@@ -23,8 +23,8 @@ doscientos cinco kilovatios	power	205000	205 kilovatios
 # The horsepower has no Spanish word in this vocabulary, only the symbol. With
 # no `forms` entry the renderer falls through to it, and the default template
 # sets a symbol tight against the number.
-1 hp	power	745.69987158227022	1hp
-2 kW en hp	power	2000	2,6820441791900558686475711hp
+1 hp	power	745.69987158227022	1 hp
+2 kW en hp	power	2000	2,6820441791900558686475711 hp
 # "por" is times, so division cannot borrow it and "entre" is what says over.
 2 kW por 3	power	6000	6 kilovatios
 1 MW entre 4	power	250000	0,25 megavatios

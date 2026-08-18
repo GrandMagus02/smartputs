@@ -31,7 +31,7 @@ test("the same product with the operands swapped", () => {
 });
 
 test("2 kw * 3 h in kwh is 6 kwh", () => {
-  expect(engine.evaluate("2 kw * 3 h in kwh").formatted).toBe("6kwh");
+  expect(engine.evaluate("2 kw * 3 h in kwh").formatted).toBe("6 kwh");
 });
 
 test("energy over duration is a power", () => {

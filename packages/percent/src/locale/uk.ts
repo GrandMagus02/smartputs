@@ -74,6 +74,7 @@ export default defineVocabulary({
         "процентами",
       ],
       symbol: "%",
+      tight: true,
     },
   },
 });

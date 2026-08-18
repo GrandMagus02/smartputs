@@ -63,6 +63,7 @@ export default defineVocabulary({
     "%": {
       aliases: [...alias("%"), "percento", "percentuale", "percentuali"],
       symbol: "%",
+      tight: true,
     },
   },
 });

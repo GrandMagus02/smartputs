@@ -182,7 +182,7 @@ describe("volume pt vocabulary", () => {
     // `m3` has no words, so it renders through the symbol branch — number and
     // symbol with no space, exactly as `en`, `uk` and `es` render it.
     expect(engine.evaluate("1 m³ para litros").formatted).toBe("1.000 litros");
-    expect(engine.evaluate("2 m3 + 1 m3").formatted).toBe("3m³");
+    expect(engine.evaluate("2 m3 + 1 m3").formatted).toBe("3 m³");
     // Portuguese groups with "." and the engine groups uniformly every three
     // digits.
     expect(engine.evaluate("2000 ml").formatted).toBe("2.000 mililitros");

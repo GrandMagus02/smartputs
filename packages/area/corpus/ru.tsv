@@ -1,19 +1,19 @@
 # input	kind	canonical	formatted
-3 м * 4 м	area	12	12м²
-1 гектар в м2	area	10000	10 000м²
-1 акр в м2	area	4046.8564224	4 046,8564224м²
+3 м * 4 м	area	12	12 м²
+1 гектар в м2	area	10000	10 000 м²
+1 акр в м2	area	4046.8564224	4 046,8564224 м²
 2 км2 в гектарах	area	2000000	200 гектаров
-5000 см2 в м2	area	0.5	0,5м²
-10 м2 + 5 м2	area	15	15м²
+5000 см2 в м2	area	0.5	0,5 м²
+10 м2 + 5 м2	area	15	15 м²
 1 гектар - 2500 м2	area	7500	0,75 гектара
-3 м2 * 4	area	12	12м²
-100 м2 / 4	area	25	25м²
--5 м2	area	-5	-5м²
-2 км2 в м2	area	2000000	2 000 000м²
-1 м2 в см2	area	1	10 000см²
+3 м2 * 4	area	12	12 м²
+100 м2 / 4	area	25	25 м²
+-5 м2	area	-5	-5 м²
+2 км2 в м2	area	2000000	2 000 000 м²
+1 м2 в см2	area	1	10 000 см²
 два гектара	area	20000	2 гектара
-1 км * 1 км	area	1000000	1 000 000м²
-12 м2	area	12	12м²
+1 км * 1 км	area	1000000	1 000 000 м²
+12 м2	area	12	12 м²
 # Four plural categories, and the same numbers land differently than in Polish
 # next door. 21 is singular here and `many` there; 11 is `many` in both.
 1 гектар	area	10000	1 гектар
@@ -30,7 +30,7 @@
 100 га	area	1000000	100 гектаров
 # A decimal comma and a U+00A0 group separator, with the symbol set tight
 # against the number.
-1 500 м2	area	1500	1 500м²
+1 500 м2	area	1500	1 500 м²
 # Both operators are two-token and both hang off "на".
-10 м2 умножить на 3	area	30	30м²
-100 м2 разделить на 4	area	25	25м²
+10 м2 умножить на 3	area	30	30 м²
+100 м2 разделить на 4	area	25	25 м²

@@ -123,7 +123,7 @@ describe("energy uk vocabulary", () => {
     // no unit of any registered kind) rather than for want of an operator, and
     // the wired-up case lives in `@smartput/kinds`' `ukrainian.test.ts`.
     const e = engine();
-    expect(e.evaluate("2 kwh").formatted).toBe("2кВт·год");
+    expect(e.evaluate("2 kwh").formatted).toBe("2 кВт·год");
     expect(() => e.evaluate("2 кВт·год")).toThrow(/кВт/);
   });
 

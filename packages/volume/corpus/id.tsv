@@ -28,7 +28,7 @@
 # that would prove it is the one that cannot be written.
 1000 liter	volume	1000	1.000 liter
 # No one-token word for the cubic metre either, so the symbol is printed.
-2 m3	volume	2000	2m³
+2 m3	volume	2000	2 m³
 # "dalam" is the second conversion preposition beside "ke".
 2 l dalam ml	volume	2	2.000 mililiter
 # "kali" is `times` and also "occasion"; "bagi" is a bare `over` needing no

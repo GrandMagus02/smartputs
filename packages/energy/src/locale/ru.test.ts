@@ -193,7 +193,7 @@ describe("energy ru vocabulary", () => {
     // So the symbol fails to read here for a stated reason ("кВт" is no unit of
     // any registered kind) rather than for want of an operator.
     const e = engine();
-    expect(e.evaluate("2 kwh").formatted).toBe("2кВт·ч");
+    expect(e.evaluate("2 kwh").formatted).toBe("2 кВт·ч");
     expect(() => e.evaluate("2 кВт·ч")).toThrow(/кВт/);
   });
 

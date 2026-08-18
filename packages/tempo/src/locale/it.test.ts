@@ -125,15 +125,15 @@ describe("tempo it vocabulary", () => {
   test("an engine built from it reads and writes Italian tempo", () => {
     // `bpm` has no forms, so it stays on the symbol and is set tight; `hz` has
     // them, so its word is spaced.
-    expect(engine.evaluate("120 bpm").formatted).toBe("120bpm");
+    expect(engine.evaluate("120 bpm").formatted).toBe("120 bpm");
     expect(engine.evaluate("1 hz").formatted).toBe("1 hertz");
     expect(engine.evaluate("2 hz").formatted).toBe("2 hertz");
     // The Italian numeral fold, which welds a whole sub-million cardinal into
     // one word: "centoventi" is cento + venti and nothing else in this repo's
     // languages would have written it that way.
-    expect(engine.evaluate("centoventi bpm").formatted).toBe("120bpm");
+    expect(engine.evaluate("centoventi bpm").formatted).toBe("120 bpm");
     // Conversions, with both prepositions the language lists under `in`.
-    expect(engine.evaluate("2 hz in bpm").formatted).toBe("120bpm");
+    expect(engine.evaluate("2 hz in bpm").formatted).toBe("120 bpm");
     expect(engine.evaluate("120 bpm a hz").formatted).toBe("2 hertz");
     // A sum landing on a fraction, which is where the decimal comma shows.
     // Written with a comma on purpose: "1.5" is not an Italian number, since the
@@ -142,7 +142,7 @@ describe("tempo it vocabulary", () => {
     // ...and the same sum spelled with Italian's own word for the operator.
     expect(engine.evaluate("1 hz più 30 bpm").formatted).toBe("1,5 hertz");
     // Grouping is a full stop, from CLDR through `numberFormat: "intl"`.
-    expect(engine.evaluate("2000 bpm").formatted).toBe("2.000bpm");
+    expect(engine.evaluate("2000 bpm").formatted).toBe("2.000 bpm");
   });
 
   test("its own output reads back to the same value", () => {

@@ -154,7 +154,7 @@ describe("power es vocabulary", () => {
     expect(engine.evaluate("2 kw a vatios").formatted).toBe("2.000 vatios");
     // `hp` prints its symbol tight against the number, because it has no forms
     // to print instead — the visible cost of the ruling above.
-    expect(engine.evaluate("150 hp").formatted).toBe("150hp");
+    expect(engine.evaluate("150 hp").formatted).toBe("150 hp");
     expect(engine.evaluate("1 gw en megavatios").formatted).toBe("1.000 megavatios");
   });
 

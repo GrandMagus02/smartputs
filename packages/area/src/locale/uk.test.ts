@@ -99,10 +99,10 @@ describe("area uk vocabulary", () => {
     expect(e.evaluate("1,5 гектара").formatted).toBe("1,5 гектара");
     expect(e.evaluate("5 акрів").formatted).toBe("5 акрів");
     // A conversion, landing on a unit with no forms: it renders through the
-    // symbol branch, tight against the number, and the number is grouped by
+    // symbol branch — spaced from the number under ruling R-C1 — and the number is
     // U+00A0 because `numberFormat: "intl"` reads that from CLDR. Written as an
     // escape — a literal NBSP is invisible here and degrades to a plain space.
-    expect(e.evaluate("2 га в м2").formatted).toBe("20\u00A0000м²");
+    expect(e.evaluate("2 га в м2").formatted).toBe("20\u00A0000 м²");
     // Both scripts read: a Ukrainian engine still takes the Latin aliases the
     // one alias map in `units.ts` declares, and prints them back in Ukrainian.
     expect(e.evaluate("2 ha").formatted).toBe("2 гектари");

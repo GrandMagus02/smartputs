@@ -82,31 +82,31 @@ describe("datarate uk vocabulary", () => {
 
   test("an engine built from it reads and writes Ukrainian datarate", () => {
     // Cyrillic abbreviation in, Ukrainian symbol out.
-    expect(engine.evaluate("100 мбіт").formatted).toBe("100Мбіт");
+    expect(engine.evaluate("100 мбіт").formatted).toBe("100 Мбіт");
     // The fractional case, which is where the decimal comma shows: Ukrainian
     // marks it ",", read from CLDR by `numberFormat: "intl"`. Spelled with a
     // comma on purpose — "1.5" is not a Ukrainian number, so a test written
     // with one exercises the fallback rather than this locale.
-    expect(engine.evaluate("1,5 мбіт").formatted).toBe("1,5Мбіт");
+    expect(engine.evaluate("1,5 мбіт").formatted).toBe("1,5 Мбіт");
     // ...and it round-trips too, which the whole-number loop above cannot
     // reach: a fraction takes `other`, a fourth plural category.
     expect(engine.evaluate(engine.evaluate("1,5 мбіт").formatted).formatted).toBe(
-      "1,5Мбіт",
+      "1,5 Мбіт",
     );
     // A conversion, and the U+00A0 group separator Ukrainian uses. Written as
     // an escape deliberately: a literal NBSP is invisible here and degrades to
     // a plain space the moment someone retypes the line.
-    expect(engine.evaluate("2 гбіт в мбіт").formatted).toBe("2\u00A0000Мбіт");
+    expect(engine.evaluate("2 гбіт в мбіт").formatted).toBe("2\u00A0000 Мбіт");
   });
 
   test("the plural boundary moves the number and not the unit", () => {
     // 2 takes `few` and 5 takes `many` in Ukrainian, and this kind answers both
     // with the same symbol — the visible consequence of declaring no forms. The
     // two spellings are the ones a reader types at each end of that boundary.
-    expect(engine.evaluate("2 мегабіти").formatted).toBe("2Мбіт");
-    expect(engine.evaluate("5 мегабітів").formatted).toBe("5Мбіт");
+    expect(engine.evaluate("2 мегабіти").formatted).toBe("2 Мбіт");
+    expect(engine.evaluate("5 мегабітів").formatted).toBe("5 Мбіт");
     // Latin in, Ukrainian out: a uk engine reads both scripts.
-    expect(engine.evaluate("5 mbps").formatted).toBe("5Мбіт");
+    expect(engine.evaluate("5 mbps").formatted).toBe("5 Мбіт");
   });
 
   test("a Ukrainian rate re-reads to the same value from every spelling of it", () => {

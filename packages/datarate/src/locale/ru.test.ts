@@ -87,25 +87,25 @@ describe("datarate ru vocabulary", () => {
   test("an engine built from it reads and writes Russian datarate", () => {
     // Cyrillic abbreviation in, Russian symbol out, joined tight because the
     // kind declares no forms.
-    expect(engine.evaluate("100 мбит").formatted).toBe("100Мбит");
+    expect(engine.evaluate("100 мбит").formatted).toBe("100 Мбит");
     // The fractional case, which is where the decimal comma shows: Russian marks
     // it ",", read from CLDR by `numberFormat: "intl"`. Spelled with a comma on
     // purpose — "1.5" is not a Russian number, so a test written with one
     // exercises the fallback rather than this locale.
-    expect(engine.evaluate("1,5 мбит").formatted).toBe("1,5Мбит");
+    expect(engine.evaluate("1,5 мбит").formatted).toBe("1,5 Мбит");
     // A sum that lands on a fraction, which is the input `mass` uses to catch a
     // plural written into the fractional row. Here it can only move the number,
     // because there is no word to agree with it — the visible consequence of
     // declaring no forms.
-    expect(engine.evaluate("1 гбит + 500 мбит").formatted).toBe("1,5Гбит");
+    expect(engine.evaluate("1 гбит + 500 мбит").formatted).toBe("1,5 Гбит");
     // A conversion, and the U+00A0 group separator Russian uses. Written as an
     // escape deliberately: a literal NBSP is invisible here and degrades to a
     // plain space the moment someone retypes the line.
-    expect(engine.evaluate("2 гбит в мбит").formatted).toBe("2\u00A0000Мбит");
+    expect(engine.evaluate("2 гбит в мбит").formatted).toBe("2\u00A0000 Мбит");
     // Latin in, Russian out: a `ru` engine reads both scripts, because the
     // aliases derive from the one alias map in `units.ts` before the Cyrillic
     // spellings are appended to it.
-    expect(engine.evaluate("5 mbps").formatted).toBe("5Мбит");
+    expect(engine.evaluate("5 mbps").formatted).toBe("5 Мбит");
   });
 
   test("the numeral boundary moves the number and not the unit", () => {
@@ -113,11 +113,11 @@ describe("datarate ru vocabulary", () => {
     // with the same symbol. The two spellings are the ones a reader types at
     // each end of that boundary: "2 мегабита" is a genitive singular and
     // "5 мегабит" the bare counting form, and both come back as "Мбит".
-    expect(engine.evaluate("2 мегабита").formatted).toBe("2Мбит");
-    expect(engine.evaluate("5 мегабит").formatted).toBe("5Мбит");
+    expect(engine.evaluate("2 мегабита").formatted).toBe("2 Мбит");
+    expect(engine.evaluate("5 мегабит").formatted).toBe("5 Мбит");
     // The -ов genitive plural a reader who has not read Rosenthal will type is
     // listed too, and reads to the same unit.
-    expect(engine.evaluate("5 мегабитов").formatted).toBe("5Мбит");
+    expect(engine.evaluate("5 мегабитов").formatted).toBe("5 Мбит");
   });
 
   test("every unit re-reads its own printed output at every magnitude", () => {

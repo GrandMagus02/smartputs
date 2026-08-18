@@ -136,12 +136,12 @@ describe("tempo es vocabulary", () => {
     // since the full stop is this language's group separator.
     expect(engine.evaluate("1 hz + 30 bpm").formatted).toBe("1,5 hercios");
     // bpm has no forms, so the renderer stays on the symbol and sets it tight.
-    expect(engine.evaluate("120 bpm").formatted).toBe("120bpm");
+    expect(engine.evaluate("120 bpm").formatted).toBe("120 bpm");
     // The Spanish abbreviation reads and the borrowed one prints.
-    expect(engine.evaluate("120 ppm").formatted).toBe("120bpm");
+    expect(engine.evaluate("120 ppm").formatted).toBe("120 bpm");
     // Conversions, one in each direction across the ratio, with both
     // prepositions the language lists under `in`.
-    expect(engine.evaluate("3 hz en bpm").formatted).toBe("180bpm");
+    expect(engine.evaluate("3 hz en bpm").formatted).toBe("180 bpm");
     expect(engine.evaluate("120 bpm a hercios").formatted).toBe("2 hercios");
     // Grouping is a full stop, from CLDR through `numberFormat: "intl"`.
     expect(engine.evaluate("1000 hercios").formatted).toBe("1.000 hercios");

@@ -170,7 +170,7 @@ describe("energy pt vocabulary", () => {
     expect(engine.evaluate("300 calorias").formatted).toBe("300 calorias");
     // The watt-hour family prints its symbol tight against the number, because
     // it has no forms to print instead.
-    expect(engine.evaluate("5 kwh").formatted).toBe("5kWh");
+    expect(engine.evaluate("5 kwh").formatted).toBe("5 kWh");
     expect(engine.evaluate("1 kwh em kj").formatted).toBe("3.600 quilojoules");
     // The invariant initialism, spaced by its `forms` table.
     expect(engine.evaluate("2 btu").formatted).toBe("2 BTU");

@@ -181,7 +181,7 @@ describe("area it vocabulary", () => {
     // The squared units render through the symbol branch — number and symbol
     // with no space, exactly as `en`, `uk` and `es` render them — and Italian
     // groups with ".".
-    expect(engine.evaluate("1 ettaro in m2").formatted).toBe("10.000m²");
+    expect(engine.evaluate("1 ettaro in m2").formatted).toBe("10.000 m²");
     expect(engine.evaluate("10000 m2 in ettari").formatted).toBe("1 ettaro");
     // The English spellings still read, and print back in Italian.
     expect(engine.evaluate("3 acres").formatted).toBe("3 acri");

@@ -27,8 +27,13 @@ const alias = (unit: DatarateUnit) => aliasesFor(DATARATE_UNITS, unit);
  * absent byte-per-second units: a written-out form here is a compound
  * ("megabits per second") that the lexer cannot read back, and a name that
  * never parses back is a dead end for completion. Absent forms keep
- * `formatValue` on the symbol, so a datarate prints as "2,000mbps" — the shape
- * `speed` formats "100kph" through.
+ * `formatValue` on the symbol, so a datarate prints as "2,000 mbps" — the shape
+ * `speed` formats "100 km/h" through.
+ *
+ * No unit here declares `tight`: a datarate symbol is an abbreviation read as a
+ * word, and a symbol that is itself a written expression (`mb/s`) is even more
+ * clearly one. `tight` is for a symbol written against the number — "50%",
+ * "20°C" — and none of these is.
  */
 export default defineVocabulary({
   locale: "en",

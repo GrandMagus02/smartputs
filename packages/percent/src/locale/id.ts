@@ -92,6 +92,7 @@ export default defineVocabulary({
         "persen",
       ],
       symbol: "%",
+      tight: true,
     },
   },
 });

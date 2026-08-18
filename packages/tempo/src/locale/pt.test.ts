@@ -149,10 +149,10 @@ describe("tempo pt vocabulary", () => {
     // bpm has no forms, so the renderer stays on the symbol and sets it tight.
     // No Portuguese alias competes with it: "batidas por minuto" abbreviates to
     // the same three letters the borrowing does.
-    expect(engine.evaluate("120 bpm").formatted).toBe("120bpm");
+    expect(engine.evaluate("120 bpm").formatted).toBe("120 bpm");
     // Conversions, one in each direction across the ratio, with both
     // prepositions the language lists under `in`.
-    expect(engine.evaluate("3 hz em bpm").formatted).toBe("180bpm");
+    expect(engine.evaluate("3 hz em bpm").formatted).toBe("180 bpm");
     expect(engine.evaluate("120 bpm para hertz").formatted).toBe("2 hertz");
     // Grouping is a full stop, from CLDR through `numberFormat: "intl"`.
     expect(engine.evaluate("1000 hertz").formatted).toBe("1.000 hertz");

@@ -125,8 +125,8 @@ describe("volume uk vocabulary", () => {
     // `m3` has no words to print, so it renders through its symbol, tight
     // against the number exactly as `en` renders "3m³" — but it still *reads*
     // the declined "кубометр", which is the one-word name Ukrainians type.
-    expect(e.evaluate("3 м³").formatted).toBe("3м³");
-    expect(e.evaluate("5 кубометрів").formatted).toBe("5м³");
+    expect(e.evaluate("3 м³").formatted).toBe("3 м³");
+    expect(e.evaluate("5 кубометрів").formatted).toBe("5 м³");
     // Both scripts read: a Ukrainian engine still takes the Latin aliases the
     // one alias map in `units.ts` declares, and prints them back in Ukrainian.
     expect(e.evaluate("2 gal").formatted).toBe("2 галони");

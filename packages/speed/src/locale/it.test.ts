@@ -202,15 +202,15 @@ describe("speed it vocabulary", () => {
     // Conversions, with both prepositions the language lists under `in`: knots
     // in, the Italian compound out, joined to the number with no space because
     // `kph` has no forms.
-    expect(engine.evaluate("10 nodi in kph").formatted).toBe("18,52km/h");
+    expect(engine.evaluate("10 nodi in kph").formatted).toBe("18,52 km/h");
     expect(engine.evaluate("37,04 kph a nodi").formatted).toBe("20 nodi");
     // Latin abbreviations still read: an Italian speaker types "mps" and "kmh".
-    expect(engine.evaluate("3 mps").formatted).toBe("3m/s");
-    expect(engine.evaluate("1 kmh").formatted).toBe("1km/h");
+    expect(engine.evaluate("3 mps").formatted).toBe("3 m/s");
+    expect(engine.evaluate("1 kmh").formatted).toBe("1 km/h");
     // The imperial row, printed as the contraction Italian borrows whole.
-    expect(engine.evaluate("60 mph").formatted).toBe("60mph");
+    expect(engine.evaluate("60 mph").formatted).toBe("60 mph");
     // Grouping is a full stop, from CLDR through `numberFormat: "intl"`.
-    expect(engine.evaluate("2000 kph").formatted).toBe("2.000km/h");
+    expect(engine.evaluate("2000 kph").formatted).toBe("2.000 km/h");
   });
 
   test("its own output reads back to the same value", () => {
@@ -249,13 +249,13 @@ describe("speed it vocabulary", () => {
     expect(bridged.value?.unit).toBe("mps");
     // 100 km/h is 100000/3600 m/s. Asserted through a conversion so the
     // repeating decimal stays out of the expectation.
-    expect(wired.evaluate("100 km / h in kph").formatted).toBe("100km/h");
+    expect(wired.evaluate("100 km / h in kph").formatted).toBe("100 km/h");
     // The Italian nouns reach the same place, which is the whole point of
     // leaving them to the length vocabulary.
-    expect(wired.evaluate("100 chilometri / ora in kph").formatted).toBe("100km/h");
+    expect(wired.evaluate("100 chilometri / ora in kph").formatted).toBe("100 km/h");
     expect(wired.evaluate("1852 metri / ora in nodi").formatted).toBe("1 nodo");
     // And the imperial row, whose contraction Italian keeps — reachable both as
     // its own token and through the same bridge.
-    expect(wired.evaluate("60 miglia / ora in mph").formatted).toBe("60mph");
+    expect(wired.evaluate("60 miglia / ora in mph").formatted).toBe("60 mph");
   });
 });

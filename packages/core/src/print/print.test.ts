@@ -3,6 +3,7 @@ import { english } from "@smartput/core/locale/en";
 import { BUILTIN_KINDS } from "@smartput/kinds";
 import BUILTIN_EN from "@smartput/kinds/locale/en";
 import { Decimal } from "../decimal";
+import { createEngine } from "../engine";
 import { defineKind } from "../kind/define";
 import { buildRegistry, NUMBER_KIND } from "../kind/registry";
 import { composeLocale } from "../locale/compose";
@@ -934,4 +935,29 @@ test("Printer is frozen and stateless: two calls with the same input agree", () 
   expect(Object.isFrozen(printer)).toBe(true);
   const program = programFor("1 kg + 500 g");
   expect(printer.print(program)).toBe(printer.print(program));
+});
+
+// --- tight symbols (ruling R-C1, spacing half) -----------------------------
+
+test("a symbol takes a space unless its word declares itself tight", () => {
+  // The default used to run the other way: a unit with no `forms` fell through
+  // to its symbol and the renderer glued it to the number, so "100kph" and
+  // "120bpm" were the NORMAL output and "1.5 kilograms" the exception. Reading
+  // a flag instead of inferring one from the absence of a word is what makes
+  // "50 km/h" and "5%" both right.
+  const engine = createEngine({ locales: [en], kinds: BUILTIN_KINDS });
+  expect(engine.evaluate("50 kph").formatted).toBe("50 km/h");
+  expect(engine.evaluate("60 mph").formatted).toBe("60 mph");
+  expect(engine.evaluate("120 bpm").formatted).toBe("120 bpm");
+  expect(engine.evaluate("5 percent").formatted).toBe("5%");
+  expect(engine.evaluate("20 c").formatted).toBe("20°C");
+});
+
+test("print: `tight` glues the symbol the printer chose, and only the symbol", () => {
+  // `symbols: true` is the one shipped path where `%` is labelled from its
+  // `symbol` rather than from the alias the user typed; `tight` is read off
+  // that label, so an alias-labelled print keeps the ordinary space.
+  expect(printer.print(programFor("5 percent"), { symbols: true })).toBe("5%");
+  expect(printer.print(programFor("5 percent"))).toBe("5 %");
+  expect(printer.print(programFor("50 kph"), { symbols: true })).toBe("50 km/h");
 });

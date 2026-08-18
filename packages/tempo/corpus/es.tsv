@@ -1,34 +1,34 @@
 # input	kind	canonical	formatted
-120 bpm	tempo	120	120bpm
+120 bpm	tempo	120	120 bpm
 120 bpm en ms	duration	0.5	500 milisegundos
-500 ms en bpm	tempo	120	120bpm
-1 s en bpm	tempo	60	60bpm
-2 Hz en bpm	tempo	120	120bpm
+500 ms en bpm	tempo	120	120 bpm
+1 s en bpm	tempo	60	60 bpm
+2 Hz en bpm	tempo	120	120 bpm
 120 bpm en Hz	tempo	120	2 hercios
-120 bpm + 8 bpm	tempo	128	128bpm
-140 bpm - 20 bpm	tempo	120	120bpm
-60 bpm * 2	tempo	120	120bpm
-120 bpm / 2	tempo	60	60bpm
--10 bpm	tempo	-10	-10bpm
-ciento veinte bpm	tempo	120	120bpm
-174 bpm	tempo	174	174bpm
+120 bpm + 8 bpm	tempo	128	128 bpm
+140 bpm - 20 bpm	tempo	120	120 bpm
+60 bpm * 2	tempo	120	120 bpm
+120 bpm / 2	tempo	60	60 bpm
+-10 bpm	tempo	-10	-10 bpm
+ciento veinte bpm	tempo	120	120 bpm
+174 bpm	tempo	174	174 bpm
 # "ppm" — pulsaciones por minuto — is the Spanish abbreviation, and it reads
 # where only "bpm" prints: the unit carries no forms, so the symbol is all it
 # can emit.
-120 ppm	tempo	120	120bpm
+120 ppm	tempo	120	120 bpm
 # "a" is the second conversion preposition beside "en", and both take the same
 # target.
 120 bpm a milisegundos	duration	0.5	500 milisegundos
 # "por" multiplies and "entre" divides, each on its own. There is no two-token
 # divide in this language, so "dividido por" is not a sentence the reader knows.
-60 bpm por 2	tempo	120	120bpm
-120 bpm entre 2	tempo	60	60bpm
+60 bpm por 2	tempo	120	120 bpm
+120 bpm entre 2	tempo	60	60 bpm
 # One hertz is sixty beats a minute, and "hercio" is the Spanish word for it —
 # "hertzio" reads and never prints.
 1 hercio	tempo	60	1 hercio
 2 hertzios	tempo	120	2 hercios
 # A dot groups and a comma decimals.
-1.200 bpm	tempo	1200	1.200bpm
+1.200 bpm	tempo	1200	1.200 bpm
 # A fraction takes the plural, on the hertz and on the second alike. Portuguese,
 # reading the same 0,5, prints "0,5 segundo" — the two Iberian languages
 # disagree.

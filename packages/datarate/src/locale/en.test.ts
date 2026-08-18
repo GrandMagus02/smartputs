@@ -38,7 +38,7 @@ describe("datarate en vocabulary", () => {
       locales: [composeLocale(english, [datarateEn])],
       kinds: [datarate],
     });
-    expect(engine.evaluate("100 mbps").formatted).toBe("100mbps");
-    expect(engine.evaluate("2 gbps in mbps").formatted).toBe("2,000mbps");
+    expect(engine.evaluate("100 mbps").formatted).toBe("100 mbps");
+    expect(engine.evaluate("2 gbps in mbps").formatted).toBe("2,000 mbps");
   });
 });

@@ -20,5 +20,5 @@ test("area times length is a volume", () => {
   expect(r.value.canonical.toString()).toBe("24000");
   // The result is authored back out in m³ (the `unit` the op signature
   // attaches), so a reader sees the natural "24m³" rather than 24000 litres.
-  expect(r.formatted).toBe("24m³");
+  expect(r.formatted).toBe("24 m³");
 });

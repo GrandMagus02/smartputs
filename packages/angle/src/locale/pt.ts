@@ -66,6 +66,7 @@ export default defineVocabulary({
     deg: {
       aliases: [...alias("deg"), "°", "grau", "graus"],
       symbol: "°",
+      tight: true,
       forms: { one: "grau", other: "graus" },
     },
     // Two names, and they are not the same register. `grado` is what the

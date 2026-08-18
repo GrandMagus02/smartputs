@@ -1,18 +1,18 @@
 # input	kind	canonical	formatted
-100 mbps	datarate	100000000	100Мбит
-500 МБ / 20 с	datarate	200000000	200Мбит
+100 mbps	datarate	100000000	100 Мбит
+500 МБ / 20 с	datarate	200000000	200 Мбит
 100 мбит * 1 мин	datasize	750000000	750 000 000 байт
 1 мин * 100 мбит	datasize	750000000	750 000 000 байт
 1 ГБ / 100 мбит	duration	80	80 секунд
-100 мбит + 50 мбит	datarate	150000000	150Мбит
-200 мбит - 50 мбит	datarate	150000000	150Мбит
-2 мбит * 3	datarate	6000000	6Мбит
-1 гбит / 4	datarate	250000000	0,25Гбит
--10 мбит	datarate	-10000000	-10Мбит
-8000 бит в кбит	datarate	8000	8кбит
-двести мегабит	datarate	200000000	200Мбит
+100 мбит + 50 мбит	datarate	150000000	150 Мбит
+200 мбит - 50 мбит	datarate	150000000	150 Мбит
+2 мбит * 3	datarate	6000000	6 Мбит
+1 гбит / 4	datarate	250000000	0,25 Гбит
+-10 мбит	datarate	-10000000	-10 Мбит
+8000 бит в кбит	datarate	8000	8 кбит
+двести мегабит	datarate	200000000	200 Мбит
 # A decimal comma and a U+00A0 group separator.
-1 234 567 бит	datarate	1234567	1 234 567бит
+1 234 567 бит	datarate	1234567	1 234 567 бит
 # The four plural categories, on the one kind in this engine whose words move.
 # 21 takes the singular and 11 does not, however they end; the "80 секунд" in
 # the spine above is `many`, and the fraction is a fifth word again — the
@@ -30,11 +30,11 @@
 # The rate units decline on input and print one symbol whatever the count: no
 # Russian rate noun can be written as a single lexed token, so `Мбит` is what
 # comes back out of all of them.
-2 мегабита	datarate	2000000	2Мбит
+2 мегабита	datarate	2000000	2 Мбит
 # Both word operators are two tokens, hanging off `на` as `by`.
-2 мбит умножить на 3	datarate	6000000	6Мбит
-10 гбит разделить на 4	datarate	2500000000	2,5Гбит
+2 мбит умножить на 3	datarate	6000000	6 Мбит
+10 гбит разделить на 4	datarate	2500000000	2,5 Гбит
 # "мегабит" and "мегабайт" are one letter apart and name two kinds, and the
 # factor of 8 between them is the one the bridge signatures write out.
-100 мегабит	datarate	100000000	100Мбит
+100 мегабит	datarate	100000000	100 Мбит
 100 мегабайт	datasize	100000000	100 мегабайт

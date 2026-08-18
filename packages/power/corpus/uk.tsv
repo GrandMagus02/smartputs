@@ -10,15 +10,15 @@
 1000 Вт в кВт	power	1000	1 кіловат
 один кіловат	power	1000	1 кіловат
 2,5 кВт	power	2500	2,5 кіловата
-746 Вт в кс	power	746	1,000402478837890839005544кс
+746 Вт в кс	power	746	1,000402478837890839005544 кс
 1 ГВт в МВт	power	1000000000	1 000 мегаватів
 100 Вт	power	100	100 ватів
 1,5 МВт в Вт	power	1500000	1 500 000 ватів
 # Horsepower is `кінська сила` in full, two words, so the vocabulary's
 # symbol is the abbreviation `кс` — a printed phrase would be unreadable
 # back, which is the failure `assertLocaleContract` names.
-1 кс	power	745.69987158227022	1кс
-2 кс	power	1491.39974316454044	2кс
+1 кс	power	745.69987158227022	1 кс
+2 кс	power	1491.39974316454044	2 кс
 # The declined watt, all four categories.
 21 ват	power	21	21 ват
 11 ватів	power	11	11 ватів

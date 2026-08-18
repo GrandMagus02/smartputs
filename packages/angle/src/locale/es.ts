@@ -67,6 +67,7 @@ export default defineVocabulary({
     deg: {
       aliases: [...alias("deg"), "°", "grado", "grados"],
       symbol: "°",
+      tight: true,
       forms: { one: "grado", other: "grados" },
     },
     // `gon`/`gones` is the SI-adjacent name and comes half-registered already:

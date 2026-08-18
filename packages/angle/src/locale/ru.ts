@@ -135,6 +135,7 @@ export default defineVocabulary({
       // is the string `grad` claims below, and two units answering to one word
       // is worse than a symbol that only prints.
       symbol: "°",
+      tight: true,
       forms: {
         "nom-one": "градус",
         "nom-few": "градуса",

@@ -170,7 +170,7 @@ describe("area es vocabulary", () => {
     // The squared units render through the symbol branch — number and symbol
     // with no space, exactly as `en` and `uk` render them — and Spanish groups
     // with "." (Spain's CLDR default, which the bare `es` tag resolves to).
-    expect(engine.evaluate("1 hectárea en m2").formatted).toBe("10.000m²");
+    expect(engine.evaluate("1 hectárea en m2").formatted).toBe("10.000 m²");
     expect(engine.evaluate("10000 m2 en hectáreas").formatted).toBe("1 hectárea");
     expect(engine.evaluate("3 acres").formatted).toBe("3 acres");
   });

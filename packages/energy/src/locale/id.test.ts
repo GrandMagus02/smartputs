@@ -168,8 +168,8 @@ describe("energy id vocabulary", () => {
     // therefore takes the spacing word branch. These four are the
     // counter-example inside this package, and the fix belongs in the language
     // file rather than in six vocabularies each guessing at a space.
-    expect(engine.evaluate("2 kwh").formatted).toBe("2kWh");
-    expect(engine.evaluate("9000 btu").formatted).toBe("9.000BTU");
+    expect(engine.evaluate("2 kwh").formatted).toBe("2 kWh");
+    expect(engine.evaluate("9000 btu").formatted).toBe("9.000 BTU");
     // The units that do carry a word are spaced, which is the branch the
     // language file reasoned from and the reason the cost is bounded.
     expect(engine.evaluate("5 joule").formatted).toContain(" ");

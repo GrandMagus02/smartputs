@@ -1,7 +1,7 @@
 import type { Decimal } from "../decimal";
 import { fromCanonical, toCanonical } from "../eval/convert";
 import { formatNumber, formatValue } from "../format/format";
-import type { Registry } from "../kind/registry";
+import { type Registry, wordsFor } from "../kind/registry";
 import { defaultRenderExpression, defaultRenderQuantity } from "../locale/render";
 import type { Node, NodeId } from "../parse/ast";
 import { type BinaryOp, bindingOf, CONVERT_BINDING } from "../parse/pratt";
@@ -641,7 +641,19 @@ export class Printer {
     // here rather than inside the language because it is this call's option,
     // not this language's convention, and handed over as `gap` so a language
     // assembling its own quantity honours it instead of dropping it.
-    const gap = ctx.spacing === "tight" && ctx.spell === undefined ? "" : " ";
+    //
+    // `UnitWords.tight` is the unit saying it is written against the number —
+    // "50%", "20°C". `ctx.spacing` is the caller saying the whole expression is
+    // tight. Either is sufficient; neither is required. It is read off the
+    // label rather than off the unit because only a symbol is ever written that
+    // way: an alias-labelled print of the same unit ("5 percent") is a word and
+    // keeps its space.
+    const words =
+      label.source === "symbol"
+        ? wordsFor(this.registry, this.locale.id, magnitude.kind, magnitude.unit)
+        : undefined;
+    const glued = words?.tight === true;
+    const gap = glued || (ctx.spacing === "tight" && ctx.spell === undefined) ? "" : " ";
     return (this.locale.language.renderQuantity ?? defaultRenderQuantity)({
       number: numberText,
       // Exactly one of the three, told apart so the language knows whether it

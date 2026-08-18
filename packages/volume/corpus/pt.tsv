@@ -28,7 +28,7 @@ duzentos e cinco litros	volume	205	205 litros
 # `quartilho` is the European word for the pint and `pinta` is what prints.
 2 quartilhos	volume	0.946352946	2 pintas
 # No one-token word for the cubic metre, so the symbol is printed instead.
-2 m3	volume	2000	2m³
+2 m3	volume	2000	2 m³
 # "para" is the second conversion preposition beside "em". "por" is claimed by
 # `times`, so Portuguese division is "sobre" — "dividido por" cannot parse,
 # being two operators in a row.

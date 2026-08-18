@@ -183,7 +183,7 @@ describe("volume it vocabulary", () => {
     // The cubic metre renders through the symbol branch — number and symbol with
     // no space — and reads back through the same symbol.
     expect(engine.evaluate("1 m3 in litri").formatted).toBe("1.000 litri");
-    expect(engine.evaluate("2000 litri in m3").formatted).toBe("2m³");
+    expect(engine.evaluate("2000 litri in m3").formatted).toBe("2 m³");
     // Latin input still reads: an Italian keyboard produces "millilitri", an
     // Italian developer types "ml", and both are the same unit. Italian groups
     // with "." and the engine groups uniformly every three digits.

@@ -78,6 +78,6 @@ export default defineVocabulary({
   locale: "zh",
   kind: "percent",
   units: {
-    "%": { aliases: alias("%"), symbol: "%" },
+    "%": { aliases: alias("%"), symbol: "%", tight: true },
   },
 });

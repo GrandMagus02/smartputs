@@ -5,11 +5,11 @@
 500 Дж + 500 Дж	energy	1000	1 000 джоулей
 1 кДж - 250 Дж	energy	750	0,75 килоджоуля
 1 кДж / 4	energy	250	0,25 килоджоуля
--1 kwh	energy	-3600000	-1кВт·ч
+-1 kwh	energy	-3600000	-1 кВт·ч
 один килоджоуль	energy	1000	1 килоджоуль
 # A decimal comma and a U+00A0 group separator.
 1 234 567 Дж	energy	1234567	1 234 567 джоулей
-2,5 kwh	energy	9000000	2,5кВт·ч
+2,5 kwh	energy	9000000	2,5 кВт·ч
 # The four plural categories. `few` here is a genitive **singular** —
 # "2 джоуля" — where Polish puts a nominative plural in the same cell, and it
 # is therefore the same word the fractional row takes.

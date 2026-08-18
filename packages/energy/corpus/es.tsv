@@ -7,13 +7,13 @@
 500 J + 500 J	energy	1000	1.000 julios
 2 kJ * 3	energy	6000	6 kilojulios
 1 kJ - 250 J	energy	750	0,75 kilojulios
--1 kwh	energy	-3600000	-1kWh
+-1 kwh	energy	-3600000	-1 kWh
 un kilojulio	energy	1000	1 kilojulio
 doscientos julios	energy	200	200 julios
 1000 cal en kcal	energy	4184	1 kilocaloría
 # "." groups and "," is the decimal, so "1.500 J" is fifteen hundred joules.
 1.234.567 J	energy	1234567	1.234.567 julios
-2,5 kwh	energy	9000000	2,5kWh
+2,5 kwh	energy	9000000	2,5 kWh
 # The joule is "julio" in Spanish, a word rather than a transcription, and the
 # English spelling is kept as an alias beside it.
 1 julio	energy	1	1 julio
@@ -31,7 +31,7 @@ doscientos julios	energy	200	200 julios
 # no Spanish word fits in one token — so it prints on the symbol branch, which
 # in this language joins the number to the unit.
 5 BTU	energy	5275.2792631	5 BTU
-1 kWh	energy	3600000	1kWh
+1 kWh	energy	3600000	1 kWh
 # The word operators, and the trap in them: "por" is `times`, so "dividido
 # por" cannot parse. Spanish division is "entre".
 2 kJ por 3	energy	6000	6 kilojulios

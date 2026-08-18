@@ -149,12 +149,12 @@ describe("tempo ru vocabulary", () => {
     expect(e.evaluate("1 герц + 0,5 герца").formatted).toBe("1,5 герца");
     // bpm has no forms, so the renderer stays on the symbol and sets it tight
     // against the number — the same shape `en` prints "120bpm" through.
-    expect(e.evaluate("120 bpm").formatted).toBe("120бпм");
-    expect(e.evaluate("120 бпм").formatted).toBe("120бпм");
-    expect(e.evaluate("120 ударов").formatted).toBe("120бпм");
+    expect(e.evaluate("120 bpm").formatted).toBe("120 бпм");
+    expect(e.evaluate("120 бпм").formatted).toBe("120 бпм");
+    expect(e.evaluate("120 ударов").formatted).toBe("120 бпм");
     // Two conversions, one in each direction across the ratio. Both print as
     // finished quantities rather than targets, so hz comes back nominative.
-    expect(e.evaluate("3 гц в bpm").formatted).toBe("180бпм");
+    expect(e.evaluate("3 гц в bpm").formatted).toBe("180 бпм");
     expect(e.evaluate("120 bpm в герцах").formatted).toBe("2 герца");
     // Latin in, Russian out: a `ru` engine reads both scripts, because the
     // aliases derive from the one alias map in `units.ts` before the Cyrillic
@@ -214,7 +214,7 @@ describe("tempo ru vocabulary", () => {
     }
     const e = engine();
     const printed = e.evaluate("120 bpm").formatted;
-    expect(printed).toBe("120бпм");
+    expect(printed).toBe("120 бпм");
     expect(e.evaluate(printed).value?.unit).toBe("bpm");
     // `canonical` is in the kind's canonical unit, which is `bpm`, so a thousand
     // hertz is sixty thousand beats a minute — the number to check is that the

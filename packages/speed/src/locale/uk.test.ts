@@ -124,17 +124,17 @@ describe("speed uk vocabulary", () => {
     expect(engine.evaluate("1,5 вузла").formatted).toBe("1,5 вузла");
     // A conversion, written with "в": knots in, the Ukrainian compound symbol
     // out, joined to the number with no space because `kph` has no forms.
-    expect(engine.evaluate("10 вузлів в kph").formatted).toBe("18,52км/год");
+    expect(engine.evaluate("10 вузлів в kph").formatted).toBe("18,52 км/год");
     // And back the other way, into the one unit that prints as a word.
     expect(engine.evaluate("37,04 kph в вузлах").formatted).toBe("20 вузлів");
     // Latin in, Ukrainian out: a Ukrainian developer types "mps" and "kmh".
-    expect(engine.evaluate("3 mps").formatted).toBe("3м/с");
-    expect(engine.evaluate("1 kmh").formatted).toBe("1км/год");
-    expect(engine.evaluate("60 mph").formatted).toBe("60миль/год");
+    expect(engine.evaluate("3 mps").formatted).toBe("3 м/с");
+    expect(engine.evaluate("1 kmh").formatted).toBe("1 км/год");
+    expect(engine.evaluate("60 mph").formatted).toBe("60 миль/год");
     // Grouping comes from CLDR through `numberFormat: "intl"`. U+00A0 as an
     // escape, never a literal — a literal is invisible here and degrades to a
     // plain space the moment the line is retyped.
-    expect(engine.evaluate("2000 kph").formatted).toBe("2\u00A0000км/год");
+    expect(engine.evaluate("2000 kph").formatted).toBe("2\u00A0000 км/год");
   });
 
   test("its own output reads back to the same value", () => {
@@ -169,7 +169,7 @@ describe("speed uk vocabulary", () => {
     expect(bridged.value.unit).toBe("mps");
     // 100 km/h is 100000/3600 m/s. Asserted through a conversion so the
     // repeating decimal stays out of the expectation.
-    expect(wired.evaluate("100 км / год в kph").formatted).toBe("100км/год");
+    expect(wired.evaluate("100 км / год в kph").formatted).toBe("100 км/год");
     expect(wired.evaluate("1852 м / год в вузлах").formatted).toBe("1 вузол");
   });
 });

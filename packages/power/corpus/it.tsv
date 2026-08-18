@@ -24,7 +24,7 @@ duecentocinque chilowatt	power	205000	205 chilowatt
 1 kilowatt	power	1000	1 chilowatt
 # The horsepower is symbol-only here, and the default template sets a symbol
 # tight against the number.
-1 hp	power	745.69987158227022	1hp
+1 hp	power	745.69987158227022	1 hp
 # "per" is times, so division is "diviso" and it stands alone — no "da" after
 # it, unlike French's "divisé par".
 2 kW per 3	power	6000	6 chilowatt

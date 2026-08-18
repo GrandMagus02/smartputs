@@ -58,6 +58,6 @@ export default defineVocabulary({
   locale: "ja",
   kind: "percent",
   units: {
-    "%": { aliases: [...alias("%"), "パーセント"], symbol: "%" },
+    "%": { aliases: [...alias("%"), "パーセント"], symbol: "%", tight: true },
   },
 });

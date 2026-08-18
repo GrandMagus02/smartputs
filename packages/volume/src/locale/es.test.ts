@@ -173,7 +173,7 @@ describe("volume es vocabulary", () => {
     // `m3` has no words, so it renders through the symbol branch — number and
     // symbol with no space, exactly as `en` and `uk` render it.
     expect(engine.evaluate("1 m³ en litros").formatted).toBe("1.000 litros");
-    expect(engine.evaluate("2 m3 + 1 m3").formatted).toBe("3m³");
+    expect(engine.evaluate("2 m3 + 1 m3").formatted).toBe("3 m³");
     // Spanish groups with "." (Spain's CLDR default, which the bare `es` tag
     // resolves to) and the engine groups uniformly every three digits.
     expect(engine.evaluate("2000 ml").formatted).toBe("2.000 mililitros");

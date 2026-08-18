@@ -29,7 +29,7 @@ doscientos cinco litros	volume	205	205 litros
 # Spanish has no one-token word for the cubic metre, so the unit has no
 # `forms` at all and printing falls through to the symbol — glued, because
 # `defaultRenderQuantity` puts no gap before a bare symbol.
-2 m3	volume	2000	2m³
+2 m3	volume	2000	2 m³
 # "a" is the second conversion preposition beside "en"; "por" is `times` and
 # "entre" is `over`, which is why Spanish division cannot be said with "por".
 2 l a ml	volume	2	2.000 mililitros

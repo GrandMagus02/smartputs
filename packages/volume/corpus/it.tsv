@@ -27,7 +27,7 @@ duecentocinque litri	volume	205	205 litri
 2 pinte	volume	0.946352946	2 pinte
 # No one-token word for the cubic metre, so the symbol is printed and
 # `defaultRenderQuantity` glues it to the number.
-2 m3	volume	2000	2m³
+2 m3	volume	2000	2 m³
 # "a" is the second conversion preposition beside "in"; "per" is `times` and
 # "diviso" is a bare `over` that needs no particle after it.
 2 l a ml	volume	2	2.000 millilitri

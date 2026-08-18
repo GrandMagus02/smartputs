@@ -1,18 +1,18 @@
 # input	kind	canonical	formatted
-3 m * 4 m	area	12	12m²
-1 hektar ke m2	area	10000	10.000m²
-1 acre ke m2	area	4046.8564224	4.046,8564224m²
+3 m * 4 m	area	12	12 m²
+1 hektar ke m2	area	10000	10.000 m²
+1 acre ke m2	area	4046.8564224	4.046,8564224 m²
 2 km2 ke hektare	area	2000000	200 hektare
-5000 cm2 ke m2	area	0.5	0,5m²
-10 m2 + 5 m2	area	15	15m²
+5000 cm2 ke m2	area	0.5	0,5 m²
+10 m2 + 5 m2	area	15	15 m²
 1 hektare - 2500 m2	area	7500	0,75 hektare
-3 m2 * 4	area	12	12m²
-100 m2 / 4	area	25	25m²
--5 m2	area	-5	-5m²
-2 sqkm ke m2	area	2000000	2.000.000m²
-1 m2 ke cm2	area	1	10.000cm²
-1 km * 1 km	area	1000000	1.000.000m²
-12 m2	area	12	12m²
+3 m2 * 4	area	12	12 m²
+100 m2 / 4	area	25	25 m²
+-5 m2	area	-5	-5 m²
+2 sqkm ke m2	area	2000000	2.000.000 m²
+1 m2 ke cm2	area	1	10.000 cm²
+1 km * 1 km	area	1000000	1.000.000 m²
+12 m2	area	12	12 m²
 # No plural at all: `Intl.PluralRules("id")` declares the single category
 # `other`, so every unit has exactly one printed form and 1, 5 and 1,5 take
 # the same word.
@@ -24,11 +24,11 @@
 2 acres	area	8093.7128448	2 acre
 # "." groups and "," is the decimal point — Dutch's pair, which Indonesian
 # inherited along with the spelling of half its unit names.
-1.500 m2	area	1500	1.500m²
-10 m2 kali 3	area	30	30m²
-100 m2 bagi 4	area	25	25m²
+1.500 m2	area	1500	1.500 m²
+10 m2 kali 3	area	30	30 m²
+100 m2 bagi 4	area	25	25 m²
 # "dalam" is the second conversion preposition, beside "ke".
 1 acre dalam hektare	area	4046.8564224	0,40468564224 hektare
-5 hektare ke m2	area	50000	50.000m²
+5 hektare ke m2	area	50000	50.000 m²
 # There is no `id-cardinals.ts` in `@smartput/core`, so this is the one
 # language here with no spelled-number row: "satu hektare" does not parse.

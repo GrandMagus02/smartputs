@@ -149,17 +149,17 @@ describe("speed ru vocabulary", () => {
     expect(engine.evaluate("1 узел + 0,5 узла").formatted).toBe("1,5 узла");
     // A conversion, written with "в": knots in, the Russian compound symbol out,
     // joined to the number with no space because `kph` has no forms.
-    expect(engine.evaluate("10 узлов в kph").formatted).toBe("18,52км/ч");
+    expect(engine.evaluate("10 узлов в kph").formatted).toBe("18,52 км/ч");
     // And back the other way, into the one unit that prints as a word.
     expect(engine.evaluate("37,04 kph в узлах").formatted).toBe("20 узлов");
     // Latin in, Russian out: a Russian developer types "mps" and "kmh".
-    expect(engine.evaluate("3 mps").formatted).toBe("3м/с");
-    expect(engine.evaluate("1 kmh").formatted).toBe("1км/ч");
-    expect(engine.evaluate("60 mph").formatted).toBe("60миль/ч");
+    expect(engine.evaluate("3 mps").formatted).toBe("3 м/с");
+    expect(engine.evaluate("1 kmh").formatted).toBe("1 км/ч");
+    expect(engine.evaluate("60 mph").formatted).toBe("60 миль/ч");
     // Grouping comes from CLDR through `numberFormat: "intl"`. U+00A0 as an
     // escape, never a literal — a literal is invisible here and degrades to a
     // plain space the moment the line is retyped.
-    expect(engine.evaluate("2000 kph").formatted).toBe("2\u00A0000км/ч");
+    expect(engine.evaluate("2000 kph").formatted).toBe("2\u00A0000 км/ч");
   });
 
   test("its own output reads back to the same value", () => {

@@ -83,6 +83,7 @@ export default defineVocabulary({
     deg: {
       aliases: [...alias("deg"), "°", "grado", "gradi"],
       symbol: "°",
+      tight: true,
       forms: { one: "grado", other: "gradi" },
     },
     grad: {

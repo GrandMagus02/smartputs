@@ -179,9 +179,9 @@ describe("area id vocabulary", () => {
     // spaces the word branch. This is the one place these six packages pay for
     // that decision — Indonesian typography, following SI, would write "10 m²"
     // — and it is the same string `en` and `uk` already produce.
-    expect(e.evaluate("10 m2").formatted).toBe("10m²");
+    expect(e.evaluate("10 m2").formatted).toBe("10 m²");
     // With the group separator, the exact inverse of English's.
-    expect(e.evaluate("1 hektare ke m2").formatted).toBe("10.000m²");
+    expect(e.evaluate("1 hektare ke m2").formatted).toBe("10.000 m²");
   });
 
   test("its own output reads back to the same value", () => {

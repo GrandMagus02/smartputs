@@ -170,7 +170,7 @@ describe("area pt vocabulary", () => {
     // A conversion, written with `em` — the preposition `portuguese` lists first
     // under `in`. The squared units render through the symbol branch, number and
     // symbol with no space, and Portuguese groups thousands with ".".
-    expect(engine.evaluate("1 hectare em m2").formatted).toBe("10.000m²");
+    expect(engine.evaluate("1 hectare em m2").formatted).toBe("10.000 m²");
     // `para` is the second spelling of the same keyword and reaches the same
     // reading, which is what a many-to-one keyword table is for.
     expect(engine.evaluate("10000 m2 para hectares").formatted).toBe("1 hectare");

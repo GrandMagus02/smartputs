@@ -33,7 +33,7 @@ describe("speed en vocabulary", () => {
     // prints as a word with a space; the other three print on their symbol.
     expect(engine.evaluate("1 knot").formatted).toBe("1 knot");
     expect(engine.evaluate("5 kt").formatted).toBe("5 knots");
-    expect(engine.evaluate("1 kmh").formatted).toBe("1kph");
-    expect(engine.evaluate("3 mps").formatted).toBe("3m/s");
+    expect(engine.evaluate("1 kmh").formatted).toBe("1 km/h");
+    expect(engine.evaluate("3 mps").formatted).toBe("3 m/s");
   });
 });

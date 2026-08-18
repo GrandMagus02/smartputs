@@ -23,6 +23,14 @@ const alias = (unit: AngleUnit) => aliasesFor(ANGLE_UNITS, unit);
  *
  * `forms` keys are whatever the composed language's `selectForm` returns — for
  * English, `Intl.PluralRules`' `one` and `other`.
+ *
+ * No unit here declares `tight` (ruling R-C1), and English is the odd one out
+ * in this directory for it: every locale whose `deg` symbol is the degree sign
+ * marks that one unit tight, because "90°" is written against the number,
+ * while English writes `deg`, `rad`, `grad` and `turn` — abbreviations read as
+ * words, which take a space. `tight` is a property of the WORD, so the same
+ * unit answers differently in two languages, and that is the point of it
+ * living in a vocabulary rather than on the kind.
  */
 export default defineVocabulary({
   locale: "en",

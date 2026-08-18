@@ -1,29 +1,29 @@
 # input	kind	canonical	formatted
-120 bpm	tempo	120	120bpm
+120 bpm	tempo	120	120 bpm
 120 bpm em ms	duration	0.5	500 milissegundos
-500 ms em bpm	tempo	120	120bpm
-1 s em bpm	tempo	60	60bpm
-2 Hz em bpm	tempo	120	120bpm
+500 ms em bpm	tempo	120	120 bpm
+1 s em bpm	tempo	60	60 bpm
+2 Hz em bpm	tempo	120	120 bpm
 120 bpm em Hz	tempo	120	2 hertz
-120 bpm + 8 bpm	tempo	128	128bpm
-140 bpm - 20 bpm	tempo	120	120bpm
-60 bpm * 2	tempo	120	120bpm
-120 bpm / 2	tempo	60	60bpm
--10 bpm	tempo	-10	-10bpm
-cento e vinte bpm	tempo	120	120bpm
-174 bpm	tempo	174	174bpm
+120 bpm + 8 bpm	tempo	128	128 bpm
+140 bpm - 20 bpm	tempo	120	120 bpm
+60 bpm * 2	tempo	120	120 bpm
+120 bpm / 2	tempo	60	60 bpm
+-10 bpm	tempo	-10	-10 bpm
+cento e vinte bpm	tempo	120	120 bpm
+174 bpm	tempo	174	174 bpm
 # "para" is the second conversion preposition beside "em".
 120 bpm para milissegundos	duration	0.5	500 milissegundos
 # "por" is one of the words for times, which is why division is "sobre" here:
 # "dividido por" would be two operators in a row.
-60 bpm vezes 2	tempo	120	120bpm
-120 bpm sobre 2	tempo	60	60bpm
+60 bpm vezes 2	tempo	120	120 bpm
+120 bpm sobre 2	tempo	60	60 bpm
 # Hertz keeps one shape in both numbers, and one of them is sixty beats a minute
 # rather than one.
 1 Hz	tempo	60	1 hertz
 2 Hz	tempo	120	2 hertz
 # A dot groups and a comma decimals.
-1.200 bpm	tempo	1200	1.200bpm
+1.200 bpm	tempo	1200	1.200 bpm
 0,5 Hz	tempo	30	0,5 hertz
 1,5 Hz	tempo	90	1,5 hertz
 # A fraction takes the *singular* second, as in French — the two Iberian

@@ -28,16 +28,24 @@ const alias = (unit: SpeedUnit) => aliasesFor(SPEED_UNITS, unit);
  * `mps`, `kph` and `mph` carry no `forms`: their written-out names ("metres per
  * second", "kilometres per hour") are compounds the lexer cannot read back, and
  * a name that never parses back is a dead end for completion. Absent forms keep
- * `formatValue` on the symbol, so a speed prints as "100kph". `knot` is a
+ * `formatValue` on the symbol, so a speed prints as "100 km/h". `knot` is a
  * single word that does parse back, so it declares its two English categories
  * and prints as "5 knots".
+ *
+ * `kph`'s symbol is the written one, `km/h`, which is what every other locale
+ * in this directory already wrote and what English readers outside the repo
+ * write too; "kph" survives as an alias, so nothing a user types has changed.
+ * None of these units declares `tight`: a symbol that is itself a written
+ * expression takes a space ("50 km/h", "13.8889 m/s"), exactly as the number
+ * before it would if the slash were typed out. `km/h` re-reads as an expression
+ * the way `m/s` already does, because the lexer splits on `/`.
  */
 export default defineVocabulary({
   locale: "en",
   kind: "speed",
   units: {
     mps: { aliases: alias("mps"), symbol: "m/s" },
-    kph: { aliases: alias("kph"), symbol: "kph" },
+    kph: { aliases: alias("kph"), symbol: "km/h" },
     mph: { aliases: alias("mph"), symbol: "mph" },
     knot: {
       aliases: alias("knot"),

@@ -23,8 +23,8 @@
 1,5 kilowatt	power	1500	1,5 kilowatt
 # The horsepower is symbol-only, and the default template sets a symbol tight
 # against the number.
-1 hp	power	745.69987158227022	1hp
-2 hp	power	1491.39974316454044	2hp
+1 hp	power	745.69987158227022	1 hp
+2 hp	power	1491.39974316454044	2 hp
 # "dalam" beside "ke".
 2 kW dalam watt	power	2000	2.000 watt
 # The word operators, all bare.

@@ -131,26 +131,26 @@ describe("datarate it vocabulary", () => {
   test("an engine built from it reads and writes Italian datarate", () => {
     // Italian noun in, symbol out, joined tight because this kind declares no
     // forms.
-    expect(engine.evaluate("100 megabit").formatted).toBe("100Mbps");
-    expect(engine.evaluate("100 mega").formatted).toBe("100Mbps");
+    expect(engine.evaluate("100 megabit").formatted).toBe("100 Mbps");
+    expect(engine.evaluate("100 mega").formatted).toBe("100 Mbps");
     // The invariant plural, which is the whole point of the table: "cento
     // megabit" is a hundred of them and the noun does not move.
-    expect(engine.evaluate("cento megabit").formatted).toBe("100Mbps");
+    expect(engine.evaluate("cento megabit").formatted).toBe("100 Mbps");
     // Latin abbreviations still read: the aliases derive from the one map in
     // `units.ts` before the Italian spellings are appended to it.
-    expect(engine.evaluate("100 mbps").formatted).toBe("100Mbps");
+    expect(engine.evaluate("100 mbps").formatted).toBe("100 Mbps");
     // A conversion written with "in", the preposition the language lists first,
     // and with "a", the directional one listed beside it. The group separator is
     // a full stop, which is what `Intl.NumberFormat("it")` produces on this
     // runtime: "2.000" is two thousand megabits per second, not two of them.
-    expect(engine.evaluate("2 gbps in mbps").formatted).toBe("2.000Mbps");
-    expect(engine.evaluate("2 gbps a mbps").formatted).toBe("2.000Mbps");
+    expect(engine.evaluate("2 gbps in mbps").formatted).toBe("2.000 Mbps");
+    expect(engine.evaluate("2 gbps a mbps").formatted).toBe("2.000 Mbps");
     // A sum landing on a fraction, which is where the decimal comma shows.
     // Written with a comma on purpose: "1.5" is not an Italian number, so a test
     // spelled that way would be exercising the group separator instead.
-    expect(engine.evaluate("1 mbps + 500 kbps").formatted).toBe("1,5Mbps");
+    expect(engine.evaluate("1 mbps + 500 kbps").formatted).toBe("1,5 Mbps");
     // ...and the same sum spelled with Italian's own word for the operator.
-    expect(engine.evaluate("1 mbps più 500 kbps").formatted).toBe("1,5Mbps");
+    expect(engine.evaluate("1 mbps più 500 kbps").formatted).toBe("1,5 Mbps");
   });
 
   test("its own output reads back to the same value", () => {

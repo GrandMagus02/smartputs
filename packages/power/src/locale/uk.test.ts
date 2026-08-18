@@ -115,13 +115,13 @@ describe("power uk vocabulary", () => {
     // `hp` renders through its symbol, tight against the number — the count
     // never reaches a `forms` table because there is none, so all four of these
     // are the same string with a different number in front.
-    expect(e.evaluate("1 hp").formatted).toBe("1кс");
-    expect(e.evaluate("5 hp").formatted).toBe("5кс");
-    expect(e.evaluate("1,5 hp").formatted).toBe("1,5кс");
+    expect(e.evaluate("1 hp").formatted).toBe("1 кс");
+    expect(e.evaluate("5 hp").formatted).toBe("5 кс");
+    expect(e.evaluate("1,5 hp").formatted).toBe("1,5 кс");
     // And the Cyrillic spelling reads, which before this it could not: `aliases`
     // was the Latin pair alone, so a Ukrainian keyboard had no way to write this
     // unit at all.
-    expect(e.evaluate("150 кс").formatted).toBe("150кс");
+    expect(e.evaluate("150 кс").formatted).toBe("150 кс");
   });
 
   test("case follows the slot, not the count", () => {

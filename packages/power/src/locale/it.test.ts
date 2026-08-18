@@ -158,7 +158,7 @@ describe("power it vocabulary", () => {
     // ...and the same sum spelled with Italian's own word for the operator.
     expect(engine.evaluate("1 kw più 500 w").formatted).toBe("1,5 chilowatt");
     // `hp` has no words, so it stays on the symbol and is set tight.
-    expect(engine.evaluate("150 hp").formatted).toBe("150hp");
+    expect(engine.evaluate("150 hp").formatted).toBe("150 hp");
   });
 
   test("its own output reads back to the same value", () => {

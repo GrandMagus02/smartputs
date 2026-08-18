@@ -7,12 +7,12 @@
 2 kJ * 3	energy	6000	6 quilojoules
 1 kJ - 250 J	energy	750	0,75 quilojoule
 1 kJ / 4	energy	250	0,25 quilojoule
--1 kwh	energy	-3600000	-1kWh
+-1 kwh	energy	-3600000	-1 kWh
 um quilojoule	energy	1000	1 quilojoule
 duzentos joules	energy	200	200 joules
 # "." groups and "," is the decimal.
 1.234.567 J	energy	1234567	1.234.567 joules
-2,5 kwh	energy	9000000	2,5kWh
+2,5 kwh	energy	9000000	2,5 kWh
 # A fraction takes the **singular** — "1,5 quilojoule" — where Spanish, the
 # other Iberian language in this set, prints a plural on the same amount.
 1 joule	energy	1	1 joule
@@ -29,7 +29,7 @@ duzentos joules	energy	200	200 joules
 # fits in one token — so it prints on the symbol branch, which this language
 # joins to the number.
 5 BTU	energy	5275.2792631	5 BTU
-1 kWh	energy	3600000	1kWh
+1 kWh	energy	3600000	1 kWh
 # The word operators, and the trap in them: "por" is `times`, so "dividido por"
 # is two operators in a row and does not parse. Portuguese division is "sobre".
 2 kJ por 3	energy	6000	6 quilojoules

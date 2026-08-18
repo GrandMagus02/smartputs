@@ -28,7 +28,7 @@
 # "лс" is an abbreviation of two inflecting words, so it stays a symbol and
 # there is no `forms` table to select from. The default template sets it tight
 # against the number.
-1 лс	power	745.69987158227022	1лс
+1 лс	power	745.69987158227022	1 лс
 # Both word operators are two tokens, hanging off "на" as `keywords.by`.
 2 кВт умножить на 3	power	6000	6 киловатт
 1 МВт разделить на 4	power	250000	0,25 мегаватта

@@ -76,6 +76,6 @@ export default defineVocabulary({
   locale: "ko",
   kind: "percent",
   units: {
-    "%": { aliases: [...alias("%"), "퍼센트", "프로"], symbol: "%" },
+    "%": { aliases: [...alias("%"), "퍼센트", "프로"], symbol: "%", tight: true },
   },
 });

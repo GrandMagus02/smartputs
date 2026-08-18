@@ -163,11 +163,11 @@ describe("speed id vocabulary", () => {
     // Quantity` sets a symbol against the number, and `indonesian` declines a
     // `renderQuantity` of its own. This is the package where that costs the most
     // visibly: Indonesian writes "100 km/jam" with the space.
-    expect(engine.evaluate("3 mps").formatted).toBe("3m/s");
-    expect(engine.evaluate("100 kmh").formatted).toBe("100km/jam");
-    expect(engine.evaluate("60 mph").formatted).toBe("60mph");
+    expect(engine.evaluate("3 mps").formatted).toBe("3 m/s");
+    expect(engine.evaluate("100 kmh").formatted).toBe("100 km/jam");
+    expect(engine.evaluate("60 mph").formatted).toBe("60 mph");
     // Conversions, with both particles the language lists under `in`.
-    expect(engine.evaluate("10 knot dalam kmh").formatted).toBe("18,52km/jam");
+    expect(engine.evaluate("10 knot dalam kmh").formatted).toBe("18,52 km/jam");
     expect(engine.evaluate("37,04 kph ke knot").formatted).toBe("20 knot");
     // A sum landing on a fraction, in both spellings of addition. Written with a
     // comma on purpose: "1.5" is fifteen hundred here, so a test spelled with a
@@ -175,7 +175,7 @@ describe("speed id vocabulary", () => {
     // exercises deliberately instead.
     expect(engine.evaluate("1 knot + 0,5 knot").formatted).toBe("1,5 knot");
     expect(engine.evaluate("1 knot tambah 0,5 knot").formatted).toBe("1,5 knot");
-    expect(engine.evaluate("2000 kph").formatted).toBe("2.000km/jam");
+    expect(engine.evaluate("2000 kph").formatted).toBe("2.000 km/jam");
   });
 
   test("its own output reads back to the same value", () => {
@@ -219,16 +219,16 @@ describe("speed id vocabulary", () => {
     expect(bridged.value.unit).toBe("mps");
     // 100 km/jam is 100000/3600 m/s. Asserted through a conversion so the
     // repeating decimal stays out of the expectation.
-    expect(wired.evaluate("100 km / jam dalam kmh").formatted).toBe("100km/jam");
+    expect(wired.evaluate("100 km / jam dalam kmh").formatted).toBe("100 km/jam");
     // The Indonesian hour and the SI one, side by side: printing *jam* costs
     // nothing, because "h" still goes through the same division.
-    expect(wired.evaluate("100 km / h dalam kmh").formatted).toBe("100km/jam");
+    expect(wired.evaluate("100 km / h dalam kmh").formatted).toBe("100 km/jam");
     expect(wired.evaluate("1852 m / jam ke knot").formatted).toBe("1 knot");
     // And the printed symbol reads back as arithmetic in the engine that has the
     // hour — which is the whole of what "round-trips" means for a slash-bearing
     // symbol.
     const printed = wired.evaluate("100 kmh").formatted;
-    expect(printed).toBe("100km/jam");
+    expect(printed).toBe("100 km/jam");
     expect(wired.evaluate(printed).value.canonical.toString()).toBe(
       wired.evaluate("100 kmh").value.canonical.toString(),
     );

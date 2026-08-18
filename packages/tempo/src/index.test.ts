@@ -18,7 +18,7 @@ const engine = createEngine({
 
 test("a tempo is a ratio kind over its own two units", () => {
   expect(engine.evaluate("1 hz in bpm").value.canonical.toString()).toBe("60");
-  expect(engine.evaluate("120 bpm + 1 hz in bpm").formatted).toBe("180bpm");
+  expect(engine.evaluate("120 bpm + 1 hz in bpm").formatted).toBe("180 bpm");
 });
 
 test("a tempo converts to the duration of one beat", () => {
@@ -36,7 +36,7 @@ test("a duration converts back to the tempo it is one beat of", () => {
   expect(r.kind).toBe("tempo");
   expect(r.value.unit).toBe("bpm");
   expect(r.value.canonical.toString()).toBe("120");
-  expect(r.formatted).toBe("120bpm");
+  expect(r.formatted).toBe("120 bpm");
 });
 
 test("the bridge is reciprocal, not linear", () => {

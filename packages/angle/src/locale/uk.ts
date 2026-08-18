@@ -93,6 +93,7 @@ export default defineVocabulary({
       // the letter abbreviation, and it is exactly the string `grad` claims
       // below — a symbol nobody could read twice.
       symbol: "°",
+      tight: true,
       forms: {
         "nom-one": "градус",
         "nom-few": "градуси",

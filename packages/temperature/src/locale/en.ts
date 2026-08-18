@@ -26,6 +26,11 @@ const deltaAlias = (unit: TempDeltaUnit) => aliasesFor(TEMPDELTA_UNITS, unit);
  * no-symbol branch joins number and unit *with* a space, so a unit that forgot
  * its symbol would move a byte rather than fail.
  *
+ * All six also declare `tight: true` (ruling R-C1): a symbol now takes a space
+ * unless its word says it is written against the number, and a temperature is
+ * written "20°C", "68°F", "293K". `K` joins the two degree symbols rather than
+ * splitting the kind's spacing three ways — one reading, one shape.
+ *
  * Both kinds are given the identical alias list, derived from the one shared
  * `ALIAS` object in `units.ts`. That is load-bearing rather than tidy: every
  * temperature alias resolving to two kinds is the case `print/unit-word.ts`'s
@@ -43,9 +48,9 @@ const temperatureEn: readonly Vocabulary[] = [
     locale: "en",
     kind: "temperature",
     units: {
-      c: { aliases: alias("c"), symbol: "°C" },
-      f: { aliases: alias("f"), symbol: "°F" },
-      k: { aliases: alias("k"), symbol: "K" },
+      c: { aliases: alias("c"), symbol: "°C", tight: true },
+      f: { aliases: alias("f"), symbol: "°F", tight: true },
+      k: { aliases: alias("k"), symbol: "K", tight: true },
     },
     // Weights are single digits, clamped per kind per mark by `CUE_CEILING`
     // (4) -- see `duration`'s table for the derivation. A cue ranks readings
@@ -67,9 +72,9 @@ const temperatureEn: readonly Vocabulary[] = [
     locale: "en",
     kind: "tempdelta",
     units: {
-      c: { aliases: deltaAlias("c"), symbol: "°C" },
-      f: { aliases: deltaAlias("f"), symbol: "°F" },
-      k: { aliases: deltaAlias("k"), symbol: "K" },
+      c: { aliases: deltaAlias("c"), symbol: "°C", tight: true },
+      f: { aliases: deltaAlias("f"), symbol: "°F", tight: true },
+      k: { aliases: deltaAlias("k"), symbol: "K", tight: true },
     },
   }),
 ];

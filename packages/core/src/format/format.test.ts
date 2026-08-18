@@ -9,7 +9,7 @@ import { defineLanguage } from "../locale/define";
 import { parseNumber } from "../locale/number";
 import { defineVocabulary } from "../locale/vocabulary";
 import type { Value } from "../types";
-import { formatNumber, formatValue } from "./format";
+import { applyDisplay, DEFAULT_DISPLAY, formatNumber, formatValue } from "./format";
 
 const number = defineKind({
   id: "number",
@@ -24,7 +24,7 @@ const mass = defineKind({
 const massWords = {
   // No `forms` here on purpose: this fixture exercises the symbol path.
   // Intl.PluralRules("en").select(1.5) is "other", so a `forms.other` entry
-  // would make every test below render "1.5 kilograms" instead of "1.5kg".
+  // would make every test below render "1.5 kilograms" instead of "1.5 kg".
   // The forms path gets its own fixture (mass2) in the test that needs it.
   kg: { aliases: ["kg"], symbol: "kg" },
   g: { aliases: ["g"], symbol: "g" },
@@ -42,7 +42,7 @@ const value = (canonical: string, unit: string): Value =>
   Object.freeze({ kind: "mass", canonical: new Decimal(canonical), unit });
 
 test("formats using the authored unit's symbol", () => {
-  expect(formatValue(value("1500", "kg"), registry, en)).toBe("1.5kg");
+  expect(formatValue(value("1500", "kg"), registry, en)).toBe("1.5 kg");
 });
 
 test("uses the plural display form when the number selects it", () => {
@@ -69,7 +69,7 @@ test("uses the plural display form when the number selects it", () => {
 
 test("falls back to the symbol when no display form covers the category", () => {
   // Grouped: en renders 3000 as "3,000".
-  expect(formatValue(value("3000", "g"), registry, en)).toBe("3,000g");
+  expect(formatValue(value("3000", "g"), registry, en)).toBe("3,000 g");
 });
 
 test("formats a plain number without a unit", () => {
@@ -82,11 +82,11 @@ test("formats a plain number without a unit", () => {
 });
 
 test("uses the locale's number grammar", () => {
-  expect(formatValue(value("1500500", "kg"), registry, de)).toBe("1.500,5kg");
+  expect(formatValue(value("1500500", "kg"), registry, de)).toBe("1.500,5 kg");
 });
 
 test("does not print floating point noise", () => {
-  expect(formatValue(value("100", "kg"), registry, en)).toBe("0.1kg");
+  expect(formatValue(value("100", "kg"), registry, en)).toBe("0.1 kg");
 });
 
 test("honours a locale's own NumberFormatSpec instead of re-deriving from Intl", () => {
@@ -100,7 +100,7 @@ test("honours a locale's own NumberFormatSpec instead of re-deriving from Intl",
       selectForm: () => "other",
     }),
   );
-  expect(formatValue(value("1500500", "kg"), registry, custom)).toBe("1 500,5kg");
+  expect(formatValue(value("1500500", "kg"), registry, custom)).toBe("1 500,5 kg");
 });
 
 test("a custom NumberFormatSpec round-trips through parseNumber", () => {
@@ -114,9 +114,9 @@ test("a custom NumberFormatSpec round-trips through parseNumber", () => {
   );
   const canonical = new Decimal("1500500");
   const formatted = formatValue(value(canonical.toFixed(), "kg"), registry, custom);
-  expect(formatted).toBe("1 500,5kg");
+  expect(formatted).toBe("1 500,5 kg");
   // Strip the unit and feed the digits back: parse(format(v)) === v (spec §10).
-  const reparsed = parseNumber(formatted.replace("kg", ""), custom.language);
+  const reparsed = parseNumber(formatted.replace(" kg", ""), custom.language);
   expect(reparsed?.times(1000).toFixed()).toBe(canonical.toFixed());
 });
 
@@ -125,15 +125,15 @@ test("never emits exponential notation, above or below Decimal's window", () => 
   // string is neither grouped nor re-parseable, so the digit path uses toFixed.
   const big = formatValue(value("1e41", "g"), registry, en);
   expect(big).not.toContain("e");
-  expect(big).toBe("100,000,000,000,000,000,000,000,000,000,000,000,000,000g");
-  expect(parseNumber(big.replace("g", ""), en.language)?.toFixed()).toBe(
+  expect(big).toBe("100,000,000,000,000,000,000,000,000,000,000,000,000,000 g");
+  expect(parseNumber(big.replace(" g", ""), en.language)?.toFixed()).toBe(
     new Decimal("1e41").toFixed(),
   );
 
   const small = formatValue(value("1e-22", "g"), registry, en);
   expect(small).not.toContain("e");
-  expect(small).toBe("0.0000000000000000000001g");
-  expect(parseNumber(small.replace("g", ""), en.language)?.toFixed()).toBe(
+  expect(small).toBe("0.0000000000000000000001 g");
+  expect(parseNumber(small.replace(" g", ""), en.language)?.toFixed()).toBe(
     new Decimal("1e-22").toFixed(),
   );
 });
@@ -154,8 +154,8 @@ test("groups a 28-significant-digit value without losing a digit", () => {
   // handle requires opting back in to the un-rounded precision explicitly.
   const digits = "1234567890123456789012345678";
   const out = formatValue(value(digits, "g"), registry, en, { precision: 28 });
-  expect(out).toBe("1,234,567,890,123,456,789,012,345,678g");
-  expect(parseNumber(out.replace("g", ""), en.language)?.toFixed()).toBe(digits);
+  expect(out).toBe("1,234,567,890,123,456,789,012,345,678 g");
+  expect(parseNumber(out.replace(" g", ""), en.language)?.toFixed()).toBe(digits);
 });
 
 test("guard-digit rounding removes one-ulp noise from a round trip", () => {
@@ -281,4 +281,40 @@ test("the slot reaches selectForm", () => {
   });
   engine.evaluate("2 kg");
   expect(slots).toContain("bare");
+});
+
+// --- display precision (ruling R-C1) --------------------------------------
+
+test("display rounds to four fraction digits and drops trailing zeros", () => {
+  expect(
+    applyDisplay(new Decimal("3.306933932773163710844607"), DEFAULT_DISPLAY).toFixed(),
+  ).toBe("3.3069");
+  expect(applyDisplay(new Decimal("96.56064"), DEFAULT_DISPLAY).toFixed()).toBe(
+    "96.5606",
+  );
+  expect(applyDisplay(new Decimal("1.5000"), DEFAULT_DISPLAY).toFixed()).toBe("1.5");
+});
+
+test("a small value keeps three significant digits rather than rounding to zero", () => {
+  expect(applyDisplay(new Decimal("0.00001234"), DEFAULT_DISPLAY).toFixed()).toBe(
+    "0.0000123",
+  );
+  expect(applyDisplay(new Decimal("0.000000001"), DEFAULT_DISPLAY).toFixed()).toBe(
+    "0.000000001",
+  );
+});
+
+test("a large value keeps its whole part: the significant floor never truncates left of the point", () => {
+  expect(applyDisplay(new Decimal("1234567.891"), DEFAULT_DISPLAY).toFixed()).toBe(
+    "1234567.891",
+  );
+});
+
+test("zero stays zero", () => {
+  expect(applyDisplay(new Decimal("0"), DEFAULT_DISPLAY).toFixed()).toBe("0");
+});
+
+test("display is a policy, not the guard: absent display changes nothing", () => {
+  const raw = new Decimal("13.888888888888888888888889");
+  expect(applyDisplay(raw, undefined).toFixed()).toBe(raw.toFixed());
 });
