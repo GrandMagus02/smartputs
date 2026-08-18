@@ -1,6 +1,7 @@
 import { Decimal } from "../decimal";
 import { KindConflictError, UnknownKindError } from "../errors";
 import type {
+  EvalCtx,
   Kind,
   KindId,
   LiteralMatcher,
@@ -73,6 +74,51 @@ export interface FormEntry {
   readonly plural: boolean;
 }
 
+/**
+ * The two units and the operator a derived unit is the quotient or product of.
+ * The reverse direction of `DerivedUnitTable`: what `kph` decomposes back to.
+ */
+export interface DerivedUnitParts {
+  readonly leftKind: KindId;
+  readonly leftUnit: string;
+  readonly op: "*" | "/";
+  readonly rightKind: KindId;
+  readonly rightUnit: string;
+}
+
+export interface DerivedUnitTable {
+  /** `derivedKey(resultKind, leftUnit, op, rightUnit)` -> the result kind's unit. */
+  readonly forward: Map<string, string>;
+  /** `derivedKey(resultKind, unit, "", "")` -> the pair that unit is derived from. */
+  readonly reverse: Map<string, DerivedUnitParts>;
+}
+
+/**
+ * One key shape for both directions. The reverse direction leaves `op` and
+ * `right` empty rather than using a second key format, so a reader who has seen
+ * one has seen both and neither can collide with the other: a forward key
+ * always names a real operator, and `""` is not one.
+ */
+export function derivedKey(
+  kind: KindId,
+  left: string,
+  op: string,
+  right: string,
+): string {
+  return `${kind}|${left}|${op}|${right}`;
+}
+
+/** The result kind's unit for one operand pair, or `undefined` when none matches. */
+export function derivedUnitOf(
+  registry: Registry,
+  kind: KindId,
+  left: string,
+  op: "*" | "/",
+  right: string,
+): string | undefined {
+  return registry.derivedUnits.forward.get(derivedKey(kind, left, op, right));
+}
+
 export interface Registry {
   kinds: Map<KindId, NormalizedKind>;
   ops: Map<string, OpSignature>;
@@ -89,6 +135,13 @@ export interface Registry {
   literals: Array<{ kind: KindId; matcher: LiteralMatcher }>;
   /** `${locale}|${kind}|${unit}` -> the words that (locale, kind, unit) has. */
   words: Map<string, UnitWords>;
+  /**
+   * (resultKind, leftUnit, op, rightUnit) -> resultUnit, and back. Built by
+   * `buildDerivedUnits` from ratio equality, which is what makes a compound
+   * unit usable where a unit is required: after `in`, and as the unit a derived
+   * result prints in.
+   */
+  derivedUnits: DerivedUnitTable;
 }
 
 /** The count `selectForm` is asked about to learn which key is a language's singular. */
@@ -141,6 +194,157 @@ function mergeWords(base: UnitWords, patch: UnitWords): UnitWords {
     ...(symbol !== undefined ? { symbol } : {}),
     ...(patch.forms || base.forms ? { forms: { ...base.forms, ...patch.forms } } : {}),
   };
+}
+
+/**
+ * One unit's ratio as a plain Decimal, or null when the ratio is a function of
+ * something this table has not got — money's rates, measure's dpi.
+ *
+ * Null rather than a throw, and this is the whole reason the table is safe to
+ * build at boot: a `ratio(ctx)` may read `ctx.rates` and raise
+ * `MissingRateError`, so a registry built with no rate table would fail to
+ * construct at all. A kind whose ratios need a context contributes no rows,
+ * which is exactly right — a derived unit whose value changes hourly is not a
+ * unit the parser can name.
+ *
+ * An affine unit is excluded too: a scale with an offset (degC, degF) is not a
+ * factor in another scale.
+ */
+function staticRatio(kind: NormalizedKind, unit: string): Decimal | null {
+  const def = kind.units.get(unit);
+  if (def === undefined) return null;
+  const ctx = {
+    self: { kind: kind.id, canonical: new Decimal(0), unit },
+    locale: "*",
+  } as unknown as EvalCtx;
+  try {
+    const ratio = def.ratio(ctx);
+    const offset = def.offset(ctx);
+    return offset.isZero() ? ratio : null;
+  } catch {
+    return null;
+  }
+}
+
+/** Every unit of one kind whose ratio is a usable factor, in declaration order. */
+function staticRatios(kind: NormalizedKind): Array<[string, Decimal]> {
+  const out: Array<[string, Decimal]> = [];
+  for (const unit of kind.units.keys()) {
+    const ratio = staticRatio(kind, unit);
+    if (ratio !== null && !ratio.isZero()) out.push([unit, ratio]);
+  }
+  return out;
+}
+
+/**
+ * How close one operand pair is to being the plainest way to spell a derived
+ * unit: 0 when both operands are their kind's canonical, 3 when neither is.
+ *
+ * Ruling: several pairs can quotient to one unit — `m / s` and `mm / ms` are
+ * both `mps` — and `forward` records them all, because each is a real thing to
+ * type. `reverse` holds one, and it is the canonical pair, so a compound target
+ * decomposes to the units the kinds are actually measured in rather than to
+ * whichever pair the unit tables happened to list first.
+ */
+function canonicalRank(
+  left: NormalizedKind,
+  leftUnit: string,
+  right: NormalizedKind,
+  rightUnit: string,
+): number {
+  const canon = (kind: NormalizedKind): string | undefined =>
+    kind.spec.mode === "ratio" ? kind.spec.canonical : undefined;
+  return (canon(left) === leftUnit ? 0 : 2) + (canon(right) === rightUnit ? 0 : 1);
+}
+
+/**
+ * Every (resultKind, leftUnit, op, rightUnit) whose ratios multiply or divide to
+ * a unit the result kind already has.
+ *
+ * Ruling: equality of ratios at 28 digits, never alias matching. "kph" is
+ * derived from (km, /, h) because the numbers agree, which is what makes
+ * mi/h -> mph free and costs no kind package a line. It also means the table
+ * says nothing about a kind whose canonical differs from its operands' by a
+ * constant the ratios cannot see — `datasize / duration -> datarate` carries a
+ * times(8) in its `apply`, so a row here names the unit the *canonical* is in,
+ * which is the unit a result prints in and is what this table is read for.
+ *
+ * A signature whose result kind is also one of its operand kinds is skipped.
+ * `* | length | number -> length` is generated for every kind, and reading it
+ * as a derived unit would file `(km, *, one) -> km` forward and hand every
+ * plain unit a reverse entry — leaving `reverse` unable to answer the one
+ * question it exists for. A derived unit names a kind neither operand has.
+ *
+ * Built once, here, beside `aliasIndex`. The sizes are tiny: speed's one
+ * signature over 8 length units and 6 duration units is 48 probes.
+ *
+ * The bytes are not free, and they are eager rather than lazy on purpose:
+ * `formIndex` is a getter because building it *asks the language questions* a
+ * test may be watching, and nothing here calls a hook. Measured at up to
+ * 1_345 B minified on the `smartputs root` row of `check-size.ts` — the only
+ * budgeted bundle that reaches `buildRegistry` at all. That row is left
+ * unamended here because it was already over its budget before this change, and
+ * raising it now would hide someone else's regression inside this one, which is
+ * the same reason four rows in that file carry a "deliberately left alone" note.
+ */
+function buildDerivedUnits(
+  kinds: Map<KindId, NormalizedKind>,
+  ops: Map<string, OpSignature>,
+): DerivedUnitTable {
+  const forward = new Map<string, string>();
+  const reverse = new Map<string, DerivedUnitParts>();
+  /** Best `canonicalRank` seen for each reverse key, so a later pair can win. */
+  const reverseRank = new Map<string, number>();
+  const ratios = new Map<KindId, Array<[string, Decimal]>>();
+  const ratiosOf = (kind: NormalizedKind): Array<[string, Decimal]> => {
+    let cached = ratios.get(kind.id);
+    if (cached === undefined) {
+      cached = staticRatios(kind);
+      ratios.set(kind.id, cached);
+    }
+    return cached;
+  };
+
+  for (const sig of ops.values()) {
+    if (sig.op !== "*" && sig.op !== "/") continue;
+    if (sig.result === sig.left || sig.result === sig.right) continue;
+    const left = kinds.get(sig.left);
+    const right = kinds.get(sig.right);
+    const result = kinds.get(sig.result);
+    if (left === undefined || right === undefined || result === undefined) continue;
+    if (left.spec.mode !== "ratio" || right.spec.mode !== "ratio") continue;
+    if (result.spec.mode !== "ratio") continue;
+
+    const resultRatios = ratiosOf(result);
+    if (resultRatios.length === 0) continue;
+
+    for (const [lu, lr] of ratiosOf(left)) {
+      for (const [ru, rr] of ratiosOf(right)) {
+        const want = sig.op === "*" ? lr.times(rr) : lr.div(rr);
+        const hit = resultRatios.find(([, r]) => r.eq(want));
+        if (hit === undefined) continue;
+        const unit = hit[0];
+        const key = derivedKey(sig.result, lu, sig.op, ru);
+        // First writer wins, so a later signature never silently redefines an
+        // established pair. Determinism is the same rule `ops` already follows.
+        if (!forward.has(key)) forward.set(key, unit);
+        const back = derivedKey(sig.result, unit, "", "");
+        const rank = canonicalRank(left, lu, right, ru);
+        const seen = reverseRank.get(back);
+        if (seen === undefined || rank < seen) {
+          reverseRank.set(back, rank);
+          reverse.set(back, {
+            leftKind: sig.left,
+            leftUnit: lu,
+            op: sig.op,
+            rightKind: sig.right,
+            rightUnit: ru,
+          });
+        }
+      }
+    }
+  }
+  return { forward, reverse };
 }
 
 export function buildRegistry(kinds: Kind[], locales: readonly Locale[] = []): Registry {
@@ -422,5 +626,6 @@ export function buildRegistry(kinds: Kind[], locales: readonly Locale[] = []): R
     cueIndex,
     literals,
     words,
+    derivedUnits: buildDerivedUnits(normalized, ops),
   };
 }

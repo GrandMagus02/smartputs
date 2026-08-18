@@ -5,7 +5,7 @@ import { DimensionMismatchError, KindConflictError, UnknownKindError } from "../
 import { composeLocale, defineLanguage, defineVocabulary } from "../index";
 import type { EvalCtx, LiteralMatcher, Value } from "../types";
 import { defineKind } from "./define";
-import { buildRegistry, opKey, wordsFor } from "./registry";
+import { buildRegistry, derivedKey, derivedUnitOf, opKey, wordsFor } from "./registry";
 
 const mass = defineKind({
   id: "mass",
@@ -907,4 +907,137 @@ test("a zero-weight cue is skipped rather than indexed as a no-op", () => {
   );
   expect(registry.cueIndex.get("maybe")).toBeUndefined();
   expect(registry.cueIndex.get("heavy")).toBeDefined();
+});
+
+// ---------------------------------------------------------------------------
+// Derived units (spec §D.2). The table is built from ratio equality at 28
+// digits, never from alias matching: `kph` is `(km, /, h)` because the numbers
+// agree, which is what makes `mi/h -> mph` free and costs `@smartput/speed`
+// not one line.
+// ---------------------------------------------------------------------------
+
+test("a length over a duration finds the speed unit whose ratio matches", () => {
+  const reg = buildRegistry(BUILTIN_KINDS, []);
+  expect(derivedUnitOf(reg, "speed", "km", "/", "h")).toBe("kph");
+  expect(derivedUnitOf(reg, "speed", "m", "/", "s")).toBe("mps");
+  expect(derivedUnitOf(reg, "speed", "mi", "/", "h")).toBe("mph");
+});
+
+/**
+ * The plan asked for `nmi / h -> knot` here, and the repo cannot answer it:
+ * `@smartput/length` ships mm/cm/m/km/in/ft/yd/mi and no nautical mile, so
+ * nothing in the registry has the ratio 1852 that `knot` (1852/3600) is a
+ * quotient of. Recorded as a test rather than dropped, because the absence is
+ * the interesting part: the moment length gains `nmi`, `knot` derives itself
+ * and this expectation flips — which is exactly the claim the ruling makes.
+ */
+test("knot is unreachable only because no length unit is the nautical mile", () => {
+  const reg = buildRegistry(BUILTIN_KINDS, []);
+  expect(reg.kinds.get("length")?.units.has("nmi")).toBe(false);
+  expect(derivedUnitOf(reg, "speed", "nmi", "/", "h")).toBeUndefined();
+  expect([...reg.derivedUnits.forward.values()]).not.toContain("knot");
+});
+
+test("a pair with no matching unit is absent, not guessed", () => {
+  const reg = buildRegistry(BUILTIN_KINDS, []);
+  expect(derivedUnitOf(reg, "speed", "km", "/", "s")).toBeUndefined();
+});
+
+test("the reverse direction names the parts a compound target decomposes to", () => {
+  const reg = buildRegistry(BUILTIN_KINDS, []);
+  expect(reg.derivedUnits.reverse.get(derivedKey("speed", "kph", "", ""))).toEqual({
+    leftKind: "length",
+    leftUnit: "km",
+    op: "/",
+    rightKind: "duration",
+    rightUnit: "h",
+  });
+});
+
+/**
+ * `mm / ms` and `m / s` both quotient to 1, so both name `mps` forward. The
+ * reverse slot holds one pair and prefers the canonical one, so a compound
+ * target decomposes to the units the kinds themselves are measured in.
+ */
+test("the reverse direction prefers each kind's canonical unit when several pairs match", () => {
+  const reg = buildRegistry(BUILTIN_KINDS, []);
+  expect(derivedUnitOf(reg, "speed", "mm", "/", "ms")).toBe("mps");
+  expect(reg.derivedUnits.reverse.get(derivedKey("speed", "mps", "", ""))).toEqual({
+    leftKind: "length",
+    leftUnit: "m",
+    op: "/",
+    rightKind: "duration",
+    rightUnit: "s",
+  });
+});
+
+/**
+ * `* | length | number -> length` is a signature like any other, and reading it
+ * as a derived unit would file `(km, *, one) -> km` forward and, worse, hand
+ * every plain unit a reverse entry — leaving `reverse` unable to answer the one
+ * question it exists for. A derived unit names a kind neither operand has.
+ */
+test("scaling by a number is not a derived unit", () => {
+  const reg = buildRegistry(BUILTIN_KINDS, []);
+  expect(derivedUnitOf(reg, "length", "km", "*", "one")).toBeUndefined();
+  expect(derivedUnitOf(reg, "length", "km", "/", "one")).toBeUndefined();
+  expect(
+    reg.derivedUnits.reverse.get(derivedKey("length", "km", "", "")),
+  ).toBeUndefined();
+});
+
+/** A kind whose ratios need a rate table contributes nothing rather than throwing. */
+const flowVolume = defineKind({
+  id: "flow-volume",
+  value: { mode: "ratio", canonical: "l", units: { l: 1, ml: 0.001 } },
+});
+
+const flowTime = defineKind({
+  id: "flow-time",
+  value: { mode: "ratio", canonical: "sec", units: { sec: 1, hr: 3600 } },
+});
+
+const flow = defineKind({
+  id: "flow",
+  value: {
+    mode: "ratio",
+    canonical: "lps",
+    units: {
+      lps: 1,
+      // The `money` shape: a ratio that is a function of a snapshot the
+      // registry has not got. It must not fail the build.
+      priced: {
+        ratio: (): Decimal => {
+          throw new Error("needs a rate table");
+        },
+      },
+    },
+  },
+  ops: [
+    {
+      op: "/",
+      left: "flow-volume",
+      right: "flow-time",
+      result: "flow",
+      apply: (l, r): Value =>
+        Object.freeze({
+          kind: "flow",
+          unit: "lps",
+          canonical: l.canonical.div(r.canonical),
+        }),
+    },
+  ],
+});
+
+test("a unit whose ratio needs a context contributes nothing rather than throwing", () => {
+  const reg = buildRegistry([flowVolume, flowTime, flow], []);
+  expect(derivedUnitOf(reg, "flow", "l", "/", "sec")).toBe("lps");
+  expect([...reg.derivedUnits.forward.values()]).not.toContain("priced");
+});
+
+test("a kind whose ratios need a rate table contributes nothing rather than throwing", () => {
+  const reg = buildRegistry(BUILTIN_KINDS, []);
+  for (const key of reg.derivedUnits.forward.keys()) {
+    expect(key.startsWith("money|")).toBe(false);
+  }
 });
