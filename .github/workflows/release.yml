@@ -51,8 +51,12 @@ jobs:
           node-version: "22.14.0"
           registry-url: https://registry.npmjs.org
 
+      # Pinned rather than `@latest`: npm keeps raising its own Node floor
+      # (12.x wants Node 22.22+), and this workflow only needs to clear the
+      # trusted-publishing minimum, not track the newest release. 11.5.1 is
+      # that minimum, and it runs on the Node 22.14.0 pinned above.
       - name: Upgrade npm for trusted publishing
-        run: npm install -g npm@latest
+        run: npm install -g npm@11.5.1
 
       - run: bun install --frozen-lockfile
 
