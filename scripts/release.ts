@@ -279,6 +279,11 @@ async function main() {
   const asJson = argv.includes("--json");
   const plans = await buildPlan();
 
+  // `--json` reports and stops. It used to fall through to the write below,
+  // which made the release workflow bump twice — once to read the plan, once
+  // to apply it — and put "wrote N version(s)" at the end of the file the next
+  // step parsed as JSON, so the count and the package list it fed the commit
+  // message and `--only` both came out empty.
   if (asJson) {
     console.log(
       JSON.stringify(
@@ -287,13 +292,14 @@ async function main() {
         2,
       ),
     );
-  } else {
-    if (plans.length === 0) console.log("no releasable commits since the last tags.");
-    for (const plan of plans) {
-      const why =
-        plan.reason === "dependency" ? "dependency" : `${plan.commits.length} commit(s)`;
-      console.log(`${plan.name}  ${plan.from} → ${plan.to}  (${plan.bump}, ${why})`);
-    }
+    return;
+  }
+
+  if (plans.length === 0) console.log("no releasable commits since the last tags.");
+  for (const plan of plans) {
+    const why =
+      plan.reason === "dependency" ? "dependency" : `${plan.commits.length} commit(s)`;
+    console.log(`${plan.name}  ${plan.from} → ${plan.to}  (${plan.bump}, ${why})`);
   }
 
   if (dryRun || plans.length === 0) return;

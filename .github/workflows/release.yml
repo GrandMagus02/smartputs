@@ -30,7 +30,11 @@ jobs:
         with:
           # The whole history and every tag: the bump is computed from the
           # commits since a package's last tag, and a shallow clone has neither.
+          # Asked for explicitly rather than relied on, because a checkout
+          # without the tags does not fail — it reads every package as never
+          # released and re-bumps the entire workspace off the whole history.
           fetch-depth: 0
+          fetch-tags: true
           persist-credentials: true
 
       - uses: oven-sh/setup-bun@v2
