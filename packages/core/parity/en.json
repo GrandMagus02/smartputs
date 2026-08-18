@@ -56,6 +56,7 @@
             "score": 0,
             "confidence": 1,
             "units": ["km"],
+            "numbers": [],
             "contributions": [
               {
                 "selector": "prior",
@@ -203,6 +204,7 @@
             "score": 30,
             "confidence": 1,
             "units": ["kg", "g"],
+            "numbers": [],
             "contributions": [
               {
                 "selector": "prior",
@@ -404,6 +406,7 @@
             "score": 30,
             "confidence": 1,
             "units": ["h", "min"],
+            "numbers": [],
             "contributions": [
               {
                 "selector": "prior",
@@ -539,6 +542,7 @@
             "score": 30,
             "confidence": 1,
             "units": ["min", "h"],
+            "numbers": [],
             "contributions": [
               {
                 "selector": "prior",
@@ -707,6 +711,7 @@
             "score": 30,
             "confidence": 1,
             "units": ["m", "km"],
+            "numbers": [],
             "contributions": [
               {
                 "selector": "prior",
@@ -858,6 +863,7 @@
             "score": 0,
             "confidence": 1,
             "units": ["m", "km"],
+            "numbers": [],
             "contributions": [
               {
                 "selector": "prior",
@@ -1003,6 +1009,7 @@
             "score": 0,
             "confidence": 1,
             "units": ["km"],
+            "numbers": [],
             "contributions": [
               {
                 "selector": "prior",
@@ -1113,6 +1120,7 @@
             "score": 0,
             "confidence": 1,
             "units": [],
+            "numbers": [],
             "contributions": [
               {
                 "selector": "contextBonus",
@@ -1198,6 +1206,7 @@
             "score": 0,
             "confidence": 1,
             "units": ["km"],
+            "numbers": [],
             "contributions": [
               {
                 "selector": "prior",
@@ -1321,6 +1330,7 @@
             "score": 0,
             "confidence": 1,
             "units": ["g"],
+            "numbers": [],
             "contributions": [
               {
                 "selector": "prior",
@@ -1488,6 +1498,7 @@
             "score": 0,
             "confidence": 1,
             "units": ["in"],
+            "numbers": [],
             "contributions": [
               {
                 "selector": "prior",
@@ -1589,6 +1600,7 @@
             "score": 0,
             "confidence": 1,
             "units": ["lb"],
+            "numbers": [],
             "contributions": [
               {
                 "selector": "prior",
@@ -1690,6 +1702,7 @@
             "score": 0,
             "confidence": 1,
             "units": ["wk"],
+            "numbers": [],
             "contributions": [
               {
                 "selector": "prior",
@@ -1791,6 +1804,7 @@
             "score": -2,
             "confidence": 1,
             "units": ["kg"],
+            "numbers": [],
             "contributions": [
               {
                 "selector": "prior",
@@ -1892,6 +1906,7 @@
             "score": 0,
             "confidence": 1,
             "units": ["km"],
+            "numbers": [],
             "contributions": [
               {
                 "selector": "prior",
@@ -2015,6 +2030,7 @@
             "score": 0,
             "confidence": 1,
             "units": ["g"],
+            "numbers": [],
             "contributions": [
               {
                 "selector": "prior",
@@ -2153,7 +2169,7 @@
         {
           "kind": "tempdelta",
           "canonical": "117.7777777777777777777777778",
-          "formatted": "117.77777777777777777777778°C",
+          "formatted": "117.7778°C",
           "confidence": 1.8048513878454153e-35
         }
       ]
@@ -2218,6 +2234,7 @@
             "score": 0,
             "confidence": 1,
             "units": ["c", "f"],
+            "numbers": [],
             "contributions": [
               {
                 "selector": "prior",
@@ -2251,6 +2268,7 @@
             "score": -80,
             "confidence": 1.8048513878454153e-35,
             "units": ["c", "f"],
+            "numbers": [],
             "contributions": [
               {
                 "selector": "prior",
@@ -2409,6 +2427,7 @@
             "score": 30,
             "confidence": 1,
             "units": ["c", "c"],
+            "numbers": [],
             "contributions": [
               {
                 "selector": "prior",
@@ -2442,6 +2461,7 @@
             "score": -40,
             "confidence": 3.975449735908647e-31,
             "units": ["c", "c"],
+            "numbers": [],
             "contributions": [
               {
                 "selector": "prior",
@@ -2475,6 +2495,7 @@
             "score": -50,
             "confidence": 1.8048513878454153e-35,
             "units": ["c", "c"],
+            "numbers": [],
             "contributions": [
               {
                 "selector": "prior",
@@ -2642,6 +2663,7 @@
             "score": 0,
             "confidence": 1,
             "units": ["%"],
+            "numbers": [],
             "contributions": [
               {
                 "selector": "prior",
@@ -2739,6 +2761,7 @@
             "score": 0,
             "confidence": 1,
             "units": ["%"],
+            "numbers": [],
             "contributions": [
               {
                 "selector": "prior",
@@ -2773,7 +2796,7 @@
         "kind": "angle",
         "canonical": "1.570796326794896619231321692",
         "unit": "rad",
-        "formatted": "1.5707963267948966192313217 radians",
+        "formatted": "1.5708 radians",
         "confidence": 1,
         "spans": [
           {
@@ -2789,7 +2812,7 @@
         {
           "kind": "angle",
           "canonical": "1.570796326794896619231321692",
-          "formatted": "1.5707963267948966192313217 radians",
+          "formatted": "1.5708 radians",
           "confidence": 1
         }
       ]
@@ -2842,6 +2865,7 @@
             "score": 0,
             "confidence": 1,
             "units": ["rad", "deg"],
+            "numbers": [],
             "contributions": [
               {
                 "selector": "prior",
@@ -2971,6 +2995,7 @@
             "score": 0,
             "confidence": 1,
             "units": ["b", "kib"],
+            "numbers": [],
             "contributions": [
               {
                 "selector": "prior",
@@ -3031,7 +3056,7 @@
         "kind": "area",
         "canonical": "12",
         "unit": "m2",
-        "formatted": "12m²",
+        "formatted": "12 m²",
         "confidence": 1,
         "spans": [
           {
@@ -3047,7 +3072,7 @@
         {
           "kind": "area",
           "canonical": "12",
-          "formatted": "12m²",
+          "formatted": "12 m²",
           "confidence": 1
         }
       ]
@@ -3100,6 +3125,7 @@
             "score": 30,
             "confidence": 1,
             "units": ["m", "m"],
+            "numbers": [],
             "contributions": [
               {
                 "selector": "prior",
@@ -3254,8 +3280,8 @@
       "ok": {
         "kind": "speed",
         "canonical": "13.88888888888888888888888889",
-        "unit": "mps",
-        "formatted": "13.888888888888888888888889m/s",
+        "unit": "kph",
+        "formatted": "50 km/h",
         "confidence": 1,
         "spans": [
           {
@@ -3271,7 +3297,7 @@
         {
           "kind": "speed",
           "canonical": "13.88888888888888888888888889",
-          "formatted": "13.888888888888888888888889m/s",
+          "formatted": "50 km/h",
           "confidence": 1
         }
       ]
@@ -3330,6 +3356,7 @@
             "score": 0,
             "confidence": 1,
             "units": ["km", "h"],
+            "numbers": [],
             "contributions": [
               {
                 "selector": "prior",
@@ -3470,6 +3497,7 @@
             "score": 0,
             "confidence": 1,
             "units": ["kg"],
+            "numbers": [],
             "contributions": [
               {
                 "selector": "prior",
@@ -3558,6 +3586,7 @@
             "score": 0,
             "confidence": 1,
             "units": [],
+            "numbers": [],
             "contributions": [
               {
                 "selector": "contextBonus",
@@ -3637,6 +3666,7 @@
             "score": 0,
             "confidence": 1,
             "units": ["g"],
+            "numbers": [],
             "contributions": [
               {
                 "selector": "prior",
@@ -3804,6 +3834,7 @@
             "score": 0,
             "confidence": 1,
             "units": ["km"],
+            "numbers": [],
             "contributions": [
               {
                 "selector": "prior",
@@ -3945,6 +3976,7 @@
             "score": 30,
             "confidence": 1,
             "units": ["km", "km"],
+            "numbers": [],
             "contributions": [
               {
                 "selector": "prior",
@@ -4077,6 +4109,7 @@
             "score": 0,
             "confidence": 1,
             "units": [],
+            "numbers": [],
             "contributions": [
               {
                 "selector": "contextBonus",
@@ -4174,6 +4207,7 @@
             "score": 0,
             "confidence": 1,
             "units": ["kg"],
+            "numbers": [],
             "contributions": [
               {
                 "selector": "prior",
@@ -4275,6 +4309,7 @@
             "score": 0,
             "confidence": 1,
             "units": ["km"],
+            "numbers": [],
             "contributions": [
               {
                 "selector": "prior",
@@ -4397,6 +4432,7 @@
             "score": 0,
             "confidence": 1,
             "units": [],
+            "numbers": [],
             "contributions": [
               {
                 "selector": "contextBonus",
@@ -4487,6 +4523,7 @@
             "score": 0,
             "confidence": 1,
             "units": [],
+            "numbers": [],
             "contributions": [
               {
                 "selector": "contextBonus",
@@ -4577,6 +4614,7 @@
             "score": 0,
             "confidence": 1,
             "units": [],
+            "numbers": [],
             "contributions": [
               {
                 "selector": "contextBonus",
@@ -4677,6 +4715,7 @@
             "score": 0,
             "confidence": 1,
             "units": [],
+            "numbers": [],
             "contributions": [
               {
                 "selector": "contextBonus",
@@ -4707,7 +4746,24 @@
       "ok": []
     },
     "explain": {
-      "error": "NoCandidateError: Unknown unit \"ho\". Did you mean: h, ha, hp?"
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "30",
+            "start": 0,
+            "end": 2
+          },
+          {
+            "type": "word",
+            "text": "ho",
+            "start": 3,
+            "end": 5
+          }
+        ],
+        "candidates": [],
+        "assignments": []
+      }
     },
     "complete": {
       "ok": [
@@ -4747,7 +4803,24 @@
       "ok": []
     },
     "explain": {
-      "error": "NoCandidateError: Unknown unit \"ho\". Did you mean: h, ha, hp?"
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "1",
+            "start": 0,
+            "end": 1
+          },
+          {
+            "type": "word",
+            "text": "ho",
+            "start": 2,
+            "end": 4
+          }
+        ],
+        "candidates": [],
+        "assignments": []
+      }
     },
     "complete": {
       "ok": [
@@ -4787,7 +4860,24 @@
       "ok": []
     },
     "explain": {
-      "error": "NoCandidateError: Unknown unit \"ho\". Did you mean: h, ha, hp?"
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "0.5",
+            "start": 0,
+            "end": 3
+          },
+          {
+            "type": "word",
+            "text": "ho",
+            "start": 4,
+            "end": 6
+          }
+        ],
+        "candidates": [],
+        "assignments": []
+      }
     },
     "complete": {
       "ok": [
@@ -4876,6 +4966,7 @@
             "score": 0,
             "confidence": 1,
             "units": ["s"],
+            "numbers": [],
             "contributions": [
               {
                 "selector": "prior",
@@ -4928,7 +5019,24 @@
       "ok": []
     },
     "explain": {
-      "error": "NoCandidateError: Unknown unit \"minu\". Did you mean: min, mins, minute?"
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "90",
+            "start": 0,
+            "end": 2
+          },
+          {
+            "type": "word",
+            "text": "minu",
+            "start": 3,
+            "end": 7
+          }
+        ],
+        "candidates": [],
+        "assignments": []
+      }
     },
     "complete": {
       "ok": [
@@ -4957,7 +5065,24 @@
       "ok": []
     },
     "explain": {
-      "error": "NoCandidateError: Unknown unit \"millis\". Did you mean: miles?"
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "250",
+            "start": 0,
+            "end": 3
+          },
+          {
+            "type": "word",
+            "text": "millis",
+            "start": 4,
+            "end": 10
+          }
+        ],
+        "candidates": [],
+        "assignments": []
+      }
     },
     "complete": {
       "ok": [
@@ -4986,7 +5111,24 @@
       "ok": []
     },
     "explain": {
-      "error": "NoCandidateError: Unknown unit \"wee\". Did you mean: week, weeks, feet?"
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "2",
+            "start": 0,
+            "end": 1
+          },
+          {
+            "type": "word",
+            "text": "wee",
+            "start": 2,
+            "end": 5
+          }
+        ],
+        "candidates": [],
+        "assignments": []
+      }
     },
     "complete": {
       "ok": [
@@ -5015,7 +5157,24 @@
       "ok": []
     },
     "explain": {
-      "error": "NoCandidateError: Unknown unit \"da\". Did you mean: day, d, ha?"
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "3",
+            "start": 0,
+            "end": 1
+          },
+          {
+            "type": "word",
+            "text": "da",
+            "start": 2,
+            "end": 4
+          }
+        ],
+        "candidates": [],
+        "assignments": []
+      }
     },
     "complete": {
       "ok": [
@@ -5044,7 +5203,24 @@
       "ok": []
     },
     "explain": {
-      "error": "NoCandidateError: Unknown unit \"mil\". Did you mean: mile, mi, ml?"
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "10",
+            "start": 0,
+            "end": 2
+          },
+          {
+            "type": "word",
+            "text": "mil",
+            "start": 3,
+            "end": 6
+          }
+        ],
+        "candidates": [],
+        "assignments": []
+      }
     },
     "complete": {
       "ok": [
@@ -5166,6 +5342,7 @@
             "score": 0,
             "confidence": 1,
             "units": ["mi"],
+            "numbers": [],
             "contributions": [
               {
                 "selector": "prior",
@@ -5333,6 +5510,7 @@
             "score": 0,
             "confidence": 1,
             "units": ["mi"],
+            "numbers": [],
             "contributions": [
               {
                 "selector": "prior",
@@ -5451,7 +5629,24 @@
       "ok": []
     },
     "explain": {
-      "error": "NoCandidateError: Unknown unit \"inc\". Did you mean: inch, min, mins?"
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "12",
+            "start": 0,
+            "end": 2
+          },
+          {
+            "type": "word",
+            "text": "inc",
+            "start": 3,
+            "end": 6
+          }
+        ],
+        "candidates": [],
+        "assignments": []
+      }
     },
     "complete": {
       "ok": [
@@ -5480,7 +5675,24 @@
       "ok": []
     },
     "explain": {
-      "error": "NoCandidateError: Unknown unit \"inc\". Did you mean: inch, min, mins?"
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "1",
+            "start": 0,
+            "end": 1
+          },
+          {
+            "type": "word",
+            "text": "inc",
+            "start": 2,
+            "end": 5
+          }
+        ],
+        "candidates": [],
+        "assignments": []
+      }
     },
     "complete": {
       "ok": [
@@ -5509,7 +5721,24 @@
       "ok": []
     },
     "explain": {
-      "error": "NoCandidateError: Unknown unit \"fo\". Did you mean: f, ft, foot?"
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "6",
+            "start": 0,
+            "end": 1
+          },
+          {
+            "type": "word",
+            "text": "fo",
+            "start": 2,
+            "end": 4
+          }
+        ],
+        "candidates": [],
+        "assignments": []
+      }
     },
     "complete": {
       "ok": [
@@ -5538,7 +5767,24 @@
       "ok": []
     },
     "explain": {
-      "error": "NoCandidateError: Unknown unit \"fo\". Did you mean: f, ft, foot?"
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "1",
+            "start": 0,
+            "end": 1
+          },
+          {
+            "type": "word",
+            "text": "fo",
+            "start": 2,
+            "end": 4
+          }
+        ],
+        "candidates": [],
+        "assignments": []
+      }
     },
     "complete": {
       "ok": [
@@ -5616,6 +5862,7 @@
             "score": -15.3,
             "confidence": 1,
             "units": ["kg"],
+            "numbers": [],
             "contributions": [
               {
                 "selector": "prior",
@@ -5673,7 +5920,24 @@
       "ok": []
     },
     "explain": {
-      "error": "NoCandidateError: Unknown unit \"millim\""
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "250",
+            "start": 0,
+            "end": 3
+          },
+          {
+            "type": "word",
+            "text": "millim",
+            "start": 4,
+            "end": 10
+          }
+        ],
+        "candidates": [],
+        "assignments": []
+      }
     },
     "complete": {
       "ok": [
@@ -5702,7 +5966,24 @@
       "ok": []
     },
     "explain": {
-      "error": "NoCandidateError: Unknown unit \"centi\""
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "50",
+            "start": 0,
+            "end": 2
+          },
+          {
+            "type": "word",
+            "text": "centi",
+            "start": 3,
+            "end": 8
+          }
+        ],
+        "candidates": [],
+        "assignments": []
+      }
     },
     "complete": {
       "ok": [
@@ -5753,7 +6034,24 @@
       "ok": []
     },
     "explain": {
-      "error": "NoCandidateError: Unknown unit \"yar\". Did you mean: yard, yards, ha?"
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "12",
+            "start": 0,
+            "end": 2
+          },
+          {
+            "type": "word",
+            "text": "yar",
+            "start": 3,
+            "end": 6
+          }
+        ],
+        "candidates": [],
+        "assignments": []
+      }
     },
     "complete": {
       "ok": [
@@ -5831,6 +6129,7 @@
             "score": -15.3,
             "confidence": 1,
             "units": ["kg"],
+            "numbers": [],
             "contributions": [
               {
                 "selector": "prior",
@@ -5937,6 +6236,7 @@
             "score": -15.3,
             "confidence": 1,
             "units": ["kg"],
+            "numbers": [],
             "contributions": [
               {
                 "selector": "prior",
@@ -5994,7 +6294,24 @@
       "ok": []
     },
     "explain": {
-      "error": "NoCandidateError: Unknown unit \"poun\". Did you mean: pound, pounds, gon?"
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "3",
+            "start": 0,
+            "end": 1
+          },
+          {
+            "type": "word",
+            "text": "poun",
+            "start": 2,
+            "end": 6
+          }
+        ],
+        "candidates": [],
+        "assignments": []
+      }
     },
     "complete": {
       "ok": [
@@ -6023,7 +6340,24 @@
       "ok": []
     },
     "explain": {
-      "error": "NoCandidateError: Unknown unit \"ton\". Did you mean: gon, tonne, one?"
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "2",
+            "start": 0,
+            "end": 1
+          },
+          {
+            "type": "word",
+            "text": "ton",
+            "start": 2,
+            "end": 5
+          }
+        ],
+        "candidates": [],
+        "assignments": []
+      }
     },
     "complete": {
       "ok": [
@@ -6052,7 +6386,24 @@
       "ok": []
     },
     "explain": {
-      "error": "NoCandidateError: Unknown unit \"oun\". Did you mean: ounce, pound, gon?"
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "3",
+            "start": 0,
+            "end": 1
+          },
+          {
+            "type": "word",
+            "text": "oun",
+            "start": 2,
+            "end": 5
+          }
+        ],
+        "candidates": [],
+        "assignments": []
+      }
     },
     "complete": {
       "ok": [
@@ -6081,7 +6432,24 @@
       "ok": []
     },
     "explain": {
-      "error": "NoCandidateError: Unknown unit \"milligr\". Did you mean: milligram?"
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "250",
+            "start": 0,
+            "end": 3
+          },
+          {
+            "type": "word",
+            "text": "milligr",
+            "start": 4,
+            "end": 11
+          }
+        ],
+        "candidates": [],
+        "assignments": []
+      }
     },
     "complete": {
       "ok": [
@@ -6159,6 +6527,7 @@
             "score": 0,
             "confidence": 1,
             "units": ["g"],
+            "numbers": [],
             "contributions": [
               {
                 "selector": "prior",
@@ -6211,7 +6580,24 @@
       "ok": []
     },
     "explain": {
-      "error": "UnitParseError: Cannot parse \"512 by\" as a quantity"
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "512",
+            "start": 0,
+            "end": 3
+          },
+          {
+            "type": "keyword",
+            "keyword": "by",
+            "start": 4,
+            "end": 6
+          }
+        ],
+        "candidates": [],
+        "assignments": []
+      }
     },
     "complete": {
       "ok": [
@@ -6289,6 +6675,7 @@
             "score": -15.3,
             "confidence": 1,
             "units": ["kg"],
+            "numbers": [],
             "contributions": [
               {
                 "selector": "prior",
@@ -6346,7 +6733,24 @@
       "ok": []
     },
     "explain": {
-      "error": "NoCandidateError: Unknown unit \"megab\""
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "5",
+            "start": 0,
+            "end": 1
+          },
+          {
+            "type": "word",
+            "text": "megab",
+            "start": 2,
+            "end": 7
+          }
+        ],
+        "candidates": [],
+        "assignments": []
+      }
     },
     "complete": {
       "ok": [
@@ -6375,7 +6779,24 @@
       "ok": []
     },
     "explain": {
-      "error": "NoCandidateError: Unknown unit \"gigab\". Did you mean: gib?"
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "1",
+            "start": 0,
+            "end": 1
+          },
+          {
+            "type": "word",
+            "text": "gigab",
+            "start": 2,
+            "end": 7
+          }
+        ],
+        "candidates": [],
+        "assignments": []
+      }
     },
     "complete": {
       "ok": [
@@ -6404,7 +6825,24 @@
       "ok": []
     },
     "explain": {
-      "error": "NoCandidateError: Unknown unit \"terab\""
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "3",
+            "start": 0,
+            "end": 1
+          },
+          {
+            "type": "word",
+            "text": "terab",
+            "start": 2,
+            "end": 7
+          }
+        ],
+        "candidates": [],
+        "assignments": []
+      }
     },
     "complete": {
       "ok": [
@@ -6482,6 +6920,7 @@
             "score": 0,
             "confidence": 1,
             "units": ["kib"],
+            "numbers": [],
             "contributions": [
               {
                 "selector": "prior",
@@ -6534,7 +6973,24 @@
       "ok": []
     },
     "explain": {
-      "error": "NoCandidateError: Unknown unit \"mebib\". Did you mean: mib?"
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "4",
+            "start": 0,
+            "end": 1
+          },
+          {
+            "type": "word",
+            "text": "mebib",
+            "start": 2,
+            "end": 7
+          }
+        ],
+        "candidates": [],
+        "assignments": []
+      }
     },
     "complete": {
       "ok": [
@@ -6612,6 +7068,7 @@
             "score": 0,
             "confidence": 1,
             "units": ["deg"],
+            "numbers": [],
             "contributions": [
               {
                 "selector": "prior",
@@ -6713,6 +7170,7 @@
             "score": 0,
             "confidence": 1,
             "units": ["rad"],
+            "numbers": [],
             "contributions": [
               {
                 "selector": "prior",
@@ -6814,6 +7272,7 @@
             "score": 0,
             "confidence": 1,
             "units": ["turn"],
+            "numbers": [],
             "contributions": [
               {
                 "selector": "prior",
@@ -6915,6 +7374,7 @@
             "score": 0,
             "confidence": 1,
             "units": ["grad"],
+            "numbers": [],
             "contributions": [
               {
                 "selector": "prior",
@@ -6967,7 +7427,24 @@
       "ok": []
     },
     "explain": {
-      "error": "NoCandidateError: Unknown unit \"lit\". Did you mean: liter, litre, pint?"
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "5",
+            "start": 0,
+            "end": 1
+          },
+          {
+            "type": "word",
+            "text": "lit",
+            "start": 2,
+            "end": 5
+          }
+        ],
+        "candidates": [],
+        "assignments": []
+      }
     },
     "complete": {
       "ok": [
@@ -6996,7 +7473,24 @@
       "ok": []
     },
     "explain": {
-      "error": "NoCandidateError: Unknown unit \"millil\""
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "500",
+            "start": 0,
+            "end": 3
+          },
+          {
+            "type": "word",
+            "text": "millil",
+            "start": 4,
+            "end": 10
+          }
+        ],
+        "candidates": [],
+        "assignments": []
+      }
     },
     "complete": {
       "ok": [
@@ -7074,6 +7568,7 @@
             "score": 0,
             "confidence": 1,
             "units": ["gal"],
+            "numbers": [],
             "contributions": [
               {
                 "selector": "prior",
@@ -7126,7 +7621,24 @@
       "ok": []
     },
     "explain": {
-      "error": "NoCandidateError: Unknown unit \"pin\". Did you mean: pint, min, pints?"
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "1",
+            "start": 0,
+            "end": 1
+          },
+          {
+            "type": "word",
+            "text": "pin",
+            "start": 2,
+            "end": 5
+          }
+        ],
+        "candidates": [],
+        "assignments": []
+      }
     },
     "complete": {
       "ok": [
@@ -7155,7 +7667,24 @@
       "ok": []
     },
     "explain": {
-      "error": "NoCandidateError: Unknown unit \"hect\". Did you mean: hertz, pct, sec?"
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "3",
+            "start": 0,
+            "end": 1
+          },
+          {
+            "type": "word",
+            "text": "hect",
+            "start": 2,
+            "end": 6
+          }
+        ],
+        "candidates": [],
+        "assignments": []
+      }
     },
     "complete": {
       "ok": [
@@ -7184,7 +7713,24 @@
       "ok": []
     },
     "explain": {
-      "error": "NoCandidateError: Unknown unit \"acr\". Did you mean: acre, acres, c?"
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "2",
+            "start": 0,
+            "end": 1
+          },
+          {
+            "type": "word",
+            "text": "acr",
+            "start": 2,
+            "end": 5
+          }
+        ],
+        "candidates": [],
+        "assignments": []
+      }
     },
     "complete": {
       "ok": [
@@ -7213,7 +7759,24 @@
       "ok": []
     },
     "explain": {
-      "error": "NoCandidateError: Unknown unit \"kno\". Did you mean: knot, knots, kilo?"
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "10",
+            "start": 0,
+            "end": 2
+          },
+          {
+            "type": "word",
+            "text": "kno",
+            "start": 3,
+            "end": 6
+          }
+        ],
+        "candidates": [],
+        "assignments": []
+      }
     },
     "complete": {
       "ok": [
@@ -7242,7 +7805,24 @@
       "ok": []
     },
     "explain": {
-      "error": "NoCandidateError: Unknown unit \"cel\". Did you mean: cal, kcal, c?"
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "20",
+            "start": 0,
+            "end": 2
+          },
+          {
+            "type": "word",
+            "text": "cel",
+            "start": 3,
+            "end": 6
+          }
+        ],
+        "candidates": [],
+        "assignments": []
+      }
     },
     "complete": {
       "ok": [
@@ -7282,7 +7862,24 @@
       "ok": []
     },
     "explain": {
-      "error": "NoCandidateError: Unknown unit \"kel\". Did you mean: kcal, kilo, k?"
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "300",
+            "start": 0,
+            "end": 3
+          },
+          {
+            "type": "word",
+            "text": "kel",
+            "start": 4,
+            "end": 7
+          }
+        ],
+        "candidates": [],
+        "assignments": []
+      }
     },
     "complete": {
       "ok": [
@@ -7395,6 +7992,7 @@
             "score": 30,
             "confidence": 1,
             "units": ["kg", "g"],
+            "numbers": [],
             "contributions": [
               {
                 "selector": "prior",
@@ -7457,7 +8055,42 @@
       "ok": []
     },
     "explain": {
-      "error": "NoCandidateError: Unknown unit \"centi\""
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "10",
+            "start": 0,
+            "end": 2
+          },
+          {
+            "type": "word",
+            "text": "mm",
+            "start": 3,
+            "end": 5
+          },
+          {
+            "type": "op",
+            "op": "+",
+            "start": 6,
+            "end": 7
+          },
+          {
+            "type": "number",
+            "text": "5",
+            "start": 8,
+            "end": 9
+          },
+          {
+            "type": "word",
+            "text": "centi",
+            "start": 10,
+            "end": 15
+          }
+        ],
+        "candidates": [],
+        "assignments": []
+      }
     },
     "complete": {
       "ok": [
@@ -7508,7 +8141,36 @@
       "ok": []
     },
     "explain": {
-      "error": "NoCandidateError: Unknown unit \"mil\". Did you mean: mile, mi, ml?"
+      "ok": {
+        "tokens": [
+          {
+            "type": "number",
+            "text": "2",
+            "start": 0,
+            "end": 1
+          },
+          {
+            "type": "word",
+            "text": "km",
+            "start": 2,
+            "end": 4
+          },
+          {
+            "type": "keyword",
+            "keyword": "in",
+            "start": 5,
+            "end": 7
+          },
+          {
+            "type": "word",
+            "text": "mil",
+            "start": 8,
+            "end": 11
+          }
+        ],
+        "candidates": [],
+        "assignments": []
+      }
     },
     "complete": {
       "ok": [
@@ -7615,6 +8277,7 @@
             "score": 0,
             "confidence": 1,
             "units": ["s", "h"],
+            "numbers": [],
             "contributions": [
               {
                 "selector": "prior",
@@ -7675,7 +8338,7 @@
         "kind": "mass",
         "canonical": "12267.96185",
         "unit": "g",
-        "formatted": "12,267.96185 grams",
+        "formatted": "12,267.9619 grams",
         "confidence": 1,
         "spans": [
           {
@@ -7691,7 +8354,7 @@
         {
           "kind": "mass",
           "canonical": "12267.96185",
-          "formatted": "12,267.96185 grams",
+          "formatted": "12,267.9619 grams",
           "confidence": 1
         }
       ]
@@ -7768,6 +8431,7 @@
             "score": 30,
             "confidence": 1,
             "units": ["g", "kg", "lb"],
+            "numbers": [],
             "contributions": [
               {
                 "selector": "prior",
