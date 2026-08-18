@@ -1,0 +1,18 @@
+#!/bin/sh
+# The cheap half of `bun run check`, before the push rather than after it.
+#
+# Lint and types only: the test suite and the size budgets are the slow half
+# and CI runs them on the push anyway. This is the gate that catches the
+# mistakes worth catching in the second you are still at the keyboard.
+#
+# `git push --no-verify` skips it.
+[ -n "$CI" ] && exit 0
+
+bun run lint || {
+  echo "pre-push: lint failed — fix, or push with --no-verify" >&2
+  exit 1
+}
+bun run typecheck || {
+  echo "pre-push: typecheck failed — fix, or push with --no-verify" >&2
+  exit 1
+}

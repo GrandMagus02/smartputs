@@ -1,0 +1,19 @@
+#!/bin/sh
+# Formats what is being committed, and nothing else.
+#
+# Only the staged paths are touched, and each is re-staged after: a hook that
+# ran `biome format --write .` would sweep unrelated working-tree edits into
+# the commit the author is writing.
+#
+# CI commits (the release bot) skip it — the tree there is already formatted,
+# and a hook that rewrites files mid-release is a way to publish something
+# nobody reviewed.
+[ -n "$CI" ] && exit 0
+
+files=$(git diff --cached --name-only --diff-filter=ACMR |
+  grep -E '\.(ts|tsx|js|jsx|mjs|cjs|json|jsonc|css|vue)$' || true)
+[ -z "$files" ] && exit 0
+
+# shellcheck disable=SC2086
+echo "$files" | tr '\n' '\0' | xargs -0 bunx biome format --write --no-errors-on-unmatched || exit 1
+echo "$files" | tr '\n' '\0' | xargs -0 git add

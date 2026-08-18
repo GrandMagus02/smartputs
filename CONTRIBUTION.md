@@ -19,6 +19,16 @@ bun run check
 
 If `bun run check` passes on a clean checkout, your environment is set up correctly.
 
+`bun install` also points git at `.githooks`, which is two hooks:
+
+- **pre-commit** formats the files you staged — only those, and it re-stages them, so
+  unrelated working-tree edits are never swept into your commit.
+- **pre-push** runs `bun run lint` and `bun run typecheck`, the half of the gate that
+  answers in seconds. Tests and size budgets stay with CI.
+
+Both no-op when `CI` is set, so the release bot's own commit and push are not rewritten
+by them. `git commit --no-verify` and `git push --no-verify` skip them when you need to.
+
 ## Repository layout
 
 ```
@@ -40,6 +50,7 @@ scripts/     build, typecheck and the repo's custom guard scripts
 | `bun run check` | The full gate: lint, typecheck, check-deps, test, build, check-size. |
 | `bun run pack-size` | Stages every package as npm would see it and measures the tarball. |
 | `bun run check-commits [range]` | Reads commit subjects the way the release script does. |
+| `bun run changelogs [--check]` | Rewrites every package's CHANGELOG.md from its tags. |
 | `bun run release --dry-run` | Prints the version each package would move to, and why. |
 | `bun run publish-packages` | The first-time npm publish, prompting for a token per package. |
 
