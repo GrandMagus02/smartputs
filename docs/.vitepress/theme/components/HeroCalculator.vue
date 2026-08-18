@@ -27,21 +27,66 @@ function onKeydown(event: KeyboardEvent) {
   if (completions.onKeydown(event)) event.preventDefault();
 }
 
-/**
- * The left column shows what was asked, not what was typed: for a conversion
- * that is the expression without its target unit, otherwise the whole input.
- */
 const CONVERSION = /\s+(?:in|to|as)\s+\S+\s*$/i;
 
-const source = computed(() => {
-  const trimmed = input.value.trim();
-  const stripped = trimmed.replace(CONVERSION, "");
-  return stripped === "" ? trimmed : stripped;
+/** `suggest()` over text that may not parse — a half-typed unit is not an error. */
+function readingsOf(text: string) {
+  if (text.trim() === "") return [];
+  try {
+    return docsEngine.suggest(text).slice(0, 3);
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * A reading for whatever is on screen, finished or not.
+ *
+ * Three sources, in that order: the completion under the cursor while the list
+ * is open, so ↑/↓ previews what accepting a row would evaluate to; the input
+ * itself, once it parses; and failing both, the longest prefix that still
+ * reads — "1 kg + 500" has no answer, "1 kg" does. `partial` says the numbers
+ * below are a reading of something other than what is in the box, because a
+ * result for text the user has not typed yet has to say so.
+ */
+const reading = computed(() => {
+  const typed = input.value.trim();
+  if (typed === "") return { text: "", rows: [], partial: false };
+
+  const row = completions.open.value
+    ? completions.rows.value[completions.active.value]
+    : undefined;
+  if (row !== undefined) {
+    const completed = readingsOf(row.text);
+    if (completed.length > 0) {
+      return { text: row.text, rows: completed, partial: row.text !== typed };
+    }
+  }
+
+  const direct = readingsOf(typed);
+  if (direct.length > 0) return { text: typed, rows: direct, partial: false };
+
+  const words = typed.split(/\s+/);
+  for (let count = words.length - 1; count > 0; count -= 1) {
+    const prefix = words.slice(0, count).join(" ");
+    const shorter = readingsOf(prefix);
+    if (shorter.length > 0) return { text: prefix, rows: shorter, partial: true };
+  }
+
+  return { text: typed, rows: [], partial: false };
 });
 
-const rows = computed(() => {
-  if (input.value.trim() === "") return [];
-  return docsEngine.suggest(input.value).slice(0, 3);
+/** Two rows rather than three while the list is open, so the card holds its size. */
+const rows = computed(() => reading.value.rows.slice(0, completions.open.value ? 2 : 3));
+
+/**
+ * The left column shows what was asked, not what was typed: for a conversion
+ * that is the expression without its target unit, otherwise the whole reading.
+ */
+const source = computed(() => {
+  const text = reading.value.text;
+  const stripped = text.replace(CONVERSION, "");
+  return stripped === "" ? text : stripped;
 });
 
 function pick(example: string) {
@@ -70,9 +115,10 @@ function pick(example: string) {
       <kbd class="hero-calc__kbd">live</kbd>
     </div>
 
-    <!-- Completion and evaluation are one surface, not two modes: a half-typed
-         unit has no reading yet, so the rows it would occupy are exactly where
-         the units it could become belong. -->
+    <!-- Completion and evaluation are one surface, not two modes: the units a
+         half-typed word could still become, and under them what the engine
+         already reads — of the row under the cursor, or of the part of the
+         sentence that is finished. -->
     <div
       v-if="completions.open.value"
       id="hero-calc-completions"
@@ -90,22 +136,28 @@ function pick(example: string) {
       </p>
     </div>
 
-    <ul v-else-if="rows.length" class="hero-calc__rows">
-      <li
-        v-for="(row, i) in rows"
-        :key="`${row.kind}-${row.value.unit}-${i}`"
-        :class="{ 'is-top': i === 0 }"
-      >
-        <span :class="kindIcon(row.kind)" class="hero-calc__kindicon" aria-hidden="true" />
-        <span class="hero-calc__src">{{ source }}</span>
-        <span class="hero-calc__eq" aria-hidden="true">=</span>
-        <span class="hero-calc__out">{{ round4Text(row.formatted) }}</span>
-      </li>
-    </ul>
+    <div class="hero-calc__result" :class="{ 'is-under': completions.open.value }">
+      <p v-if="rows.length && reading.partial" class="hero-calc__partial">
+        reading <code>{{ reading.text }}</code>
+      </p>
 
-    <div v-else class="hero-calc__rows hero-calc__rows--empty">
-      <span class="i-hugeicons-alert-circle" aria-hidden="true" />
-      <span>No reading for that input.</span>
+      <ul v-if="rows.length" class="hero-calc__rows">
+        <li
+          v-for="(row, i) in rows"
+          :key="`${row.kind}-${row.value.unit}-${i}`"
+          :class="{ 'is-top': i === 0 }"
+        >
+          <span :class="kindIcon(row.kind)" class="hero-calc__kindicon" aria-hidden="true" />
+          <span class="hero-calc__src">{{ source }}</span>
+          <span class="hero-calc__eq" aria-hidden="true">=</span>
+          <span class="hero-calc__out">{{ round4Text(row.formatted) }}</span>
+        </li>
+      </ul>
+
+      <div v-else class="hero-calc__rows hero-calc__rows--empty">
+        <span class="i-hugeicons-alert-circle" aria-hidden="true" />
+        <span>No reading for that input yet.</span>
+      </div>
     </div>
 
     <div class="hero-calc__chips">
@@ -173,6 +225,34 @@ function pick(example: string) {
    hero under the pointer. */
 .hero-calc__completions {
   min-height: 64px;
+}
+
+/* The readings sit under the completions rather than instead of them, so the
+   two need a rule between them. */
+.hero-calc__result.is-under {
+  border-top: 1px solid var(--vp-c-divider);
+}
+
+/* Says the numbers below are a reading of something other than what is in the
+   box — the completion under the cursor, or the finished part of the line. */
+.hero-calc__partial {
+  margin: 0;
+  padding: 8px 12px 0;
+  font-size: 11px;
+  color: var(--vp-c-text-3);
+}
+
+.hero-calc__partial code {
+  font-family: var(--vp-font-family-mono);
+  font-size: 11px;
+  color: var(--vp-c-text-2);
+  background: none;
+  padding: 0;
+}
+
+.hero-calc__result.is-under .hero-calc__rows {
+  min-height: 0;
+  padding-top: 4px;
 }
 
 .hero-calc__tabhint {
