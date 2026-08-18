@@ -216,7 +216,12 @@ describe("speed id vocabulary", () => {
     });
     const bridged = wired.evaluate("100 km / jam");
     expect(bridged.kind).toBe("speed");
-    expect(bridged.value.unit).toBe("mps");
+    // "kph" since spec §D: a derived result keeps the units the person wrote,
+    // and (km, /, h) is exactly what the registry's derived-unit table calls
+    // `kph`. The bridge is unchanged — `speed.ops` still names both operands by
+    // id string and still returns `mps` — what moved is that returning the
+    // canonical now reads as "the plugin declined to choose".
+    expect(bridged.value.unit).toBe("kph");
     // 100 km/jam is 100000/3600 m/s. Asserted through a conversion so the
     // repeating decimal stays out of the expectation.
     expect(wired.evaluate("100 km / jam dalam kmh").formatted).toBe("100 km/jam");

@@ -12,7 +12,7 @@
 2 qkm in qm	area	2000000	2.000.000 Quadratmeter
 1 m2 in cm2	area	1	10.000 Quadratzentimeter
 zwei Hektar	area	20000	2 Hektar
-1 km * 1 km	area	1000000	1.000.000 Quadratmeter
+1 km * 1 km	area	1000000	1 Quadratkilometer
 12 m2	area	12	12 Quadratmeter
 # German writes the square metre as one token, so unlike `en` and `uk` the
 # squared units have words to print. Nothing moves on the number axis: a

@@ -12,7 +12,7 @@
 90 gradi in radianti	angle	1.570796326794896619231321692	1,5708 radianti
 1 kib in b	datasize	1024	1.024 byte
 3 m * 4 m	area	12	12 m²
-100 km / 2 h	speed	13.88888888888888888888888889	13,888888888888888888888889 m/s
+100 km / 2 h	speed	13.88888888888888888888888889	50 km/h
 un chilometro	length	1000	1 chilometro
 duecentocinque grammi	mass	205	205 grammi
 # "." groups and "," is the decimal point.

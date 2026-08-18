@@ -16,8 +16,8 @@ duecento megabit	datarate	200000000	200 Mbps
 1,5 gbps	datarate	1500000000	1,5 Gbps
 # A fraction takes the **plural** in Italian — "1,5 secondi" against the
 # "1 secondo" beside it. French puts the same number in the singular.
-125 MB / 1 gbps	duration	1	1 secondo
-187,5 MB / 1 gbps	duration	1.5	1,5 secondi
+125 MB / 1 gbps	duration	1	1.000 millisecondi
+187,5 MB / 1 gbps	duration	1.5	1.500 millisecondi
 # `byte` is a loanword and does not move on the number axis, where `secondo`
 # above does. The rate units have no forms at all and print through the symbol,
 # so the space in front of "byte" and its absence in front of "Mbps" is the

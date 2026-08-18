@@ -11,7 +11,7 @@
 20% de 50	number	10	10
 1 kio en o	datasize	1024	1 024 octets
 3 m * 4 m	area	12	12 m²
-100 km / 2 h	speed	13.88888888888888888888888889	13,888888888888888888888889 m/s
+100 km / 2 h	speed	13.88888888888888888888888889	50 km/h
 un kilomètre	length	1000	1 kilomètre
 # The vigesimal cardinals: ninety is spoken as four-twenties-ten.
 quatre-vingt-dix kilomètres	length	90000	90 kilomètres

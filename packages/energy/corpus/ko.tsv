@@ -1,7 +1,7 @@
 # input	kind	canonical	formatted
 1kwh를 줄	energy	3600000	3,600,000J
-2킬로와트 곱하기 3시간	energy	21600000	21,600,000J
-1kwh / 1시간	power	1000	1,000와트
+2킬로와트 곱하기 3시간	energy	21600000	6킬로와트시
+1kwh / 1시간	power	1000	1킬로와트
 1kcal을 J	energy	4184	4,184J
 500J + 500J	energy	1000	1,000J
 1kJ - 250J	energy	750	0.75kJ

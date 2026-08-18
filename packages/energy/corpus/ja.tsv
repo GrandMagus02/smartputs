@@ -1,7 +1,7 @@
 # input	kind	canonical	formatted
 1kwhをジュール	energy	3600000	3,600,000J
-2キロワット かける 3時間	energy	21600000	21,600,000J
-1kwh / 1時間	power	1000	1,000W
+2キロワット かける 3時間	energy	21600000	6kWh
+1kwh / 1時間	power	1000	1kW
 1kcalをJ	energy	4184	4,184J
 500J + 500J	energy	1000	1,000J
 1kJ - 250J	energy	750	0.75kJ

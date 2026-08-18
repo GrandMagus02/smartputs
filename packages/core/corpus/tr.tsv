@@ -7,7 +7,7 @@
 30 C - 20 C	tempdelta	10	10 °C
 50 + 20%	number	60	60
 3 m * 4 m	area	12	12 metrekare
-100 km / 2 sa	speed	13.88888888888888888888888889	13,888888888888888888888889 m/s
+100 km / 2 sa	speed	13.88888888888888888888888889	50 km/sa
 bir kilometre	length	1000	1 kilometre
 iki yüz beş gram	mass	205	205 gram
 # "." groups and "," is the decimal point, German's pair.

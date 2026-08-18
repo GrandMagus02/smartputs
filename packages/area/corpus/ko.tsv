@@ -10,7 +10,7 @@
 100m2 / 4	area	25	25제곱미터
 -5m2	area	-5	-5제곱미터
 100m2에서 cm2	area	100	1,000,000제곱센티미터
-1킬로미터 * 1킬로미터	area	1000000	1,000,000제곱미터
+1킬로미터 * 1킬로미터	area	1000000	1제곱킬로미터
 12m2	area	12	12제곱미터
 만 제곱미터	area	10000	10,000제곱미터
 # No number agreement anywhere: one category, so 1 and 2 and 1.5 take the same

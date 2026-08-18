@@ -6,10 +6,10 @@
 # its operands by id string rather than importing them, so a signature whose
 # operands are unregistered is unreachable rather than a build error.
 3 m * 4 m	area	12	12 m²
-100 km / 2 h	speed	13.88888888888888888888888889	13,888888888888888888888889 m/s
-2 kw * 3 h	energy	21600000	21.600.000 julios
-1 kwh / 1 h	power	1000	1.000 vatios
-1 kwh / 1 kw	duration	3600	3.600 segundos
+100 km / 2 h	speed	13.88888888888888888888888889	50 km/h
+2 kw * 3 h	energy	21600000	6 kWh
+1 kwh / 1 h	power	1000	1 kilovatio
+1 kwh / 1 kw	duration	3600	1 hora
 500 mb / 20 s	datarate	200000000	200 Mbps
 100 mbps * 1 min	datasize	750000000	750.000.000 bytes
 500 ms en bpm	tempo	120	120 bpm

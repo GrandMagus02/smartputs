@@ -9,7 +9,7 @@
 30 kph * 2	speed	16.66666666666666666666666667	60km/h
 100 kph / 4	speed	6.944444444444444444444444445	25km/h
 -10 kph	speed	-2.777777777777777777777777778	-10km/h
-100公里 / 2小时	speed	13.88888888888888888888888889	13.888888888888888888888889m/s
+100公里 / 2小时	speed	13.88888888888888888888888889	50km/h
 一 kph	speed	0.2777777777777777777777777778	1km/h
 3.6 kph到mps	speed	1	1m/s
 # The separators are English's — "," for groups, "." for the decimal.
@@ -32,8 +32,8 @@
 # No space between number and unit, on input or output.
 100kph到mph	speed	27.77777777777777777777777778	62.1371mph
 # The bridge with no spaces at all — the slash is enough of a boundary.
-100公里/2小时	speed	13.88888888888888888888888889	13.888888888888888888888889m/s
+100公里/2小时	speed	13.88888888888888888888888889	50km/h
 # The printed symbol read back as arithmetic. A different path to the same
 # speed as "120 kph" above and a different last digit: the ratio table
 # multiplies where the bridge divides.
-120km/h	speed	33.33333333333333333333333333	33.333333333333333333333333m/s
+120km/h	speed	33.33333333333333333333333333	120km/h

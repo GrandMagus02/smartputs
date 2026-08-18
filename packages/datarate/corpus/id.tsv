@@ -25,7 +25,7 @@
 # a finished answer in this language rather than a stub.
 1 byte	datasize	1	1 byte
 5 byte	datasize	5	5 byte
-125 MB / 1 gbps	duration	1	1 detik
+125 MB / 1 gbps	duration	1	1.000 milidetik
 # `bita` is the Indonesian spelling and is read; `byte` is what prints.
 1 bita	datasize	1	1 byte
 # The word operators stand alone — there is no `by` in this language's keywords

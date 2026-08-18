@@ -11,7 +11,7 @@
 90 graus em radianos	angle	1.570796326794896619231321692	1,5708 radiano
 1 kib em b	datasize	1024	1.024 bytes
 3 m * 4 m	area	12	12 m²
-100 km / 2 h	speed	13.88888888888888888888888889	13,888888888888888888888889 m/s
+100 km / 2 h	speed	13.88888888888888888888888889	50 km/h
 um quilômetro	length	1000	1 quilômetro
 duzentos e cinco gramas	mass	205	205 gramas
 # "." groups and "," is the decimal point.

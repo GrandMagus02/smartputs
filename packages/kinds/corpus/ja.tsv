@@ -6,9 +6,9 @@
 # its operands by id string rather than importing them, so a signature whose
 # operands are unregistered is unreachable rather than a build error.
 3メートル * 4メートル	area	12	12平方メートル
-100km / 2時間	speed	13.88888888888888888888888889	13.888888888888888888888889m/s
-2キロワット * 3時間	energy	21600000	21,600,000J
-1kwh / 1時間	power	1000	1,000W
+100km / 2時間	speed	13.88888888888888888888888889	50km/h
+2キロワット * 3時間	energy	21600000	6kWh
+1kwh / 1時間	power	1000	1kW
 500mb / 20秒	datarate	200000000	200Mbps
 100mbps * 1分	datasize	750000000	750,000,000B
 120bpm を ms	duration	0.5	500ms

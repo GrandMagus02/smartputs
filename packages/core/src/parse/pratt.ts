@@ -196,6 +196,39 @@ export function parse(
     return undefined;
   };
 
+  /**
+   * `unit (/|*) unit` at `pos`, resolved to the single unit the registry says
+   * the pair derives — or undefined, which is the back-off.
+   *
+   * Only plain word tokens on both sides. A claimed token is already a value,
+   * and a value is not half of a unit name; a number on the right is the
+   * ordinary division the caller wrote ("10 km in km / 2"), which is exactly
+   * what the back-off leaves alone.
+   */
+  const tryDerivedTarget = ():
+    | { candidates: Candidate[]; span: Span; next: number }
+    | undefined => {
+    const first = tokens[pos];
+    const op = tokens[pos + 1];
+    const second = tokens[pos + 2];
+    if (first?.type !== "word" || second?.type !== "word") return undefined;
+    if (op?.type !== "op" || (op.op !== "/" && op.op !== "*")) return undefined;
+
+    const firstRun = runOf(first);
+    const secondRun = runOf(second);
+    const candidates = resolver.derived(
+      { surface: first.text, ...(firstRun ? { position: firstRun } : {}) },
+      op.op,
+      { surface: second.text, ...(secondRun ? { position: secondRun } : {}) },
+    );
+    if (candidates.length === 0) return undefined;
+    return {
+      candidates,
+      span: { start: first.start, end: second.end },
+      next: pos + 3,
+    };
+  };
+
   function parseAtom(): Node {
     const token = peek();
     if (token === undefined) throw new UnitParseError(input, undefined, [here()]);
@@ -345,6 +378,37 @@ export function parse(
         pos += 1;
         const unit = peek();
         if (unit === undefined) throw new UnitParseError(input, undefined, [here()]);
+
+        // After `in`, read `unit (/|*) unit` and ask the resolver whether the
+        // pair names one unit — "in km/h", "in mi / h", "in bit/s". A compound
+        // unit lexes as three tokens, so before this the parser read the first
+        // and left `/ h` to arithmetic: "(100 km / 2 h) in km/h" failed as
+        // *speed in length*, and a unit worked as an expression but not where a
+        // unit was required.
+        //
+        // A pair the registry does not know backs off to the single-unit branch
+        // below, which is today's behaviour — so "10 km in m + 5" still parses
+        // as (10 km in m) + 5 and the "+ 5" stays arithmetic.
+        //
+        // Two operands only, and that is a ruling rather than a stopping point:
+        // `kg * m / s^2` is out of scope while there is no exponent token to
+        // write the s² with, so a third operand could only ever be read as one
+        // more division of the same chain, which is not what anyone writing it
+        // means.
+        const chain = tryDerivedTarget();
+        if (chain !== undefined) {
+          pos = chain.next;
+          const { nodeId, demoted: operand } = demote(left);
+          left = {
+            id: nodeId,
+            type: "convert",
+            operand,
+            target: chain.candidates,
+            span: span(operand.span, chain.span),
+            targetSpan: chain.span,
+          };
+          continue;
+        }
 
         // A kind claimed the target and marked the claim targetable: "japan to
         // ukraine", "3pm in japan". The matcher already built the Value and

@@ -1,7 +1,7 @@
 # input	kind	canonical	formatted
 1 kwh إلى جول	energy	3600000	3,600,000 جول
-2 كيلوواط * 3 ساعات	energy	21600000	21,600,000 جول
-1 kwh / 1 ساعة	power	1000	1,000 واط
+2 كيلوواط * 3 ساعات	energy	21600000	6 كيلوواط·ساعة
+1 kwh / 1 ساعة	power	1000	1 كيلوواط
 500 جول + 500 جول	energy	1000	1,000 جول
 1 كيلوجول - 250 جول	energy	750	0.75 كيلوجول
 1 كيلوجول / 4	energy	250	0.25 كيلوجول
@@ -47,4 +47,4 @@
 # and is also arithmetic: U+00B7 is a spelling of `*`, so this reaches the
 # resolver as كيلوواط, `*`, ساعة and comes back through the power x duration
 # signature — landing on joules rather than on the unit it was printed from.
-1 كيلوواط·ساعة	energy	3600000	3,600,000 جول
+1 كيلوواط·ساعة	energy	3600000	1 كيلوواط·ساعة

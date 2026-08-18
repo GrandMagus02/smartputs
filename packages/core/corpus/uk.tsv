@@ -38,10 +38,10 @@
 90 градусів в радіани	angle	1.570796326794896619231321692	1,5708 радіана
 1 кіб в б	datasize	1024	1 024 байти
 3 м * 4 м	area	12	12 м²
-100 км / 2 год	speed	13.88888888888888888888888889	13,888888888888888888888889 м/с
+100 км / 2 год	speed	13.88888888888888888888888889	50 км/год
 # The SI middle dot is multiplication, so a compound symbol resolves the way
 # "m/s" does in English: power times duration is energy.
-5 кВт·год	energy	18000000	18 000 000 джоулів
+5 кВт·год	energy	18000000	5 кВт·год
 # Word math. Every one of these was unreachable before the corpus was written:
 # `lex` cut "п'ять" into "п" and "ять", so every spelled numeral carrying an
 # apostrophe — 5, 9, 15, 50, 90 and the hundreds built on them — parsed as a

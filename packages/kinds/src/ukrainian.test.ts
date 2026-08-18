@@ -8,7 +8,7 @@ import {
 } from "@smartput/core";
 import { english } from "@smartput/core/locale/en";
 import { ukrainian } from "@smartput/core/locale/uk";
-import { assertLocaleContract, OPERATOR_CHARS } from "@smartput/core/testing";
+import { assertLocaleContract } from "@smartput/core/testing";
 import { BUILTIN_KINDS } from "./index";
 import BUILTIN_EN from "./locale/en";
 import BUILTIN_UK from "./locale/uk";
@@ -216,15 +216,17 @@ describe("Ukrainian, as proof (spec §8)", () => {
             expect(twice.value?.canonical.toFixed(), label).toBe(
               once.value?.canonical.toFixed(),
             );
-            // A printed compound is an expression, not a word: "5 kph" prints
-            // "5км/год", which the lexer splits at "/" and the engine computes
-            // as length / duration, so the quantity comes back in the kind's
-            // canonical unit rather than the one it was printed from. That is
-            // the mechanism working — the magnitude above is unchanged — so the
-            // expectation moves rather than relaxing.
-            const compound = [...once.formatted].some((c) => OPERATOR_CHARS.has(c));
-            const canonical = kind.value.mode === "ratio" ? kind.value.canonical : unit;
-            expect(twice.value?.unit, label).toBe(compound ? canonical : unit);
+            // Every unit, compound included. A printed compound is still an
+            // expression — "5 kph" prints "5км/год", which the lexer splits at
+            // "/" and the engine computes as length / duration — but since spec
+            // §D the evaluator reads the pair back off the registry's
+            // derived-unit table, so the quantity returns in the unit it was
+            // printed from instead of in the kind's canonical.
+            //
+            // This assertion used to read `compound ? canonical : unit`, which
+            // is the shape of the defect §D names: a compound worked as an
+            // expression and lost its unit on the way back.
+            expect(twice.value?.unit, label).toBe(unit);
           }
         }
       }

@@ -1,4 +1,4 @@
-import type { Registry } from "../kind/registry";
+import { derivedUnitOf, opKey, type Registry } from "../kind/registry";
 import { createAnalyzerChain } from "../locale/analyze";
 import { resolveWeight } from "../solve/weights";
 import type {
@@ -32,7 +32,32 @@ export interface Resolver {
    */
   countable(surface: string, position?: WordPosition): Candidate[];
   literal(m: { kind: KindId; unit: string; surface: string; weight: number }): Candidate;
+  /**
+   * The single unit the pair `left op right` derives — `km / h` is `kph`, `mi
+   * / h` is `mph` — as one candidate, or `[]` when the registry knows none or
+   * knows more than one.
+   *
+   * It lives on the resolver rather than in the parser because the parser has
+   * no registry: `Parser` is constructed with a resolver and nothing else, and
+   * a registry parameter would have to be threaded through `ParserOptions` and
+   * every one of the dozen `new Parser({ resolver })` call sites. The resolver
+   * is already the parser's one window onto the registry, and this is the same
+   * question `resolve` answers — "what unit is this surface" — asked of two
+   * surfaces and an operator instead of one surface.
+   *
+   * Empty rather than a list when several pairs qualify: the parser must not
+   * rank, and two answers is a ranking question. The result kinds probed are
+   * only the ones `registry.ops` already has an `(op, left, right)` signature
+   * for, so no kind is enumerated that could not have produced the value.
+   */
+  derived(left: DerivedOperand, op: "*" | "/", right: DerivedOperand): Candidate[];
   nearest(surface: string): string[];
+}
+
+/** One side of a `unit (/|*) unit` chain, as the caller read it off its token. */
+export interface DerivedOperand {
+  surface: string;
+  position?: WordPosition;
 }
 
 /**
@@ -279,6 +304,33 @@ export function createResolver(args: {
       return resolver
         .resolve(surface, position)
         .filter((c) => args.registry.kinds.get(c.kind)?.spec.mode === "ratio");
+    },
+
+    derived(left, op, right) {
+      // Keyed by (kind, unit) so the same answer reached through two readings
+      // of one surface — an alias and a stem, say — is one answer, not two.
+      const found = new Map<string, Candidate>();
+      for (const l of resolver.resolve(left.surface, left.position)) {
+        for (const r of resolver.resolve(right.surface, right.position)) {
+          const sig = args.registry.ops.get(opKey(op, l.kind, r.kind));
+          if (sig === undefined) continue;
+          const unit = derivedUnitOf(args.registry, sig.result, l.unit, op, r.unit);
+          if (unit === undefined) continue;
+          found.set(
+            `${sig.result}:${unit}`,
+            // Weight 0: the chain is not a reading anyone could have spelled
+            // another way, so it carries no evidence of its own beyond the
+            // prior and the weight layers `literal` already applies.
+            resolver.literal({
+              kind: sig.result,
+              unit,
+              surface: `${left.surface}${op}${right.surface}`,
+              weight: 0,
+            }),
+          );
+        }
+      }
+      return found.size === 1 ? [...found.values()] : [];
     },
 
     // A literal never went through the analyzer chain — its matcher already

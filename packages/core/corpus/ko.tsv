@@ -9,7 +9,7 @@
 30섭씨 - 20섭씨	tempdelta	10	10°C
 50 + 20%	number	60	60
 3미터 * 4미터	area	12	12제곱미터
-100킬로미터 / 2시간	speed	13.88888888888888888888888889	13.888888888888888888888889m/s
+100킬로미터 / 2시간	speed	13.88888888888888888888888889	50km/h
 1,234,567밀리미터	length	1234.567	1,234,567밀리미터
 # No number agreement of any kind, so a unit here has one printed form or none
 # at all, and 1 and 5 take the same word. The separators are English's, and

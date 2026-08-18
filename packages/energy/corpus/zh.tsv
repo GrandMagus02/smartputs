@@ -1,7 +1,7 @@
 # input	kind	canonical	formatted
 1kwh到焦耳	energy	3600000	3,600,000J
-2千瓦 乘 3小时	energy	21600000	21,600,000J
-1kwh / 1小时	power	1000	1,000W
+2千瓦 乘 3小时	energy	21600000	6kWh
+1kwh / 1小时	power	1000	1kW
 1千卡到J	energy	4184	4,184J
 500J + 500J	energy	1000	1,000J
 1kJ - 250J	energy	750	0.75kJ

@@ -9,7 +9,7 @@
 30 kph * 2	speed	16.66666666666666666666666667	60 km/u
 100 kph / 4	speed	6.944444444444444444444444445	25 km/u
 -10 kph	speed	-2.777777777777777777777777778	-10 km/u
-100 km / 2 h	speed	13.88888888888888888888888889	13,888888888888888888888889 m/s
+100 km / 2 h	speed	13.88888888888888888888888889	50 km/u
 een kph	speed	0.2777777777777777777777777778	1 km/u
 3,6 kph in mps	speed	1	1 m/s
 # "." groups and "," is the decimal point.
@@ -22,7 +22,7 @@ een kph	speed	0.2777777777777777777777777778	1 km/u
 100 kph naar mph	speed	27.77777777777777777777777778	62,1371 mph
 # The hour in the symbol is "u", not "h": Dutch abbreviates *uur*, and the
 # symbol reads back as arithmetic over a length and a duration.
-120 km/u	speed	33.33333333333333333333333333	33,333333333333333333333333 m/s
+120 km/u	speed	33.33333333333333333333333333	120 km/u
 # knoop/knopen is the one unit in this translation that moves on the number
 # axis. Every Dutch length unit in `@smartput/length` prints one form for
 # both categories — "5 mijl", "5 meter" — and the knot is the exception.
@@ -31,4 +31,4 @@ een kph	speed	0.2777777777777777777777777778	1 km/u
 1,5 knopen	speed	0.7716666666666666666666666666	1,5 knopen
 twintig knopen	speed	10.28888888888888888888888889	20 knopen
 # The bridge, in Dutch words.
-100 kilometer / 2 uur	speed	13.88888888888888888888888889	13,888888888888888888888889 m/s
+100 kilometer / 2 uur	speed	13.88888888888888888888888889	50 km/u

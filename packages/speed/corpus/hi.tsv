@@ -9,7 +9,7 @@
 30 kph * 2	speed	16.66666666666666666666666667	60 किमी/घंटा
 100 kph / 4	speed	6.944444444444444444444444445	25 किमी/घंटा
 -10 kph	speed	-2.777777777777777777777777778	-10 किमी/घंटा
-100 किलोमीटर / 2 घंटे	speed	13.88888888888888888888888889	13.888888888888888888888889 मी/सेकंड
+100 किलोमीटर / 2 घंटे	speed	13.88888888888888888888888889	50 किमी/घंटा
 एक kph	speed	0.2777777777777777777777777778	1 किमी/घंटा
 3.6 kph में mps	speed	1	1 मी/सेकंड
 # Hindi's separators are English's — comma for groups, point for the decimal
@@ -38,4 +38,4 @@
 # returns a speed. मी/से — how a physics text writes the first one — could
 # not: से is a conversion keyword and `lex` claims it before any unit does.
 5 मी/सेकंड	speed	5	5 मी/सेकंड
-100 किमी/घंटा	speed	27.77777777777777777777777778	27.777777777777777777777778 मी/सेकंड
+100 किमी/घंटा	speed	27.77777777777777777777777778	100 किमी/घंटा

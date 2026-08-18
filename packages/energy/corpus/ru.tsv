@@ -1,7 +1,7 @@
 # input	kind	canonical	formatted
 1 kwh в джоули	energy	3600000	3 600 000 джоулей
-2 кВт * 3 часа	energy	21600000	21 600 000 джоулей
-1 kwh / 1 час	power	1000	1 000 ватт
+2 кВт * 3 часа	energy	21600000	6 кВт·ч
+1 kwh / 1 час	power	1000	1 киловатт
 500 Дж + 500 Дж	energy	1000	1 000 джоулей
 1 кДж - 250 Дж	energy	750	0,75 килоджоуля
 1 кДж / 4	energy	250	0,25 килоджоуля
@@ -41,5 +41,5 @@
 # so it ships as a symbol and re-reads as arithmetic. "1 кВт·ч" reaches the
 # resolver as кВт, `*`, ч and comes back through the power x duration
 # signature, landing on joules rather than on the unit it was printed from.
-1 кВт·ч	energy	3600000	3 600 000 джоулей
+1 кВт·ч	energy	3600000	1 кВт·ч
 2 кВт·ч в джоули	energy	7200000	7 200 000 джоулей

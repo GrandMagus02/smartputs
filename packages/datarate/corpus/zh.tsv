@@ -21,7 +21,7 @@
 # decimal.
 1 byte	datasize	1	1B
 5 byte	datasize	5	5B
-125MB / 1gbps	duration	1	1秒
+125MB / 1gbps	duration	1	1,000毫秒
 1,234,567bps	datarate	1234567	1,234,567bps
 1.5gbps	datarate	1500000000	1.5Gbps
 # The myriad. Chinese counts in ten-thousands, so 万 is a magnitude word in its

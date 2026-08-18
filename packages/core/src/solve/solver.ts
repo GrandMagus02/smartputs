@@ -122,10 +122,61 @@ function reportedOperands(
   return refs.sort((a, b) => a.start - b.start).map((r) => r.kind);
 }
 
+/**
+ * Every kind the subtree rooted at `node` could come back as, without
+ * enumerating a single assignment.
+ *
+ * Exact rather than "the kinds of the leaves underneath": for `100 km / 2 h`
+ * the leaves are a length and a duration and the answer is a speed, and a
+ * caller that read the leaves would prune the one target that does apply. Every
+ * branch resolves through the same `registry.ops` lookup `typeOf` uses, so the
+ * two cannot disagree about what an operator produces.
+ *
+ * The sets are tiny — one kind per leaf reading — so the cross product a binary
+ * takes is a handful of map lookups, paid once per convert node at slot time
+ * rather than once per assignment.
+ */
+function possibleKinds(
+  node: Node,
+  keep: (c: Candidate) => boolean,
+  registry: Registry,
+): Set<KindId> {
+  const out = new Set<KindId>();
+  switch (node.type) {
+    case "number":
+      out.add(NUMBER_KIND);
+      break;
+    case "quantity":
+    case "literal":
+      for (const c of node.candidates.filter(keep)) out.add(c.kind);
+      break;
+    case "unary":
+      return possibleKinds(node.operand, keep, registry);
+    case "convert":
+      for (const l of possibleKinds(node.operand, keep, registry)) {
+        for (const t of node.target.filter(keep)) {
+          const sig = registry.ops.get(opKey("in", l, t.kind));
+          if (sig !== undefined) out.add(sig.result);
+        }
+      }
+      break;
+    case "binary":
+      for (const l of possibleKinds(node.left, keep, registry)) {
+        for (const r of possibleKinds(node.right, keep, registry)) {
+          const sig = registry.ops.get(opKey(node.op, l, r));
+          if (sig !== undefined) out.add(sig.result);
+        }
+      }
+      break;
+  }
+  return out;
+}
+
 function collectSlots(
   root: Node,
   kinds: KindId[] | undefined,
   locales: string[] | undefined,
+  registry: Registry,
 ): Slot[] {
   const slots: Slot[] = [];
   const keep = inScope(kinds, locales);
@@ -133,7 +184,24 @@ function collectSlots(
     if (node.type === "quantity" || node.type === "literal") {
       slots.push({ node, candidates: node.candidates.filter(keep) });
     } else if (node.type === "convert") {
-      slots.push({ node, candidates: node.target.filter(keep) });
+      // "10 km in m + 5" reported *length and duration* because the solver
+      // enumerated `m` as minutes at the target and only found out at the very
+      // end, after the pair that really has no signature — `+ | length |
+      // number` — had already been recorded second. A target no `in` signature
+      // can reach from anything the operand could be is not a reading, and
+      // dropping it here is the same result set with a better error and fewer
+      // paths to walk.
+      //
+      // Ruling: an error-quality change, never a semantic one. When the prune
+      // would empty the slot it is abandoned and every target is kept, so
+      // "10 km in kg" still reports *length in mass* rather than falling
+      // through to the operand-naming fallback with no rejection to quote.
+      const reachable = possibleKinds(node.operand, keep, registry);
+      const all = node.target.filter(keep);
+      const pruned = all.filter((c) =>
+        [...reachable].some((k) => registry.ops.has(opKey("in", k, c.kind))),
+      );
+      slots.push({ node, candidates: pruned.length > 0 ? pruned : all });
     }
   });
   return slots;
@@ -285,7 +353,7 @@ export function solve(
   },
 ): Resolution[] {
   const root = program.root;
-  const slots = collectSlots(root, opts.kinds, opts.locales);
+  const slots = collectSlots(root, opts.kinds, opts.locales, registry);
 
   const space = slots.reduce((n, s) => n * Math.max(s.candidates.length, 1), 1);
   if (space > opts.maxCandidates) {

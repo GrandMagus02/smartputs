@@ -20,7 +20,7 @@ tweehonderd megabit	datarate	200000000	200 Mbit
 # is not simply formless: `seconde` does move.
 1 byte	datasize	1	1 byte
 5 byte	datasize	5	5 byte
-125 MB / 1 Gbit	duration	1	1 seconde
+125 MB / 1 Gbit	duration	1	1.000 milliseconden
 # Dutch spells the plural of a vowel-final loan with an apostrophe, and both
 # spellings of the colloquial rate noun are listed for it.
 100 mega	datarate	100000000	100 Mbit

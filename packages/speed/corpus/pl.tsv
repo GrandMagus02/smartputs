@@ -9,7 +9,7 @@
 30 kph * 2	speed	16.66666666666666666666666667	60 km/h
 100 kph / 4	speed	6.944444444444444444444444445	25 km/h
 -10 kph	speed	-2.777777777777777777777777778	-10 km/h
-100 km / 2 h	speed	13.88888888888888888888888889	13,888888888888888888888889 m/s
+100 km / 2 h	speed	13.88888888888888888888888889	50 km/h
 jeden kph	speed	0.2777777777777777777777777778	1 km/h
 3,6 kph w mps	speed	1	1 m/s
 # The group separator is U+00A0 and the decimal mark is a comma.
@@ -38,4 +38,4 @@ jeden kph	speed	0.2777777777777777777777777778	1 km/h
 # — so the stripped forms are listed as aliases. They read and never print.
 5 wezlow	speed	2.572222222222222222222222222	5 węzłów
 # The bridge, in Polish words.
-100 kilometrów / 2 godziny	speed	13.88888888888888888888888889	13,888888888888888888888889 m/s
+100 kilometrów / 2 godziny	speed	13.88888888888888888888888889	50 km/h

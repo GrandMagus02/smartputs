@@ -1,8 +1,8 @@
 # input	kind	canonical	formatted
 1 kwh en joules	energy	3600000	3 600 000 joules
-2 kW * 3 heures	energy	21600000	21 600 000 joules
-1 kwh / 1 heure	power	1000	1 000 watts
-1 kwh / 1 kW	duration	3600	3 600 secondes
+2 kW * 3 heures	energy	21600000	6 kilowattheures
+1 kwh / 1 heure	power	1000	1 kilowatt
+1 kwh / 1 kW	duration	3600	1 heure
 1 kcal en joules	energy	4184	4 184 joules
 500 joules + 500 joules	energy	1000	1 000 joules
 2 kJ * 3	energy	6000	6 kilojoules

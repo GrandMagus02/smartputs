@@ -7,13 +7,13 @@
 # signature whose operands are unregistered is unreachable rather than a build
 # error — these rows are what would catch that.
 3 m * 4 m	area	12	12 m²
-1 km * 1 km	area	1000000	1,000,000 m²
-100 km / 2 h	speed	13.88888888888888888888888889	13.888888888888888888888889 m/s
+1 km * 1 km	area	1000000	1 km²
+100 km / 2 h	speed	13.88888888888888888888888889	50 km/h
 1 km / 1 min	speed	16.66666666666666666666666667	16.6667 m/s
-2 kw * 3 h	energy	21600000	21,600,000 joules
-3 h * 2 kw	energy	21600000	21,600,000 joules
-1 kwh / 1 h	power	1000	1,000 watts
-1 kwh / 1 kw	duration	3600	3,600 seconds
+2 kw * 3 h	energy	21600000	6 kwh
+3 h * 2 kw	energy	21600000	6 kwh
+1 kwh / 1 h	power	1000	1 kilowatt
+1 kwh / 1 kw	duration	3600	1 hour
 500 mb / 20 s	datarate	200000000	200 mbps
 100 mbps * 1 min	datasize	750000000	750,000,000 bytes
 1 min * 100 mbps	datasize	750000000	750,000,000 bytes

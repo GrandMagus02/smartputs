@@ -17,8 +17,8 @@ duzentos megabits	datarate	200000000	200 Mbps
 # A fraction takes the **singular** — "1,5 segundo", against the "1 segundo"
 # beside it and the "80 segundos" above. Spanish, the other Iberian language in
 # this set, puts the same number in the plural.
-125 MB / 1 gbps	duration	1	1 segundo
-187,5 MB / 1 gbps	duration	1.5	1,5 segundo
+125 MB / 1 gbps	duration	1	1.000 milissegundos
+187,5 MB / 1 gbps	duration	1.5	1.500 milissegundos
 # `byte` does move on the number axis, so the singular above is a choice the
 # renderer made rather than a table with one entry.
 1 byte	datasize	1	1 byte

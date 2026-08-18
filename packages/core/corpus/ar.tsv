@@ -9,7 +9,7 @@
 20% من 50	number	10	10
 90 درجة إلى راديان	angle	1.570796326794896619231321692	1.5708 راديان
 3 متر * 4 متر	area	12	12 م²
-100 كيلومتر / 2 ساعة	speed	13.88888888888888888888888889	13.888888888888888888888889 م/ث
+100 كيلومتر / 2 ساعة	speed	13.88888888888888888888888889	50 كم/س
 مئتان وخمسة غرام	mass	205	205 غرامات
 # Six plural categories, the most any language in this set has, and each of
 # them a different word. CLDR's Arabic rule: 0 zero, 1 one, 2 two, 3-10 few,

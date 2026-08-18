@@ -12,7 +12,7 @@
 2 sqkm em m2	area	2000000	2.000.000 m²
 1 m2 em cm2	area	1	10.000 cm²
 dois hectares	area	20000	2 hectares
-1 km * 1 km	area	1000000	1.000.000 m²
+1 km * 1 km	area	1000000	1 km²
 12 m2	area	12	12 m²
 # A fraction takes the **singular** here — "1,5 hectare" — which is French's
 # answer and not Spanish's. Two Iberian languages disagreeing about the same

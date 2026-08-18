@@ -1,9 +1,9 @@
 # input	kind	canonical	formatted
 1 kwh in j	energy	3600000	3,600,000 joules
-2 kw * 3 h	energy	21600000	21,600,000 joules
-3 h * 2 kw	energy	21600000	21,600,000 joules
-1 kwh / 1 h	power	1000	1,000 watts
-1 kwh / 1 kw	duration	3600	3,600 seconds
+2 kw * 3 h	energy	21600000	6 kwh
+3 h * 2 kw	energy	21600000	6 kwh
+1 kwh / 1 h	power	1000	1 kilowatt
+1 kwh / 1 kw	duration	3600	1 hour
 1 kcal in j	energy	4184	4,184 joules
 1 btu in j	energy	1055.05585262	1,055.0559 joules
 1 mj in kj	energy	1000000	1,000 kilojoules

@@ -1,7 +1,7 @@
 import { Decimal } from "../decimal";
 import { CountQueryError, DimensionMismatchError, DivideByZeroError } from "../errors";
 import { deepFreeze } from "../freeze";
-import { NUMBER_KIND, opKey, type Registry } from "../kind/registry";
+import { derivedUnitOf, NUMBER_KIND, opKey, type Registry } from "../kind/registry";
 import type { Node } from "../parse/ast";
 import type { Program } from "../parse/program";
 import type { Resolution } from "../solve/solver";
@@ -51,6 +51,34 @@ export function evaluateNode(opts: EvaluateOptions): EvalResult {
     ...(rates ? { rates } : {}),
     ...(comparePrecision === undefined ? {} : { comparePrecision }),
   });
+
+  /**
+   * `out` with the unit the operands name between them, when the signature
+   * declined to choose one.
+   *
+   * "100 km / 2 h" came back as 13.888… m/s where a person means 50 km/h, and
+   * "100 mi / 2 h" as 22.352 m/s where they mean mph. The magnitude was never
+   * wrong — a Value's `canonical` is in its kind's canonical unit either way —
+   * so what moves here is only the unit the result is read back in, and no
+   * `canonical` in any corpus row changes because of it.
+   *
+   * Only when the returned unit IS the result kind's canonical. A signature
+   * that named a non-canonical unit made a decision, and the evaluator does not
+   * second-guess a plugin that spoke (ruling §D.3): `datasize / duration`
+   * returns `mbps` outright, and the ratio table would have answered `mbps` for
+   * (mb, /, s) by a factor of eight it cannot see, since the bit/byte
+   * conversion lives in that signature's `apply` rather than in a ratio.
+   *
+   * `speed`'s `make(l, "speed", "mps", …)` therefore becomes a *default* rather
+   * than a decision, without that package changing a line — which is what makes
+   * this a seam and not a special case.
+   */
+  const derivedUnit = (op: "*" | "/", left: Value, right: Value, out: Value): Value => {
+    const spec = registry.kinds.get(out.kind)?.spec;
+    if (spec?.mode !== "ratio" || out.unit !== spec.canonical) return out;
+    const unit = derivedUnitOf(registry, out.kind, left.unit, op, right.unit);
+    return unit === undefined ? out : deepFreeze({ ...out, unit });
+  };
 
   const evalNode = (n: Node): Value => {
     switch (n.type) {
@@ -180,7 +208,8 @@ export function evaluateNode(opts: EvaluateOptions): EvalResult {
         if (sig === undefined)
           throw new DimensionMismatchError(input, n.op, left.kind, right.kind);
         noteSignature(sig);
-        return deepFreeze(sig.apply(left, right, ctxFor(left)));
+        const out = deepFreeze(sig.apply(left, right, ctxFor(left)));
+        return n.op === "*" || n.op === "/" ? derivedUnit(n.op, left, right, out) : out;
       }
     }
   };

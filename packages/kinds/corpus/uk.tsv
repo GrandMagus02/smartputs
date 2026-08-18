@@ -11,13 +11,13 @@
 # reachable from Cyrillic, which no English row can say.
 # input	kind	canonical	formatted
 3 м * 4 м	area	12	12 м²
-1 км * 1 км	area	1000000	1 000 000 м²
-100 км / 2 год	speed	13.88888888888888888888888889	13,888888888888888888888889 м/с
+1 км * 1 км	area	1000000	1 км²
+100 км / 2 год	speed	13.88888888888888888888888889	50 км/год
 1 км / 1 хв	speed	16.66666666666666666666666667	16,6667 м/с
-2 кВт * 3 год	energy	21600000	21 600 000 джоулів
-3 год * 2 кВт	energy	21600000	21 600 000 джоулів
-1 kwh / 1 год	power	1000	1 000 ватів
-1 kwh / 1 кВт	duration	3600	3 600 секунд
+2 кВт * 3 год	energy	21600000	6 кВт·год
+3 год * 2 кВт	energy	21600000	6 кВт·год
+1 kwh / 1 год	power	1000	1 кіловат
+1 kwh / 1 кВт	duration	3600	1 година
 500 мб / 20 с	datarate	200000000	200 Мбіт
 100 мбіт * 1 хв	datasize	750000000	750 000 000 байтів
 1 хв * 100 мбіт	datasize	750000000	750 000 000 байтів
@@ -42,4 +42,4 @@
 # `км/год` is a written symbol and an expression at once: the lexer ends
 # the word token at the slash, so this is length ÷ duration reaching the
 # speed bridge, and it is how a Ukrainian reader writes a speed.
-120 км/год	speed	33.33333333333333333333333333	33,333333333333333333333333 м/с
+120 км/год	speed	33.33333333333333333333333333	120 км/год

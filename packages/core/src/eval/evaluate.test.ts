@@ -1,6 +1,8 @@
 import { expect, test } from "bun:test";
 import { english as enLocale } from "@smartput/core/locale/en";
 import { BUILTIN_KINDS } from "@smartput/kinds";
+import BUILTIN_EN from "@smartput/kinds/locale/en";
+import { Decimal } from "../decimal";
 import { createEngine } from "../engine";
 import { DivideByZeroError } from "../errors";
 import { defineKind } from "../kind/define";
@@ -226,4 +228,156 @@ test("a value's meta is frozen, not just the value", () => {
   const v = engine.evaluate("1 kg").value;
   expect(Object.isFrozen(v)).toBe(true);
   expect(Object.isFrozen(v.meta)).toBe(true);
+});
+
+// --- The derived-unit rewrite (spec §D.2, ruling §D.3) --------------------
+
+/**
+ * A speed whose `/` signature declines to choose a unit — it returns the result
+ * kind's canonical — beside one that chooses `kph` outright, so both halves of
+ * "the plugin's explicit unit wins" have something to be asserted against.
+ */
+const declining = defineKind({
+  id: "speed",
+  value: {
+    mode: "ratio",
+    // Derived rather than restated: the table matches on ratio equality at
+    // this repo's 28-digit precision, so a hand-rounded literal would silently
+    // fail to match and the test would pass for the wrong reason.
+    units: { mps: 1, kph: new Decimal(1000).div(3600) },
+    canonical: "mps",
+  },
+  ops: [
+    {
+      op: "/",
+      left: "length",
+      right: "duration",
+      result: "speed",
+      apply: (l, r) =>
+        Object.freeze({
+          kind: "speed",
+          unit: "mps",
+          canonical: l.canonical.div(r.canonical),
+        }),
+    },
+  ],
+});
+const deciding = defineKind({
+  id: "pace",
+  value: {
+    mode: "ratio",
+    units: { mps: 1, kph: new Decimal(1000).div(3600) },
+    canonical: "mps",
+  },
+  ops: [
+    {
+      op: "/",
+      left: "length",
+      right: "duration",
+      result: "pace",
+      apply: (l, r) =>
+        Object.freeze({
+          kind: "pace",
+          unit: "kph",
+          canonical: l.canonical.div(r.canonical),
+        }),
+    },
+  ],
+});
+const derivedRegistry = buildRegistry([number, length, duration, declining], [en]);
+const decidedRegistry = buildRegistry([number, length, duration, deciding], [en]);
+
+function evaluateWith(reg: ReturnType<typeof buildRegistry>, input: string) {
+  const resolver = createResolver({
+    registry: reg,
+    locales: [en],
+    format: en,
+    layers: [],
+  });
+  const normalized = normalize(input);
+  const node = parse(lex(normalized.text, en), resolver, input);
+  const program = buildProgram(node, normalized);
+  const [best] = solve(program, reg, { maxCandidates: 10_000, input });
+  if (best === undefined) throw new Error("no assignment");
+  return evaluateNode({ program, resolution: best, registry: reg, locale: "en", input });
+}
+
+test("a declined result unit is rewritten to the one the operands name", () => {
+  const v = evaluateWith(derivedRegistry, "100 km / 2 h");
+  expect(v.value.kind).toBe("speed");
+  // The magnitude is untouched — canonical is still metres per second — and
+  // only the unit the value is *read back in* moves.
+  expect(v.value.canonical.toString()).toBe("13.88888888888888888888888889");
+  expect(v.value.unit).toBe("kph");
+});
+
+test("operands that name no derived unit leave the canonical unit alone", () => {
+  // (m, /, s) is metres per second, which the table does know; (km, /, s) is
+  // not a unit `speed` has, so there is nothing to rewrite to.
+  expect(evaluateWith(derivedRegistry, "100 m / 2 s").value.unit).toBe("mps");
+  expect(evaluateWith(derivedRegistry, "100 km / 2 s").value.unit).toBe("mps");
+});
+
+test("a signature that chose a unit is not second-guessed", () => {
+  // Ruling §D.3: `pace` returns `kph` for every pair, so (m, /, s) — which the
+  // table would rewrite to `mps` — has to come back `kph` anyway.
+  expect(evaluateWith(decidedRegistry, "100 m / 2 s").value.unit).toBe("kph");
+});
+
+// --- The four §D probes, end to end --------------------------------------
+//
+// The unit tests above run on hand-built kinds; these run on the real ones,
+// because §D is a claim about what a person can type, and a table built from
+// `length`, `duration` and `speed`'s actual ratios is the only thing that
+// proves `mi / h` reaches `mph` without anyone spelling it that way.
+const builtins = createEngine({
+  locales: [composeLocale(enLocale, BUILTIN_EN)],
+  kinds: BUILTIN_KINDS,
+});
+
+test("a compound unit is a conversion target, not only an expression", () => {
+  // Three tokens, `km`, `/` and `h`, in a position where a *unit* is required.
+  // Before the target chain the parser read the first and left `/ h` to
+  // arithmetic, so this failed as *speed in length*.
+  expect(builtins.evaluate("(100 km / 2 h) in km/h").value.unit).toBe("kph");
+  expect(builtins.evaluate("(100 km / 2 h) in mi / h").value.unit).toBe("mph");
+  // A single-unit target is the back-off, and stays what it always was.
+  expect(builtins.evaluate("50 km/h in mph").value.unit).toBe("mph");
+});
+
+test("a derived result keeps the units the person wrote", () => {
+  expect(builtins.evaluate("100 m / 2 s").value.unit).toBe("mps");
+  expect(builtins.evaluate("100 km / 2 h").value.unit).toBe("kph");
+  expect(builtins.evaluate("100 mi / 2 h").value.unit).toBe("mph");
+  expect(builtins.evaluate("100 km / 2 h").formatted).toBe("50 km/h");
+  // The magnitude is the number it always was; only the unit it is read back
+  // in moved, which is why the corpus rows keep their canonical column.
+  expect(builtins.evaluate("100 km / 2 h").value.canonical.toString()).toBe(
+    "13.88888888888888888888888889",
+  );
+});
+
+test("a plugin that chose its own result unit is not second-guessed", () => {
+  // `datasize / duration` returns `mbps` outright, and the ratio table would
+  // have answered `mbps` for (mb, /, s) by a factor of eight it cannot see —
+  // the bit/byte conversion lives in that signature's `apply`, not in a ratio.
+  // Ruling §D.3 is what keeps the evaluator's hands off it.
+  expect(builtins.evaluate("500 mb / 20 s").value.unit).toBe("mbps");
+});
+
+test("the target prune improves the error rather than changing the result set", () => {
+  // "m" is a metre and a minute, and the solver enumerated the minute at the
+  // target and only found out at the end — so "10 km in m + 5" reported
+  // *length and duration*, naming a reading nobody could have meant.
+  //
+  // Ruling: the prune is an error-quality change, not a semantic one (spec
+  // §D.2, "same result set, better error"). There is no `+ | length | number`
+  // signature, so this input still fails; what moves is that the failure now
+  // names the operator that actually has none.
+  expect(builtins.evaluate("10 km in m").value.unit).toBe("m");
+  const ex = builtins.explain("10 km in m + 5");
+  expect(ex.outcome.status).toBe("error");
+  expect(ex.rejections?.map((r) => `${r.op}|${r.left}|${r.right}`)).toEqual([
+    "+|length|number",
+  ]);
 });

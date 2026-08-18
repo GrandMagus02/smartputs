@@ -6,9 +6,9 @@
 # its operands by id string rather than importing them, so a signature whose
 # operands are unregistered is unreachable rather than a build error.
 3 م * 4 م	area	12	12 م²
-100 كم / 2 ساعة	speed	13.88888888888888888888888889	13.888888888888888888888889 م/ث
-2 كيلوواط * 3 ساعات	energy	21600000	21,600,000 جول
-1 kwh / 1 ساعة	power	1000	1,000 واط
+100 كم / 2 ساعة	speed	13.88888888888888888888888889	50 كم/س
+2 كيلوواط * 3 ساعات	energy	21600000	6 كيلوواط·ساعة
+1 kwh / 1 ساعة	power	1000	1 كيلوواط
 500 ميغابايت / 20 ثانية	datarate	200000000	200 ميغابت
 100 mbps * 1 دقيقة	datasize	750000000	750,000,000 بايت
 1000 ميغابايت = 1 غيغابايت	boolean	1	true

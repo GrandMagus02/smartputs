@@ -12,7 +12,7 @@
 2 км2 в м2	area	2000000	2 000 000 м²
 1 м2 в см2	area	1	10 000 см²
 два гектари	area	20000	2 гектари
-1 км * 1 км	area	1000000	1 000 000 м²
+1 км * 1 км	area	1000000	1 км²
 12 м2	area	12	12 м²
 # The squared units print as a symbol in both languages, so the rows that
 # separate the two are the hectare's — a declined noun with four plural

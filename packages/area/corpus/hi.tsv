@@ -10,7 +10,7 @@
 100 मी2 / 4	area	25	25 मी²
 -5 मी2	area	-5	-5 मी²
 1 मी2 में सेमी2	area	1	10,000 सेमी²
-1 किमी * 1 किमी	area	1000000	1,000,000 मी²
+1 किमी * 1 किमी	area	1000000	1 किमी²
 12 मी2	area	12	12 मी²
 दो सौ हेक्टेयर	area	2000000	200 हेक्टेयर
 # Two categories, and Hindi spends neither: the unit nouns here are invariant,

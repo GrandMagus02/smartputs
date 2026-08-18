@@ -359,3 +359,89 @@ test("the word under a claim does not repeat a target the claim already named", 
     "5",
   );
 });
+
+// --- Derived-unit targets (spec §D.2) ------------------------------------
+//
+// A compound unit has to work where a *unit* is required and not only where an
+// expression is: "in km/h" is three tokens, and before the chain below the
+// parser read the first of them and left `/ h` to arithmetic, which is why
+// "(100 km / 2 h) in km/h" failed as *speed in length*.
+
+const durationKind = defineKind({
+  id: "duration",
+  value: { mode: "ratio", canonical: "s", units: { s: 1, h: 3600 } },
+});
+const speedKind = defineKind({
+  id: "speed",
+  value: {
+    mode: "ratio",
+    // Derived rather than restated: the table matches on ratio equality at
+    // this repo's 28-digit precision, so a hand-rounded literal would silently
+    // fail to match and the test would pass for the wrong reason.
+    units: { mps: 1, kph: new Decimal(1000).div(3600) },
+    canonical: "mps",
+  },
+  ops: [
+    {
+      op: "/",
+      left: "length",
+      right: "duration",
+      result: "speed",
+      apply: (l, r) =>
+        Object.freeze({
+          kind: "speed",
+          unit: "mps",
+          canonical: l.canonical.div(r.canonical),
+        }),
+    },
+  ],
+});
+const derivedEn = composeLocale(en.language, [
+  defineVocabulary({
+    locale: "en",
+    kind: "length",
+    units: { m: { aliases: ["m"] }, km: { aliases: ["km"] } },
+  }),
+  defineVocabulary({
+    locale: "en",
+    kind: "duration",
+    // `m` is a minute as well as a metre, which is what the back-off below has
+    // to survive: the chain must not fire on "in m + 5".
+    units: { s: { aliases: ["s"] }, h: { aliases: ["h"] } },
+  }),
+]);
+const derivedRegistry = buildRegistry(
+  [number, length, durationKind, speedKind],
+  [derivedEn],
+);
+const derivedResolver = createResolver({
+  registry: derivedRegistry,
+  locales: [derivedEn],
+  format: derivedEn,
+  layers: [],
+});
+const derivedAst = (input: string) =>
+  parse(lex(input, derivedEn), derivedResolver, input);
+
+test("a target chain that names no derived unit backs off to the single unit", () => {
+  const node = derivedAst("10 km in m + 5");
+  expect(node.type).toBe("binary"); // (10 km in m) + 5
+  if (node.type !== "binary") throw new Error("unreachable");
+  expect(node.left.type).toBe("convert");
+});
+
+test("a target chain that names a derived unit covers the whole chain", () => {
+  const input = "10 km in km / h";
+  const node = derivedAst(input);
+  expect(node.type).toBe("convert");
+  if (node.type !== "convert") throw new Error("unreachable");
+  expect(input.slice(node.targetSpan.start, node.targetSpan.end)).toBe("km / h");
+  expect(node.target.map((c) => `${c.kind}:${c.unit}`)).toEqual(["speed:kph"]);
+});
+
+test("a chain whose second operand is not a unit word is left to arithmetic", () => {
+  // "in km / 2" is a conversion followed by a division, and the chain has to
+  // decline it rather than reach for a table entry that cannot exist.
+  const node = derivedAst("10 km in km / 2");
+  expect(node.type).toBe("binary");
+});

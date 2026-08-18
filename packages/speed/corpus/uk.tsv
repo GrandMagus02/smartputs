@@ -1,5 +1,5 @@
 # input	kind	canonical	formatted
-100 км / 2 год	speed	13.88888888888888888888888889	13,888888888888888888888889 м/с
+100 км / 2 год	speed	13.88888888888888888888888889	50 км/год
 100 kph в mph	speed	27.77777777777777777777777778	62,1371 миль/год
 60 mph в kph	speed	26.8224	96,5606 км/год
 1 вузол в kph	speed	0.5144444444444444444444444444	1,852 км/год
@@ -19,7 +19,7 @@
 # no alias index can hold them. That is why they read as arithmetic over
 # length and duration instead, which is the row below, and why the knot —
 # the one unit that is a noun — is the one with Ukrainian words.
-120 км/год	speed	33.33333333333333333333333333	33,333333333333333333333333 м/с
+120 км/год	speed	33.33333333333333333333333333	120 км/год
 2 вузли	speed	1.028888888888888888888888889	2 вузли
 5 вузлів	speed	2.572222222222222222222222222	5 вузлів
 21 вузол	speed	10.80333333333333333333333333	21 вузол

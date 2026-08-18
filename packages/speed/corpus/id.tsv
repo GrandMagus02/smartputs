@@ -9,7 +9,7 @@
 30 kph * 2	speed	16.66666666666666666666666667	60 km/jam
 100 kph / 4	speed	6.944444444444444444444444445	25 km/jam
 -10 kph	speed	-2.777777777777777777777777778	-10 km/jam
-100 km / 2 jam	speed	13.88888888888888888888888889	13,888888888888888888888889 m/s
+100 km / 2 jam	speed	13.88888888888888888888888889	50 km/jam
 3,6 kph ke mps	speed	1	1 m/s
 # No spelled cardinals. `@smartput/core` ships a `<lang>-cardinals` file for
 # fifteen of the sixteen non-English languages here and none for `id`, so
@@ -33,6 +33,6 @@
 100 kph ke knot	speed	27.77777777777777777777777778	53,9957 knot
 # The hour in the symbol is "jam", the ordinary Indonesian word, and the
 # symbol reads back as arithmetic over a length and a duration.
-120 km/jam	speed	33.33333333333333333333333333	33,333333333333333333333333 m/s
+120 km/jam	speed	33.33333333333333333333333333	120 km/jam
 # The bridge, in Indonesian words.
-100 kilometer / 2 jam	speed	13.88888888888888888888888889	13,888888888888888888888889 m/s
+100 kilometer / 2 jam	speed	13.88888888888888888888888889	50 km/jam

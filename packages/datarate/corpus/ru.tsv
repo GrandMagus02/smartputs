@@ -17,10 +17,10 @@
 # 21 takes the singular and 11 does not, however they end; the "80 секунд" in
 # the spine above is `many`, and the fraction is a fifth word again — the
 # genitive singular, not a reuse of one of the four.
-125 МБ / 1 гбит	duration	1	1 секунда
-250 МБ / 1 гбит	duration	2	2 секунды
-2625 МБ / 1 гбит	duration	21	21 секунда
-187,5 МБ / 1 гбит	duration	1.5	1,5 секунды
+125 МБ / 1 гбит	duration	1	1 000 миллисекунд
+250 МБ / 1 гбит	duration	2	2 000 миллисекунд
+2625 МБ / 1 гбит	duration	21	21 000 миллисекунд
+187,5 МБ / 1 гбит	duration	1.5	1 500 миллисекунд
 # `байт` is a measure noun with a zero-ending genitive plural, so `one` and
 # `many` land on the same word and only `few` is different. A language with four
 # categories does not have to spend four words.

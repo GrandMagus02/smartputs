@@ -24,7 +24,7 @@ zweihundertfünf Gramm	mass	205	205 Gramm
 212 F in C	temperature	100	100 °C
 30 C - 20 C	tempdelta	10	10 °C
 3 m * 4 m	area	12	12 Quadratmeter
-100 km / 2 h	speed	13.88888888888888888888888889	13,888888888888888888888889 m/s
+100 km / 2 h	speed	13.88888888888888888888888889	50 km/h
 # Masculine and neuter measure nouns do not move after a numeral: "10
 # Kilometer", "205 Gramm", "12 Zoll". `die Meile` and `die Stunde` are the
 # feminine units here, and those do take a plural ending.
