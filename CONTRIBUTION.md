@@ -1,131 +1,152 @@
 # Contributing to Smartputs
 
-Thanks for taking the time. This file covers how to get the repo running, what the
-checks enforce, and the few rules that are easy to trip over.
+Thanks for taking the time. Short version: open an issue, agree on the shape, then
+send a pull request that keeps `bun run check` green.
 
-## Requirements
+## Issue first, then pull request
 
-- **Bun 1.3 or newer.** Bun is the package manager, the test runner and the bundler.
-  There is no npm or yarn path — `bun.lock` is the only lockfile, and packages resolve
-  each other through the `bun` condition in their `exports` maps, which points at
-  TypeScript source rather than build output.
+Please open an issue before writing code, even for small things. Most changes here
+touch a table somebody else depends on (a unit ratio, an alias, a weight, a locale
+form), and a two-line issue saves a rewritten PR.
+
+- **Bug.** Paste the exact input string, what you got, and what you expected.
+  `engine.explain(input)` output helps a lot.
+- **New unit, alias or phrasing.** Say which kind and which language, and add the
+  phrasings people actually type, not just the canonical form.
+- **New kind, locale or package.** Describe the shape first. See
+  [Design practices](#design-practices) below; if the idea needs a change to core,
+  say so up front, since that is the part we push back on.
+
+Once the issue is agreed, open the PR and reference it (`Closes #123`).
+
+## Setup
+
+Requires [Bun](https://bun.sh) 1.3 or newer. Bun is the package manager, test runner
+and bundler; there is no npm or yarn path. `bun.lock` is the only lockfile, and packages
+resolve each other through the `bun` condition in `exports`, which points at TypeScript
+source rather than build output.
 
 ```sh
 git clone https://github.com/GrandMagus02/smartputs.git
 cd smartputs
 bun install
-bun run check
+bun run check      # green on a clean checkout means you are set up
 ```
 
-If `bun run check` passes on a clean checkout, your environment is set up correctly.
-
-`bun install` also points git at `.githooks`, which is two hooks:
-
-- **pre-commit** formats the files you staged — only those, and it re-stages them, so
-  unrelated working-tree edits are never swept into your commit.
-- **pre-push** runs `bun run lint` and `bun run typecheck`, the half of the gate that
-  answers in seconds. Tests and size budgets stay with CI.
-
-Both no-op when `CI` is set, so the release bot's own commit and push are not rewritten
-by them. `git commit --no-verify` and `git push --no-verify` skip them when you need to.
-
-## Repository layout
+`bun install` also wires two git hooks from `.githooks`: **pre-commit** formats only the
+files you staged and re-stages them; **pre-push** runs lint and typecheck. Tests and
+size budgets stay with CI. Both hooks no-op when `CI` is set; `--no-verify` skips them.
 
 ```
 packages/*   one workspace package per kind (mass, duration, geo, …) plus core
-docs/        VitePress site; docs/packages/ is generated, see below
-scripts/     build, typecheck and the repo's custom guard scripts
+docs/        VitePress site; docs/packages/ is generated
+scripts/     build, typecheck and the repo's guard scripts
 ```
 
-## Everyday commands
+## Commands
 
-| Command | What it does |
+| Command | |
 | --- | --- |
-| `bun test` | Runs every test. Tests live beside their source as `*.test.ts`. |
-| `bun run lint` | Biome lint and format check. |
-| `bun run format` | Rewrites files to match the formatter. |
-| `bun run typecheck` | Typechecks every workspace package and reports all failures in one pass. |
-| `bun run build` | Builds every entry each package declares in `exports`. |
-| `bun run docs:dev` | Builds, regenerates package pages, then serves the docs site. |
+| `bun test` | Every test. Tests sit beside their source as `*.test.ts`. |
+| `bun run lint` / `bun run format` | Biome check / Biome rewrite. |
+| `bun run typecheck` | Every package, all failures in one pass. |
+| `bun run build` | Every entry each package declares in `exports`. |
 | `bun run check` | The full gate: lint, typecheck, check-deps, test, build, check-size. |
-| `bun run pack-size` | Stages every package as npm would see it and measures the tarball. |
-| `bun run check-commits [range]` | Reads commit subjects the way the release script does. |
-| `bun run changelogs [--check]` | Rewrites every package's CHANGELOG.md from its tags. |
-| `bun run release --dry-run` | Prints the version each package would move to, and why. |
-| `bun run publish-packages` | The first-time npm publish, prompting for a token per package. |
+| `bun run docs:dev` | Build, regenerate package pages, serve the docs. |
+| `bun run pack-size` | Stage every package as npm sees it and measure the tarball. |
+| `bun run check-commits [range]` | Read commit subjects the way the release script does. |
+| `bun run changelogs [--check]` | Rewrite every `CHANGELOG.md` from tags. |
+| `bun run release --dry-run` | Print the version each package would move to, and why. |
+| `bun run publish-packages` | First-time npm publish, one token per package. |
 
-Run `bun run check` before opening a pull request. `.github/workflows/ci.yml` runs the
-same commands on every pull request, plus `pack-size` and a Conventional Commits check
-over the branch's subjects.
+CI (`.github/workflows/ci.yml`) runs `bun run check`, `pack-size` and a Conventional
+Commits check on every PR.
 
-## Things the checks enforce
+## Design practices
 
-**One runtime dependency per package, declared in advance.** `scripts/check-deps.ts`
-holds the allowlist. It discovers packages from the filesystem and *fails* on any it
-does not know about, so adding a package means adding it to that map — a new package
-cannot slip through with an unreviewed dependency.
+These are the rules the codebase is built on. None of them are enforced by a linter,
+so they are recommended rather than required, but a PR that follows them gets merged
+faster and a PR that fights them usually gets a redesign request.
 
-**Never import `decimal.js` directly.** Import `Decimal` from `@smartput/core` instead
-(or from `./decimal` inside `packages/core`). `packages/core/src/decimal.ts` applies
-`Decimal.set({ precision: 28, … })` as a module-load side effect; a raw import bypasses
-it and silently computes at decimal.js's ~20-digit default, producing wrong numbers
-with no error. Biome fails the build on this import.
+**Core never learns a domain.** Core knows no metre, no dollar, no city. A new
+capability is a kind package that declares its units and op signatures; the solver has
+not moved since M1. If your change needs core, it should be a *seam any plugin can use*
+(a literal matcher, an optional field with a `0`/`false` default), not a special case
+for your kind. `docs/guide/roadmap.md` records every core change so far and what forced
+it. Read it before proposing another.
 
-**Import budgets.** `scripts/check-size.ts` bundles and minifies a synthetic entry for
-each measured import set, so the number reflects what a consumer actually pays. It
-imports *and uses* the symbols deliberately: importing without using would let the
-minifier drop the whole graph and report a budget of zero. If a change moves a budget,
-the diff has to be justified rather than waved through.
+**Nobody imports anybody.** Kind packages do not import each other. When two packages
+need to agree on a shape (a place, a range), they match it structurally off
+`Value.meta`; the shape is the contract. `check-deps` holds every package to one
+runtime dependency and fails on a package it does not know.
 
-**No `any`.** `noExplicitAny` is an error, not a warning.
+**Words live outside the kind.** A `Language` holds mechanics, a `Vocabulary` holds
+the words for one kind in one language, and a `Locale` is the two composed. A
+vocabulary names its kind by id string and never imports it, so a translation is a
+package (`@smartput/mass/locale/uk`), not a patch. Never put a word into a kind.
 
-Formatting is Biome: two-space indent, 90-column lines. Let `bun run format` settle
-these rather than hand-formatting.
+**Defaults over configuration.** `defineKind` needs `id`, `canonical` and `units`;
+aliases, arithmetic, `in` conversion and formatting are generated. If a new kind needs
+more than that, a default is missing, and fixing the default is the better PR. New
+behaviours are opt-in fields (`ordered`, `targetable`), never new defaults.
+
+**Ambiguity is data.** Keep every reading, rank it, let weights sort it out. Weight a
+reading *down* rather than deleting it; `"5m"` in a sentence about time still carries a
+metres reading at 0.018. Do not add code that picks a winner silently.
+
+**Measured, not estimated.** Byte budgets come from a real minified bundle
+(`check-size`), parity fixtures are recorded output, docs tables are read from source.
+When a number in one of those moves, the PR explains why. A fixture that re-records
+itself proves nothing.
+
+**Frozen and pure.** An engine is a composition of frozen descriptors, and every public
+output is deep-frozen. No globals, no registries that mutate, no module state beyond
+`decimal.ts`.
+
+**Record the ruling.** When a design forces a trade (`"durch"` is claimed as `by`, so
+a bare `durch` does not divide), write it down where the reader will meet it: a test
+named for the cost, a comment, or a paragraph in the roadmap. Stated beats hidden.
+
+**Test what people type.** Beside unit tests, packages carry corpus tests that run real
+input strings through the pipeline. A new alias comes with the phrasings a person would
+actually type, in every locale that gets it.
+
+## Guards CI enforces
+
+- **One runtime dependency per package.** The allowlist is `scripts/check-deps.ts`,
+  and it fails on any package it does not know. Register new packages there.
+- **Never import `decimal.js` directly.** Use `Decimal` from `@smartput/core` (or
+  `./decimal` inside core). `packages/core/src/decimal.ts` sets `precision: 28` on
+  load; a raw import silently computes at the ~20-digit default. Biome fails on it.
+- **Import budgets.** `scripts/check-size.ts` bundles and minifies a synthetic entry per
+  measured import set, and uses the symbols so the minifier cannot drop them. A moved
+  budget needs a reason in the PR.
+- **No `any`.** `noExplicitAny` is an error.
+- **Formatting is Biome:** two-space indent, 90 columns. Let `bun run format` do it.
 
 ## Generated files
 
-Two kinds of file are written by scripts and committed to the repo. Editing them by
-hand works right up until the next regeneration silently reverts it.
+Two kinds of file are committed but written by scripts. Hand edits last until the next
+regeneration.
 
-**`docs/packages/*.md`** comes from `scripts/gen-package-pages.ts`. The prose lives in
-that script; every table is read from the source it describes — the manifest's
-`exports`, the kind's `UnitTable`, the rows of `check-size.ts`. Add a subpath or a unit,
-then run `bun run docs:packages` and commit the result.
+- `docs/packages/*.md` comes from `scripts/gen-package-pages.ts`. Prose lives in the
+  script; tables are read from `exports`, `UnitTable`s and `check-size.ts`. Change the
+  source, run `bun run docs:packages`, commit the result.
+- Parity fixtures are regenerated with `bun run parity:record`, and only deliberately.
+  The English fixture is frozen: a diff in it is a regression until shown otherwise.
 
-**Parity fixtures** are regenerated with `bun run parity:record`, and only ever
-deliberately. A fixture that re-records itself proves nothing; the value of these files
-is that a changed output shows up as a diff a reviewer has to approve. The English
-fixture in particular is the frozen one — a diff in it is a regression until someone
-demonstrates otherwise.
+## Adding things
 
-## Adding to the library
+- **A package.** Its `exports` map is the source of truth: build, typecheck and the docs
+  generator discover entries from it. Register it in `scripts/check-deps.ts`.
+- **A kind.** Start from `docs/guide/defining-a-kind.md`.
+- **A locale.** Locales are entry points under `@smartput/core/locale/*`; put tests
+  beside the existing ones in `packages/*/src/locale/`.
 
-- **A new package.** Its `exports` map is the source of truth: build, typecheck and the
-  docs generator all discover entries from it, so a subpath missing there is a subpath
-  that never gets built. Register the package in `scripts/check-deps.ts` as well.
-- **A new kind.** Start from `docs/guide/defining-a-kind.md`, which walks through the
-  unit table, the signatures a kind declares, and how the evaluator picks them up.
-- **A new locale.** Locales are separate entry points under `@smartput/core/locale/*`.
-  Add tests next to the existing ones in `packages/*/src/locale/`.
+## Commits
 
-## Tests
-
-Tests sit next to the code they cover (`packages/angle/src/class.test.ts` beside
-`class.ts`) and run under `bun test`. Alongside unit tests, packages carry corpus tests
-that run real input strings through the pipeline — when you add a unit or an alias, add
-the phrasings a person would actually type, not just the canonical form.
-
-## Pull requests
-
-Keep the change and its tests in one commit where practical, describe what the change
-does and why the old behaviour was wrong, and make sure `bun run check` is green. If a
-change alters a generated file or a parity fixture, say so in the description so the
-diff is read rather than skimmed.
-
-## Commit messages
-
-Subjects follow [Conventional Commits](https://www.conventionalcommits.org), because the
-version numbers and the changelogs are computed from them rather than written by hand:
+Subjects follow [Conventional Commits](https://www.conventionalcommits.org). Versions
+and changelogs are computed from them.
 
 ```
 feat(length): add the nautical mile
@@ -133,39 +154,42 @@ fix: stop rounding the international yard
 feat(core)!: rename parse() to solve()
 ```
 
-- **Type** is one of `feat`, `fix`, `perf`, `revert`, `docs`, `style`, `refactor`,
-  `test`, `build`, `ci`, `chore`. Only the first four release anything.
-- **Scope** is a package directory name (`length`, `core`) or one of `repo`, `ci`,
-  `deps`, `docs`, `scripts`, `release`. It is optional.
-- **Breaking** is a `!` before the colon, a `BREAKING CHANGE:` footer, or both. Below
-  1.0.0 it is a minor bump, not a major one.
-- Lower-case subject, no full stop, 72 characters at most.
+- Type: `feat`, `fix`, `perf`, `revert` release; `docs`, `style`, `refactor`, `test`,
+  `build`, `ci`, `chore` do not.
+- Scope (optional): a package directory (`length`, `core`) or `repo`, `ci`, `deps`,
+  `docs`, `scripts`, `release`.
+- Breaking: `!` before the colon or a `BREAKING CHANGE:` footer. Below 1.0.0 that is a
+  minor bump.
+- Lower-case subject, no full stop, 72 characters max.
 
-`bun run check-commits origin/main..HEAD` is the same check CI runs.
+`bun run check-commits origin/main..HEAD` is what CI runs.
+
+## Pull request checklist
+
+- [ ] Linked issue
+- [ ] `bun run check` green
+- [ ] Change and its tests in one commit where practical
+- [ ] Description says what changed and why the old behaviour was wrong
+- [ ] Generated files or parity fixtures that moved are called out, so the diff is read
+      rather than skimmed
+- [ ] Any core change is a general seam, and the description says what forced it
 
 ## Releasing
 
-Releases are automatic. Merging to `main` runs `.github/workflows/release.yml`, which:
+Automatic. Merging to `main` runs `.github/workflows/release.yml`: `bun run check` and
+`pack-size` on the merge result, then `scripts/release.ts` reads each package's commits
+since its last `<name>@<version>` tag, bumps, writes the manifest and `CHANGELOG.md`
+section, commits, tags, pushes, and publishes to npm in dependency order with
+provenance plus a GitHub release per package. A package whose dependency moved is
+republished at a patch, so no published range points at an untested version.
 
-1. runs `bun run check` and `bun run pack-size` against the merge result;
-2. runs `scripts/release.ts` — per package, it reads the commits since that package's
-   last `<name>@<version>` tag, works out the bump, writes the new version into the
-   manifest and prepends a section to that package's `CHANGELOG.md`. A package whose
-   dependency moved is republished at a patch, so no published range points at a version
-   its dependent was never tested against;
-3. commits, tags each released package and pushes;
-4. publishes to npm in dependency order with provenance, and cuts a GitHub release per
-   package.
+npm auth is [trusted publishing](https://docs.npmjs.com/trusted-publishers) (OIDC, no
+stored secret). Each package needs it configured once on npmjs.com (Settings ->
+Trusted Publisher -> GitHub Actions, this repo, `release.yml`); one without it 403s
+without blocking the others. `NPM_TOKEN` as a repo secret is a fallback if set.
 
-It authenticates to npm via [trusted publishing](https://docs.npmjs.com/trusted-publishers)
-— OIDC, not a stored secret. Each package needs a trusted publisher configured once on
-npmjs.com (package Settings -> Trusted Publisher -> GitHub Actions, this repo, workflow
-file `release.yml`); a package with none configured 403s on publish without holding up
-the others. If `NPM_TOKEN` is ever set as a repository secret it is read as a fallback,
-for a package that cannot use OIDC yet.
-
-**The first publish is manual**, because a name has to exist before npm will let you
-attach a trusted publisher to it, and because 37 package names have to be claimed:
+The first publish of a name is manual, since a package has to exist before npm lets
+you attach a trusted publisher:
 
 ```sh
 bun run publish-packages --dry-run --version 0.1.0   # stage everything, publish nothing
@@ -173,7 +197,6 @@ bun run publish-packages --version 0.1.0             # for real, one token per p
 git push --tags
 ```
 
-It stages each package into `.publish/` — `workspace:*` ranges resolved, dev
-dependencies dropped, the shared licence and repository fields filled in — prompts for
-an npm token before each publish, and never writes to `~/.npmrc`. Anything already on
-the registry is skipped, so a run that fails part-way can simply be run again.
+It stages each package into `.publish/` (`workspace:*` resolved, dev deps dropped,
+licence and repository filled in), prompts for a token per publish, never writes
+`~/.npmrc`, and skips anything already on the registry, so a failed run can be rerun.
