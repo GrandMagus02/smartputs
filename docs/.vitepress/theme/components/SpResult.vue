@@ -24,6 +24,19 @@ const formatted = computed(() =>
 const canonical = computed(() =>
   props.outcome.status === "ok" ? round4(props.outcome.result.value.canonical) : "",
 );
+
+// `@smartput/color`'s canonical is the packed `0xRRGGBBAA` sRGB pixel
+// `packSrgb` produces — the one kind here whose number is worth painting
+// rather than printing.
+const swatch = computed(() => {
+  if (props.outcome.status !== "ok" || props.outcome.result.kind !== "color") return null;
+  const packed = props.outcome.result.value.canonical.toNumber();
+  const r = (packed >>> 24) & 0xff;
+  const g = (packed >>> 16) & 0xff;
+  const b = (packed >>> 8) & 0xff;
+  const a = packed & 0xff;
+  return `rgba(${r}, ${g}, ${b}, ${(a / 255).toFixed(3)})`;
+});
 </script>
 
 <template>
@@ -42,7 +55,13 @@ const canonical = computed(() =>
 
   <div v-else class="sp-result sp-result--ok">
     <div class="sp-result__line">
-      <span :class="kindIcon(outcome.result.kind)" aria-hidden="true" />
+      <span
+        v-if="swatch"
+        class="sp-result__swatch"
+        :style="{ backgroundColor: swatch }"
+        aria-hidden="true"
+      />
+      <span v-else :class="kindIcon(outcome.result.kind)" aria-hidden="true" />
       <strong class="sp-result__formatted">{{ formatted }}</strong>
       <span class="sp-result__kind">{{ outcome.result.kind }}</span>
     </div>
@@ -106,6 +125,25 @@ const canonical = computed(() =>
 
 .sp-result--ok .sp-result__line {
   color: var(--vp-c-brand-1);
+}
+
+.sp-result__swatch {
+  width: 18px;
+  height: 18px;
+  border-radius: 5px;
+  flex-shrink: 0;
+  box-shadow: inset 0 0 0 1px rgba(128, 128, 128, 0.35);
+  background-image:
+    linear-gradient(45deg, rgba(128, 128, 128, 0.25) 25%, transparent 25%),
+    linear-gradient(-45deg, rgba(128, 128, 128, 0.25) 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, rgba(128, 128, 128, 0.25) 75%),
+    linear-gradient(-45deg, transparent 75%, rgba(128, 128, 128, 0.25) 75%);
+  background-size: 8px 8px;
+  background-position:
+    0 0,
+    0 4px,
+    4px -4px,
+    -4px 0;
 }
 
 .sp-result__formatted {
