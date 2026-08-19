@@ -1,5 +1,11 @@
 # @smartput/datetime-range
 
+## 0.2.0 (2026-08-19)
+
+### Features
+
+- **datetime:** read ordinal weekdays, weeks and calendar intervals ([b29df48](https://github.com/GrandMagus02/smartputs/commit/b29df48e33c90f397e3e781f1a370fbdaeb2530d))
+
 ## 0.1.1 (2026-08-18)
 
 Released to pick up a new version of a workspace dependency.

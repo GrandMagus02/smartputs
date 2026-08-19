@@ -1,5 +1,9 @@
 # @smartput/math
 
+## 0.1.2 (2026-08-19)
+
+Released to pick up a new version of a workspace dependency.
+
 ## 0.1.1 (2026-08-18)
 
 Released to pick up a new version of a workspace dependency.

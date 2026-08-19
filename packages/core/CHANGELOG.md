@@ -1,5 +1,20 @@
 # @smartput/core
 
+## 0.3.0 (2026-08-19)
+
+### Features
+
+- **core:** rank number readings across grammars as solver slots ([36dcc03](https://github.com/GrandMagus02/smartputs/commit/36dcc038cdf523bb6d599ebaef96927915ab6d5e))
+- **core:** a number carries one reading per installed grammar ([2ff0973](https://github.com/GrandMagus02/smartputs/commit/2ff0973e19a2d66bec7d19c6fd5191b4e3b3d572))
+- **core:** fold adjacent descending quantities of a compound kind into a sum ([639025b](https://github.com/GrandMagus02/smartputs/commit/639025b621e6a97786a5cd1a275272fb5a7f1383))
+- **core:** EngineOptions.context carries per-kind config; rates and rounding deprecate into it ([320176d](https://github.com/GrandMagus02/smartputs/commit/320176d4ba5c7553da83e67fbbdbe4e22c68072f))
+- **core:** a compound unit is a target and a result unit ([ae3ab96](https://github.com/GrandMagus02/smartputs/commit/ae3ab96eb1131caa9da23b05fa06f69937195cf0))
+- **core:** give formatted its own display policy, EngineOptions.display ([f0a0b62](https://github.com/GrandMagus02/smartputs/commit/f0a0b623e58cad44ff5d41569b718b9ad49623d8))
+- **core:** explain returns for every input, and errors carry spans ([18d9c97](https://github.com/GrandMagus02/smartputs/commit/18d9c97c0a083f2c34b5ef8f45db9e73ce06af59))
+- **core:** split a digit run inside a word, and re-lex a trailing in ([3fd5e7f](https://github.com/GrandMagus02/smartputs/commit/3fd5e7f6a788975b0e84c1fcfd6c3d38d2d19605))
+- **core:** give display its own precision policy and let a unit declare tight spacing ([1aade59](https://github.com/GrandMagus02/smartputs/commit/1aade59dd8e7be57806105507b531e6afbbb8e24))
+- **core:** build a derived-unit table from ratio equality at boot ([e701d90](https://github.com/GrandMagus02/smartputs/commit/e701d90f35c1dcabe47bb2275f071f2db464f706))
+
 ## 0.2.0 (2026-08-18)
 
 ### Features

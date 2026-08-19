@@ -1,5 +1,11 @@
 # @smartput/rate
 
+## 0.2.0 (2026-08-19)
+
+### Features
+
+- **core:** EngineOptions.context carries per-kind config; rates and rounding deprecate into it ([320176d](https://github.com/GrandMagus02/smartputs/commit/320176d4ba5c7553da83e67fbbdbe4e22c68072f))
+
 ## 0.1.1 (2026-08-18)
 
 Released to pick up a new version of a workspace dependency.

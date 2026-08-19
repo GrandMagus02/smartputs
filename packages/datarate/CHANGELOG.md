@@ -1,5 +1,13 @@
 # @smartput/datarate
 
+## 0.2.0 (2026-08-19)
+
+### Features
+
+- **core:** a compound unit is a target and a result unit ([ae3ab96](https://github.com/GrandMagus02/smartputs/commit/ae3ab96eb1131caa9da23b05fa06f69937195cf0))
+- **core:** give formatted its own display policy, EngineOptions.display ([f0a0b62](https://github.com/GrandMagus02/smartputs/commit/f0a0b623e58cad44ff5d41569b718b9ad49623d8))
+- **core:** give display its own precision policy and let a unit declare tight spacing ([1aade59](https://github.com/GrandMagus02/smartputs/commit/1aade59dd8e7be57806105507b531e6afbbb8e24))
+
 ## 0.1.1 (2026-08-18)
 
 Released to pick up a new version of a workspace dependency.

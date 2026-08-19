@@ -1,5 +1,11 @@
 # smartputs
 
+## 0.2.1 (2026-08-19)
+
+### Bug Fixes
+
+- **smartputs:** re-export the display policy Task 7 added to core ([8f34b2d](https://github.com/GrandMagus02/smartputs/commit/8f34b2daa961410c65f8a9bf10b94a81ea345751))
+
 ## 0.2.0 (2026-08-18)
 
 ### Features

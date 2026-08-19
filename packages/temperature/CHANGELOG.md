@@ -1,5 +1,12 @@
 # @smartput/temperature
 
+## 0.2.0 (2026-08-19)
+
+### Features
+
+- **core:** split a digit run inside a word, and re-lex a trailing in ([3fd5e7f](https://github.com/GrandMagus02/smartputs/commit/3fd5e7f6a788975b0e84c1fcfd6c3d38d2d19605))
+- **core:** give display its own precision policy and let a unit declare tight spacing ([1aade59](https://github.com/GrandMagus02/smartputs/commit/1aade59dd8e7be57806105507b531e6afbbb8e24))
+
 ## 0.1.1 (2026-08-18)
 
 Released to pick up a new version of a workspace dependency.

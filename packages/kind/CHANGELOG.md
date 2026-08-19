@@ -1,5 +1,13 @@
 # @smartput/kind
 
+## 0.3.0 (2026-08-19)
+
+### Features
+
+- **core:** fold adjacent descending quantities of a compound kind into a sum ([639025b](https://github.com/GrandMagus02/smartputs/commit/639025b621e6a97786a5cd1a275272fb5a7f1383))
+- **kind:** errors carry spans, and a mismatch names the operator and every pair tried ([512add1](https://github.com/GrandMagus02/smartputs/commit/512add1dbc8a139ebc868770e233785925991f60))
+- **kind:** add types-only contracts subpath and the second-pass opt-in fields ([050f558](https://github.com/GrandMagus02/smartputs/commit/050f558574e8136aaaea2ab34f3d02694261db1f))
+
 ## 0.2.0 (2026-08-18)
 
 ### Features

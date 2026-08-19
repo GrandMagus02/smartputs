@@ -1,5 +1,11 @@
 # @smartput/currency
 
+## 0.2.0 (2026-08-19)
+
+### Features
+
+- **core:** give display its own precision policy and let a unit declare tight spacing ([1aade59](https://github.com/GrandMagus02/smartputs/commit/1aade59dd8e7be57806105507b531e6afbbb8e24))
+
 ## 0.1.1 (2026-08-18)
 
 Released to pick up a new version of a workspace dependency.

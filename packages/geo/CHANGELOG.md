@@ -1,5 +1,12 @@
 # @smartput/geo
 
+## 0.2.0 (2026-08-19)
+
+### Features
+
+- **color:** add @smartput/color, colours as values and notations as units ([2951c78](https://github.com/GrandMagus02/smartputs/commit/2951c785cf5f124f1a620ef687be151399d5c90c))
+- **core:** give formatted its own display policy, EngineOptions.display ([f0a0b62](https://github.com/GrandMagus02/smartputs/commit/f0a0b623e58cad44ff5d41569b718b9ad49623d8))
+
 ## 0.1.1 (2026-08-18)
 
 Released to pick up a new version of a workspace dependency.
