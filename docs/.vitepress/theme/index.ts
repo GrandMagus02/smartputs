@@ -15,6 +15,7 @@ import SpDimensionInput from "./components/SpDimensionInput.vue";
 import SpDuration from "./components/SpDuration.vue";
 import SpEvaluate from "./components/SpEvaluate.vue";
 import SpExplain from "./components/SpExplain.vue";
+import SpFeatureGrid from "./components/SpFeatureGrid.vue";
 import SpField from "./components/SpField.vue";
 import SpGeoScore from "./components/SpGeoScore.vue";
 import SpHoliday from "./components/SpHoliday.vue";
@@ -54,6 +55,7 @@ export default {
     app.component("DemoShell", DemoShell);
     // The card grid: the packages catalog, and the examples index.
     app.component("SpCatalog", SpCatalog);
+    app.component("SpFeatureGrid", SpFeatureGrid);
     app.component("SpResult", SpResult);
     app.component("SpEvaluate", SpEvaluate);
     app.component("SpSuggest", SpSuggest);

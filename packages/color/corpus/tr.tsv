@@ -1,0 +1,34 @@
+# input	kind	canonical	formatted
+# A hex literal cannot start a row: '#' opens a comment in a corpus file, so
+# "#3b82f6 in oklch" would be read as prose and silently assert nothing. Rows
+# that would lead with one are parenthesised — "(#3b82f6) in oklch" — which is
+# the same expression and is not a comment. Rows that lead with a notation, a
+# keyword or a number need no such help.
+#
+# See ja: no 'of' keyword, so no channel-read rows.
+(#3b82f6) çevir oklch	color	998438655	oklch(0.62308 0.18801 259.8145)
+(#3b82f6) çevir hsl	color	998438655	hsl(217.2193 91.2195% 59.8039%)
+(#3b82f6) çevir p3	color	998438655	color(display-p3 0.30473 0.50347 0.93383)
+(#3b82f6) çevir lab	color	998438655	lab(54.6189 8.7628 -65.7907)
+(#3b82f6) çevir xyz	color	998438655	color(xyz-d65 0.26419 0.23548 0.90345)
+(#3b82f680) çevir hex	color	998438528	#3b82f680
+(#fff) çevir hex	color	4294967295	#ffffff
+rgb(59 130 246) çevir hex	color	998438655	#3b82f6
+oklch(0.6 0.2 250) çevir hex	color	8516095	#0081f1
+hsl(200 100% 50%) çevir hex	color	11206655	#00aaff
+hwb(90 20% 10%) çevir hex	color	2363896831	#8ce633
+rgb 255 60 128 çevir hex	color	4282155263	#ff3c80
+rgb 255 60 128 / 50% çevir hex	color	4282155136	#ff3c8080
+oklch 0.6 0.2 250 çevir hex	color	8516095	#0081f1
+hsl 200 100% 50% çevir hex	color	11206655	#00aaff
+p3 1 0 0 çevir hex	color	4278190335	#ff0000
+rec2020 0.934 0.99 0.458 çevir hex	color	4009715455	#eeff66
+rebeccapurple çevir hex	color	1714657791	#663399
+rebeccapurple çevir oklch	color	1714657791	oklch(0.44027 0.1603 303.373)
+(#440000 + #004400) çevir hex	color	1145307391	#444400
+(#ffff00 - #00ff00) çevir hex	color	4278190335	#ff0000
+(#808080 * 2) çevir hex	color	4294967295	#ffffff
+2 * rgb(64 64 64) çevir hex	color	2155905279	#808080
+100 ton 100 doygunluk 50 parlaklık çevir hex	color	713031935	#2a8000
+255 kırmızı 0 yeşil 0 mavi çevir hex	color	4278190335	#ff0000
+0 ton 100 doygunluk 50 açıklık çevir hex	color	4278190335	#ff0000

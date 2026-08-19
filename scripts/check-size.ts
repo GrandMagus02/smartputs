@@ -1196,6 +1196,51 @@ export const BUDGETS: EntrySpec[] = [
   // from "a bug in the emitter" by class, and a query error that were a plain
   // `Error` would be indistinguishable from a `TypeError`. The floor is what
   // makes that visible if someone later "optimises" it away.
+  // The four `@smartput/color` rows, and the gap between the third and the
+  // others is the whole reason that package has a `/i18n` subpath.
+  //
+  // The root is core's graph plus `@urcolor/core` — a CSS Color 4 parser, the
+  // space registry and the serialiser — and the class door is the same library
+  // without the engine, which is why it measures *less* than the root rather
+  // than more. `/i18n` is 2.5 MB: `@urcolor/i18n` ships colour-naming data for
+  // 298 languages, and a consumer who pastes hex codes must never link it. That
+  // claim is this row, not the comment in `check-deps.ts` next to it — move one
+  // import of `ColorNames` into `src/color.ts` and the root row above jumps by
+  // a factor of thirty-five.
+  //
+  // `locale/en` is the fourth row and the one that would break silently: at
+  // ~2 KB it proves the vocabulary reaches neither decimal.js nor the colour
+  // library, which is what `@smartput/kind/vocabulary` and a type-only import
+  // of `SpaceId` buy. A root-barrel import in any of the seventeen locale files
+  // puts it over by a factor of twenty.
+  {
+    label: "color root (the kinds, the parser, no datasets)",
+    from: "@smartput/color",
+    names: ["color", "COLOR_KINDS"],
+    min: 71_450,
+    gzip: 27_100,
+  },
+  {
+    label: "color/class (upstream's Color, no engine)",
+    from: "@smartput/color/class",
+    names: ["Color", "colorValue"],
+    min: 59_000,
+    gzip: 23_200,
+  },
+  {
+    label: "color/i18n (298 languages of colour names — the opt-in cost)",
+    from: "@smartput/color/i18n",
+    names: ["loadColorNames", "channelWordsFor"],
+    min: 2_550_950,
+    gzip: 667_000,
+  },
+  {
+    label: "color/locale/en (notation words, no arithmetic and no colour library)",
+    from: "@smartput/color/locale/en",
+    names: ["default"],
+    min: 2_000,
+    gzip: 900,
+  },
   {
     label: "query root (grammar + schema, no dialect)",
     from: "@smartput/query",

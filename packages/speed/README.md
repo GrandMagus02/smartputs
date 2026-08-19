@@ -30,9 +30,9 @@ formatSpeed(parseSpeed("80 kph"))            // "80kph"
 String(Speed.parse("80 kph"))                // "80kph"
 
 // …and the same table through the engine:
-engine.evaluate("100 kph in mph").formatted  // "62.137119223733396961743418mph"
-engine.evaluate("10 knot in kph").formatted  // "18.52kph"
-engine.evaluate("60 mph").formatted          // "60mph"
+engine.evaluate("100 kph in mph").formatted  // "62.1371 mph"
+engine.evaluate("10 knot in kph").formatted  // "18.52 km/h"
+engine.evaluate("60 mph").formatted          // "60 mph"
 ```
 
 `parse` and `as` never throw — they answer `{ ok: true, … }` or

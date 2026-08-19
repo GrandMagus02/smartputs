@@ -28,7 +28,7 @@ formatPower(parsePower("750 W"))            // "750w"
 String(Power.parse("750 W"))                // "750w"
 
 // …and the same table through the engine:
-engine.evaluate("1 hp in W").formatted      // "745.69987158227022 watts"
+engine.evaluate("1 hp in W").formatted      // "745.6999 watts"
 engine.evaluate("2 kW in W").formatted      // "2,000 watts"
 engine.evaluate("750 W + 250 W").formatted  // "1,000 watts"
 ```

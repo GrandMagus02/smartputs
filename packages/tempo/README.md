@@ -29,7 +29,7 @@ String(Tempo.parse("120 bpm"))              // "120bpm"
 
 // …and the same table through the engine:
 engine.evaluate("120 bpm in hz").formatted  // "2 hertz"
-engine.evaluate("2 hz in bpm").formatted    // "120bpm"
+engine.evaluate("2 hz in bpm").formatted    // "120 bpm"
 ```
 
 `parse` and `as` never throw — they answer `{ ok: true, … }` or

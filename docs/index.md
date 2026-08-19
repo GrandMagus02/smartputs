@@ -4,10 +4,7 @@ layout: home
 hero:
   name: Smartputs
   text: Human input, evaluated.
-  tagline: >-
-    A TypeScript engine that parses and evaluates what people actually type —
-    units, durations, and arithmetic mixed together — and tells you how
-    confident it is.
+  tagline: Mixed units, durations, and arithmetic in, a confidence score out.
   actions:
     - theme: brand
       text: Get started
@@ -15,73 +12,6 @@ hero:
     - theme: alt
       text: Examples
       link: /guide/examples/
-    - theme: alt
-      text: Playground
-      link: /playground
-    - theme: alt
-      text: Packages
-      link: /packages/
-    - theme: alt
-      text: GitHub
-      link: https://github.com/GrandMagus02/smartputs
-
-features:
-  - icon: '<span class="i-hugeicons-calculator"></span>'
-    title: One expression, many kinds
-    details: >-
-      "1 kg + 500 g", "30 h - 30 min", "212 F in C", "100 km / 2 h". Cross-kind
-      operations are declared as signatures, so the evaluator never hardcodes a
-      domain.
-  - icon: '<span class="i-hugeicons-sliders-horizontal"></span>'
-    title: Ambiguity is data, not a failure
-    details: >-
-      "10 m" is genuinely ambiguous. Candidates stay open until the solver runs,
-      four layers of weights rank them, and explain() shows every term in the sum.
-  - icon: '<span class="i-hugeicons-cursor-text"></span>'
-    title: Completion, not just evaluation
-    details: >-
-      complete() ranks the units a half-typed fragment could become and rewrites
-      the whole input, so what it hands back always evaluates. Same weights, plus
-      a magnitude fit.
-  - icon: '<span class="i-hugeicons-money-01"></span>'
-    title: Money with the rates you supply
-    details: >-
-      @smartput/rate adds a currency kind whose ratios come from an injected,
-      dated table. A rate derived through the base currency is disclosed, never
-      implied.
-  - icon: '<span class="i-hugeicons-summation-01"></span>'
-    title: LaTeX math, with the working
-    details: >-
-      @smartput/math evaluates, solves and analyses LaTeX — systems, matrices,
-      calculus — exactly, and hands back the steps that got there. It reads the
-      expression out in English too.
-  - icon: '<span class="i-hugeicons-puzzle"></span>'
-    title: A new kind is five lines
-    details: >-
-      defineKind takes an id and a unit table. Aliases, arithmetic and "in"
-      conversion are generated. Built-ins register through the same public API.
-  - icon: '<span class="i-hugeicons-translate"></span>'
-    title: Built for inflected languages
-    details: >-
-      Recognition runs an analyzer chain, not an alias list, so "kilograms"
-      reaches "kilogram" without enumerating every form. Generation uses
-      Intl.PluralRules.
-  - icon: '<span class="i-hugeicons-binary-code"></span>'
-    title: Decimal all the way down
-    details: >-
-      Every value is a decimal.js Decimal in a canonical unit. A 23-significant-
-      digit input survives the whole pipeline intact.
-  - icon: '<span class="i-hugeicons-checkmark-square-01"></span>'
-    title: A 1.5 KB door for one field
-    details: >-
-      An HTML input asking whether "30deg" is valid does not need a registry and
-      a Pratt parser. Every kind ships an engine-free parseX, and its size is a
-      budget CI enforces.
-  - icon: '<span class="i-hugeicons-package"></span>'
-    title: One runtime dependency
-    details: >-
-      @smartput/core depends on decimal.js and nothing else. CI fails on a
-      second. Heavy kinds live in their own packages — one page each.
 ---
 
 <style>
@@ -95,9 +25,31 @@ features:
   padding-top: 0;
   margin-top: 48px;
 }
+/* The default anchor sits 24px down, matching the padding-top the divider
+   normally reserves. Dropping that padding without moving the anchor left it
+   floating under the heading instead of beside it. */
+.sp-home h2 .header-anchor {
+  top: 0;
+}
 </style>
 
 <div class="sp-home">
+
+## What it does
+
+<SpFeatureGrid :items="[
+  { icon: 'i-hugeicons-calculator', title: 'One expression, many kinds', summary: 'Cross-kind operations are signatures, not domain code. The evaluator never hardcodes a kind.', examples: ['1 kg + 500 g', '30 h - 30 min', '212 F in C', '100 km / 2 h'] },
+  { icon: 'i-hugeicons-sliders-horizontal', title: 'Ambiguity is data, not a failure', summary: 'Candidates stay open until the solver runs. Four weight layers rank them; explain() shows every term.', examples: ['10 m -&gt; 10 metres', '10 m -&gt; 10 minutes'] },
+  { icon: 'i-hugeicons-cursor-text', title: 'Completion, not just evaluation', summary: 'complete() ranks what a half-typed unit could become and rewrites the whole input. Same weights, plus a magnitude fit.', examples: ['30 ho', '5 kilog', '2 km in mil', '10 kg + 5 gram'] },
+  { icon: 'i-hugeicons-money-01', title: 'Money with the rates you supply', summary: 'A rate derived through the base currency is disclosed, never implied.', examples: ['30 usd in gbp'] },
+  { icon: 'i-hugeicons-paint-board', title: 'Colour is a kind, a notation is a unit', summary: 'CSS Color 4 in, any notation out. Channels are a kind of their own, so &quot;red of&quot; uses the operator core already has.', examples: ['#3b82f6 in oklch', 'rgb 255 60 128 in hex', 'red of #eeff66', '#eeff66 darken 20%'] },
+  { icon: 'i-hugeicons-summation-01', title: 'LaTeX math, with the working', summary: 'Evaluates, solves, and analyses LaTeX exactly, then hands back the steps. Reads the expression in English too.', examples: ['systems', 'matrices', 'calculus'] },
+  { icon: 'i-hugeicons-puzzle', title: 'A new kind is five lines', summary: 'defineKind takes an id and a unit table. Aliases, arithmetic, and &quot;in&quot; conversion are generated.', examples: ['defineKind({ id: &quot;css&quot; })'] },
+  { icon: 'i-hugeicons-translate', title: 'Built for inflected languages', summary: 'Recognition runs an analyzer chain, not an alias list. Generation uses Intl.PluralRules.', examples: ['kilograms -&gt; kilogram'] },
+  { icon: 'i-hugeicons-binary-code', title: 'Decimal all the way down', summary: 'Every value is a decimal.js Decimal in a canonical unit, end to end.', examples: ['23-digit input, intact'] },
+  { icon: 'i-hugeicons-checkmark-square-01', title: 'A 1.5 KB door for one field', summary: 'No registry, no Pratt parser. Every kind ships an engine-free parseX, sized to a budget CI enforces.', examples: ['30deg', 'parseLength(&quot;30 cm&quot;)', 'parseAmount(&quot;30 usd&quot;)'] },
+  { icon: 'i-hugeicons-package', title: 'One runtime dependency', summary: '@smartput/core depends on decimal.js, nothing else. Heavy kinds live in their own packages.', examples: [] },
+]" />
 
 ## Try it
 

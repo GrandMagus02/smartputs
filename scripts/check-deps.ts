@@ -210,6 +210,20 @@ const ALLOWED: Record<string, string[]> = {
   // engine entry, so there is no audience for it that does not want core, and
   // demoting it to a peer would trade a guarantee for nothing.
   "packages/boolean/package.json": ["@smartput/kind"],
+  // Three runtime dependencies, and the widening is the whole point of the
+  // package rather than a slip. `@smartput/color` owns no colour science at
+  // all: `@urcolor/core` parses CSS Color 4, converts between spaces and
+  // serialises, and `@urcolor/i18n` names a colour in 298 languages. What is
+  // left here is a kind descriptor, a literal matcher, a one-call formatter and
+  // an English vocabulary for the notations. Writing any of it locally to keep
+  // the count at one would mean a second implementation of Oklab in this repo.
+  //
+  // `@urcolor/i18n` is reachable only through `@smartput/color/i18n` — one
+  // file, `src/i18n.ts` — for the same reason `date-holidays` is reachable only
+  // through `@smartput/datetime/holiday`: the datasets are the expensive half,
+  // and a consumer who pastes hex codes should not link them. The bundle check
+  // below is what holds that claim rather than this comment.
+  "packages/color/package.json": ["@smartput/kind", "@urcolor/core", "@urcolor/i18n"],
   "packages/area/package.json": ["@smartput/kind", "@smartput/shared"],
   "packages/datasize/package.json": ["@smartput/kind", "@smartput/shared"],
   "packages/duration/package.json": ["@smartput/kind", "@smartput/shared"],

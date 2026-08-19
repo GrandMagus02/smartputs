@@ -233,6 +233,7 @@ page under [`docs/packages/`](docs/packages/).
 | [`@smartput/datarate`](docs/packages/datarate.md) | bit/s to Gbit/s, bridging data size and duration. |
 | [`@smartput/percent`](docs/packages/percent.md) | One unit, ratio 0.01. |
 | [`@smartput/boolean`](docs/packages/boolean.md) | The kind comparisons land in. |
+| [`@smartput/color`](docs/packages/color.md) | Colours as values, notations as units, channels as a kind. |
 
 **Time**
 

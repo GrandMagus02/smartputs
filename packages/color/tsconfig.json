@@ -1,0 +1,43 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "rootDir": "src",
+    // `@urcolor/*` ships `src` beside `dist` and lists the `bun` condition
+    // before `types` in its `exports`. This repo compiles with
+    // `customConditions: ["bun"]` — that is how a workspace package resolves a
+    // sibling's TypeScript source — so tsc follows the same condition into
+    // *upstream's* source and typechecks it against this repo's flags, which
+    // are stricter than upstream's own: `exactOptionalPropertyTypes` rejects
+    // its `ColorNameResolution`, and `noImplicitAny` rejects the generated
+    // `data/uwdata/*.js` chunks it imports without declarations. `skipLibCheck`
+    // does not help — those are `.ts` program inputs, not libs.
+    //
+    // The mapping is **extensionless on purpose**, and that is the whole
+    // ruling. `paths` is read by Bun's runtime and bundler as well as by tsc,
+    // and every value that named a file satisfied one reader and broke the
+    // other: pointed at `dist/index.d.ts`, `bun test` and `check-size` tried to
+    // execute a declaration file ("Could not resolve ./color/color"); pointed
+    // at `dist/index.js`, tsc stopped finding types at all — TS7016 on every
+    // import in the package. Extensionless, each reader appends the extension
+    // it wants — tsc takes `dist/index.d.ts`, Bun takes `dist/index.js` — and
+    // one value serves both.
+    //
+    // Nothing a consumer installs changes: `paths` is a compile-time and
+    // dev-time concern, and the emitted `.d.ts` still imports `@urcolor/core`
+    // by name.
+    //
+    // Delete this block once `@urcolor/*` lists `types` before `bun` in its
+    // `exports`. tsc reads conditions in order and would then take the
+    // declarations on its own, while Bun, which ignores `types`, would keep
+    // taking `src`. That ordering is right for a dependency; the opposite
+    // ordering this repo uses for its own packages exists because a package
+    // emitting its own `.d.ts` into `dist` hits TS5055 when tsc pulls that
+    // sibling file into the program that produces it.
+    "paths": {
+      "@urcolor/core": ["./node_modules/@urcolor/core/dist/index"],
+      "@urcolor/i18n": ["./node_modules/@urcolor/i18n/dist/index"]
+    }
+  },
+  "include": ["src/**/*"]
+}

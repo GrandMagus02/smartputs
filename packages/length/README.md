@@ -32,7 +32,7 @@ String(Length.parse("12 cm"))              // "12cm"
 // …and the same table through the engine:
 engine.evaluate("2 km in m").formatted     // "2,000 metres"
 engine.evaluate("12 inch").formatted       // "12 inches"
-engine.evaluate("1 mi + 500 m").formatted  // "1.3106855961186669848087171 miles"
+engine.evaluate("1 mi + 500 m").formatted  // "1.3107 miles"
 ```
 
 `parse` and `as` never throw — they answer `{ ok: true, … }` or

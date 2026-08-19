@@ -25,6 +25,7 @@ export const packagesSidebar: DefaultTheme.SidebarItem[] = [
       { text: "@smartput/angle", link: "/packages/angle" },
       { text: "@smartput/area", link: "/packages/area" },
       { text: "@smartput/boolean", link: "/packages/boolean" },
+      { text: "@smartput/color", link: "/packages/color" },
       { text: "@smartput/datarate", link: "/packages/datarate" },
       { text: "@smartput/datasize", link: "/packages/datasize" },
       { text: "@smartput/duration", link: "/packages/duration" },

@@ -69,6 +69,13 @@ export const PACKAGE_CATALOG: readonly CatalogGroup[] = [
         icon: "i-hugeicons-checkmark-square-01",
       },
       {
+        title: "@smartput/color",
+        summary: "Colours as values, notations as units, channels as a kind.",
+        example: "#3b82f6 in oklch",
+        link: "/packages/color",
+        icon: "i-hugeicons-paint-board",
+      },
+      {
         title: "@smartput/datarate",
         summary: "bit/s to Gbit/s, bridging data size and duration.",
         example: "1 gbps in mbps",

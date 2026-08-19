@@ -9,6 +9,7 @@
     "preview": "vitepress preview"
   },
   "dependencies": {
+    "@smartput/color": "workspace:*",
     "@smartput/core": "workspace:*",
     "@smartput/currency": "workspace:*",
     "@smartput/date": "workspace:*",

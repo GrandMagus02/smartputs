@@ -1,0 +1,37 @@
+# input	kind	canonical	formatted
+# A hex literal cannot start a row: '#' opens a comment in a corpus file, so
+# "#3b82f6 in oklch" would be read as prose and silently assert nothing. Rows
+# that would lead with one are parenthesised — "(#3b82f6) in oklch" — which is
+# the same expression and is not a comment. Rows that lead with a notation, a
+# keyword or a number need no such help.
+(#3b82f6) ke oklch	color	998438655	oklch(0.62308 0.18801 259.8145)
+(#3b82f6) ke hsl	color	998438655	hsl(217.2193 91.2195% 59.8039%)
+(#3b82f6) ke p3	color	998438655	color(display-p3 0.30473 0.50347 0.93383)
+(#3b82f6) ke lab	color	998438655	lab(54.6189 8.7628 -65.7907)
+(#3b82f6) ke xyz	color	998438655	color(xyz-d65 0.26419 0.23548 0.90345)
+(#3b82f680) ke hex	color	998438528	#3b82f680
+(#fff) ke hex	color	4294967295	#ffffff
+rgb(59 130 246) ke hex	color	998438655	#3b82f6
+oklch(0.6 0.2 250) ke hex	color	8516095	#0081f1
+hsl(200 100% 50%) ke hex	color	11206655	#00aaff
+hwb(90 20% 10%) ke hex	color	2363896831	#8ce633
+rgb 255 60 128 ke hex	color	4282155263	#ff3c80
+rgb 255 60 128 / 50% ke hex	color	4282155136	#ff3c8080
+oklch 0.6 0.2 250 ke hex	color	8516095	#0081f1
+hsl 200 100% 50% ke hex	color	11206655	#00aaff
+p3 1 0 0 ke hex	color	4278190335	#ff0000
+rec2020 0.934 0.99 0.458 ke hex	color	4009715455	#eeff66
+rebeccapurple ke hex	color	1714657791	#663399
+rebeccapurple ke oklch	color	1714657791	oklch(0.44027 0.1603 303.373)
+(#440000 + #004400) ke hex	color	1145307391	#444400
+(#ffff00 - #00ff00) ke hex	color	4278190335	#ff0000
+(#808080 * 2) ke hex	color	4294967295	#ffffff
+2 * rgb(64 64 64) ke hex	color	2155905279	#808080
+100 corak 100 saturasi 50 kecerahan ke hex	color	1442775295	#55ff00
+255 merah 0 hijau 0 biru ke hex	color	4278190335	#ff0000
+0 corak 100 saturasi 50 kecerahan ke hex	color	4278190335	#ff0000
+merah dari #eeff66	number	238	238
+hijau dari #eeff66	number	255	255
+biru dari #eeff66	number	102	102
+alfa dari #eeff66	number	100	100
+saturasi dari #eeff66	number	99.99999999999997	100

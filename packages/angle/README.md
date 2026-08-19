@@ -31,7 +31,7 @@ formatAngle(parseAngle("30 deg"))           // "30deg"
 String(Angle.parse("30 deg"))               // "30deg"
 
 // …and the same table through the engine:
-engine.evaluate("30 deg in rad").formatted  // "0.52359877559829887307710723 radians"
+engine.evaluate("30 deg in rad").formatted  // "0.5236 radians"
 engine.evaluate("1 turn in deg").formatted  // "360 degrees"
 engine.evaluate("90deg + 45deg").formatted  // "135 degrees"
 ```

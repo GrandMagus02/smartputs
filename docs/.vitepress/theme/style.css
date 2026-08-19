@@ -4,9 +4,11 @@
  *
  * The palette is the banner's: a magenta tube (#FF3FA4) and a cyan tube
  * (#2DE2FF) lit against a near-black violet (#090714), with the brain's amber
- * (#FFB13D) as the third light. The two pale tints the tubes throw — blush
- * #FFE9F5 and frost #EAFDFF — are the text colours in the dark and the page
- * surfaces in the light.
+ * (#FFB13D) as the third light. Blush, #FFE9F5, is the tube's throw and the
+ * text colour in the dark. `frost` keeps its old name but no longer carries
+ * the cyan throw in the light — it's a pink a shade darker than the page,
+ * #FFEEF8, so cards, buttons, and code blocks sit as a faint panel on top of
+ * the background instead of a blue one.
  */
 
 :root {
@@ -14,7 +16,7 @@
   --sp-cyan: #2de2ff;
   --sp-amber: #ffb13d;
   --sp-blush: #ffe9f5;
-  --sp-frost: #eafdff;
+  --sp-frost: #ffeef8;
   --sp-void: #090714;
 
   /* ------------------------------------------------------------- light --- */
@@ -52,7 +54,7 @@
   --vp-c-warning-3: var(--sp-amber);
   --vp-c-warning-soft: rgba(255, 177, 61, 0.16);
 
-  --vp-code-block-bg: #14102a;
+  --vp-code-block-bg: var(--vp-c-bg-soft);
 
   --vp-home-hero-name-color: transparent;
   --vp-home-hero-name-background: linear-gradient(
@@ -205,6 +207,7 @@
     0 0 6px rgba(255, 63, 164, 0.5),
     0 0 20px rgba(255, 63, 164, 0.25);
   filter: none;
+  animation: word-flicker 6.3s linear infinite;
 }
 
 /* On the dark page the tube is lit: a pale core inside a magenta throw. */
@@ -214,6 +217,51 @@
     0 0 6px rgba(255, 63, 164, 0.95),
     0 0 18px rgba(255, 63, 164, 0.75),
     0 0 42px rgba(255, 63, 164, 0.45);
+}
+
+/* Same tube, same fault: burns steady, then stutters twice per cycle like a
+   tube with a failing starter — lifted straight off the banner's wordmark. */
+@keyframes word-flicker {
+  0%,
+  54% {
+    opacity: 1;
+  }
+  55% {
+    opacity: 0.35;
+  }
+  56% {
+    opacity: 1;
+  }
+  57.5% {
+    opacity: 0.55;
+  }
+  58.5% {
+    opacity: 1;
+  }
+  60% {
+    opacity: 0.25;
+  }
+  61% {
+    opacity: 1;
+  }
+  62.5% {
+    opacity: 0.6;
+  }
+  63.5% {
+    opacity: 1;
+  }
+  85% {
+    opacity: 1;
+  }
+  85.8% {
+    opacity: 0.4;
+  }
+  86.6% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+  }
 }
 
 /* --------------------------------------------------------- neon horizon --- */
@@ -259,7 +307,11 @@
   top: 300px;
   left: -25%;
   width: 150%;
-  height: 420px;
+  /* perspective(320px) rotateX(62deg) folds the plane behind the camera past
+     local y ≈ 362px (where w hits 0) — taller than that and the invalid part
+     rasterizes as a smear stretching to the bottom of the page. 340px keeps
+     the whole box, mask included, inside the valid range. */
+  height: 340px;
   pointer-events: none;
   z-index: 0;
   background-image:
@@ -268,9 +320,35 @@
   background-size: 56px 56px;
   transform: perspective(320px) rotateX(62deg);
   transform-origin: 50% 0;
-  -webkit-mask-image: linear-gradient(180deg, transparent, #000 34%, transparent 92%);
-  mask-image: linear-gradient(180deg, transparent, #000 34%, transparent 92%);
+  /* Faded at both ends, solid through the middle: the top edge softens into
+     the horizon, the bottom edge softens out well before the fold. */
+  -webkit-mask-image: linear-gradient(
+    180deg,
+    transparent,
+    #000 40px,
+    #000 140px,
+    transparent 320px
+  );
+  mask-image: linear-gradient(
+    180deg,
+    transparent,
+    #000 40px,
+    #000 140px,
+    transparent 320px
+  );
   opacity: 0.55;
+  animation: grid-drift 16s linear infinite;
+}
+
+/* One tile's worth of drift per loop, so the seam between cycles is invisible;
+   16s keeps it a slow crawl rather than a scroll. */
+@keyframes grid-drift {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: 0 -56px;
+  }
 }
 
 @media (max-width: 960px) {
@@ -427,28 +505,7 @@
   box-shadow: 0 0 16px -6px var(--sp-magenta);
 }
 
-/* Feature icons on the home page: the `icon` frontmatter field renders raw
-   HTML, so an icon span needs a size the utility class does not carry. */
-.VPFeature .icon [class^="i-hugeicons-"] {
-  width: 22px;
-  height: 22px;
-}
-
-/* Every second feature icon takes the cyan tube instead of the magenta one,
-   so the grid of ten reads as two lights rather than one repeated ten times. */
-.VPFeature .icon {
-  color: var(--vp-c-brand-1);
-}
-
-.VPFeatures .items > div:nth-child(even) .VPFeature .icon {
-  color: var(--vp-c-tip-1);
-}
-
 /* -------------------------------------------------------------- chrome --- */
-
-.dark .VPNav {
-  border-bottom: 1px solid rgba(255, 63, 164, 0.14);
-}
 
 .dark .VPSidebarItem.is-active > .item > .link > .text,
 .dark .VPDocOutlineItem a.active {
@@ -460,5 +517,9 @@
   .sp-input,
   .sp-chip {
     transition: none;
+  }
+  .VPHero .name,
+  .VPHome::after {
+    animation: none;
   }
 }

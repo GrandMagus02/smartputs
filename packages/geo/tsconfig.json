@@ -1,5 +1,28 @@
 {
   "extends": "../../tsconfig.base.json",
-  "compilerOptions": { "outDir": "dist", "rootDir": "src" },
+  "compilerOptions": {
+    "outDir": "dist",
+    "rootDir": "src",
+    // `@smartput/color`'s own dependency on `@urcolor/*` reaches this
+    // package's typecheck the moment `ambiguity.test.ts` imports it:
+    // `customConditions: ["bun"]` follows every one of these three packages'
+    // `exports` into their `src`, which this repo's stricter flags reject —
+    // the same problem `packages/color/tsconfig.json` already pins around for
+    // `@urcolor/*`, explained there in full. `@smartput/color` needs the
+    // identical pin here, one level up, for the same reason.
+    //
+    // Extensionless on purpose, exactly as that file's mapping is: `paths` is
+    // read by Bun as well as by tsc, and a value ending in `.js` satisfies
+    // neither reliably — tsc resolves the file but then reports TS7016 on
+    // every import ("could not find a declaration file") despite the sibling
+    // `.d.ts` sitting right there. Left extensionless, tsc appends `.d.ts` and
+    // Bun appends `.js`, and both find what they need.
+    "paths": {
+      "@smartput/color": ["../color/dist/index"],
+      "@smartput/color/*": ["../color/dist/*"],
+      "@urcolor/core": ["../color/node_modules/@urcolor/core/dist/index"],
+      "@urcolor/i18n": ["../color/node_modules/@urcolor/i18n/dist/index"]
+    }
+  },
   "include": ["src/**/*"]
 }

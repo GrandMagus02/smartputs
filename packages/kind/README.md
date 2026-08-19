@@ -55,6 +55,7 @@ be edited after an engine has read it.
 | `@smartput/kind/decimal` | See the source for what this subpath carries. |
 | `@smartput/kind/freeze` | See the source for what this subpath carries. |
 | `@smartput/kind/errors` | See the source for what this subpath carries. |
+| `@smartput/kind/contracts` | See the source for what this subpath carries. |
 | `@smartput/kind/define` | See the source for what this subpath carries. |
 | `@smartput/kind/aliases` | See the source for what this subpath carries. |
 | `@smartput/kind/from-table` | See the source for what this subpath carries. |
@@ -81,6 +82,7 @@ graph as a triumph.
 | Import | Minified | Gzipped |
 | --- | --- | --- |
 | kind root (defineKind, with Decimal behind it) | ≤ 33.5 kB | ≤ 13.3 kB |
+| kind/contracts (types only — the proof of ruling R-F1) | ≤ 0 B | ≤ 0 B |
 | kind/vocabulary defineVocabulary only | ≤ 300 B | ≤ 250 B |
 
 ---

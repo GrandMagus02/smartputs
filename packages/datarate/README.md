@@ -30,8 +30,8 @@ formatDatarate(parseDatarate("100 mbps"))        // "100mbps"
 String(Datarate.parse("100 mbps"))               // "100mbps"
 
 // …and the same table through the engine:
-engine.evaluate("1 gbps in mbps").formatted      // "1,000mbps"
-engine.evaluate("100 mbps + 50 mbps").formatted  // "150mbps"
+engine.evaluate("1 gbps in mbps").formatted      // "1,000 mbps"
+engine.evaluate("100 mbps + 50 mbps").formatted  // "150 mbps"
 ```
 
 `parse` and `as` never throw — they answer `{ ok: true, … }` or

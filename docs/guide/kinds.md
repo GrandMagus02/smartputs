@@ -48,13 +48,14 @@ is `10kwh`, and neither `datasize` nor `power` knows the other kind exists.
 `boolean` has no words in any language and is the one built-in unit nobody
 types — a comparison produces it, and `bool` reaching a user would be a bug.
 
-Two more kinds ship but are **not** in `BUILTIN_KINDS`:
+Four more kinds ship but are **not** in `BUILTIN_KINDS`:
 
 | Kind | Where from | Validate | Why opt-in |
 | --- | --- | --- | --- |
 | `measure` | `@smartput/kinds` | `@smartput/measure/validate` | Typographic units — `inch` `mm` `cm` `pt` `pc` `px`. Its `mm`/`cm` aliases collide with `length`, so registering it by default would make `10 cm` ambiguous for everyone. Import it by name — and note the micro path has no such conflict: `parseLength` and `parseMeasure` are two functions someone called deliberately. |
 | `money` | [`@smartput/rate`](/api/rate) | — | Its unit ratios are not constants — they come from a rate table you inject. The micro path has no engine to inject one into, so there is nowhere for a hard-coded FX table to live that would not be worse than no feature. |
 | `datetime` | [`@smartput/datetime`](/packages/datetime) | — | `temporal-polyfill` and `chrono-node` together are several times the size of the engine. An engine that never sees a date should not carry them, and its recognition needs both — nothing on this path applies. |
+| `color` and `color-channel` | [`@smartput/color`](/packages/color) | — | A colour is a value and a notation is a unit, so `#3b82f6 in oklch` is the conversion `1 kg in g` is. Opt-in for two reasons: the colour science is `@urcolor/core`'s and an engine that never sees a colour should not link a CSS Color 4 parser, and the 148 CSS keywords include `tan`, `plum`, `gold` and `lime` — ordinary English words this kind weights down rather than deletes, but only for someone who asked for colours. Register both: `red of #eeff66` needs the channel kind, and forgetting it loses the reading silently. |
 
 `duration` lives in `@smartput/kinds` rather than in `@smartput/datetime`
 because it is a pure ratio kind — canonical seconds, no calendar.
@@ -200,28 +201,34 @@ An operation with no matching signature is a `DimensionMismatchError`:
 you add units or operations to a built-in without forking it.
 
 ```ts
-const extraColors = defineKind({
-  id: "color-extra",
-  extendsKind: "color",
-  value: { mode: "ratio", canonical: "#ff0000", units: { "#7f0000": 0.5 } },
+const imperialMass = defineKind({
+  id: "mass-imperial-extra",
+  extendsKind: "mass",
+  value: { mode: "ratio", canonical: "g", units: { st: 6350.29318 } },
 });
 ```
 
 Words are not part of the patch. A kind carries none in any language, so the
 names for the new units arrive the same way every other kind's do — as a
 `Vocabulary` naming the **base** kind, since that is the id the registry ends
-up holding:
+up holding. There is one vocabulary per (language, kind), so the patch's words
+go into the same table as the base kind's rather than beside it: two
+vocabularies for one kind in one language is a `VocabularyConflictError` at
+`createEngine()`.
 
 ```ts
-const ukColorNames = defineVocabulary({
-  locale: "uk",
-  kind: "color",
-  units: { "#ff0000": { aliases: ["червоний", "червона"] } },
+const massEnWithStone = defineVocabulary({
+  locale: "en",
+  kind: "mass",
+  units: {
+    ...massEn.units,
+    st: { aliases: ["st", "stone", "stones"], symbol: "st" },
+  },
 });
 
 const engine = createEngine({
-  kinds: [color, extraColors],
-  locales: [composeLocale(ukrainian, [ukColorNames])],
+  kinds: [...BUILTIN_KINDS, imperialMass],
+  locales: [composeLocale(english, [massEnWithStone])],
 });
 ```
 

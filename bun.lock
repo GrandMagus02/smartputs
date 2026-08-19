@@ -13,6 +13,7 @@
       "name": "@smartput/docs",
       "version": "0.0.0",
       "dependencies": {
+        "@smartput/color": "workspace:*",
         "@smartput/core": "workspace:*",
         "@smartput/currency": "workspace:*",
         "@smartput/date": "workspace:*",
@@ -43,7 +44,7 @@
     },
     "packages/angle": {
       "name": "@smartput/angle",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "dependencies": {
         "@smartput/kind": "workspace:*",
         "@smartput/shared": "workspace:*",
@@ -56,7 +57,7 @@
     },
     "packages/area": {
       "name": "@smartput/area",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "dependencies": {
         "@smartput/kind": "workspace:*",
         "@smartput/shared": "workspace:*",
@@ -70,7 +71,7 @@
     },
     "packages/boolean": {
       "name": "@smartput/boolean",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "dependencies": {
         "@smartput/kind": "workspace:*",
       },
@@ -83,9 +84,23 @@
         "@smartput/time": "workspace:*",
       },
     },
+    "packages/color": {
+      "name": "@smartput/color",
+      "version": "0.1.0",
+      "dependencies": {
+        "@smartput/kind": "workspace:*",
+        "@urcolor/core": "^2.0.1",
+        "@urcolor/i18n": "^2.0.1",
+      },
+      "devDependencies": {
+        "@smartput/core": "workspace:*",
+        "@smartput/kinds": "workspace:*",
+        "@smartput/number": "workspace:*",
+      },
+    },
     "packages/core": {
       "name": "@smartput/core",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "dependencies": {
         "@smartput/kind": "workspace:*",
         "decimal.js": "^10.6.0",
@@ -99,7 +114,7 @@
     },
     "packages/currency": {
       "name": "@smartput/currency",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "dependencies": {
         "@smartput/core": "workspace:*",
         "decimal.js": "^10.6.0",
@@ -107,7 +122,7 @@
     },
     "packages/datarate": {
       "name": "@smartput/datarate",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "dependencies": {
         "@smartput/kind": "workspace:*",
         "@smartput/shared": "workspace:*",
@@ -122,7 +137,7 @@
     },
     "packages/datasize": {
       "name": "@smartput/datasize",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "dependencies": {
         "@smartput/kind": "workspace:*",
         "@smartput/shared": "workspace:*",
@@ -135,7 +150,7 @@
     },
     "packages/date": {
       "name": "@smartput/date",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "dependencies": {
         "@smartput/core": "workspace:*",
         "@smartput/datetime": "workspace:*",
@@ -147,7 +162,7 @@
     },
     "packages/date-range": {
       "name": "@smartput/date-range",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "dependencies": {
         "@smartput/core": "workspace:*",
         "@smartput/date": "workspace:*",
@@ -161,7 +176,7 @@
     },
     "packages/datetime": {
       "name": "@smartput/datetime",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "dependencies": {
         "@smartput/core": "workspace:*",
         "@smartput/holiday": "workspace:*",
@@ -179,7 +194,7 @@
     },
     "packages/datetime-range": {
       "name": "@smartput/datetime-range",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "dependencies": {
         "@smartput/core": "workspace:*",
         "@smartput/date": "workspace:*",
@@ -195,7 +210,7 @@
     },
     "packages/distance": {
       "name": "@smartput/distance",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "dependencies": {
         "@smartput/core": "workspace:*",
         "decimal.js": "^10.6.0",
@@ -203,7 +218,7 @@
     },
     "packages/duration": {
       "name": "@smartput/duration",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "dependencies": {
         "@smartput/kind": "workspace:*",
         "@smartput/shared": "workspace:*",
@@ -215,7 +230,7 @@
     },
     "packages/energy": {
       "name": "@smartput/energy",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "dependencies": {
         "@smartput/kind": "workspace:*",
         "@smartput/shared": "workspace:*",
@@ -230,7 +245,7 @@
     },
     "packages/geo": {
       "name": "@smartput/geo",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "dependencies": {
         "@smartput/core": "workspace:*",
         "@smartput/distance": "workspace:*",
@@ -238,6 +253,7 @@
         "decimal.js": "^10.6.0",
       },
       "devDependencies": {
+        "@smartput/color": "workspace:*",
         "@smartput/core": "workspace:*",
         "@smartput/date": "workspace:*",
         "@smartput/date-range": "workspace:*",
@@ -262,7 +278,7 @@
     },
     "packages/kind": {
       "name": "@smartput/kind",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "dependencies": {
         "decimal.js": "^10.6.0",
       },
@@ -272,7 +288,7 @@
     },
     "packages/kinds": {
       "name": "@smartput/kinds",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "dependencies": {
         "@smartput/angle": "workspace:*",
         "@smartput/area": "workspace:*",
@@ -302,7 +318,7 @@
     },
     "packages/length": {
       "name": "@smartput/length",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "dependencies": {
         "@smartput/kind": "workspace:*",
         "@smartput/shared": "workspace:*",
@@ -314,7 +330,7 @@
     },
     "packages/mass": {
       "name": "@smartput/mass",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "dependencies": {
         "@smartput/kind": "workspace:*",
         "@smartput/shared": "workspace:*",
@@ -326,7 +342,7 @@
     },
     "packages/math": {
       "name": "@smartput/math",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "dependencies": {
         "@cortex-js/compute-engine": "^0.101.0",
         "@smartput/core": "workspace:*",
@@ -335,7 +351,7 @@
     },
     "packages/measure": {
       "name": "@smartput/measure",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "dependencies": {
         "@smartput/kind": "workspace:*",
         "@smartput/shared": "workspace:*",
@@ -348,7 +364,7 @@
     },
     "packages/number": {
       "name": "@smartput/number",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "dependencies": {
         "@smartput/kind": "workspace:*",
         "@smartput/shared": "workspace:*",
@@ -365,7 +381,7 @@
     },
     "packages/percent": {
       "name": "@smartput/percent",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "dependencies": {
         "@smartput/kind": "workspace:*",
         "@smartput/shared": "workspace:*",
@@ -378,7 +394,7 @@
     },
     "packages/power": {
       "name": "@smartput/power",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "dependencies": {
         "@smartput/kind": "workspace:*",
         "@smartput/shared": "workspace:*",
@@ -391,7 +407,7 @@
     },
     "packages/query": {
       "name": "@smartput/query",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "dependencies": {
         "@smartput/core": "workspace:*",
         "@smartput/kind": "workspace:*",
@@ -408,7 +424,7 @@
     },
     "packages/range": {
       "name": "@smartput/range",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "dependencies": {
         "@smartput/core": "workspace:*",
         "@smartput/number": "workspace:*",
@@ -419,7 +435,7 @@
     },
     "packages/range-core": {
       "name": "@smartput/range-core",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "dependencies": {
         "@smartput/core": "workspace:*",
         "@smartput/datetime": "workspace:*",
@@ -430,7 +446,7 @@
     },
     "packages/rate": {
       "name": "@smartput/rate",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "dependencies": {
         "@smartput/core": "workspace:*",
         "@smartput/currency": "workspace:*",
@@ -449,7 +465,7 @@
     },
     "packages/smartputs": {
       "name": "smartputs",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "dependencies": {
         "@smartput/core": "workspace:*",
       },
@@ -459,7 +475,7 @@
     },
     "packages/speed": {
       "name": "@smartput/speed",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "dependencies": {
         "@smartput/kind": "workspace:*",
         "@smartput/shared": "workspace:*",
@@ -474,7 +490,7 @@
     },
     "packages/temperature": {
       "name": "@smartput/temperature",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "dependencies": {
         "@smartput/kind": "workspace:*",
         "@smartput/shared": "workspace:*",
@@ -487,7 +503,7 @@
     },
     "packages/tempo": {
       "name": "@smartput/tempo",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "dependencies": {
         "@smartput/kind": "workspace:*",
         "@smartput/shared": "workspace:*",
@@ -501,7 +517,7 @@
     },
     "packages/time": {
       "name": "@smartput/time",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "dependencies": {
         "@smartput/core": "workspace:*",
         "@smartput/datetime": "workspace:*",
@@ -513,7 +529,7 @@
     },
     "packages/time-range": {
       "name": "@smartput/time-range",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "dependencies": {
         "@smartput/core": "workspace:*",
         "@smartput/range-core": "workspace:*",
@@ -531,7 +547,7 @@
     },
     "packages/volume": {
       "name": "@smartput/volume",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "dependencies": {
         "@smartput/kind": "workspace:*",
         "@smartput/shared": "workspace:*",
@@ -824,6 +840,8 @@
 
     "@smartput/boolean": ["@smartput/boolean@workspace:packages/boolean"],
 
+    "@smartput/color": ["@smartput/color@workspace:packages/color"],
+
     "@smartput/core": ["@smartput/core@workspace:packages/core"],
 
     "@smartput/currency": ["@smartput/currency@workspace:packages/currency"],
@@ -969,6 +987,10 @@
     "@unocss/transformer-variant-group": ["@unocss/transformer-variant-group@66.7.5", "", { "dependencies": { "@unocss/core": "66.7.5" } }, "sha512-iDmP3mM8J+IxuQf5Uh33zsi528xnGxTpKRJ0c+LCrqBTTkR2tZr4aCzNmJ0g29Js2yEOsyNXRRc8BNTuvgn0AA=="],
 
     "@unocss/vite": ["@unocss/vite@66.7.5", "", { "dependencies": { "@jridgewell/remapping": "^2.3.5", "@unocss/config": "66.7.5", "@unocss/core": "66.7.5", "@unocss/inspector": "66.7.5", "chokidar": "^5.0.0", "magic-string": "^0.30.21", "pathe": "^2.0.3", "tinyglobby": "^0.2.17", "unplugin-utils": "^0.3.1" }, "peerDependencies": { "vite": "^5.0.0-0 || ^6.0.0-0 || ^7.0.0-0 || ^8.0.0-0" } }, "sha512-1z1TBCNJCR2WzjPtjzmCHr8rtzXHosMjLdsCNe6Mzsfwiw044gzzLVuiEZO9vIjkI50lvQ+gIOxOiVQG0hGAeA=="],
+
+    "@urcolor/core": ["@urcolor/core@2.0.1", "", {}, "sha512-biNBdf/ojoorwtyZKzgJuAQBTLsMaphbXZuxbMAHE9KrxN+hmDrSUovlFzlqREuiAiG8HVLmP9B5h18s0TrT0Q=="],
+
+    "@urcolor/i18n": ["@urcolor/i18n@2.0.1", "", { "dependencies": { "@urcolor/core": "^2.0.1" } }, "sha512-Sh0COuDUsVKMIV7CQ4XEz9s7NlIS0exiu/BuLPJqxnWZqmKQFQTwgWbeQDgK/uE7EY0NGmGChfBz03iyDjVKOQ=="],
 
     "@vitejs/plugin-vue": ["@vitejs/plugin-vue@5.2.4", "", { "peerDependencies": { "vite": "^5.0.0 || ^6.0.0", "vue": "^3.2.25" } }, "sha512-7Yx/SXSOcQq5HiiV3orevHUFn+pmMB4cgbEkDYgnkUWb0WfeQ/wa2yFv6D5ICiCQOVpjA7vYDXrC7AGO8yjDHA=="],
 

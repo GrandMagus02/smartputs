@@ -30,7 +30,7 @@ String(Volume.parse("1.5 l"))              // "1.5l"
 // …and the same table through the engine:
 engine.evaluate("1 m3 in l").formatted     // "1,000 litres"
 engine.evaluate("500 ml + 1 l").formatted  // "1,500 millilitres"
-engine.evaluate("2 gal in l").formatted    // "7.570823568 litres"
+engine.evaluate("2 gal in l").formatted    // "7.5708 litres"
 ```
 
 `parse` and `as` never throw — they answer `{ ok: true, … }` or

@@ -5,7 +5,7 @@ description: Every published package, what it is, what it costs, and what it dep
 
 # Packages
 
-38 packages, one card each — the line under a package is what you
+39 packages, one card each — the line under a package is what you
 would type into it. Every table on the page a card opens is read from the source
 it describes — the manifest's `exports`, the kind's `UnitTable`, the rows of
 `check-size.ts` — so none of them can drift from the code without the build
@@ -55,6 +55,7 @@ are seven fields, each wired end to end.
 | [`@smartput/angle`](/packages/angle) | Degree, radian, gradian, turn — with a 30-digit π. | `90 deg in rad` |
 | [`@smartput/area`](/packages/area) | Square metres, hectares, acres. | `1 ha in m2` |
 | [`@smartput/boolean`](/packages/boolean) | The kind comparisons land in. | `1 kg > 900 g` |
+| [`@smartput/color`](/packages/color) | Colours as values, notations as units, channels as a kind. | `#3b82f6 in oklch` |
 | [`@smartput/core`](/packages/core) | The engine: normalize, tokenize, parse, solve, eval, print. | `1 kg + 500 g` |
 | [`@smartput/currency`](/packages/currency) | Currency recognition and formatting, with no rate table. | `30 usd` |
 | [`@smartput/datarate`](/packages/datarate) | bit/s to Gbit/s, bridging data size and duration. | `1 gbps in mbps` |

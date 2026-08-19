@@ -1,3 +1,5 @@
+import { COLOR_KINDS } from "@smartput/color";
+import colorEn from "@smartput/color/locale/en";
 import type {
   Completion,
   Engine,
@@ -93,6 +95,24 @@ export const moneyEngine: Engine = createEngine({
   locales: [composeLocale(english, [...BUILTIN_EN, moneyEn])],
   kinds: [...BUILTIN_KINDS, money],
   rates: DOCS_RATES,
+});
+
+/**
+ * Colour, which is opt-in for the same reason `measure` is: it claims words.
+ *
+ * The 148 CSS keywords include `tan`, `plum`, `gold` and `lime`, and the kind
+ * keeps every one of those readings and weights it down rather than deleting
+ * it — which is right for someone who asked for colours and wrong for the
+ * default engine every other demo on this site runs against. So it gets an
+ * engine, not a place in `docsEngine`.
+ *
+ * Both kinds, because `red of #eeff66` resolves through
+ * `of | color-channel | color` and registering only the first loses that
+ * reading with no error.
+ */
+export const colorEngine: Engine = createEngine({
+  locales: [composeLocale(english, [...BUILTIN_EN, colorEn])],
+  kinds: [...BUILTIN_KINDS, ...COLOR_KINDS],
 });
 
 /**

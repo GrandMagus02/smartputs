@@ -1,0 +1,40 @@
+# input	kind	canonical	formatted
+# A hex literal cannot start a row: '#' opens a comment in a corpus file, so
+# "#3b82f6 in oklch" would be read as prose and silently assert nothing. Rows
+# that would lead with one are parenthesised — "(#3b82f6) in oklch" — which is
+# the same expression and is not a comment. Rows that lead with a notation, a
+# keyword or a number need no such help.
+#
+# 'درجة اللون' is two words for one channel, which is why matchChannelWord reads
+# up to two. Arabic is the only language in the set that needs the second.
+(#3b82f6) إلى oklch	color	998438655	oklch(0.62308 0.18801 259.8145)
+(#3b82f6) إلى hsl	color	998438655	hsl(217.2193 91.2195% 59.8039%)
+(#3b82f6) إلى p3	color	998438655	color(display-p3 0.30473 0.50347 0.93383)
+(#3b82f6) إلى lab	color	998438655	lab(54.6189 8.7628 -65.7907)
+(#3b82f6) إلى xyz	color	998438655	color(xyz-d65 0.26419 0.23548 0.90345)
+(#3b82f680) إلى hex	color	998438528	#3b82f680
+(#fff) إلى hex	color	4294967295	#ffffff
+rgb(59 130 246) إلى hex	color	998438655	#3b82f6
+oklch(0.6 0.2 250) إلى hex	color	8516095	#0081f1
+hsl(200 100% 50%) إلى hex	color	11206655	#00aaff
+hwb(90 20% 10%) إلى hex	color	2363896831	#8ce633
+rgb 255 60 128 إلى hex	color	4282155263	#ff3c80
+rgb 255 60 128 / 50% إلى hex	color	4282155136	#ff3c8080
+oklch 0.6 0.2 250 إلى hex	color	8516095	#0081f1
+hsl 200 100% 50% إلى hex	color	11206655	#00aaff
+p3 1 0 0 إلى hex	color	4278190335	#ff0000
+rec2020 0.934 0.99 0.458 إلى hex	color	4009715455	#eeff66
+rebeccapurple إلى hex	color	1714657791	#663399
+rebeccapurple إلى oklch	color	1714657791	oklch(0.44027 0.1603 303.373)
+(#440000 + #004400) إلى hex	color	1145307391	#444400
+(#ffff00 - #00ff00) إلى hex	color	4278190335	#ff0000
+(#808080 * 2) إلى hex	color	4294967295	#ffffff
+2 * rgb(64 64 64) إلى hex	color	2155905279	#808080
+100 درجة اللون 100 التشبع 50 السطوع إلى hex	color	713031935	#2a8000
+255 أحمر 0 أخضر 0 أزرق إلى hex	color	4278190335	#ff0000
+0 درجة اللون 100 التشبع 50 الإضاءة إلى hex	color	4278190335	#ff0000
+أحمر من #eeff66	number	238	238
+أخضر من #eeff66	number	255	255
+أزرق من #eeff66	number	102	102
+ألفا من #eeff66	number	100	100
+التشبع من #eeff66	number	99.99999999999997	100

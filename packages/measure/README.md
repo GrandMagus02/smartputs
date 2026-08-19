@@ -31,7 +31,7 @@ formatMeasure(parseMeasure("12 pt"))        // "12pt"
 String(Measure.parse("12 pt"))              // "12pt"
 
 // …and the same table through the engine:
-engine.evaluate("12 pt in mm").formatted    // "4.2333333333333333333333333 millimetres"
+engine.evaluate("12 pt in mm").formatted    // "4.2333 millimetres"
 engine.evaluate("1 pc in pt").formatted     // "12 points"
 engine.evaluate("72 pt in inch").formatted  // "1 inch"
 ```

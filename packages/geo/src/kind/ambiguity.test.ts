@@ -1,4 +1,23 @@
 import { expect, test } from "bun:test";
+import { defineColorKinds } from "@smartput/color";
+import { channelWordsFor } from "@smartput/color/i18n";
+import colorAr from "@smartput/color/locale/ar";
+import colorDe from "@smartput/color/locale/de";
+import colorEn from "@smartput/color/locale/en";
+import colorEs from "@smartput/color/locale/es";
+import colorFr from "@smartput/color/locale/fr";
+import colorHi from "@smartput/color/locale/hi";
+import colorId from "@smartput/color/locale/id";
+import colorIt from "@smartput/color/locale/it";
+import colorJa from "@smartput/color/locale/ja";
+import colorKo from "@smartput/color/locale/ko";
+import colorNl from "@smartput/color/locale/nl";
+import colorPl from "@smartput/color/locale/pl";
+import colorPt from "@smartput/color/locale/pt";
+import colorRu from "@smartput/color/locale/ru";
+import colorTr from "@smartput/color/locale/tr";
+import colorUk from "@smartput/color/locale/uk";
+import colorZh from "@smartput/color/locale/zh";
 import {
   buildRegistry,
   composeLocale,
@@ -237,6 +256,7 @@ type LanguageRow = readonly [
   number: Vocabulary,
   measure: Vocabulary,
   money: Vocabulary,
+  color: Vocabulary,
 ];
 
 /**
@@ -248,23 +268,23 @@ type LanguageRow = readonly [
  * the discovery check turns that into a failure rather than a silence.
  */
 const LANGUAGES: readonly LanguageRow[] = [
-  ["ar", coreAr, BUILTIN_AR, datetimeAr, numberAr, measureAr, moneyAr],
-  ["de", coreDe, BUILTIN_DE, datetimeDe, numberDe, measureDe, moneyDe],
-  ["en", coreEn, BUILTIN_EN, datetimeEn, numberEn, measureEn, moneyEn],
-  ["es", coreEs, BUILTIN_ES, datetimeEs, numberEs, measureEs, moneyEs],
-  ["fr", coreFr, BUILTIN_FR, datetimeFr, numberFr, measureFr, moneyFr],
-  ["hi", coreHi, BUILTIN_HI, datetimeHi, numberHi, measureHi, moneyHi],
-  ["id", coreId, BUILTIN_ID, datetimeId, numberId, measureId, moneyId],
-  ["it", coreIt, BUILTIN_IT, datetimeIt, numberIt, measureIt, moneyIt],
-  ["ja", coreJa, BUILTIN_JA, datetimeJa, numberJa, measureJa, moneyJa],
-  ["ko", coreKo, BUILTIN_KO, datetimeKo, numberKo, measureKo, moneyKo],
-  ["nl", coreNl, BUILTIN_NL, datetimeNl, numberNl, measureNl, moneyNl],
-  ["pl", corePl, BUILTIN_PL, datetimePl, numberPl, measurePl, moneyPl],
-  ["pt", corePt, BUILTIN_PT, datetimePt, numberPt, measurePt, moneyPt],
-  ["ru", coreRu, BUILTIN_RU, datetimeRu, numberRu, measureRu, moneyRu],
-  ["tr", coreTr, BUILTIN_TR, datetimeTr, numberTr, measureTr, moneyTr],
-  ["uk", coreUk, BUILTIN_UK, datetimeUk, numberUk, measureUk, moneyUk],
-  ["zh", coreZh, BUILTIN_ZH, datetimeZh, numberZh, measureZh, moneyZh],
+  ["ar", coreAr, BUILTIN_AR, datetimeAr, numberAr, measureAr, moneyAr, colorAr],
+  ["de", coreDe, BUILTIN_DE, datetimeDe, numberDe, measureDe, moneyDe, colorDe],
+  ["en", coreEn, BUILTIN_EN, datetimeEn, numberEn, measureEn, moneyEn, colorEn],
+  ["es", coreEs, BUILTIN_ES, datetimeEs, numberEs, measureEs, moneyEs, colorEs],
+  ["fr", coreFr, BUILTIN_FR, datetimeFr, numberFr, measureFr, moneyFr, colorFr],
+  ["hi", coreHi, BUILTIN_HI, datetimeHi, numberHi, measureHi, moneyHi, colorHi],
+  ["id", coreId, BUILTIN_ID, datetimeId, numberId, measureId, moneyId, colorId],
+  ["it", coreIt, BUILTIN_IT, datetimeIt, numberIt, measureIt, moneyIt, colorIt],
+  ["ja", coreJa, BUILTIN_JA, datetimeJa, numberJa, measureJa, moneyJa, colorJa],
+  ["ko", coreKo, BUILTIN_KO, datetimeKo, numberKo, measureKo, moneyKo, colorKo],
+  ["nl", coreNl, BUILTIN_NL, datetimeNl, numberNl, measureNl, moneyNl, colorNl],
+  ["pl", corePl, BUILTIN_PL, datetimePl, numberPl, measurePl, moneyPl, colorPl],
+  ["pt", corePt, BUILTIN_PT, datetimePt, numberPt, measurePt, moneyPt, colorPt],
+  ["ru", coreRu, BUILTIN_RU, datetimeRu, numberRu, measureRu, moneyRu, colorRu],
+  ["tr", coreTr, BUILTIN_TR, datetimeTr, numberTr, measureTr, moneyTr, colorTr],
+  ["uk", coreUk, BUILTIN_UK, datetimeUk, numberUk, measureUk, moneyUk, colorUk],
+  ["zh", coreZh, BUILTIN_ZH, datetimeZh, numberZh, measureZh, moneyZh, colorZh],
 ];
 
 /**
@@ -381,6 +401,22 @@ const RATES = engineTable(([id, language, , , , , moneyWords]) =>
     kinds: [number, money, geo],
     format: id,
     rates,
+  }),
+);
+
+/**
+ * Color, also outside `BUILTIN_KINDS`. Its channel words come from
+ * `@urcolor/i18n` and are built per language through `channelWordsFor`, the
+ * same seam `packages/color/src/corpus.test.ts` builds its own engines
+ * through — so the kinds are constructed here rather than shared, and an
+ * engine speaking Ukrainian reads `насиченість` on the same path one speaking
+ * German reads `Sättigung`.
+ */
+const COLORS = engineTable(([id, language, , , numberWords, , , colorWords]) =>
+  createEngine({
+    locales: speaking(language, [numberWords, colorWords]),
+    kinds: [number, ...defineColorKinds({ channelWords: channelWordsFor([id]) }), geo],
+    format: id,
   }),
 );
 
@@ -761,9 +797,9 @@ const BUILTIN_CORPORA = [
  * Every corpus a language carries, generated from the language table rather
  * than listed.
  *
- * Twenty-one files per language: the engine's own corpus, the seventeen
- * built-in kinds', and one each for the three packages that need an engine
- * `@smartput/kinds` does not build. Listing 357 suites by hand would be a
+ * Twenty-two files per language: the engine's own corpus, the seventeen
+ * built-in kinds', and one each for the four packages that need an engine
+ * `@smartput/kinds` does not build. Listing 374 suites by hand would be a
  * transcription exercise whose only failure mode is a typo, and the discovery
  * check below already turns a file this generator misses into a red test.
  *
@@ -781,6 +817,7 @@ const LANGUAGE_SUITES: readonly Suite[] = LANGUAGES.flatMap(([id]) => [
   { file: `packages/datetime/corpus/${id}.tsv`, engine: engineFor(DATETIMES, id) },
   { file: `packages/measure/corpus/${id}.tsv`, engine: engineFor(MEASURES, id) },
   { file: `packages/rate/corpus/${id}.tsv`, engine: engineFor(RATES, id) },
+  { file: `packages/color/corpus/${id}.tsv`, engine: engineFor(COLORS, id) },
 ]);
 
 const SUITES: readonly Suite[] = [

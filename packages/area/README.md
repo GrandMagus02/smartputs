@@ -28,9 +28,9 @@ formatArea(parseArea("40 m2"))             // "40m2"
 String(Area.parse("40 m2"))                // "40m2"
 
 // …and the same table through the engine:
-engine.evaluate("1 ha in m2").formatted    // "10,000m²"
-engine.evaluate("40 m2 + 5 m2").formatted  // "45m²"
-engine.evaluate("2 acre in ha").formatted  // "0.80937128448 hectares"
+engine.evaluate("1 ha in m2").formatted    // "10,000 m²"
+engine.evaluate("40 m2 + 5 m2").formatted  // "45 m²"
+engine.evaluate("2 acre in ha").formatted  // "0.8094 hectares"
 ```
 
 `parse` and `as` never throw — they answer `{ ok: true, … }` or

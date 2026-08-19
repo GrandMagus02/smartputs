@@ -337,6 +337,49 @@ its \`mm\` and \`cm\` collide with \`length\`, so registering it is a decision
 rather than a default.`,
   }),
 
+  color: async () => ({
+    imports: [
+      'import { composeLocale, createEngine } from "@smartput/core";',
+      'import { english } from "@smartput/core/locale/en";',
+      'import { BUILTIN_KINDS } from "@smartput/kinds";',
+      'import BUILTIN_EN from "@smartput/kinds/locale/en";',
+      'import { COLOR_KINDS } from "@smartput/color";',
+      'import colorEn from "@smartput/color/locale/en";',
+      "",
+      "const engine = createEngine({",
+      "  locales: [composeLocale(english, [...BUILTIN_EN, colorEn])],",
+      "  kinds: [...BUILTIN_KINDS, ...COLOR_KINDS],",
+      "});",
+    ],
+    lines: [
+      'engine.evaluate("#3b82f6 in oklch").formatted',
+      'engine.evaluate("rgb 255 60 128 in hex").formatted',
+      'engine.evaluate("100 hue 100 sat 50 brightness in hex").formatted',
+      'engine.evaluate("red of #eeff66").formatted',
+      'engine.evaluate("#eeff66 darken 20% in hex").formatted',
+      'engine.evaluate("#eeff66 with 150 hue in hex").formatted',
+      'engine.evaluate("#440000 + #004400 in hex").formatted',
+    ],
+    scope: async () => {
+      const { createEngine, composeLocale } = await src("core", "index.ts");
+      const { english } = await src("core", "locale/en.ts");
+      const { BUILTIN_KINDS } = await src("kinds", "index.ts");
+      const EN = (await src("kinds", "locale/en.ts")).default;
+      const colorEn = (await src("color", "locale/en.ts")).default;
+      const { COLOR_KINDS } = await src("color", "index.ts");
+      return {
+        engine: createEngine({
+          locales: [composeLocale(english, [...EN, colorEn])],
+          kinds: [...BUILTIN_KINDS, ...COLOR_KINDS],
+        }),
+      };
+    },
+    note: `A notation is a unit, so \`in oklch\` is the conversion \`in g\` is.
+The colour science is \`@urcolor/core\`'s throughout; \`red of #eeff66\` is core's
+own \`of\` operator with a second kind on its left, and \`darken 20%\` is a phrase
+claimed by a literal matcher — neither needed a change to core.`,
+  }),
+
   boolean: async () => ({
     imports: ENGINE_PREAMBLE,
     lines: [

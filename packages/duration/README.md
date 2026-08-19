@@ -31,7 +31,7 @@ String(Duration.parse("90 min"))            // "90min"
 
 // …and the same table through the engine:
 engine.evaluate("30 h - 30 min").formatted  // "29.5 hours"
-engine.evaluate("1 wk + 2 d").formatted     // "1.2857142857142857142857143 weeks"
+engine.evaluate("1 wk + 2 d").formatted     // "1.2857 weeks"
 engine.evaluate("90 min in h").formatted    // "1.5 hours"
 ```
 

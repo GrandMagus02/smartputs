@@ -296,6 +296,46 @@ belong to a different kind, and registering both makes every \`12 cm\`
 ambiguous. \`px\` is the one ratio in the repo that is a function rather than a
 constant — it reads \`dpi\` off the parse context.`,
   ),
+  color: {
+    group: "Kinds",
+    summary: "Colours as values, notations as units, channels as a kind.",
+    body: `A colour is a value and a notation is a unit, so \`#3b82f6 in oklch\` is
+the same conversion \`1 kg in g\` is. The colour science is not here:
+[\`@urcolor/core\`](https://urcolor.vercel.app/) parses, converts, serialises,
+lightens and mixes, [\`@urcolor/i18n\`](https://urcolor.vercel.app/) names a
+colour in 298 languages, and this package is the seam — a kind descriptor, the
+literal matchers, five op signatures and the words for the notations.
+
+Two seams, because core has two. \`red of #eeff66\` puts a second kind
+(\`color-channel\`) on the left of the \`of\` operator that already exists;
+\`#eeff66 darken 20%\` is a whole phrase claimed by a literal matcher. Neither
+needed a line of core, which is the point.`,
+    after: `## Reading a colour
+
+Four ways in, all of them things people actually type:
+
+| Written | Example |
+| --- | --- |
+| CSS syntax | \`#3b82f6\`, \`rgb(59 130 246)\`, \`oklch(0.6 0.2 250)\` |
+| Bracketless | \`rgb 255 60 128\`, \`oklch 0.6 0.2 250\`, \`p3 1 0 0\` |
+| Named channels | \`100 hue 100 sat 50 brightness\` |
+| Words | \`rebeccapurple\`, and any term a loaded dataset knows |
+
+And four ways to work on one: the operators \`+\`, \`-\`, \`*\` and \`of\`, the verb
+phrases \`darken\` / \`lighten\` / \`saturate\` / \`desaturate\` / \`rotate\` /
+\`negate\` / \`mix\` / \`add\`, the \`with\` setter, and \`in\` for the notation.`,
+    subpaths: {
+      "./class":
+        "`Color` from `@urcolor/core`, and the two bridges between it and a `Value`.",
+      "./i18n":
+        "The colour-naming datasets, and the channel-word tables. 2.5 MB minified — which is why it is a subpath.",
+    },
+    see: [
+      ["Kinds and units", "/guide/kinds"],
+      ["Defining a kind", "/guide/defining-a-kind"],
+    ],
+  },
+
   boolean: {
     group: "Kinds",
     summary: "The kind comparisons land in.",
@@ -571,6 +611,13 @@ export const DEMOS: Record<string, string> = {
     "  :examples=\"['1 kg > 900 g', '1000 mb = 1 gb', '30 min < 1 h', '5 km != 5000 m']\" />",
   ].join("\n"),
 
+  color: [
+    "<SpEvaluate",
+    "  with-color",
+    '  model-value="#3b82f6 in oklch"',
+    "  :examples=\"['#3b82f6 in oklch', 'rgb 255 60 128 in hex', 'red of #eeff66', '#eeff66 darken 20%', '100 hue 100 sat 50 brightness in hex']\" />",
+  ].join("\n"),
+
   currency: "<SpMoney />",
   rate: "<SpMoney />",
 
@@ -635,6 +682,7 @@ export const EXAMPLES: Record<string, string> = {
   angle: "90 deg in rad",
   area: "1 ha in m2",
   boolean: "1 kg > 900 g",
+  color: "#3b82f6 in oklch",
   datarate: "1 gbps in mbps",
   datasize: "1 GiB in MiB",
   duration: "30 h - 30 min",
@@ -691,6 +739,7 @@ const GROUP_ICONS: Record<string, string> = {
 /** Per-package overrides, matching the result-card icons in `theme/engine.ts`. */
 const PACKAGE_ICONS: Record<string, string> = {
   angle: "i-hugeicons-triangle",
+  color: "i-hugeicons-paint-board",
   area: "i-hugeicons-square",
   datarate: "i-hugeicons-hard-drive",
   datasize: "i-hugeicons-hard-drive",
