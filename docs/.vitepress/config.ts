@@ -1,3 +1,4 @@
+import { readdirSync, statSync } from "node:fs";
 import { fileURLToPath, URL } from "node:url";
 import UnoCSS from "unocss/vite";
 import { defineConfig } from "vitepress";
@@ -5,6 +6,39 @@ import llmstxt from "vitepress-plugin-llms";
 import en from "./locales/en";
 
 const repoRoot = fileURLToPath(new URL("../..", import.meta.url));
+
+/**
+ * The newest mtime across every package's `dist`, folded into the dep
+ * optimizer's config below so that rebuilding the workspace invalidates the
+ * prebundle.
+ *
+ * Vite serves `/.vitepress/cache/deps/*.js?v=<hash>` as `immutable`, and it
+ * computes that hash from the lockfile and this config — never from the
+ * contents of a linked dependency. `@smartput/*` are workspace symlinks whose
+ * `dist` `docs:dev` rebuilds on every start, so the files behind that URL
+ * change while the URL does not: the server has the new bundle and every
+ * browser that ever loaded the page keeps the old one, forever, with no reload
+ * short of clearing the cache by hand. `vitepress dev --force` does not help —
+ * it rewrites the files and leaves the URL alone.
+ *
+ * Stamping the mtime in gives the hash something to move with. A rebuild that
+ * changed nothing leaves it alone, so the cache still survives an ordinary
+ * restart.
+ */
+function distStamp(): string {
+  let newest = 0;
+  for (const dir of readdirSync(`${repoRoot}/packages`)) {
+    try {
+      newest = Math.max(
+        newest,
+        statSync(`${repoRoot}/packages/${dir}/dist/index.js`).mtimeMs,
+      );
+    } catch {
+      // A package with no build yet, or none at this entry. Nothing to stamp.
+    }
+  }
+  return String(Math.round(newest));
+}
 
 export default defineConfig({
   title: "Smartputs",
@@ -94,6 +128,10 @@ export default defineConfig({
       // That scan is minutes; esbuild bundling the same graph is one second.
       // With the list below complete there is nothing left for it to find.
       noDiscovery: true,
+      // Not read by anything. It is here because Vite hashes `esbuildOptions`
+      // into the dep-cache key, and `distStamp` above is the only thing in this
+      // config that moves when a workspace package is rebuilt.
+      esbuildOptions: { define: { __SMARTPUT_DIST_STAMP__: `"${distStamp()}"` } },
       include: [
         "reka-ui",
         "katex",
