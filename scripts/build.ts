@@ -109,6 +109,61 @@ export async function buildPackage(
   return { ok: true, log: `${pkg.name} built ${bundled.outputs.length} file(s) + types` };
 }
 
+/**
+ * Which packages a package's declaration emit has to wait for.
+ *
+ * Almost nothing here needs ordering: `packages: "external"` leaves every
+ * cross-package import bare, so a bundle never reads a sibling's `dist`, and
+ * `tsc` normally resolves a sibling through its `exports` map, whose `bun`
+ * condition points at source. The exception is a tsconfig `paths` entry aimed
+ * at `../<sibling>/dist`, which `packages/geo` needs so that
+ * `ambiguity.test.ts` can import `@smartput/color` without pulling
+ * `@urcolor/*`'s source through this repo's stricter flags (the reason is
+ * written out in that file).
+ *
+ * A mapping like that turns a sibling's *emitted* `.d.ts` into a build input,
+ * and `buildAll` runs every package at once. The bundle half is fast and the
+ * tsc half is slow, so the loser of that race sees `../color/dist/locale/uk.js`
+ * with no `.d.ts` beside it yet and reports TS7016 on all nineteen locales — a
+ * failure that never reproduces locally, where a previous build left the
+ * declarations lying around, and failed every CI build and every release from
+ * the moment `@smartput/color` landed.
+ *
+ * Read from the tsconfigs rather than hardcoded, so the next package that needs
+ * the same pin is ordered without anyone remembering this.
+ */
+async function distPrerequisites(
+  dirs: readonly string[],
+): Promise<Map<string, string[]>> {
+  const known = new Set(dirs);
+  const edges = new Map<string, string[]>();
+
+  for (const dir of dirs) {
+    const file = Bun.file(`${rootDir}/${dir}/tsconfig.json`);
+    if (!(await file.exists())) continue;
+    // Comments are the norm in this repo's tsconfigs, and `JSON.parse` will not
+    // have them. Stripping line comments is enough — no path here contains `//`.
+    const text = (await file.text()).replace(/^\s*\/\/.*$/gm, "");
+    let config: { compilerOptions?: { paths?: Record<string, string[]> } };
+    try {
+      config = JSON.parse(text);
+    } catch {
+      continue;
+    }
+
+    const targets = Object.values(config.compilerOptions?.paths ?? {}).flat();
+    const needed = new Set<string>();
+    for (const target of targets) {
+      const match = /^\.\.\/([^/]+)\/dist\//.exec(target);
+      const other = match?.[1] === undefined ? undefined : `packages/${match[1]}`;
+      if (other !== undefined && other !== dir && known.has(other)) needed.add(other);
+    }
+    if (needed.size > 0) edges.set(dir, [...needed]);
+  }
+
+  return edges;
+}
+
 /** Builds every package. Returns false if any package failed. */
 export async function buildAll(options: BuildOptions = {}): Promise<boolean> {
   const manifests = packageManifests();
@@ -118,14 +173,37 @@ export async function buildAll(options: BuildOptions = {}): Promise<boolean> {
     return false;
   }
 
+  const dirs = manifests.map((manifest) => manifest.replace(/\/package\.json$/, ""));
+  const prerequisites = await distPrerequisites(dirs);
+
   // Spawned in parallel for the reason typecheck.ts gives: seventeen cold tsc
   // starts in series is most of a minute. Output is buffered and printed in
   // glob order so the log reads the same however the race lands.
-  const results = await Promise.all(
-    manifests.map((manifest) =>
-      buildPackage(manifest.replace(/\/package\.json$/, ""), options),
-    ),
-  );
+  //
+  // The one exception is a package whose tsconfig reads a sibling's emitted
+  // `dist` — see `distPrerequisites`. It waits, and only for what it named; a
+  // memoized promise per directory keeps everything else running at once and
+  // keeps a package from being built twice when two of them wait on it.
+  const started = new Map<string, Promise<BuildResult>>();
+  const build = (dir: string, waiting: readonly string[]): Promise<BuildResult> => {
+    const already = started.get(dir);
+    if (already !== undefined) return already;
+    if (waiting.includes(dir)) {
+      // Nothing produces one today, and a cycle here would hang the build
+      // rather than fail it, which is the worst way for it to be found.
+      throw new Error(`tsconfig paths cycle: ${[...waiting, dir].join(" → ")}`);
+    }
+    const started_ = (async () => {
+      await Promise.all(
+        (prerequisites.get(dir) ?? []).map((other) => build(other, [...waiting, dir])),
+      );
+      return buildPackage(dir, options);
+    })();
+    started.set(dir, started_);
+    return started_;
+  };
+
+  const results = await Promise.all(dirs.map((dir) => build(dir, [])));
 
   let ok = true;
   for (const result of results) {
