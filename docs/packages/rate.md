@@ -265,7 +265,7 @@ only an upper bound reports a vanished graph as a triumph.
 
 | Import | Minified | Gzipped |
 | --- | --- | --- |
-| rate/locale/en (a vocabulary outside the kind packages) | ≤ 36.0 kB | ≤ 14.2 kB |
+| rate/locale/en (a vocabulary outside the kind packages) | ≤ 36.1 kB | ≤ 14.2 kB |
 
 ## Dependencies
 

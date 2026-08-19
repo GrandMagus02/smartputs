@@ -6,6 +6,11 @@
 `tomorrow` is a date and `tomorrow at 3pm` is a datetime, and the two do not
 silently unify.
 
+Every grammar `@smartput/datetime` reads arrives here: `first friday next
+month`, `second monday in Aug 2027`, and the calendar intervals, which land
+on their first day — `next week` is the coming Monday, `next year` is
+1 January.
+
 ## Setup
 
 ```sh
@@ -60,7 +65,7 @@ graph as a triumph.
 
 | Import | Minified | Gzipped |
 | --- | --- | --- |
-| date | ≤ 146 kB | ≤ 51.0 kB |
+| date | ≤ 150 kB | ≤ 52.1 kB |
 
 ---
 

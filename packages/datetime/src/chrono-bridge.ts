@@ -1,5 +1,9 @@
 import type { MatchCtx } from "@smartput/core";
 import * as chrono from "chrono-node";
+import { type CalendarUnit, parseCalendarPhrase } from "./calendar-phrase";
+import { beforeOperator } from "./operator-cut";
+import { parseOrdinalWeekday } from "./ordinal-weekday";
+import { referenceFor } from "./reference";
 import { Temporal } from "./temporal";
 
 /**
@@ -47,84 +51,6 @@ export function accepts(text: string, isUnitAlias: (s: string) => boolean): bool
   const words = text.toLowerCase().match(LETTER_RUN) ?? [];
   if (words.length === 0) return LETTERLESS_OK.test(text.trim());
   return !words.every((w) => isUnitWord(w, isUnitAlias));
-}
-
-/**
- * Where the expression stops being a date and starts being an operator.
- *
- * chrono reads "today + 5 h" as one relative date-and-time and reports the whole
- * string as its match — which would fold the operator and its right operand into
- * the literal, destroying the `datetime + duration` reading the plugin exists to
- * provide. So the bridge never offers chrono anything past the first operator.
- *
- * `-` and `/` only count when whitespace-delimited, because both appear inside
- * dates chrono reads: the hyphens of "2026-03-01" and the slashes of "1/15/2026".
- * `*` appears in no date syntax, so it cuts wherever it stands. `+` cuts the
- * same way — which is what makes "today+3d" work — everywhere except inside a
- * written UTC offset, the one date syntax that contains one. Unspaced
- * "today-1d" is the residue of that asymmetry and is recorded in
- * m4-followups.md. Parentheses cut anywhere.
- *
- * `to`, `as` and `in` are here for exactly the same reason, and they matter for
- * exactly the same reason the ranges design (§5.1) needs them to: core's
- * `keywordFor` maps all three onto the `in` keyword, so they are operators in
- * this grammar even though they are spelled with letters. chrono does not know
- * that. It reads "10:00 to 20:00" and "today to friday" as *its own* notion of
- * a range — one result, `end` populated, the whole run claimed — and this
- * bridge only ever returns the start, so without the cut the literal swallowed
- * the keyword and the right endpoint and reported "10:00". `in | time | time`
- * and `in | date | date` never saw two operands because there was only ever
- * one token.
- *
- * They are whitespace-delimited on both sides, which is what keeps "in 3 days"
- * — where chrono's match *starts* with the word — intact, and what stops the
- * "in" of "into" from cutting. Spelling them in English here mirrors what
- * `PLURAL_SUFFIXES` above already does: `MatchCtx` carries a locale name and a
- * unit-alias predicate, not the locale's keyword table, so a bridge that wants
- * to know where an operator is has to know the words. Widening `MatchCtx` is
- * the real fix and is bigger than this milestone.
- */
-const OPERATOR_TAIL = /[()+*]|\s[-/]\s|\s(?:to|as|in)\s/g;
-
-/**
- * Runs where a `+` is part of a zone, not an operator: "3pm gmt+3", "3pm
- * utc+0530", "3pm +03:00". Without this the cut above would hand chrono "3pm
- * gmt" and leave "+3" to the solver, which reads it as adding a bare number to
- * a datetime — a dimension mismatch on input that names an ordinary zone.
- *
- * The bare `±HH:MM` form is protected only with its colon. `±HHMM` is left out
- * on purpose: "1000 +2000" is arithmetic a user might really type, and a colon
- * is not something any number in this grammar contains.
- */
-const OFFSET_SPAN =
-  /(?:gmt|utc)\s*[+-]\s*\d{1,2}(?:\s*:\s*\d{2}|\d{2})?|[+-]\d{2}:\d{2}/giu;
-
-function beforeOperator(rest: string): string {
-  const zones = [...rest.matchAll(OFFSET_SPAN)].map(
-    (m) => [m.index, m.index + m[0].length] as const,
-  );
-
-  for (const cut of rest.matchAll(OPERATOR_TAIL)) {
-    if (zones.some(([start, end]) => cut.index >= start && cut.index < end)) continue;
-    return rest.slice(0, cut.index);
-  }
-  return rest;
-}
-
-/**
- * chrono's reference has to be expressed in the *engine's* time zone, not the
- * host's, or an injected clock stops being deterministic: chrono fills implied
- * components (the date behind "3pm") from the reference's local wall clock, and
- * a JS Date's local wall clock is the machine's.
- */
-function referenceFor(ctx: MatchCtx): chrono.ParsingReference {
-  const zoned = Temporal.Instant.fromEpochMilliseconds(ctx.now).toZonedDateTimeISO(
-    ctx.timeZone,
-  );
-  return {
-    instant: new Date(ctx.now),
-    timezone: zoned.offsetNanoseconds / 60_000_000_000,
-  };
 }
 
 const WEEK_PHRASE = /\bweeks?\b/i;
@@ -193,6 +119,17 @@ export interface BridgeMatch {
    */
   hasDate: boolean;
   hasTime: boolean;
+  /**
+   * The calendar interval the phrase named, when it named one: "next week" is
+   * `"week"`, "second week Aug 2027" is `"week"`, "friday" is undefined.
+   *
+   * The value is still a single instant — the interval's opening midnight —
+   * because that is what a datetime is. The label is what lets
+   * `@smartput/datetime-range` close the interval without re-reading the words,
+   * exactly as `hasDate` and `hasTime` let `date` and `time` split the readings
+   * between them.
+   */
+  calendarUnit?: CalendarUnit;
 }
 
 /**
@@ -208,7 +145,59 @@ export function parseDateTime(
   offset: number,
   ctx: MatchCtx,
 ): BridgeMatch | null {
-  const rest = beforeOperator(input.slice(offset));
+  const raw = input.slice(offset);
+
+  // Ahead of chrono, not after it: chrono reads "second monday in Aug 2027" as
+  // a bare "monday" plus an unrelated "Aug 2027" and would win the longest-match
+  // sort with the wrong day. Ahead of `beforeOperator` too, because the `in` of
+  // "in Aug 2027" is a month the phrase names, not the conversion keyword the
+  // operator cut assumes it is — and only this grammar can tell the two apart,
+  // by whether what follows resolves to a month.
+  const ordinal = parseOrdinalWeekday(raw, ctx);
+  if (ordinal !== null && accepts(raw.slice(0, ordinal.length), ctx.isUnitAlias)) {
+    return {
+      zdt: ordinal.plain.toZonedDateTime(ctx.timeZone),
+      length: ordinal.length,
+      hasDate: true,
+      hasTime: ordinal.hasTime,
+    };
+  }
+
+  // The calendar-interval phrases, for the same reason and one more: chrono
+  // reads "next week" as the same weekday a week on, so this is a correction as
+  // well as an addition. `hasDate` is true — the phrase names a definite
+  // calendar day, the interval's first, which is what makes `@smartput/date`
+  // able to answer "next week" at all.
+  const calendar = parseCalendarPhrase(raw, ctx);
+  if (calendar !== null && accepts(raw.slice(0, calendar.length), ctx.isUnitAlias)) {
+    // "next week monday" is the week phrase with a day named inside it, and the
+    // snap is chrono's own — the same one that rescues the phrase from chrono's
+    // reading of it. A named day is a day, not an interval, so the unit label
+    // does not travel with it.
+    const snap =
+      calendar.unit === "week"
+        ? weekdaySnap(raw, raw.slice(0, calendar.length), calendar.zdt.toPlainDate(), ctx)
+        : null;
+    if (snap === null) {
+      return {
+        zdt: calendar.zdt,
+        length: calendar.length,
+        hasDate: true,
+        hasTime: false,
+        calendarUnit: calendar.unit,
+      };
+    }
+    if (accepts(raw.slice(0, snap.length), ctx.isUnitAlias)) {
+      return {
+        zdt: calendar.zdt.add({ days: snap.days }).startOfDay(),
+        length: snap.length,
+        hasDate: true,
+        hasTime: false,
+      };
+    }
+  }
+
+  const rest = beforeOperator(raw);
   if (rest.length === 0) return null;
 
   const results = chrono

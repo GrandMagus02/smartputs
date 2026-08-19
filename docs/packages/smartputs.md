@@ -104,7 +104,7 @@ only an upper bound reports a vanished graph as a triumph.
 
 | Import | Minified | Gzipped |
 | --- | --- | --- |
-| smartputs root (the facade over core) | ≤ 87.1 kB | ≤ 31.4 kB |
+| smartputs root (the facade over core) | ≤ 97.8 kB | ≤ 34.9 kB |
 
 ## Dependencies
 

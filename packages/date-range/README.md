@@ -2,7 +2,9 @@
 
 > `last week`, `March 3–7`, `between May and June`.
 
-Date endpoints plus the phrase table that resolves a named span to two of them.
+Date endpoints plus the phrase table that resolves a named span to two
+of them, and the ordinal-week grammar beside it: `second week Aug 2027` is the
+week that opens on that month's second Monday.
 
 ## Setup
 
@@ -44,7 +46,7 @@ engine.evaluate("whole week + 1 wk").formatted  // "2026-01-19 → 2026-01-25"
 
 Type-only exports are erased and do not appear here.
 
-`DATE_RANGE_KIND` · `DATE_RANGE_UNIT` · `DEFAULT_PHRASE_WEIGHT` · `PHRASES` · `createDateRange` · `dateRange` · `phraseAt` · `spanFor`
+`DATE_RANGE_KIND` · `DATE_RANGE_UNIT` · `DEFAULT_PHRASE_WEIGHT` · `PHRASES` · `createDateRange` · `dateRange` · `ordinalWeekAt` · `phraseAt` · `spanFor`
 
 ## Dependencies
 
@@ -62,7 +64,7 @@ graph as a triumph.
 
 | Import | Minified | Gzipped |
 | --- | --- | --- |
-| date-range | ≤ 150 kB | ≤ 52.0 kB |
+| date-range | ≤ 154 kB | ≤ 53.3 kB |
 
 ---
 

@@ -56,7 +56,7 @@ graph as a triumph.
 
 | Import | Minified | Gzipped |
 | --- | --- | --- |
-| range-core | ≤ 145 kB | ≤ 50.9 kB |
+| range-core | ≤ 149 kB | ≤ 52.0 kB |
 
 ---
 

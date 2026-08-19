@@ -5,13 +5,15 @@ description: "`last week`, `March 3–7`, `between May and June`."
 
 # @smartput/date-range
 
-Date endpoints plus the phrase table that resolves a named span to two of them.
+Date endpoints plus the phrase table that resolves a named span to two
+of them, and the ordinal-week grammar beside it: `second week Aug 2027` is the
+week that opens on that month's second Monday.
 
 ## Try it
 
 <SpRange
   model-value="last week"
-  :examples="['last week', 'whole week', 'March 3 - 7', 'from today until friday']" />
+  :examples="['last week', 'whole week', 'second week Aug 2027', 'from today until friday']" />
 
 ## Installing
 
@@ -29,7 +31,7 @@ npm add @smartput/date-range
 
 Type-only exports are erased and do not appear here.
 
-`DATE_RANGE_KIND` · `DATE_RANGE_UNIT` · `DEFAULT_PHRASE_WEIGHT` · `PHRASES` · `createDateRange` · `dateRange` · `phraseAt` · `spanFor`
+`DATE_RANGE_KIND` · `DATE_RANGE_UNIT` · `DEFAULT_PHRASE_WEIGHT` · `PHRASES` · `createDateRange` · `dateRange` · `ordinalWeekAt` · `phraseAt` · `spanFor`
 
 ## What it costs
 
@@ -40,7 +42,7 @@ only an upper bound reports a vanished graph as a triumph.
 
 | Import | Minified | Gzipped |
 | --- | --- | --- |
-| date-range | ≤ 150 kB | ≤ 52.0 kB |
+| date-range | ≤ 154 kB | ≤ 53.3 kB |
 
 ## Dependencies
 

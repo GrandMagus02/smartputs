@@ -43,7 +43,7 @@ only an upper bound reports a vanished graph as a triumph.
 
 | Import | Minified | Gzipped |
 | --- | --- | --- |
-| time | ≤ 146 kB | ≤ 51.0 kB |
+| time | ≤ 150 kB | ≤ 52.2 kB |
 
 ## Dependencies
 

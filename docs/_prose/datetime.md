@@ -55,6 +55,12 @@ Thursday, in **UTC**.
 | `2026-03-01 08:00` | `2026-03-01 08:00 UTC` |
 | `in 3 days` | `2026-01-18 00:00 UTC` |
 | `3 days ago` | `2026-01-12 00:00 UTC` |
+| `first friday next month` | `2026-02-06 00:00 UTC` |
+| `second monday in Aug 2027` | `2027-08-09 00:00 UTC` |
+| `last friday of this month` | `2026-01-30 00:00 UTC` |
+| `next week` | `2026-01-19 00:00 UTC` |
+| `next year` | `2027-01-01 00:00 UTC` |
+| `second week Aug 2027` | `2027-08-09 00:00 UTC` |
 
 Two behaviours worth stating outright, because both are choices:
 
@@ -64,6 +70,45 @@ Two behaviours worth stating outright, because both are choices:
 - **`next friday` is the Friday of the following week**, not tomorrow. That is
   how `chrono-node` reads a `next` modifier, and it is asserted in the corpus so
   an upgrade that changes it fails loudly rather than quietly.
+- **A phrase that names an interval resolves to its first day.** `next week` is
+  the coming Monday, `next month` is the 1st, `next year` is 1 January. chrono
+  reads all three as "the same date, one unit on" — `next week` from a Thursday
+  is the following Thursday — which is neither what the phrase means nor
+  something a range kind can build a span out of.
+
+### The grammars chrono does not have
+
+Three shapes are read by this package rather than by `chrono-node`, ahead of it
+rather than as a correction after it, so a phrase of one of these shapes never
+reaches the general parser at all:
+
+| Shape | Example | Resolves to |
+| --- | --- | --- |
+| ordinal weekday | `first friday next month`, `2nd wed of next month` | that day |
+| ordinal week | `second week Aug 2027`, `first week of next month` | that week's Monday |
+| calendar interval | `next week`, `last month`, `this year` | the interval's first day |
+
+The month is optional and so is the connector: `first friday next month`,
+`first friday of next month` and `first friday in next month` are one phrase,
+and a bare `first friday` counts inside the month the clock is in. `last` is the
+one ordinal that needs a month — `last friday` on its own is still chrono's
+Friday just gone, and `last friday of this month` is the 30th.
+
+Two rulings behind them:
+
+- **A month named without a year is the next one.** `3rd tuesday of september`
+  typed in January is the September ahead, not the one four months back. It is
+  the only place in the package that reads forward; `friday` is still the
+  nearest Friday and `3 days ago` is still in the past.
+- **An occurrence a month does not have is not a date.** February 2026 has four
+  Fridays, so `fifth friday of next month` claims nothing rather than rolling
+  into March or quietly returning the fourth.
+
+A phrase that names an interval also reports *which* interval, which is what
+lets [`@smartput/date-range`](/packages/date-range) and
+[`@smartput/datetime-range`](/packages/datetime-range) close it into a span
+without re-reading the words. `next week` is one Monday to `datetime`, seven
+days to a range kind, and the same Monday to both.
 
 <SpDatetime />
 
@@ -504,6 +549,18 @@ Deliberate, and recorded in `docs/superpowers/m4-followups.md`:
   declare one yet.
 - **No `DateTime` facade class.** `createFacade` generates `.to()` and `.scale()`
   from a ratio table an opaque kind does not have, so it refuses one outright.
+- **The ordinal and interval grammars are English too**, and for a sharper
+  reason than chrono: the ordinals, the weekday names and the words `of` and
+  `in` are spelled in this package, because `MatchCtx` carries a locale *name*
+  and a unit-alias predicate rather than the locale's word tables.
+- **The week starts on Monday here, and is a dial next door.**
+  `@smartput/range-core` has `weekStart` and `@smartput/date-range` passes it
+  through; this package sits below range-core and cannot import it, and
+  `parseDateTime` is a free function four packages call. Monday is range-core's
+  own default, so the two agree unless an embedder changes it.
+- **`whole week` and its siblings stay `date-range`'s.** They were never a
+  chrono phrase, so the bridge does not read them and neither does
+  `datetime-range`.
 - **No recurrence, no durations-as-dates, no historical zone names.**
 
 ## Next

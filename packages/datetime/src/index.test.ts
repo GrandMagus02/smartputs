@@ -17,15 +17,25 @@ test("the public surface is what the package promises", () => {
   // `datetime` uses — a second copy would drift on DST — and every package's
   // tests pin the same clock. Deep-importing `../datetime/src/value` instead
   // would work under bun and break the moment anything reads `dist`.
+  //
+  // The three ordinal exports are the same kind of cross-package loan.
+  // `@smartput/date-range` reads "second week Aug 2027" by counting the way
+  // "second monday in Aug 2027" counts here, and the two grammars have to agree
+  // about which September "of september" means; `parseMonthScope` and
+  // `referenceMonth` stay inside because nothing outside needs a month without
+  // an ordinal in front of it.
   expect(Object.keys(api).sort()).toEqual([
     "DATETIME_KIND",
+    "LAST_ORDINAL",
     "TEST_NOW",
     "TEST_ZONE",
     "Temporal",
     "addDuration",
     "createDatetime",
     "datetime",
+    "nthWeekdayOfMonth",
     "parseDateTime",
+    "parseOrdinalPhrase",
     "unwrap",
     "wrap",
   ]);

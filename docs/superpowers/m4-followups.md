@@ -123,3 +123,82 @@ adding zones has to override `format` as well.
   the same file's "two standing targets" section still asserts a new ratio kind
   is five lines. An opaque kind with a matcher is closer to fifty; the claim is
   about ratio kinds and remains true, and it is worth a sentence saying so.
+
+## Added 2026-08-19 — the ordinal and calendar-interval grammars
+
+Three shapes chrono has no rule for now run *ahead* of it in
+`parseDateTime`: the ordinal weekday (`first friday next month`,
+`second monday in Aug 2027`), the ordinal week (`second week Aug 2027`), and the
+calendar interval (`next week`, `last month`, `this year`). The counting is
+shared through `packages/datetime/src/ordinal.ts`, so `@smartput/datetime` and
+`@smartput/date-range` cannot disagree about which September "of september"
+means. The rulings, and what each of them defers:
+
+- **A phrase that names an interval resolves to the interval's first day, and
+  says which interval it was.** `next week` was the following Thursday under
+  chrono alone. `BridgeMatch.calendarUnit` is what lets
+  `@smartput/datetime-range` close the span without re-reading the words, the
+  same way `hasDate`/`hasTime` split the reading between `date` and `time`.
+  A consequence worth naming: those four phrases now come back with
+  `hasDate: true`, so `@smartput/date` claims them where it used to decline —
+  the comment in `date-range.ts` that explained the tiebreak by their
+  `hasDate: false` has been rewritten rather than left to rot.
+
+- **A week of a month is one that *starts* in it.** So the first week of August
+  2027 opens on the 2nd (the 1st is a Sunday, in July's last week) and the last
+  week of August 2027 closes on 5 September. Clipping either end would hand back
+  three days under a word that means seven. It also makes `second week Aug 2027`
+  and `second monday in Aug 2027` name the same day, which is the property the
+  two grammars are built to share.
+
+- **A month named without a year is the next one.** `parseMonthScope` is the one
+  place in the package that passes `forwardDate: true`; the bridge's own parse
+  stays backward-tolerant so `friday` is the nearest Friday. The asymmetry is
+  deliberate and is the most revisable ruling here.
+
+- **An occurrence a month does not have is not a date.** `fifth friday of next
+  month` claims nothing rather than rolling into March or clamping to the
+  fourth.
+
+- **`last` needs a month.** `last friday` and `last week` on their own are
+  chrono's and `date-range`'s respectively, and both have meant "the one just
+  gone" since M4. Only `last friday of August` counts backwards from a month.
+
+Deferred, and each says why:
+
+- **The week starts on Monday, and only here.** `@smartput/range-core` carries
+  the `weekStart` dial and `@smartput/date-range` passes it through to its own
+  copy of the count. This package sits below range-core and cannot import it,
+  and `parseDateTime` is a free function four packages call, so the dial would
+  have to be threaded through all of them. Monday is `DEFAULT_WEEK_START` over
+  there, so the two agree until an embedder changes it — at which point
+  `next week` and `second week Aug 2027` snap to Monday while `date-range`'s
+  phrase table snaps to Sunday. The real fix is a `SnapOptions` on `MatchCtx`,
+  which is the same widening the chrono-locale entry above wants.
+
+- **`whole week`, `whole month`, `whole day`, `one year`.** These were never
+  chrono phrases; they are `@smartput/date-range`'s own table. The bridge does
+  not read them, so `@smartput/datetime-range` does not either — the one place
+  the two range packages do not support the same strings.
+
+- **English, and more sharply than chrono is.** The ordinals, the weekday
+  names, the connectors `of` and `in`, and the interval words are all spelled in
+  `ordinal.ts` and `calendar-phrase.ts`. `MatchCtx` carries a locale name and a
+  unit-alias predicate, not the locale's word tables, which is the same gap
+  `OPERATOR_TAIL` and `PLURAL_SUFFIXES` already sit in.
+
+- **`next day` is not an interval.** It reads as tomorrow through chrono and
+  `datetime-range`'s tests pin it as a plain instant; adding a `day` row to the
+  interval table would turn it into a span for no gain, since `tomorrow` says
+  the same thing and `whole day` is `date-range`'s.
+
+- **The datetime-range calendar span is weighted to lose.**
+  `DEFAULT_CALENDAR_SPAN_WEIGHT` is +4 against `@smartput/date-range`'s +5, so
+  an engine carrying both answers `next week` with `2026-01-19 → 2026-01-25`
+  rather than with two midnights. The number is restated in
+  `calendar-span.test.ts` rather than imported: reaching for the constant would
+  make a devDependency cycle between the two range packages out of a one-number
+  fact. Those rows are therefore absent from
+  `packages/datetime-range/corpus/en.tsv` — `@smartput/geo`'s ambiguity suite
+  replays every row of that file against an engine that has both kinds, and a
+  corpus row is a claim about what a user gets.

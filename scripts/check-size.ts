@@ -490,6 +490,25 @@ export const BUDGETS: EntrySpec[] = [
   // trade is stated plainly rather than hidden in a total — ~100 B on fifteen
   // rows that were already paying for `@smartput/kind`, for an error that can
   // say which operator failed and where.
+  //
+  // 2026-08-19, the date grammars: nine ceilings move and no other row does,
+  // which is the finding again. `@smartput/datetime` grew by 3_731 B min — the
+  // ordinal words, the month scope, the nth-weekday arithmetic and the
+  // calendar-interval table — and every row that moved is a row whose bundle
+  // contains the bridge:
+  //
+  //   datetime root           148_564   datetime/holiday      1_582_732
+  //   date                    149_647   time                    149_933
+  //   range-core              148_976   date-range              153_885
+  //   time-range              151_256   datetime-range root     152_507
+  //   datetime-range holiday 1_595_235
+  //
+  // `date-range` moves furthest (+1_498 B over its previous ceiling) because it
+  // pays for the shared ordinal module *and* its own week-span grammar on top;
+  // `range-core` moves least, and moves at all only because the bridge it links
+  // got bigger. No vocabulary row and no `/validate` row moved by a byte, which
+  // is the wall holding: three new grammars in the date packages are invisible
+  // to a bundle that parses kilometres.
   {
     label: "angle/validate parseAngle only",
     from: "@smartput/angle/validate",
@@ -992,8 +1011,8 @@ export const BUDGETS: EntrySpec[] = [
     label: "datetime root (no holiday data)",
     from: "@smartput/datetime",
     names: ["datetime"],
-    min: 144_850,
-    gzip: 50_900,
+    min: 148_600,
+    gzip: 52_050,
     floor: 138_000,
   },
   {
@@ -1003,8 +1022,8 @@ export const BUDGETS: EntrySpec[] = [
     label: "datetime/holiday (the opt-in cost)",
     from: "@smartput/datetime/holiday",
     names: ["datetimeWithHolidays"],
-    min: 1_579_050,
-    gzip: 288_000,
+    min: 1_583_000,
+    gzip: 289_050,
   },
   {
     // The package alone, so the megabyte has an owner. Without this row the one
@@ -1035,10 +1054,10 @@ export const BUDGETS: EntrySpec[] = [
   //   time         +1_382 B    the same, plus the ns-of-day round trip
   //   time-range   +2_728 B    the dash race and the wrapping windows
   //   dt-range     +3_534 B    the window×day grid, `from`/`until`, endpoints
-  //   date-range   +4_781 B    the phrase table, the widest of the six
+  //   date-range   +5_321 B    the phrase table and the ordinal-week grammar
   //
   // That is the milestone's real size claim and the reason all six rows sit
-  // within 5 KB of each other: none of these packages ships a second date
+  // within 6 KB of each other: none of these packages ships a second date
   // library, and a row that jumped would mean one had.
   //
   // Every one carries the explicit floor the `datetime root` row carries, for
@@ -1054,16 +1073,16 @@ export const BUDGETS: EntrySpec[] = [
     label: "date",
     from: "@smartput/date",
     names: ["date"],
-    min: 145_950,
-    gzip: 50_950,
+    min: 149_650,
+    gzip: 52_100,
     floor: 138_000,
   },
   {
     label: "time",
     from: "@smartput/time",
     names: ["time"],
-    min: 146_250,
-    gzip: 51_050,
+    min: 149_950,
+    gzip: 52_200,
     floor: 138_000,
   },
   {
@@ -1074,24 +1093,24 @@ export const BUDGETS: EntrySpec[] = [
     label: "range-core",
     from: "@smartput/range-core",
     names: ["WINDOWS", "startOfWeek"],
-    min: 145_250,
-    gzip: 50_850,
+    min: 149_000,
+    gzip: 52_000,
     floor: 138_000,
   },
   {
     label: "date-range",
     from: "@smartput/date-range",
     names: ["dateRange"],
-    min: 149_600,
-    gzip: 52_050,
+    min: 153_900,
+    gzip: 53_300,
     floor: 138_000,
   },
   {
     label: "time-range",
     from: "@smartput/time-range",
     names: ["timeRange"],
-    min: 147_550,
-    gzip: 51_550,
+    min: 151_300,
+    gzip: 52_700,
     floor: 138_000,
   },
   {
@@ -1113,8 +1132,8 @@ export const BUDGETS: EntrySpec[] = [
     label: "datetime-range root (no holiday data)",
     from: "@smartput/datetime-range",
     names: ["datetimeRange"],
-    min: 148_350,
-    gzip: 51_900,
+    min: 152_550,
+    gzip: 53_150,
     floor: 138_000,
   },
   {
@@ -1131,8 +1150,8 @@ export const BUDGETS: EntrySpec[] = [
     label: "datetime-range holiday",
     from: "@smartput/datetime-range/holiday",
     names: ["datetimeRangeHoliday"],
-    min: 1_587_400,
-    gzip: 292_000,
+    min: 1_596_000,
+    gzip: 294_250,
   },
   {
     // The selection range, and the one range package that is not a hundred and

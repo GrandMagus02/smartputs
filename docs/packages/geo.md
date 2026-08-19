@@ -51,7 +51,7 @@ only an upper bound reports a vanished graph as a triumph.
 
 | Import | Minified | Gzipped |
 | --- | --- | --- |
-| geo root (search and ranking, no data at all) | ≤ 49.5 kB | ≤ 19.7 kB |
+| geo root (search and ranking, no data at all) | ≤ 49.6 kB | ≤ 19.8 kB |
 | geo providers (every adapter) | ≤ 9.7 kB | ≤ 3.4 kB |
 
 ## Dependencies

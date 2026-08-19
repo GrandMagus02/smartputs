@@ -21,3 +21,19 @@ today + 3 d	date	1768694400000000000	2026-01-18
 3 d + today	date	1768694400000000000	2026-01-18
 tomorrow - 1 d	date	1768435200000000000	2026-01-15
 today + 2 wk	date	1769644800000000000	2026-01-29
+# The ordinal-weekday grammar: a day the user named, with no clock time, so the
+# date reading claims it too.
+first friday next month	date	1770336000000000000	2026-02-06
+second monday in Aug 2027	date	1817769600000000000	2027-08-09
+last friday of this month	date	1769731200000000000	2026-01-30
+2nd wed of next month	date	1770768000000000000	2026-02-11
+first friday next month + 3 d	date	1770595200000000000	2026-02-09
+# The calendar-interval phrases resolve to the interval's first day, which is
+# what makes them answerable as a date at all.
+this week	date	1768176000000000000	2026-01-12
+next week	date	1768780800000000000	2026-01-19
+next month	date	1769904000000000000	2026-02-01
+next year	date	1798761600000000000	2027-01-01
+last year	date	1735689600000000000	2025-01-01
+second week Aug 2027	date	1817769600000000000	2027-08-09
+next week + 1 wk	date	1769385600000000000	2026-01-26

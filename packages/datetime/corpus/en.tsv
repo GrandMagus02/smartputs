@@ -20,6 +20,36 @@ last monday	datetime	1768176000000000000	2026-01-12 00:00 UTC
 2026-03-01 08:00	datetime	1772352000000000000	2026-03-01 08:00 UTC
 in 3 days	datetime	1768694400000000000	2026-01-18 00:00 UTC
 3 days ago	datetime	1768176000000000000	2026-01-12 00:00 UTC
+# The ordinal-weekday grammar, which chrono has no rule for and which therefore
+# runs ahead of it. The count is inside the month the phrase names; "of" and
+# "in" are optional, and the `in` here is a month rather than the conversion
+# keyword the operator cut usually reads it as.
+first friday next month	datetime	1770336000000000000	2026-02-06 00:00 UTC
+second monday in Aug 2027	datetime	1817769600000000000	2027-08-09 00:00 UTC
+3rd tuesday of september	datetime	1789430400000000000	2026-09-15 00:00 UTC
+first monday of the month	datetime	1767571200000000000	2026-01-05 00:00 UTC
+# "last friday" alone is still chrono's Friday just gone (above); with a month
+# it is that month's last Friday. 2026-01-31 is a Saturday.
+last friday of this month	datetime	1769731200000000000	2026-01-30 00:00 UTC
+# A clock time in the tail belongs to the user and is carried.
+first friday of next month at 9am	datetime	1770368400000000000	2026-02-06 09:00 UTC
+# The calendar-interval phrases, which chrono reads as "the same weekday a week
+# on" and this package reads as the interval's first day. `next week` was
+# 2026-01-22 under chrono alone; a week that starts on a Thursday is nobody's
+# week.
+this week	datetime	1768176000000000000	2026-01-12 00:00 UTC
+next week	datetime	1768780800000000000	2026-01-19 00:00 UTC
+last week	datetime	1767571200000000000	2026-01-05 00:00 UTC
+this month	datetime	1767225600000000000	2026-01-01 00:00 UTC
+next month	datetime	1769904000000000000	2026-02-01 00:00 UTC
+last month	datetime	1764547200000000000	2025-12-01 00:00 UTC
+next year	datetime	1798761600000000000	2027-01-01 00:00 UTC
+last year	datetime	1735689600000000000	2025-01-01 00:00 UTC
+# A week picked by its position in a month, resolved to that week's Monday.
+second week Aug 2027	datetime	1817769600000000000	2027-08-09 00:00 UTC
+# A weekday inside a week phrase still selects the day, and the week is the
+# snapped one — 2026-01-23 is the Friday of the week that opens on the 19th.
+next week friday	datetime	1769126400000000000	2026-01-23 00:00 UTC
 
 # datetime — arithmetic against core's duration kind
 today + 3 d	datetime	1768694400000000000	2026-01-18 00:00 UTC

@@ -421,7 +421,12 @@ for.`,
     summary: "A calendar day, with no time inside it.",
     body: `\`datetime\` truncated to a day and given its own kind id, so
 \`tomorrow\` is a date and \`tomorrow at 3pm\` is a datetime, and the two do not
-silently unify.`,
+silently unify.
+
+Every grammar \`@smartput/datetime\` reads arrives here: \`first friday next
+month\`, \`second monday in Aug 2027\`, and the calendar intervals, which land
+on their first day — \`next week\` is the coming Monday, \`next year\` is
+1 January.`,
     see: [["Dates and time zones", "/packages/datetime"]],
   },
   time: {
@@ -453,7 +458,9 @@ month\`) every range kind resolves against. No range kind of its own.`,
   "date-range": {
     group: "Ranges",
     summary: "`last week`, `March 3–7`, `between May and June`.",
-    body: "Date endpoints plus the phrase table that resolves a named span to two of them.",
+    body: `Date endpoints plus the phrase table that resolves a named span to two
+of them, and the ordinal-week grammar beside it: \`second week Aug 2027\` is the
+week that opens on that month's second Monday.`,
     see: [["Ranges", "/packages/range-core"]],
   },
   "time-range": {
@@ -467,7 +474,12 @@ month\`) every range kind resolves against. No range kind of its own.`,
     summary: "Full instants at both ends, holidays optional.",
     body: `The widest of the four. Its \`./holiday\` subpath carries the same
 opt-in cost as \`datetime\`'s, for the same reason and behind the same size
-row.`,
+row.
+
+It reads every calendar interval \`@smartput/date-range\` does — \`next week\`,
+\`second week Aug 2027\` — and deliberately loses to it when both kinds are
+registered, because a span of whole days reads better without two midnights in
+it.`,
     see: [["Ranges", "/packages/range-core"]],
   },
 
@@ -627,7 +639,7 @@ export const DEMOS: Record<string, string> = {
     "<SpRange",
     '  title="date, read through the range engine"',
     '  model-value="today"',
-    "  :examples=\"['today', 'tomorrow', 'next friday', '3 days ago']\" />",
+    "  :examples=\"['today', 'tomorrow', 'next friday', 'first friday next month', '3 days ago']\" />",
   ].join("\n"),
   time: [
     "<SpRange",
@@ -642,7 +654,7 @@ export const DEMOS: Record<string, string> = {
   "date-range": [
     "<SpRange",
     '  model-value="last week"',
-    "  :examples=\"['last week', 'whole week', 'March 3 - 7', 'from today until friday']\" />",
+    "  :examples=\"['last week', 'whole week', 'second week Aug 2027', 'from today until friday']\" />",
   ].join("\n"),
   "time-range": [
     "<SpRange",
@@ -652,7 +664,7 @@ export const DEMOS: Record<string, string> = {
   "datetime-range": [
     "<SpRange",
     '  model-value="yesterday morning"',
-    "  :examples=\"['yesterday morning', 'tomorrow afternoon', 'today 9am to 5pm']\" />",
+    "  :examples=\"['yesterday morning', 'tomorrow afternoon', 'today 9am to 5pm', 'from first friday next month to second monday in Aug 2027']\" />",
   ].join("\n"),
 
   distance: "<SpGeoScore />",

@@ -91,6 +91,11 @@ const examples = [
   "3 days ago",
   "last week",
   "18 aug 2026",
+  // A field like this is where the ordinal grammars earn their keep: nobody
+  // wants to open a calendar to find the first Friday of next month.
+  "first friday next month",
+  "second monday in Aug 2027",
+  "second week Aug 2027",
 ];
 </script>
 

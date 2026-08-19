@@ -54,7 +54,7 @@ week is exactly 604800 seconds.
 
 Type-only exports are erased and do not appear here.
 
-`DATETIME_KIND` · `TEST_NOW` · `TEST_ZONE` · `Temporal` · `addDuration` · `createDatetime` · `datetime` · `parseDateTime` · `unwrap` · `wrap`
+`DATETIME_KIND` · `LAST_ORDINAL` · `TEST_NOW` · `TEST_ZONE` · `Temporal` · `addDuration` · `createDatetime` · `datetime` · `nthWeekdayOfMonth` · `parseDateTime` · `parseOrdinalPhrase` · `unwrap` · `wrap`
 
 ## Dependencies
 
@@ -75,9 +75,9 @@ graph as a triumph.
 
 | Import | Minified | Gzipped |
 | --- | --- | --- |
-| datetime/locale/en (a vocabulary outside the kind packages) | ≤ 35.9 kB | ≤ 14.4 kB |
-| datetime root (no holiday data) | ≤ 145 kB | ≤ 50.9 kB |
-| datetime/holiday (the opt-in cost) | ≤ 1579 kB | ≤ 288 kB |
+| datetime/locale/en (a vocabulary outside the kind packages) | ≤ 36.0 kB | ≤ 14.4 kB |
+| datetime root (no holiday data) | ≤ 149 kB | ≤ 52.0 kB |
+| datetime/holiday (the opt-in cost) | ≤ 1583 kB | ≤ 289 kB |
 
 ---
 

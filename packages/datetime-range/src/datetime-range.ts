@@ -8,7 +8,7 @@ import {
   type Window,
   wrapRange,
 } from "@smartput/range-core";
-import { datetimeEndpoint, dayWindowAt, fromToAt } from "./phrases";
+import { calendarSpanAt, datetimeEndpoint, dayWindowAt, fromToAt } from "./phrases";
 
 export const DATETIME_RANGE_KIND = "datetime-range";
 
@@ -37,6 +37,12 @@ export interface DatetimeRangeOptions {
    * importing this module never reaches `date-holidays` (design §5.3).
    */
   parsers?: readonly EndpointParser[];
+  /**
+   * Weight on a calendar-interval claim — "next week", "second week Aug 2027".
+   * Separate from `weight` because these are the one phrases another kind reads
+   * better; see `DEFAULT_CALENDAR_SPAN_WEIGHT`.
+   */
+  calendarSpanWeight?: number;
   /**
    * Summed into every claim this kind makes. Positive by default; see
    * `DEFAULT_DATETIME_RANGE_WEIGHT` for why the sign is the opposite of
@@ -74,6 +80,23 @@ const stamp = (z: Temporal.ZonedDateTime) =>
 export const DEFAULT_DATETIME_RANGE_WEIGHT = 20;
 
 /**
+ * The weight on a calendar-interval claim, and the one number in this package
+ * chosen to *lose*.
+ *
+ * "next week" is a span of whole days, and `@smartput/date-range` says so in
+ * the format a person wants to read — `2026-01-19 → 2026-01-25`, not
+ * `2026-01-19 00:00 → 2026-01-26 00:00 UTC`. So in an engine carrying both
+ * kinds the day-granular reading has to win, and +4 against that package's
+ * `DEFAULT_PHRASE_WEIGHT` of +5 is what says so.
+ *
+ * It is still positive, and that is the other half: an engine carrying this
+ * kind and not `date-range` answers "next week" with the span rather than with
+ * the bare instant `datetime` reads at weight 0. The two packages support the
+ * same strings; which of them answers depends only on which is registered.
+ */
+export const DEFAULT_CALENDAR_SPAN_WEIGHT = 4;
+
+/**
  * `canonical` is the start instant, so ordering and comparison work without the
  * engine knowing what a range is — the trick `range-core` documents and
  * datetime plays with epoch nanoseconds.
@@ -108,6 +131,7 @@ export function createDatetimeRange(opts: DatetimeRangeOptions = {}): Kind {
   const windows = { ...WINDOWS, ...(opts.windows ?? {}) };
   const parsers = opts.parsers ?? [datetimeEndpoint];
   const weight = opts.weight ?? DEFAULT_DATETIME_RANGE_WEIGHT;
+  const calendarWeight = opts.calendarSpanWeight ?? DEFAULT_CALENDAR_SPAN_WEIGHT;
 
   const matcher: LiteralMatcher = (input, offset, ctx) => {
     const now = Temporal.Instant.fromEpochMilliseconds(ctx.now).toZonedDateTimeISO(
@@ -130,10 +154,26 @@ export function createDatetimeRange(opts: DatetimeRangeOptions = {}): Kind {
     };
   };
 
+  // A second matcher rather than a second reading out of the first, because the
+  // two carry different weights and a `LiteralMatch` has one.
+  const calendarMatcher: LiteralMatcher = (input, offset, ctx) => {
+    const span = calendarSpanAt(input, offset, ctx);
+    if (span === null) return null;
+    const value = build(input, span.start, span.end);
+    return {
+      kind: DATETIME_RANGE_KIND,
+      unit: DATETIME_RANGE_UNIT,
+      canonical: value.canonical,
+      ...(value.meta ? { meta: value.meta } : {}),
+      length: span.length,
+      weight: calendarWeight,
+    };
+  };
+
   return defineKind({
     id: DATETIME_RANGE_KIND,
     value: { mode: "opaque", units: [DATETIME_RANGE_UNIT] },
-    literals: [matcher],
+    literals: [matcher, calendarMatcher],
     ops: [],
     format: (value) => {
       const { start, end, zone } = unwrapRange(value);

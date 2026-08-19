@@ -42,3 +42,15 @@ whole week - 1 wk	date-range	1767571200000000000	2026-01-05 → 2026-01-11
 next month + 3 d	date-range	1770163200000000000	2026-02-04 → 2026-03-03
 this year - 1 d	date-range	1767139200000000000	2025-12-31 → 2026-12-30
 whole day + 2 wk	date-range	1769644800000000000	2026-01-29 → 2026-01-29
+# The ordinal-week grammar. A week of a month is one that *starts* in it, so
+# the count lines up with the ordinal-weekday grammar next door: the second week
+# of August 2027 begins on its second Monday.
+second week Aug 2027	date-range	1817769600000000000	2027-08-09 → 2027-08-15
+# 2027-08-01 is a Sunday, so August 2027 opens with a day belonging to July's
+# last week and its own first week starts on the 2nd.
+first week Aug 2027	date-range	1817164800000000000	2027-08-02 → 2027-08-08
+# And the last week of a month may end in the next one. A selected week is a
+# whole week.
+last week of Aug 2027	date-range	1819584000000000000	2027-08-30 → 2027-09-05
+first week of next month	date-range	1769990400000000000	2026-02-02 → 2026-02-08
+second week Aug 2027 + 1 wk	date-range	1818374400000000000	2027-08-16 → 2027-08-22

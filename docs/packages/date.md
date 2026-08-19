@@ -9,12 +9,17 @@ description: "A calendar day, with no time inside it."
 `tomorrow` is a date and `tomorrow at 3pm` is a datetime, and the two do not
 silently unify.
 
+Every grammar `@smartput/datetime` reads arrives here: `first friday next
+month`, `second monday in Aug 2027`, and the calendar intervals, which land
+on their first day — `next week` is the coming Monday, `next year` is
+1 January.
+
 ## Try it
 
 <SpRange
   title="date, read through the range engine"
   model-value="today"
-  :examples="['today', 'tomorrow', 'next friday', '3 days ago']" />
+  :examples="['today', 'tomorrow', 'next friday', 'first friday next month', '3 days ago']" />
 
 ## Installing
 
@@ -43,7 +48,7 @@ only an upper bound reports a vanished graph as a triumph.
 
 | Import | Minified | Gzipped |
 | --- | --- | --- |
-| date | ≤ 146 kB | ≤ 51.0 kB |
+| date | ≤ 150 kB | ≤ 52.1 kB |
 
 ## Dependencies
 

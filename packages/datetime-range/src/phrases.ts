@@ -1,5 +1,5 @@
 import type { MatchCtx } from "@smartput/core";
-import { parseDateTime, type Temporal } from "@smartput/datetime";
+import { type CalendarUnit, parseDateTime, type Temporal } from "@smartput/datetime";
 import { type EndpointParser, resolveEndpoint, type Window } from "@smartput/range-core";
 
 /**
@@ -226,4 +226,42 @@ export function fromToAt(
   }
 
   return null;
+}
+
+/**
+ * The plural `Temporal` takes for each interval, so closing one is a lookup
+ * rather than a switch.
+ */
+const CALENDAR_PLURAL: Record<CalendarUnit, "weeks" | "months" | "years"> = {
+  week: "weeks",
+  month: "months",
+  year: "years",
+};
+
+/**
+ * "next week", "last month", "second week Aug 2027" — the calendar intervals,
+ * as a span of instants.
+ *
+ * The reading comes back from `@smartput/datetime`'s bridge already resolved:
+ * the phrase's opening midnight as the value, and `calendarUnit` naming the
+ * interval it opened. This adds one unit to close it. Nothing here re-reads the
+ * words, which is what keeps "next week" meaning the same seven days to
+ * `datetime`, `date`, `date-range` and this kind.
+ *
+ * The end is exclusive, per design §3.1, and re-snapped to a day boundary
+ * because `add` preserves the wall clock and a wall clock is not guaranteed to
+ * have a midnight — `range-core`'s `dayStart` sets out why.
+ */
+export function calendarSpanAt(
+  input: string,
+  offset: number,
+  ctx: MatchCtx,
+): PhraseSpan | null {
+  const match = parseDateTime(input, offset, ctx);
+  if (match === null || match.calendarUnit === undefined) return null;
+  return {
+    start: match.zdt,
+    end: match.zdt.add({ [CALENDAR_PLURAL[match.calendarUnit]]: 1 }).startOfDay(),
+    length: match.length,
+  };
 }

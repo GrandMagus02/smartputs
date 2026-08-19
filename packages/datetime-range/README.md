@@ -6,6 +6,11 @@ The widest of the four. Its `./holiday` subpath carries the same
 opt-in cost as `datetime`'s, for the same reason and behind the same size
 row.
 
+It reads every calendar interval `@smartput/date-range` does — `next week`,
+`second week Aug 2027` — and deliberately loses to it when both kinds are
+registered, because a span of whole days reads better without two midnights in
+it.
+
 ## Setup
 
 ```sh
@@ -47,7 +52,7 @@ engine.evaluate("from today until friday").formatted  // "2026-01-15 00:00 → 2
 
 Type-only exports are erased and do not appear here.
 
-`DATETIME_RANGE_KIND` · `DATETIME_RANGE_UNIT` · `DEFAULT_DATETIME_RANGE_WEIGHT` · `createDatetimeRange` · `datetimeEndpoint` · `datetimeRange` · `dayWindowAt` · `fromToAt`
+`DATETIME_RANGE_KIND` · `DATETIME_RANGE_UNIT` · `DEFAULT_CALENDAR_SPAN_WEIGHT` · `DEFAULT_DATETIME_RANGE_WEIGHT` · `calendarSpanAt` · `createDatetimeRange` · `datetimeEndpoint` · `datetimeRange` · `dayWindowAt` · `fromToAt`
 
 ## Dependencies
 
@@ -67,8 +72,8 @@ graph as a triumph.
 
 | Import | Minified | Gzipped |
 | --- | --- | --- |
-| datetime-range root (no holiday data) | ≤ 148 kB | ≤ 51.9 kB |
-| datetime-range holiday | ≤ 1587 kB | ≤ 292 kB |
+| datetime-range root (no holiday data) | ≤ 153 kB | ≤ 53.1 kB |
+| datetime-range holiday | ≤ 1596 kB | ≤ 294 kB |
 
 ---
 

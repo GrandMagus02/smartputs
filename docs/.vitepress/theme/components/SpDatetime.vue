@@ -53,6 +53,15 @@ const examples = [
   "3 days ago",
   "today + 3 d",
   "tomorrow - today",
+  // The grammars chrono has no rule for. This engine registers `datetime` and
+  // nothing else, so each one answers as the single instant it names — the
+  // interval's first day for the last two, which is the whole point of them.
+  "first friday next month",
+  "second monday in Aug 2027",
+  "last friday of this month",
+  "next week",
+  "next year",
+  "second week Aug 2027",
   "3pm in japan",
   "3pm gmt+3",
   "GMT+5:30",

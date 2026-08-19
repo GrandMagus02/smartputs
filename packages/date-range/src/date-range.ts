@@ -14,6 +14,7 @@ import {
   unwrapRange,
   wrapRange,
 } from "@smartput/range-core";
+import { ordinalWeekAt } from "./ordinal-week";
 import { phraseAt, spanFor } from "./phrases";
 
 export const DATE_RANGE_KIND = "date-range";
@@ -41,11 +42,19 @@ export const DATE_RANGE_UNIT = "date-span";
  * exactly the same length, so `@smartput/datetime` claims the identical span and
  * the two readings tie at 0 — which is an `AmbiguityError`, not a range.
  *
- * The tiebreak goes to the phrase because chrono's own certainty says it should:
- * those matches carry `hasDate: false`, meaning chrono resolved a day the user
- * never named. "next month" names a month. `@smartput/date` already declines
- * them for that reason; this is the same ruling applied one layer up, where the
- * datetime reading is still in the contest.
+ * The tiebreak goes to the phrase because a month is not a day. "next month"
+ * names an interval, and the reading that returns one should win over the
+ * reading that returns a single instant inside it.
+ *
+ * `@smartput/datetime` used to make that argument for us — those four phrases
+ * came back from `parseDateTime` with `hasDate: false`, so `@smartput/date`
+ * declined them and only the datetime reading was left to outweigh. They now
+ * resolve to the interval's first day and carry `hasDate: true`, which is what
+ * lets a `date` engine answer "next week" at all, so this weight is now
+ * outrunning three readings rather than one: `datetime` at 0, `date` at -5 and
+ * `datetime-range`'s calendar span at +4. +5 still clears all three, and the
+ * last of them was chosen against this number — see
+ * `DEFAULT_CALENDAR_SPAN_WEIGHT` over there.
  *
  * +5 is the mirror of `RANGE_WEIGHTS.reading`, and it is deliberately small: a
  * gap of 1 already clears the 0.05 ambiguity epsilon after the softmax, so the
@@ -144,6 +153,34 @@ const phraseLiteral =
     };
   };
 
+/**
+ * "second week Aug 2027" — a week picked by its position in a month, rather
+ * than by its distance from now. The counting is `@smartput/datetime`'s, shared
+ * with "second monday in Aug 2027"; see `ordinal-week.ts` for which week of a
+ * month is the second one.
+ *
+ * A separate matcher from `phraseLiteral` because the phrase table is a fixed
+ * list of strings and this is a grammar: the month scope is open-ended, so
+ * there is nothing to enumerate. It carries the same weight for the same
+ * reason — nothing else claims the run today, and a claim that cannot lose is
+ * a claim that cannot be corrected.
+ */
+const ordinalWeekLiteral =
+  (opts: SnapOptions, weight: number): LiteralMatcher =>
+  (input, offset, ctx) => {
+    const match = ordinalWeekAt(input, offset, ctx, opts);
+    if (match === null) return null;
+    const value = build(input, match.span.start, match.span.end);
+    return {
+      kind: DATE_RANGE_KIND,
+      unit: DATE_RANGE_UNIT,
+      canonical: value.canonical,
+      ...(value.meta ? { meta: value.meta } : {}),
+      length: match.length,
+      weight,
+    };
+  };
+
 /** Both ends move by the same amount, so a shift preserves the span exactly. */
 function shift(input: string, range: Value, duration: Value, sign: 1 | -1): Value {
   const { start, end } = unwrapRange(range);
@@ -167,7 +204,10 @@ export function createDateRange(opts: DateRangeOptions = {}): Kind {
   return defineKind({
     id: DATE_RANGE_KIND,
     value: { mode: "opaque", units: [DATE_RANGE_UNIT] },
-    literals: [phraseLiteral(opts, opts.phraseWeight ?? DEFAULT_PHRASE_WEIGHT)],
+    literals: [
+      phraseLiteral(opts, opts.phraseWeight ?? DEFAULT_PHRASE_WEIGHT),
+      ordinalWeekLiteral(opts, opts.phraseWeight ?? DEFAULT_PHRASE_WEIGHT),
+    ],
     ops: [
       {
         // `to` and `as` are surface words for `in`, so "today to friday" and

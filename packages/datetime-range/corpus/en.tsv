@@ -46,3 +46,16 @@ through 20:00	datetime-range	1768478400000000000	2026-01-15 12:00 → 2026-01-15
 until tomorrow	datetime-range	1768478400000000000	2026-01-15 12:00 → 2026-01-16 00:00 UTC
 until friday	datetime-range	1768478400000000000	2026-01-15 12:00 → 2026-01-16 00:00 UTC
 until 2026-03-01	datetime-range	1768478400000000000	2026-01-15 12:00 → 2026-03-01 00:00 UTC
+# The ordinal grammars read as endpoints, because the endpoint parser is
+# `@smartput/datetime`'s bridge and both grammars live in it.
+from first friday next month to second monday in Aug 2027	datetime-range	1770336000000000000	2026-02-06 00:00 → 2027-08-09 00:00 UTC
+#
+# The calendar intervals this kind also claims — "next week", "last month",
+# "second week Aug 2027" — are *not* recorded here, and their absence is the
+# ruling rather than an oversight. They are weighted +4 against
+# `@smartput/date-range`'s +5 on purpose (see `DEFAULT_CALENDAR_SPAN_WEIGHT`),
+# so they read as a `date-range` in any engine carrying both kinds — including
+# the one `@smartput/geo`'s ambiguity suite replays every row of this file
+# against. A corpus row is a claim about what a user gets, and what a user gets
+# for those phrases depends on which range kinds are registered. `calendar-span.
+# test.ts` pins them against an engine that names its kinds.
