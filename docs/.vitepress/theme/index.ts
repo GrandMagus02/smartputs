@@ -1,6 +1,6 @@
 import type { Theme } from "vitepress";
 import DefaultTheme from "vitepress/theme";
-import { h } from "vue";
+import { defineAsyncComponent, h } from "vue";
 import DemoShell from "./components/DemoShell.vue";
 import HeroCalculator from "./components/HeroCalculator.vue";
 import PageActions from "./components/PageActions.vue";
@@ -90,5 +90,12 @@ export default {
     app.component("SpDateField", SpDateField);
     app.component("SpCommandPalette", SpCommandPalette);
     app.component("SpPastedColumn", SpPastedColumn);
+    // The lab, alone among these, is loaded on demand. It reaches seventeen
+    // languages of every kind's words plus a Supabase client, and a static
+    // import would put all of that in the chunk every page of the site shares.
+    app.component(
+      "SpLab",
+      defineAsyncComponent(() => import("./components/SpLab.vue")),
+    );
   },
 } satisfies Theme;

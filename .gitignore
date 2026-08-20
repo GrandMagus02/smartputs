@@ -1,6 +1,9 @@
 node_modules/
 dist/
 .size-tmp/
+# Scratch files a test writes beside its source, because a generated schema has
+# to sit where `@smartput/query` resolves in order to be imported back.
+*.tmp.ts
 .publish/
 *.tsbuildinfo
 .DS_Store
@@ -18,3 +21,5 @@ docs/.vitepress/.temp/
 .claude/worktrees/
 graphify-out/
 .vercel
+# The example is documentation, not a credential — it holds placeholders only.
+!.env.example

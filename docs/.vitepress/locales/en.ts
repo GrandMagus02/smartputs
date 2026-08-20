@@ -23,6 +23,7 @@ export const en: LocaleSpecificConfig<DefaultTheme.Config> & {
       { text: "Packages", link: "/packages/", activeMatch: "/packages/" },
       { text: "API", link: "/api/", activeMatch: "/api/" },
       { text: "Playground", link: "/playground" },
+      { text: "Lab", link: "/lab" },
     ],
 
     sidebar: {

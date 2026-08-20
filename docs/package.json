@@ -27,6 +27,7 @@
     "@smartput/time": "workspace:*",
     "@smartput/time-range": "workspace:*",
     "@smartput/timezone": "workspace:*",
+    "@supabase/supabase-js": "^2.112.3",
     "katex": "^0.18.1"
   },
   "devDependencies": {
