@@ -86,6 +86,7 @@ export const packagesSidebar: DefaultTheme.SidebarItem[] = [
     items: [
       { text: "@smartput/math", link: "/packages/math" },
       { text: "@smartput/query", link: "/packages/query" },
+      { text: "@smartput/query-introspect", link: "/packages/query-introspect" },
     ],
   },
 ];

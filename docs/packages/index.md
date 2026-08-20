@@ -5,7 +5,7 @@ description: Every published package, what it is, what it costs, and what it dep
 
 # Packages
 
-39 packages, one card each — the line under a package is what you
+40 packages, one card each — the line under a package is what you
 would type into it. Every table on the page a card opens is read from the source
 it describes — the manifest's `exports`, the kind's `UnitTable`, the rows of
 `check-size.ts` — so none of them can drift from the code without the build
@@ -79,6 +79,7 @@ are seven fields, each wired end to end.
 | [`@smartput/percent`](/packages/percent) | One unit, ratio 0.01. | `20% of 250` |
 | [`@smartput/power`](/packages/power) | Watt to horsepower, bridging energy and duration. | `1 hp in W` |
 | [`@smartput/query`](/packages/query) | A sentence to a database query, in SQL or Mongo. | `orders over 500 usd` |
+| [`@smartput/query-introspect`](/packages/query-introspect) | A live database catalogue into an editable query schema file. | `bunx @smartput/query-introspect --url …` |
 | [`@smartput/range`](/packages/range) | Numeric and measured ranges: `10–20 km`. | `last three` |
 | [`@smartput/range-core`](/packages/range-core) | Endpoints, ordering, windows — the machinery every range kind shares. | `whole week` |
 | [`@smartput/rate`](/packages/rate) | The money kind, rate snapshots, and the live-rate facade. | `30 usd in gbp` |

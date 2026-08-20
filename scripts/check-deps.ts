@@ -346,6 +346,38 @@ const ALLOWED: Record<string, string[]> = {
   // all. The `query/sql` row in check-size.ts is what keeps it that way.
   "packages/query/package.json": ["@smartput/core", "@smartput/kind"],
 
+  // The introspector: a live database catalogue in, a `defineSchema({...})`
+  // file out. No runtime dependency at all, and each of the three it could have
+  // had was refused for a different reason.
+  //
+  // No driver. Bun 1.3 speaks the Postgres wire protocol natively through
+  // `Bun.SQL`, and the reader is six catalogue queries. Adding `pg` or
+  // `postgres` would have been a dependency on something the runtime already
+  // does — which is the same test `@smartput/holiday` failed and `@smartput/
+  // timezone` passed.
+  //
+  // Not `@smartput/query`, and this is the hard one. The package writes a file
+  // that imports `defineSchema`, so it is *about* that package throughout, and
+  // `--check` even has to read a committed `Schema` back. It still does not
+  // import it: the arrow runs one way, and the two places it would have been
+  // convenient are both solved the way this repo solves them everywhere else.
+  // `--check` finds the schema structurally — an export answering `def.tables`
+  // — on the same precedent as `PlaceMeta`, and the four-line `bindingOf`
+  // default is copied into `emit.ts` with the trade written above it, the way
+  // `holiday` copies core's edit-distance scorer. A generated file is text
+  // until someone commits it; the tool that writes it has no business linking
+  // the library that reads it. `@smartput/query` is a devDependency here,
+  // because `compile.test.ts` builds a real `QueryEngine` on the generated
+  // fixture, and a claim that the output compiles is worth exactly as much as
+  // the test that compiles it.
+  //
+  // Not `@smartput/kind` for `SmartputError` either, which every other package
+  // in this map takes. That base class carries the `input` string and the
+  // character spans inside it that a reading failed on, and nothing here reads
+  // a phrase — it reads a catalogue and writes a file. The edge would have
+  // bought two permanently empty fields.
+  "packages/query-introspect/package.json": [],
+
   // The aggregator: re-exports every kind above and owns BUILTIN_KINDS, so it
   // is the one package legitimately allowed to depend on all of them. Breadth
   // is the point of the package; it is not a smell here the way it would be

@@ -310,6 +310,13 @@ export const PACKAGE_CATALOG: readonly CatalogGroup[] = [
         link: "/packages/query",
         icon: "i-hugeicons-computer-terminal-01",
       },
+      {
+        title: "@smartput/query-introspect",
+        summary: "A live database catalogue into an editable query schema file.",
+        example: "bunx @smartput/query-introspect --url …",
+        link: "/packages/query-introspect",
+        icon: "i-hugeicons-summation-01",
+      },
     ],
   },
 ];

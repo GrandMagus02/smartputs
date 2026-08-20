@@ -539,6 +539,28 @@ does.`,
     },
     see: [["Querying a database", "/packages/query"]],
   },
+  "query-introspect": {
+    group: "Math and queries",
+    summary: "A live database catalogue into an editable query schema file.",
+    body: `A CLI, not a runtime: it reads \`pg_catalog\` and writes the
+\`defineSchema({...})\` module you commit and own. A catalogue proves names,
+keys, foreign keys, enumerated values and the two temporal kinds; it cannot
+prove that \`total_cents\` is money, in what currency, or what your team calls
+the sum of it — so those arrive as \`TODO\` comments, never as fields. Put the
+answer in a \`COMMENT ON COLUMN\` and it survives the next regeneration.
+
+\`\`\`sh
+bunx @smartput/query-introspect --url postgres://… --out schema.ts
+bunx @smartput/query-introspect --url postgres://… --out schema.ts --check
+\`\`\`
+
+\`--check\` is the half worth wiring into CI: it reads the committed file back
+and fails on a migration the schema did not follow.`,
+    subpaths: {
+      "./postgres": "`PostgresIntrospector` — the catalogue reader.",
+    },
+    see: [["Querying a database", "/packages/query"]],
+  },
 };
 
 /**
@@ -579,6 +601,12 @@ export const DEMOS: Record<string, string> = {
   ].join("\n"),
   kind: "<SpCustomKind />",
   kinds: "<SpConvert />",
+  // The one package on this site with nothing a browser can run: its input is a
+  // database and its output is a file. So it borrows the query demo, which is
+  // honest about what the page is for — the interesting half of generating a
+  // schema is what a schema does once you have one, and the shop schema below
+  // is the same shape this package emits.
+  "query-introspect": "<SpQuery />",
 
   length: ratioDemo("length", "12 cm", ["2 km in m", "12 inch", "1 mi + 500 m", "3 ft"]),
   mass: ratioDemo("mass", "500 g", ["1 kg + 500 g", "3 lbs", "2 t in kg", "16 oz"]),
@@ -730,6 +758,7 @@ export const EXAMPLES: Record<string, string> = {
 
   math: "x^2 - 5x + 6 = 0",
   query: "orders over 500 usd",
+  "query-introspect": "bunx @smartput/query-introspect --url …",
 };
 
 /**

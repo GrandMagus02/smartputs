@@ -39,7 +39,18 @@ import {
  * assumed — a hand-written README that gets deleted should fail here, not go
  * quietly missing.
  */
-const HANDWRITTEN = new Set(["currency", "distance", "geo", "math", "timezone"]);
+const HANDWRITTEN = new Set([
+  "currency",
+  "distance",
+  "geo",
+  "math",
+  // A command line, not an expression. Every generated README is a block of
+  // evaluated calls, and there is no call here to evaluate: the package's
+  // output is a file, and producing one needs a database this script has no
+  // business connecting to.
+  "query-introspect",
+  "timezone",
+]);
 
 interface Example {
   /** Import lines, shown verbatim above the calls. */

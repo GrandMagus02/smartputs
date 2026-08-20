@@ -1,0 +1,29 @@
+{
+  "name": "@smartput/query-introspect",
+  "version": "0.1.0",
+  "type": "module",
+  "sideEffects": false,
+  "bin": {
+    "query-introspect": "./src/cli.ts",
+    "smartput-query-introspect": "./src/cli.ts"
+  },
+  "exports": {
+    ".": {
+      "bun": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./postgres": {
+      "bun": "./src/postgres.ts",
+      "types": "./dist/postgres.d.ts",
+      "default": "./dist/postgres.js"
+    }
+  },
+  "devDependencies": {
+    "@smartput/core": "workspace:*",
+    "@smartput/datetime": "workspace:*",
+    "@smartput/kinds": "workspace:*",
+    "@smartput/query": "workspace:*",
+    "@smartput/rate": "workspace:*"
+  }
+}
