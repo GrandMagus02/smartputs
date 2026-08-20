@@ -43,6 +43,22 @@ export interface QueryVocabulary {
    * reading for "from kyiv" and a very good one for "kyiv".
    */
   readonly prepositions: readonly string[];
+  /**
+   * Determiners and imperative verbs that open a request without naming
+   * anything — "all customers", "show me the orders", "which orders". Stripped
+   * only at the very front of the input, before the first table or column word
+   * binds, the same restriction `prepositions` lives under: a schema may
+   * declare a column named `all`, and `status is any` is a legal `values`
+   * match, so this can never be a filter applied everywhere the word appears.
+   */
+  readonly leading: readonly string[];
+  /**
+   * Politeness at the tail — "customers from ukraine please". Stripped once
+   * from the end of the input for the same reason `leading` is stripped only
+   * from the front: dropped anywhere else, "please" would be free to swallow
+   * whatever operand precedes it.
+   */
+  readonly trailing: readonly string[];
   readonly comparisons: Readonly<Record<string, CompareOp>>;
   readonly aggregates: Readonly<Record<string, AggregateFn>>;
 }
@@ -96,6 +112,27 @@ export const queryEn: QueryVocabulary = {
   // No "with" and no "on": the first is a `where` word here and the second is a
   // containment word, and a phrase in two tables is a rule nobody can state.
   prepositions: ["from", "to", "at", "for", "into", "toward"],
+  // Exactly the words a person opens a request with and nothing more: no
+  // "each"/"every order" reading beyond "every" itself, no synonyms of "show"
+  // ("display", "list out") that nobody types first. Each one costs one row in
+  // an ambiguity nobody can resolve if it grows past what people actually type.
+  leading: [
+    "all",
+    "the",
+    "any",
+    "every",
+    "show me",
+    "show",
+    "list",
+    "get",
+    "find",
+    "select",
+    "give me",
+    "which",
+  ],
+  // "please" is the one politeness word people actually type at the end of a
+  // typed search. Anything more would be guessing at manners nobody asked for.
+  trailing: ["please"],
   comparisons: {
     ">": ">",
     over: ">",
@@ -164,6 +201,102 @@ export const queryEn: QueryVocabulary = {
     largest: "max",
     highest: "max",
     biggest: "max",
+  },
+};
+
+/**
+ * Ukrainian.
+ *
+ * A first draft, not a native speaker's pass — worth review before anyone
+ * ships it. Two things don't map 1:1 onto English and are handled explicitly
+ * rather than papered over:
+ *
+ * - No article. `leading` has no entry for "the" because Ukrainian has none to
+ *   translate; the English list's "the" simply has no counterpart here.
+ * - `of` is thin. Ukrainian mostly expresses "of" through the genitive case
+ *   ending on the noun itself ("сума замовлень", not a word meaning "of"
+ *   sitting between "sum" and "orders"), so `of` carries only the one word
+ *   this grammar actually needs a preposition for — "within 50 km *of*
+ *   kyiv" — and nothing for the aggregate phrasing, which needs none.
+ *
+ * `comparisons` sticks to the operators every dialect needs and skips
+ * English's niche dimension comparatives ("heavier than", "newer than"):
+ * those are exactly the entries most likely to read wrong without native
+ * review, and their absence costs nothing — "більше ніж 2 кг" still reaches
+ * `>` through the generic comparator.
+ */
+export const queryUk: QueryVocabulary = {
+  id: "uk",
+  where: ["де", "у яких", "що мають"],
+  and: ["і", "та", "&&"],
+  or: ["або", "чи", "||"],
+  not: ["не", "без"],
+  // "за" is the single-word form and does groupBy's double duty exactly as
+  // English's "by" does — the ranking expression after "топ N" and the
+  // grouping column everywhere else, told apart the same way: a pending flag,
+  // not a second word.
+  groupBy: ["згруповано за", "групувати за", "за"],
+  orderBy: ["сортувати за", "відсортовано за", "упорядковано за", "відсортовано"],
+  ascending: ["за зростанням", "зростання", "від найменшого"],
+  descending: ["за спаданням", "спадання", "від найбільшого"],
+  top: ["топ"],
+  limit: ["ліміт", "перші"],
+  between: ["між"],
+  is: ["є", "дорівнює", "було"],
+  isNot: ["не є", "не дорівнює", "не було"],
+  empty: ["порожньо", "невідомо", "не вказано"],
+  within: ["в межах", "у межах"],
+  of: ["від"],
+  distinct: ["унікальні", "різні"],
+  contains: ["під час"],
+  // "з" is the one that matters most: it is what "клієнти з України" leans
+  // on, the exact Ukrainian counterpart of "customers from ukraine".
+  prepositions: ["з", "до", "у", "для"],
+  leading: [
+    "усі",
+    "будь-які",
+    "покажи мені",
+    "покажи",
+    "перелічи",
+    "отримати",
+    "знайти",
+    "вибрати",
+    "дай мені",
+    "які",
+  ],
+  trailing: ["будь ласка"],
+  comparisons: {
+    ">": ">",
+    більше: ">",
+    понад: ">",
+    "більше ніж": ">",
+    "<": "<",
+    менше: "<",
+    "менше ніж": "<",
+    ">=": ">=",
+    "не менше ніж": ">=",
+    "<=": "<=",
+    "не більше ніж": "<=",
+    "=": "=",
+    "==": "=",
+    "!=": "!=",
+    "<>": "!=",
+    "не дорівнює": "!=",
+    містить: "contains",
+    "починається з": "startsWith",
+    "закінчується на": "endsWith",
+  },
+  aggregates: {
+    кількість: "count",
+    скільки: "count",
+    сума: "sum",
+    "загальна сума": "sum",
+    середнє: "avg",
+    "середнє значення": "avg",
+    мінімум: "min",
+    найменше: "min",
+    максимум: "max",
+    найбільше: "max",
   },
 };
 

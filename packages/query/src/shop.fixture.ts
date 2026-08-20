@@ -1,13 +1,16 @@
 import { composeLocale, createEngine, type Engine } from "@smartput/core";
 import { english as en } from "@smartput/core/locale/en";
+import { ukrainian as uk } from "@smartput/core/locale/uk";
 import { date } from "@smartput/date";
 import { dateRange } from "@smartput/date-range";
 import { datetime, TEST_NOW, TEST_ZONE } from "@smartput/datetime";
 import { definePlace } from "@smartput/geo";
 import { BUILTIN_KINDS } from "@smartput/kinds";
 import BUILTIN_EN from "@smartput/kinds/locale/en";
+import BUILTIN_UK from "@smartput/kinds/locale/uk";
 import { money, snapshot } from "@smartput/rate";
 import moneyEn from "@smartput/rate/locale/en";
+import moneyUk from "@smartput/rate/locale/uk";
 import { defineSchema, type Schema } from "./schema";
 
 /**
@@ -24,7 +27,10 @@ const COUNTRIES = [
     a2: "ua",
     a3: "ukr",
     name: "Ukraine",
-    aliases: ["ukraine", "ukr", "ua"],
+    // Nominative, genitive and locative — the three cases "клієнти з
+    // України" and "клієнти в Україні" actually need. Not every case
+    // Ukrainian has; the ones the corpus types.
+    aliases: ["ukraine", "ukr", "ua", "україна", "україни", "україні"],
     capital: "Kyiv",
     currency: "UAH",
     phone: "380",
@@ -118,6 +124,33 @@ export function fixtureEngine(): Engine {
 }
 
 /**
+ * `fixtureEngine`'s Ukrainian twin, for `queryUk`.
+ *
+ * Same kinds, same rates, same gazetteer — only the words change. Notably
+ * absent: `dateRange`'s relative-phrase table ("last week", "next month") is
+ * a flat English string list with no locale hook at all
+ * (`@smartput/date-range/src/phrases.ts`), so a Ukrainian query for "минулого
+ * тижня" would not parse today. That gap is `@smartput/date-range`'s, not
+ * this package's, and the Ukrainian corpus below is scoped around it.
+ */
+export function fixtureEngineUk(): Engine {
+  return createEngine({
+    locales: [composeLocale(uk, [...BUILTIN_UK, moneyUk])],
+    kinds: [
+      ...BUILTIN_KINDS,
+      datetime,
+      date,
+      dateRange,
+      definePlace({ countries: COUNTRIES, cities: CITIES }),
+      money,
+    ],
+    rates: snapshot("EUR", "2026-08-04", { USD: 1.1, UAH: 45.5 }),
+    now: () => TEST_NOW,
+    timeZone: TEST_ZONE,
+  });
+}
+
+/**
  * A three-table shop, which is the smallest schema that can show every rule:
  * a join with a unique path, two money columns on different tables so ruling
  * R8's nearest-first preference is observable, a scaled minor unit, an
@@ -127,7 +160,7 @@ export const shop: Schema = defineSchema({
   tables: [
     {
       name: "customers",
-      aliases: ["customer", "client", "clients", "buyer", "buyers"],
+      aliases: ["customer", "client", "clients", "buyer", "buyers", "клієнти", "клієнт"],
       key: "id",
       labels: ["name"],
       columns: [
@@ -154,7 +187,18 @@ export const shop: Schema = defineSchema({
     },
     {
       name: "orders",
-      aliases: ["order", "purchase", "purchases", "sale", "sales"],
+      // Nominative and genitive plural: "замовлення понад 500 грн" leads with
+      // the nominative, "кількість замовлень" needs the genitive — Ukrainian's
+      // "of" is a case ending, not a word, so the schema carries the ending.
+      aliases: [
+        "order",
+        "purchase",
+        "purchases",
+        "sale",
+        "sales",
+        "замовлення",
+        "замовлень",
+      ],
       key: "id",
       columns: [
         { name: "id" },
@@ -168,7 +212,7 @@ export const shop: Schema = defineSchema({
           unit: "usd",
           scale: 100,
         },
-        { name: "weight_g", aliases: ["weight"], kind: "mass", unit: "g" },
+        { name: "weight_g", aliases: ["weight", "вага"], kind: "mass", unit: "g" },
         { name: "placed_at", aliases: ["placed", "ordered", "date"], kind: "datetime" },
         { name: "status", values: ["pending", "paid", "shipped", "cancelled"] },
       ],

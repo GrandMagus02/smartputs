@@ -51,4 +51,4 @@ export {
   Schema,
   type TableDef,
 } from "./schema";
-export { MAX_PHRASE_WORDS, type QueryVocabulary, queryEn } from "./vocabulary";
+export { MAX_PHRASE_WORDS, type QueryVocabulary, queryEn, queryUk } from "./vocabulary";

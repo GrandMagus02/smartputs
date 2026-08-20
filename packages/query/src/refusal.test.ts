@@ -157,6 +157,40 @@ test("a column storing a unit the engine cannot read says so", () => {
   expect(() => q.compile("t where w > 2 kg", sql)).toThrow(SchemaError);
 });
 
+test("a table literally named `all` still names a table, not nothing", () => {
+  // The guard on `leading`: stripping it from a one-word query would leave no
+  // tokens at all, so a query that is nothing but "all" stays a parse of
+  // "all" rather than being erased down to an empty input.
+  const literalAll = defineSchema({
+    tables: [{ name: "all", key: "id", columns: [{ name: "id" }, { name: "name" }] }],
+  });
+  const q = new QueryEngine({ schema: literalAll, engine: fixtureEngine() });
+  const out = q.compile("all", sql);
+  expect(out.text).toBe('SELECT "all".* FROM "all"');
+});
+
+test("`any` inside a segment is still the value it names, not a stripped determiner", () => {
+  // `leading` strips only at the very front of the input, before the first
+  // table or column word binds — never as a filter over every occurrence of
+  // the word. A `values` match on "any" mid-query proves the strip stayed
+  // where it was told to.
+  const withAny = defineSchema({
+    tables: [
+      {
+        name: "widgets",
+        key: "id",
+        columns: [{ name: "id" }, { name: "category", values: ["any", "some", "none"] }],
+      },
+    ],
+  });
+  const q = new QueryEngine({ schema: withAny, engine: fixtureEngine() });
+  const out = q.compile("widgets where category is any", sql);
+  expect(out.text).toBe(
+    'SELECT "widgets".* FROM "widgets" WHERE "widgets"."category" = $1',
+  );
+  expect(out.params).toEqual(["any"]);
+});
+
 test("suggest returns nothing where compile would throw, and re-throws wiring errors", () => {
   expect(engine.suggest("this is not a query at all")).toEqual([]);
   expect(engine.suggest("orders over 500 usd")).toHaveLength(1);

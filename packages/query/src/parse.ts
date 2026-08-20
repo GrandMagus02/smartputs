@@ -111,6 +111,9 @@ export class QueryParser {
 
     if (this.toks.length === 0) throw new QueryParseError(input, "the input is empty");
 
+    this.stripLeading();
+    this.stripTrailing();
+
     let distinct = false;
     let limit: number | undefined;
     const projection: Projection[] = [];
@@ -271,6 +274,46 @@ export class QueryParser {
       }
     }
     return null;
+  }
+
+  /**
+   * Drop determiners and imperative verbs from the front of the input, before
+   * any table or column word has bound to anything — "all customers", "show me
+   * the orders". Repeated, so "show me the top 10" loses both "show me" and
+   * "the", and guarded against ever emptying the token stream: a query that is
+   * nothing but "all" stays a parse of "all", not of nothing.
+   */
+  private stripLeading(): void {
+    for (;;) {
+      const n = this.at(this.v.leading);
+      if (n === 0 || this.toks.length - this.i - n === 0) return;
+      this.i += n;
+    }
+  }
+
+  /**
+   * Drop politeness from the tail of the input — "customers from ukraine
+   * please". Runs once, on the whole token stream, before the operand parser
+   * ever sees the tail: stripped after the fact, "ukraine please" is what the
+   * operand reader is asked to make sense of, and it can't.
+   */
+  private stripTrailing(): void {
+    for (;;) {
+      const n = this.atEnd(this.v.trailing);
+      if (n === 0 || this.toks.length - this.i - n === 0) return;
+      this.toks = this.toks.slice(0, this.toks.length - n);
+    }
+  }
+
+  /** Longest matching phrase in `phrases` ending at the last token, or 0. */
+  private atEnd(phrases: readonly string[]): number {
+    for (let n = MAX_PHRASE_WORDS; n >= 1; n--) {
+      const from = this.toks.length - n;
+      if (from < this.i) continue;
+      const w = this.words(n, from);
+      if (w !== null && phrases.includes(w)) return n;
+    }
+    return 0;
   }
 
   private at(phrases: readonly string[], from = this.i): number {
@@ -911,6 +954,13 @@ export class QueryParser {
   }
 
   private attach(from: number, to: number): { ref: ColumnRef; reading: Reading } {
+    // Preposition-stripping has to run before the column lookup below, not
+    // after: "which customers are from ukraine" reaches here as the operand of
+    // an implied `=` ("are"), and without this, "from ukraine" is read as one
+    // phrase and no reading in the engine's table knows what to do with the
+    // word "from" stuck to the front of it.
+    const prepN = this.at(this.v.prepositions, from);
+    if (prepN > 0 && to - from > prepN) from += prepN;
     const phrase = this.phrase(from, to);
     const readings = this.reader.read(phrase);
     if (readings.length === 0) {

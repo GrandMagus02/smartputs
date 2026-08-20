@@ -1,7 +1,8 @@
 import { expect, test } from "bun:test";
 import { QueryEngine } from "./query";
-import { fixtureEngine, shop } from "./shop.fixture";
+import { fixtureEngine, fixtureEngineUk, shop } from "./shop.fixture";
 import { SqlCompiler, type SqlParam } from "./sql";
+import { queryUk } from "./vocabulary";
 
 /**
  * The corpus, written as SQL rather than as IR.
@@ -154,6 +155,94 @@ const ROWS: Row[] = [
     text: 'SELECT "orders".* FROM "orders" WHERE "orders"."total_cents" > $1 AND "orders"."status" = $2',
     params: [50000, "paid"],
   },
+
+  // Tier 6 — leading determiners and imperatives, and trailing politeness.
+  // Bug 1: every one of these threw `UnknownColumnError` on its first word,
+  // reading "all"/"show"/"which" as an attempt to name a column.
+  {
+    input: "all customers from ukraine",
+    text: 'SELECT "customers".* FROM "customers" WHERE "customers"."country_code" = $1',
+    params: ["ua"],
+  },
+  {
+    input: "the customers from ukraine",
+    text: 'SELECT "customers".* FROM "customers" WHERE "customers"."country_code" = $1',
+    params: ["ua"],
+  },
+  {
+    input: "any customers from ukraine",
+    text: 'SELECT "customers".* FROM "customers" WHERE "customers"."country_code" = $1',
+    params: ["ua"],
+  },
+  {
+    input: "every customers from ukraine",
+    text: 'SELECT "customers".* FROM "customers" WHERE "customers"."country_code" = $1',
+    params: ["ua"],
+  },
+  {
+    input: "show customers from ukraine",
+    text: 'SELECT "customers".* FROM "customers" WHERE "customers"."country_code" = $1',
+    params: ["ua"],
+  },
+  {
+    input: "show me customers from ukraine",
+    text: 'SELECT "customers".* FROM "customers" WHERE "customers"."country_code" = $1',
+    params: ["ua"],
+  },
+  {
+    input: "list customers from ukraine",
+    text: 'SELECT "customers".* FROM "customers" WHERE "customers"."country_code" = $1',
+    params: ["ua"],
+  },
+  {
+    input: "get customers from ukraine",
+    text: 'SELECT "customers".* FROM "customers" WHERE "customers"."country_code" = $1',
+    params: ["ua"],
+  },
+  {
+    input: "find customers from ukraine",
+    text: 'SELECT "customers".* FROM "customers" WHERE "customers"."country_code" = $1',
+    params: ["ua"],
+  },
+  {
+    input: "select customers from ukraine",
+    text: 'SELECT "customers".* FROM "customers" WHERE "customers"."country_code" = $1',
+    params: ["ua"],
+  },
+  {
+    input: "give me customers from ukraine",
+    text: 'SELECT "customers".* FROM "customers" WHERE "customers"."country_code" = $1',
+    params: ["ua"],
+  },
+  {
+    input: "which customers from ukraine",
+    text: 'SELECT "customers".* FROM "customers" WHERE "customers"."country_code" = $1',
+    params: ["ua"],
+  },
+  {
+    // Trailing politeness breaks the operand instead of the source: without
+    // stripping it first, "ukraine please" does not read as a place.
+    input: "customers from ukraine please",
+    text: 'SELECT "customers".* FROM "customers" WHERE "customers"."country_code" = $1',
+    params: ["ua"],
+  },
+  {
+    // Bug 2: "are" parses as `is`, which needs its operand's preposition
+    // stripped before the column lookup runs, not after.
+    input: "which customers are from ukraine",
+    text: 'SELECT "customers".* FROM "customers" WHERE "customers"."country_code" = $1',
+    params: ["ua"],
+  },
+  {
+    input: "all orders over 100 usd",
+    text: 'SELECT "orders".* FROM "orders" WHERE "orders"."total_cents" > $1',
+    params: [10000],
+  },
+  {
+    input: "show me the top 10 customers by revenue",
+    text: 'SELECT "customers"."id", "customers"."name", SUM("orders"."total_cents") AS "revenue" FROM "customers" JOIN "orders" ON "customers"."id" = "orders"."customer_id" GROUP BY "customers"."id", "customers"."name" ORDER BY SUM("orders"."total_cents") DESC LIMIT 10',
+    params: [],
+  },
 ];
 
 for (const row of ROWS) {
@@ -195,6 +284,72 @@ test("every emitted placeholder has a parameter behind it", () => {
     expect(new Set(holes).size).toBe(holes.length);
   }
 });
+
+/**
+ * The Ukrainian corpus — `queryUk`, checked the same way as the English one:
+ * exact SQL and params, not just "it parsed".
+ *
+ * Scoped around one real gap rather than pretending it away: `dateRange`'s
+ * relative-phrase table ("last week", "next month") is flat English text with
+ * no locale hook, so there is no Ukrainian row for it here — that gap belongs
+ * to `@smartput/date-range`, not this package. Money, place and aggregates
+ * localize cleanly and are what these rows exercise.
+ */
+const engineUk = new QueryEngine({
+  schema: shop,
+  engine: fixtureEngineUk(),
+  vocabulary: queryUk,
+});
+const compileUk = (input: string) => engineUk.compile(input, sql);
+
+const UK_ROWS: Row[] = [
+  {
+    // The exact counterpart of "customers from ukraine" above — the leading
+    // determiner ("усі") and the money comparative below are the two things
+    // `queryEn` and `queryUk` genuinely differ on.
+    input: "клієнти з України",
+    text: 'SELECT "customers".* FROM "customers" WHERE "customers"."country_code" = $1',
+    params: ["ua"],
+  },
+  {
+    input: "усі клієнти з України будь ласка",
+    text: 'SELECT "customers".* FROM "customers" WHERE "customers"."country_code" = $1',
+    params: ["ua"],
+  },
+  {
+    // 4550 грн is 100 EUR at this fixture's rate (45.5 UAH/EUR), which is 110
+    // USD at 1.1 USD/EUR — a round number so the assertion stays legible.
+    input: "замовлення понад 4550 грн",
+    text: 'SELECT "orders".* FROM "orders" WHERE "orders"."total_cents" > $1',
+    params: [11000],
+  },
+  {
+    input: "замовлення менше ніж 4550 грн",
+    text: 'SELECT "orders".* FROM "orders" WHERE "orders"."total_cents" < $1',
+    params: [11000],
+  },
+  {
+    input: "кількість замовлень",
+    text: 'SELECT COUNT(*) FROM "orders"',
+    params: [],
+  },
+  {
+    // Composed, and the genitive alias on "замовлень" versus the nominative
+    // on "замовлення" is Ukrainian's case system doing what English's "of"
+    // does with a preposition instead of a word ending.
+    input: "замовлення понад 4550 грн де вага менше ніж 2 кг",
+    text: 'SELECT "orders".* FROM "orders" WHERE "orders"."total_cents" > $1 AND "orders"."weight_g" < $2',
+    params: [11000, 2000],
+  },
+];
+
+for (const row of UK_ROWS) {
+  test(`corpus (uk): ${row.input}`, () => {
+    const out = compileUk(row.input);
+    expect(out.text).toBe(row.text);
+    if (row.params !== undefined) expect([...out.params]).toEqual([...row.params]);
+  });
+}
 
 test("the question-mark dialect binds the same values", () => {
   const mysql = new SqlCompiler({ placeholder: "question", quote: "`" });
