@@ -378,6 +378,12 @@ const ALLOWED: Record<string, string[]> = {
   // bought two permanently empty fields.
   "packages/query-introspect/package.json": [],
 
+  // The words half — a language table and a right-anchored "<text> in
+  // <language>" literal parser — plus the SmartputError this package's own
+  // TranslateProviderError extends. No SDK: every provider factory under
+  // ./providers speaks its API with a raw fetch.
+  "packages/translate/package.json": ["@smartput/kind"],
+
   // The aggregator: re-exports every kind above and owns BUILTIN_KINDS, so it
   // is the one package legitimately allowed to depend on all of them. Breadth
   // is the point of the package; it is not a smell here the way it would be
