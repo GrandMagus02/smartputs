@@ -12,6 +12,7 @@ export {
   ngramFeatures,
   probe,
 } from "./features";
+export { fill, targetKindOf } from "./fill";
 export type { EmbedScores, WeightTable } from "./model";
 export { ABSTAIN, LinearModel } from "./model";
 export { Conversation, type ConversationEntry } from "./state";

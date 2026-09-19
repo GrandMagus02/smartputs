@@ -32,6 +32,11 @@ export interface Filled {
   readonly slot: string;
   readonly from: "state";
   readonly value: Value;
+  /** The surface the value was originally typed as — "5 pounds".
+   * A resolver hands this back to the engine rather than rebuilding a display
+   * number from a canonical `Decimal`, which would be arithmetic this package
+   * does not do. */
+  readonly text: string;
 }
 
 export interface ChatResult<T = Result> {

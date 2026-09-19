@@ -42,14 +42,19 @@ export class Conversation {
     return this.candidates(kind)[0];
   }
 
-  candidates(kind?: KindId): readonly Value[] {
-    const out: Value[] = [];
+  /** Whole rows, most recent first. `candidates` is this, projected. */
+  entries(kind?: KindId): readonly ConversationEntry[] {
+    const out: ConversationEntry[] = [];
     for (let i = this.#entries.length - 1; i >= 0; i--) {
       const entry = this.#entries[i];
       if (entry === undefined) continue;
-      if (kind === undefined || entry.kind === kind) out.push(entry.value);
+      if (kind === undefined || entry.kind === kind) out.push(entry);
     }
     return out;
+  }
+
+  candidates(kind?: KindId): readonly Value[] {
+    return this.entries(kind).map((e) => e.value);
   }
 
   clear(): void {

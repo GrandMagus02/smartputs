@@ -53,3 +53,10 @@ test("clear empties it", () => {
   expect(c.size).toBe(0);
   expect(c.last()).toBeUndefined();
 });
+
+test("entries returns whole rows so a caller can reach the surface text", () => {
+  const c = new Conversation();
+  c.push({ kind: "mass", value: val("mass", "lb", 2268), text: "5 pounds" });
+  expect(c.entries("mass")[0]?.text).toBe("5 pounds");
+  expect(c.entries("length")).toHaveLength(0);
+});
