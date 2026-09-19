@@ -9,6 +9,11 @@
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
+    "./resolvers": {
+      "bun": "./src/resolvers/index.ts",
+      "types": "./dist/resolvers/index.d.ts",
+      "default": "./dist/resolvers/index.js"
+    },
     "./locale/en": {
       "bun": "./src/locale/en.ts",
       "types": "./dist/locale/en.d.ts",
