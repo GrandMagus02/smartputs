@@ -85,6 +85,17 @@
         "@smartput/time": "workspace:*",
       },
     },
+    "packages/chat": {
+      "name": "@smartput/chat",
+      "version": "0.1.0",
+      "dependencies": {
+        "@smartput/core": "workspace:*",
+        "@smartput/kind": "workspace:*",
+      },
+      "devDependencies": {
+        "@smartput/kinds": "workspace:*",
+      },
+    },
     "packages/color": {
       "name": "@smartput/color",
       "version": "0.1.0",
@@ -560,6 +571,13 @@
       "name": "@smartput/timezone",
       "version": "0.1.0",
     },
+    "packages/translate": {
+      "name": "@smartput/translate",
+      "version": "0.1.0",
+      "dependencies": {
+        "@smartput/kind": "workspace:*",
+      },
+    },
     "packages/volume": {
       "name": "@smartput/volume",
       "version": "0.1.1",
@@ -855,6 +873,8 @@
 
     "@smartput/boolean": ["@smartput/boolean@workspace:packages/boolean"],
 
+    "@smartput/chat": ["@smartput/chat@workspace:packages/chat"],
+
     "@smartput/color": ["@smartput/color@workspace:packages/color"],
 
     "@smartput/core": ["@smartput/core@workspace:packages/core"],
@@ -926,6 +946,8 @@
     "@smartput/time-range": ["@smartput/time-range@workspace:packages/time-range"],
 
     "@smartput/timezone": ["@smartput/timezone@workspace:packages/timezone"],
+
+    "@smartput/translate": ["@smartput/translate@workspace:packages/translate"],
 
     "@smartput/volume": ["@smartput/volume@workspace:packages/volume"],
 

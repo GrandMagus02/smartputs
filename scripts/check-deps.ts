@@ -346,6 +346,13 @@ const ALLOWED: Record<string, string[]> = {
   // all. The `query/sql` row in check-size.ts is what keeps it that way.
   "packages/query/package.json": ["@smartput/core", "@smartput/kind"],
 
+  // Chat reaches core for the `Engine` it is handed and the `Mark`s it reads,
+  // both through `import type` — the root barrel links no engine runtime. The
+  // dependency is declared all the same, because the injected engine is called
+  // through core's contract and a type-only edge is not a promise the lockfile
+  // keeps. `@smartput/kind` is the error base and the `Span`/`Value` shapes.
+  "packages/chat/package.json": ["@smartput/core", "@smartput/kind"],
+
   // The introspector: a live database catalogue in, a `defineSchema({...})`
   // file out. No runtime dependency at all, and each of the three it could have
   // had was refused for a different reason.
