@@ -121,3 +121,77 @@ export function namedFeatures(inp: FeatureInput): Float64Array {
 
   return v;
 }
+
+/**
+ * Fixed, so the table has the same shape in every language: a locale with a
+ * longer phrase list must not produce a larger model. 2048 buckets × one row
+ * per class, int8-quantised, is ~2 KB per class (design §4.3).
+ */
+export const NGRAM_BUCKETS = 2048;
+
+/**
+ * FNV-1a, 32-bit.
+ *
+ * Stable across runs and processes, which a trained table depends on
+ * absolutely: a different hash function is a different model, and the failure
+ * mode is silent — every weight lands on the wrong bucket and the router
+ * merely gets worse.
+ */
+function hash(s: string): number {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < s.length; i++) {
+    h ^= s.charCodeAt(i);
+    h = Math.imul(h, 0x01000193) >>> 0;
+  }
+  return h % NGRAM_BUCKETS;
+}
+
+/**
+ * The text the n-grams are taken over: the carrier, never the payload.
+ *
+ * Putting the payload's characters in a bag would teach the router to
+ * recognise units it should be asking the engine about — and to fail on the
+ * ones it never saw, which is the failure the engine exists to prevent
+ * (design §4.3).
+ *
+ * The kinds the scan found are appended as `kind:<id>` tokens. That is how
+ * kind identity reaches the model without a named row per kind, and it is what
+ * lets a runtime-registered kind be routed by a table trained before it
+ * existed.
+ */
+export function carrierOf(inp: FeatureInput): string {
+  const { candidate } = inp;
+  const before = inp.input.slice(0, candidate.span.start);
+  const after = inp.input.slice(candidate.span.end);
+  const frame = candidate.frame === undefined ? "" : ` frame:${candidate.frame}`;
+  const kinds = [...new Set(inp.marks.map((m) => m.readings[0]?.kind))]
+    .filter((k): k is string => k !== undefined)
+    .sort()
+    .map((k) => ` kind:${k}`)
+    .join("");
+  return `${before} ${after}${frame}${kinds}`.toLowerCase().replace(/\s+/g, " ").trim();
+}
+
+/** Character 3-, 4- and 5-grams, hashed, counts squashed to [0, 1). */
+export function ngramFeatures(carrier: string): Map<number, number> {
+  const out = new Map<number, number>();
+  if (carrier === "") return out;
+  const padded = ` ${carrier} `;
+  for (const n of [3, 4, 5]) {
+    for (let i = 0; i + n <= padded.length; i++) {
+      const bucket = hash(padded.slice(i, i + n));
+      out.set(bucket, (out.get(bucket) ?? 0) + 1);
+    }
+  }
+  for (const [bucket, count] of out) out.set(bucket, squash(count));
+  return out;
+}
+
+export interface FeatureVector {
+  readonly named: Float64Array;
+  readonly hashed: ReadonlyMap<number, number>;
+}
+
+export function featurize(inp: FeatureInput): FeatureVector {
+  return { named: namedFeatures(inp), hashed: ngramFeatures(carrierOf(inp)) };
+}

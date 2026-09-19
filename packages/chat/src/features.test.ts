@@ -3,7 +3,15 @@ import { Decimal } from "@smartput/kind/decimal";
 import { carve } from "./carve";
 import { testEngine } from "./engine.fixture";
 import type { FeatureInput } from "./features";
-import { NAMED_FEATURES, namedFeatures, probe } from "./features";
+import {
+  carrierOf,
+  featurize,
+  NAMED_FEATURES,
+  NGRAM_BUCKETS,
+  namedFeatures,
+  ngramFeatures,
+  probe,
+} from "./features";
 import { Conversation } from "./state";
 import { chatEn } from "./vocabulary";
 
@@ -83,4 +91,44 @@ test("markCount and topConfidence read the scan", () => {
 
 test("bias is always 1", () => {
   expect(at(namedFeatures(inputFor("anything at all")), "bias")).toBe(1);
+});
+
+test("hashing is stable across calls", () => {
+  const a = [...ngramFeatures("can you convert").entries()].sort();
+  const b = [...ngramFeatures("can you convert").entries()].sort();
+  expect(a).toEqual(b);
+});
+
+test("every bucket is in range", () => {
+  for (const bucket of ngramFeatures("could you maybe make that into kilos").keys()) {
+    expect(bucket).toBeGreaterThanOrEqual(0);
+    expect(bucket).toBeLessThan(NGRAM_BUCKETS);
+  }
+});
+
+test("paraphrases share buckets without either being listed", () => {
+  const a = new Set(ngramFeatures("can you convert that to kg").keys());
+  const b = new Set(ngramFeatures("could you convert that into kg").keys());
+  expect([...a].filter((k) => b.has(k)).length).toBeGreaterThan(5);
+});
+
+test("the carrier excludes the payload", () => {
+  const carrier = carrierOf(inputFor("Hi, convert 5 lb to kg please"));
+  expect(carrier).not.toContain("5 lb");
+  expect(carrier).toContain("hi");
+  expect(carrier).toContain("please");
+});
+
+test("the carrier carries the kind names the scan found", () => {
+  expect(carrierOf(inputFor("convert 5 lb to kg"))).toContain("kind:mass");
+});
+
+test("featurize returns both halves", () => {
+  const v = featurize(inputFor("what is 2 + 2"));
+  expect(v.named).toHaveLength(NAMED_FEATURES.length);
+  expect(v.hashed.size).toBeGreaterThan(0);
+});
+
+test("an empty carrier hashes to nothing rather than throwing", () => {
+  expect(ngramFeatures("").size).toBe(0);
 });
