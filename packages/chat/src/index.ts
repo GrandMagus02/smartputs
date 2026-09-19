@@ -12,6 +12,8 @@ export {
   ngramFeatures,
   probe,
 } from "./features";
+export type { EmbedScores, WeightTable } from "./model";
+export { ABSTAIN, LinearModel } from "./model";
 export { Conversation, type ConversationEntry } from "./state";
 export type {
   Candidate,
