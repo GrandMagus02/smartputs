@@ -11,3 +11,4 @@ export type {
   ResolveCtx,
   Resolver,
 } from "./types";
+export { chatEn } from "./vocabulary";
