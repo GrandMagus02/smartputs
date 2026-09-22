@@ -54,12 +54,10 @@ function toDecimalFn(
   x: Decimal | number | ((ctx: EvalCtx) => Decimal) | undefined,
   fallback: number,
 ): (ctx: EvalCtx) => Decimal {
-  if (x === undefined) {
-    const d = new Decimal(fallback);
-    return () => d;
-  }
   if (typeof x === "function") return x;
-  const d = new Decimal(x as Decimal | number);
+  // `??`, never `||`: a unit whose ratio or offset is legitimately `0` keeps
+  // its own zero instead of falling through to the default.
+  const d = new Decimal(x ?? fallback);
   return () => d;
 }
 
