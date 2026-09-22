@@ -191,6 +191,30 @@ test("a Fahrenheit diff is a Celsius delta, with no offset re-applied", () => {
   expect(d?.to("f")).toBeCloseTo(180, 9);
 });
 
+/**
+ * The cost this test protects: `@smartput/temperature`'s `diffTemperature`
+ * documents that "the free path and the class never disagree", and the class
+ * used to subtract two offset canonical magnitudes to get here. On an affine
+ * scale that is catastrophic cancellation — `(3.8 - -32) * 5/9` minus
+ * `(0.1 - -32) * 5/9` throws away the thirteen digits the two operands share —
+ * so 1169 of 2000 same-unit Fahrenheit pairs came back different from the free
+ * path, which subtracts first and scales once. Exact equality, not
+ * `toBeCloseTo`: the ruling is that the two paths agree, not that they are
+ * near each other.
+ */
+test("a same-unit affine diff agrees with subtract-then-scale, bit for bit", () => {
+  const d = Temperature.parse("3.8f").diff?.("0.1f");
+  expect(d?.value).toBe((3.8 - 0.1) * Number(TEMPDELTA.ratio.f));
+
+  for (let i = 1; i <= 200; i++) {
+    const a = i / 10;
+    const b = i / 7;
+    expect(Temperature.parse(`${a}f`).diff?.(`${b}f`)?.value).toBe(
+      (a - b) * Number(TEMPDELTA.ratio.f),
+    );
+  }
+});
+
 test("diff on an affine kind with no delta class bound throws", () => {
   const Lonely = createValueClass(TEMP, "temperature");
   expect(() => Lonely.parse("30c").diff?.("20c")).toThrow(ValidationError);

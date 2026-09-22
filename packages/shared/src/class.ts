@@ -1,4 +1,4 @@
-import { rebase, toCanonical } from "./convert";
+import { ratioOf, rebase, toCanonical } from "./convert";
 import { ValidationError } from "./errors";
 import {
   compare as cmp,
@@ -233,9 +233,22 @@ export function createValueClass<U extends string>(
           throw new ValidationError("wrong-unit", `${kind} declares no delta class`);
         }
         const right = V.from(other);
+        // Subtract where the left operand already is, then scale once, rather
+        // than subtracting two canonical magnitudes.
+        //
+        // The offset cancels in `(a + off)*r - (b + off)*r` on paper and does
+        // not cancel in binary: Fahrenheit's offset is 32 and its ratio 5/9,
+        // so two readings a fraction of a degree apart become two numbers
+        // agreeing to thirteen digits, and subtracting those throws thirteen
+        // digits away. 1169 of 2000 same-unit pairs disagreed with
+        // `diffTemperature`, whose own comment states that the free path and
+        // the class never disagree. `rebase` costs nothing when the units
+        // already match — it short-circuits the identity — so this is the same
+        // ruling `combine`'s matching-unit branch makes, reached without a
+        // second branch here.
         const difference =
-          toCanonical(table, this.value, this.unit, this.ctx) -
-          toCanonical(table, right.value, right.unit, this.ctx);
+          (this.value - rebase(table, rec(right), this.unit, this.ctx)) *
+          ratioOf(table, this.unit, this.ctx);
         // The difference is a magnitude on the ratio line, so it is handed to
         // the delta class in *this* table's canonical unit -- never read back
         // through this table's offsets, which would re-apply the 32 in
