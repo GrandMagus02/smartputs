@@ -709,12 +709,41 @@ export const BUDGETS: EntrySpec[] = [
   // module, and the spec costed only the first of the three. A per-defect byte
   // estimate is only meaningful per *module*, which is the lesson worth
   // carrying into the next spec.
+  // 2026-09-20, the audit pass: 97_801 -> 98_080 B min, 34_829 -> 34_961 B
+  // gzip. Unlike every move above it, this one is not a feature. It is the
+  // price of two correctness fixes and a set of hot-path rewrites, and it is
+  // worth writing down that the two cost very differently:
+  //
+  //   parse/numerals.ts      +109  folding a scale word onto digits rebuilt
+  //                                the number token with only `value`, so
+  //                                "1,5 million" *deleted* every other
+  //                                grammar's reading instead of ranking it
+  //                                down. "Ambiguity is data" — the fix keeps
+  //                                every reading and scales each one.
+  //   shared/class.ts          +2  affine `diff` subtracted two canonical
+  //                                magnitudes, which cancels the offset on
+  //                                paper and throws away thirteen digits in
+  //                                binary. 1169 of 2000 same-unit Fahrenheit
+  //                                pairs disagreed with `diffTemperature`,
+  //                                against that function's own stated ruling
+  //                                that the two paths never disagree. The
+  //                                same +2 B lands on every `*/class` row.
+  //
+  // The rest is work that made the engine faster and paid bytes for it:
+  // `lex` builds at most one `Intl.Segmenter` per call rather than one per
+  // letter run (constructing one is 9.1 us, using it 0.8 us: lexing three
+  // prose paragraphs 2_722 -> 733 us), `complete` decides the `best` map
+  // before building the offered word rather than after (76.2 -> 35.7 us per
+  // keystroke, 2.14x), and `compoundSplitter` bounds its cut loop by the
+  // longest vocabulary word, which closes a quadratic reachable from pasted
+  // input. Three candidate optimisations were measured at +69, +21 and +16 B
+  // with no time win and reverted: bytes are enforced here, a hunch is not.
   {
     label: "smartputs root (the facade over core)",
     from: "smartputs",
     names: ["createEngine"],
-    min: 97_850,
-    gzip: 34_850,
+    min: 98_100,
+    gzip: 35_000,
   },
   {
     label: "kind root (defineKind, with Decimal behind it)",
@@ -943,8 +972,18 @@ export const BUDGETS: EntrySpec[] = [
     label: "geo root (search and ranking, no data at all)",
     from: "@smartput/geo",
     names: ["Geo", "rank"],
-    min: 49_650,
-    gzip: 19_750,
+    // 2026-09-20: 49_617 -> 49_702 B min. A postal literal claimed `1000mb`
+    // as a Dutch place: NL's pattern separates with `\s?` and `wordEnd` walks
+    // letters and digits alike, so the code arrived as one word and the
+    // existing `shadowed()` guard, which reads the span's last word, never
+    // saw the `mb`. The new `UNIT_TAIL` guard refuses an unqualified
+    // <digits><letters> code whose tail is a registered unit alias. Weighting
+    // the reading down was not available: `foldLiterals` keeps a fallback
+    // only when `through === i`, and the claim covered the number token and
+    // the unit word together, so the datasize reading was gone rather than
+    // outranked. `nl 1000mb` and `1000mb nl` still claim.
+    min: 49_750,
+    gzip: 19_800,
   },
   // The providers entry point, measured apart from the root for the reason it is
   // a separate export: a consumer who only wants the types and the ranking must
@@ -953,7 +992,12 @@ export const BUDGETS: EntrySpec[] = [
     label: "geo providers (every adapter)",
     from: "@smartput/geo/providers",
     names: ["geonames", "postalCodes", "bundled", "custom"],
-    min: 9_700,
+    // 2026-09-20: 9_656 -> 9_712 B min. An `AbortError` raised by `res.json()`
+    // was rewritten as `PlaceProviderError("response was not JSON")`, which
+    // defeated `Geo.#fallback`'s `rethrowIfAborted` and let a superseded query
+    // spend the next provider's request — the exact thing `#dispatch`'s own
+    // comment says must not happen. The abort is now rethrown unchanged.
+    min: 9_750,
     gzip: 3_400,
   },
 
@@ -1132,7 +1176,13 @@ export const BUDGETS: EntrySpec[] = [
     label: "datetime-range root (no holiday data)",
     from: "@smartput/datetime-range",
     names: ["datetimeRange"],
-    min: 152_550,
+    // 2026-09-20: 152_507 -> 152_555 B min, for `phrases.ts` testing an
+    // opening word against a bounded 16-char head instead of lowercasing the
+    // whole tail at every token boundary, and hoisting two `Object.entries`
+    // of constant tables to module scope. Measured 2_408 -> 1_024 ms over
+    // 20k lines x 14 offsets (~2.3x). The word boundary is read off `input`
+    // rather than off the truncated head, so "exactly this word" stays exact.
+    min: 152_600,
     gzip: 53_150,
     floor: 138_000,
   },
@@ -1174,8 +1224,15 @@ export const BUDGETS: EntrySpec[] = [
     label: "range/class",
     from: "@smartput/range/class",
     names: ["Range"],
+    // 2026-09-20: minified is byte-identical at 43_798 and gzip moved by one
+    // byte, 17_350 -> 17_351, on a row that had zero headroom. Nothing in
+    // this package changed; the lexer's segmenter hoist reshuffled bytes core
+    // already shipped and the compressor found one fewer match. Recorded
+    // because a one-byte gzip move with an unchanged minified size is a
+    // compression artefact, and a reader who meets this row later should not
+    // spend time looking for the 1 B of code that caused it.
     min: 43_800,
-    gzip: 17_350,
+    gzip: 17_400,
   },
   // Every row from here to the end of the range block was re-measured when
   // comparison shipped, and moved by 5-48 B. Nothing in those packages changed:
