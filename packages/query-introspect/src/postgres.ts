@@ -10,6 +10,35 @@ import type {
 import { IntrospectionError } from "./errors";
 
 /**
+ * The connection URL with its credentials taken out, for an error message.
+ *
+ * `cli.ts` prints this message to stderr, which is a terminal somebody is
+ * watching and a log line in CI that outlives them both — and a URL that was
+ * refused is a URL somebody mistyped, which is the likeliest way one ever gets
+ * printed at all. `label()` already keeps the password out of the *generated
+ * file* for the same reason; this keeps it out of the failure path, which is
+ * the one nobody rehearses. Bun's own parser agrees: its message for this case
+ * says `<redacted>`.
+ *
+ * Deliberately not `new URL` — that is what just failed — so the authority is
+ * cut by hand: everything between `://` and the last `@` before the path is
+ * userinfo. A libpq-style `?password=` is stripped too, because that spelling
+ * carries the same secret in a place the userinfo rule does not reach.
+ */
+function withoutCredentials(url: string): string {
+  const scheme = url.indexOf("://");
+  let out = url;
+  if (scheme !== -1) {
+    const from = scheme + 3;
+    const slash = out.indexOf("/", from);
+    const authority = slash === -1 ? out.slice(from) : out.slice(from, slash);
+    const at = authority.lastIndexOf("@");
+    if (at !== -1) out = `${out.slice(0, from)}***@${out.slice(from + at + 1)}`;
+  }
+  return out.replace(/([?&](?:password|sslpassword)=)[^&]*/gi, "$1***");
+}
+
+/**
  * Reads a Postgres catalogue.
  *
  * `pg_catalog` rather than `information_schema`, which is the portable answer
@@ -33,7 +62,16 @@ export class PostgresIntrospector implements CatalogReader {
     try {
       this.sql = new SQL(options.url);
     } catch (e) {
-      throw new IntrospectionError(`${options.url} is not a usable Postgres URL — ${e}`);
+      const safe = withoutCredentials(options.url);
+      // Applied to the driver's sentence as well as to this one. Bun quotes the
+      // URL back verbatim and redacts it only when there was userinfo to
+      // redact, so `?password=` survives its scrub and would have walked
+      // straight through a message that only fixed its own half. Guarded on a
+      // non-empty URL because `replaceAll("")` splices the replacement between
+      // every character.
+      const detail =
+        options.url === "" ? String(e) : String(e).replaceAll(options.url, safe);
+      throw new IntrospectionError(`${safe} is not a usable Postgres URL — ${detail}`);
     }
   }
 

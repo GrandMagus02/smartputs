@@ -44,6 +44,34 @@ test("a CHECK that is more than a membership test yields nothing", () => {
   expect(membership("CHECK ((total > (0)::numeric))")).toBeNull();
 });
 
+test("a refused URL is reported without its password", () => {
+  // The constructor's message reaches `console.error` in `cli.ts`, which is
+  // stdout on somebody's terminal and a log line in CI. `label()` already keeps
+  // the password out of the *generated file* for exactly this reason, and a
+  // typo in the host is a far more likely way to print the URL than a
+  // successful run ever is.
+  let thrown: unknown;
+  try {
+    new PostgresIntrospector({ url: "postgres://admin:hunter2@ ho st/shop" });
+  } catch (e) {
+    thrown = e;
+  }
+  const message = (thrown as Error).message;
+  expect(message).not.toContain("hunter2");
+  // The half that is not a secret is what makes the error worth reading.
+  expect(message).toContain("shop");
+
+  // libpq's other spelling of the same secret, which the userinfo rule does not
+  // reach.
+  let param: unknown;
+  try {
+    new PostgresIntrospector({ url: "postgres://ho st/shop?password=hunter2" });
+  } catch (e) {
+    param = e;
+  }
+  expect((param as Error).message).not.toContain("hunter2");
+});
+
 const url = process.env.SMARTPUT_INTROSPECT_URL;
 
 test.skipIf(url === undefined)("a live catalogue is the recorded one", async () => {
