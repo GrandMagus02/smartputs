@@ -102,6 +102,15 @@ test("defaultUnit composes with caller opts: forced, not erasable, mode still ov
   // Other opts fields still pass through untouched alongside the hardcoded
   // default.
   expect(parseNumber("30", { unit: "one" })).toMatchObject({ ok: true, unit: "one" });
+  // The "not erasable" half of the ruling, which the type system closes for a
+  // TypeScript caller and nothing closed for a JavaScript one: `defaultUnit`
+  // is assigned *after* the caller's opts are spread, so a `defaultUnit` that
+  // names another kind's unit cannot make a bare "30" thirty of it.
+  expect(parseNumber("30", { defaultUnit: "kg" } as never)).toMatchObject({
+    ok: true,
+    unit: "one",
+    value: 30,
+  });
 });
 
 test("ops work on raw strings without any unit written", () => {
