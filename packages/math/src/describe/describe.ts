@@ -103,7 +103,7 @@ export function describeExpression(
 
 function phrase(ce: ComputeEngine, json: MathJson, voice: Voice): string {
   if (!isNode(json)) return atom(ce, json, voice);
-  const [operator, ...operands] = json as unknown as [string, ...MathJson[]];
+  const [operator, ...operands] = json;
   const parts = operands.map((operand) => phrase(ce, operand, voice));
 
   switch (operator) {
@@ -245,12 +245,12 @@ const COMPOUND_OPERATORS = new Set([
 
 function isCompound(json: MathJson | undefined): boolean {
   if (json === undefined || !isNode(json)) return false;
-  return COMPOUND_OPERATORS.has((json as unknown as [string])[0]);
+  return COMPOUND_OPERATORS.has(json[0]);
 }
 
 function isDelimiter(json: MathJson | undefined): boolean {
   if (json === undefined || !isNode(json)) return false;
-  return (json as unknown as [string])[0] === "Delimiter";
+  return json[0] === "Delimiter";
 }
 
 function ordinal(json: MathJson | undefined): string {
@@ -285,6 +285,12 @@ function atom(ce: ComputeEngine, json: MathJson, voice: Voice): string {
   return ce.box(json, { form: "raw" }).latex;
 }
 
-function isNode(json: MathJson): boolean {
+/**
+ * A function node: `["Add", 1, 2]`. Written as a predicate rather than a
+ * boolean so the walk above reads the operator and the operands off the node
+ * itself; MathJSON types a node as a readonly tuple, and without the narrowing
+ * every read of it has to assert its way past that.
+ */
+function isNode(json: MathJson): json is readonly [string, ...MathJson[]] {
   return Array.isArray(json) && typeof json[0] === "string";
 }

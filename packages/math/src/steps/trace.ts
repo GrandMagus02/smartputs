@@ -109,22 +109,20 @@ function commit(ctx: TraceContext, path: number[], value: MathJson): void {
 
 /**
  * A function node: `["Add", 1, 2]`. MathJSON types these as readonly tuples,
- * so the walk below goes through `unknown` to index and rebuild them — the
+ * so the walk below narrows to the tuple rather than to a plain array — the
  * alternative is a parallel tree type that would have to track theirs.
  */
-function isOperatorNode(json: MathJson): json is readonly [string, ...MathJson[]] {
-  return Array.isArray(json) && typeof json[0] === "string";
-}
+type OperatorNode = readonly [string, ...MathJson[]];
 
-function asArray(json: MathJson): MathJson[] {
-  return json as unknown as MathJson[];
+function isOperatorNode(json: MathJson): json is OperatorNode {
+  return Array.isArray(json) && typeof json[0] === "string";
 }
 
 function nodeAt(root: MathJson, path: readonly number[]): MathJson {
   let node = root;
   for (const index of path) {
-    if (!Array.isArray(node)) return node;
-    node = asArray(node)[index] as MathJson;
+    if (!isOperatorNode(node)) return node;
+    node = node[index] as MathJson;
   }
   return node;
 }
@@ -132,7 +130,10 @@ function nodeAt(root: MathJson, path: readonly number[]): MathJson {
 function replaceAt(root: MathJson, path: readonly number[], value: MathJson): MathJson {
   if (path.length === 0) return value;
   const [index, ...rest] = path as [number, ...number[]];
-  const copy = [...asArray(root)];
+  // Spreading the tuple gives back a mutable one of the same shape, which is a
+  // MathJSON node again without an assertion; `root` is a node whenever the
+  // path is non-empty, since the path was walked out of it.
+  const copy: [string, ...MathJson[]] = [...(root as OperatorNode)];
   copy[index] = replaceAt(copy[index] as MathJson, rest, value);
-  return copy as unknown as MathJson;
+  return copy;
 }

@@ -44,7 +44,7 @@ export function solveEquation(
   // `solve` answers a *system* with a map of variable to value; a single
   // equation always comes back as a list, and that is the only shape reachable
   // from here — `parseLatex` of one expression cannot produce a system.
-  const found = asEquation.solve(variable) as unknown as readonly Expression[] | null;
+  const found = asEquation.solve(variable) as readonly Expression[] | null;
   const solutions = sortSolutions(found ?? []).map((s) => s.latex);
   const answer = solutionLatex(variable, solutions);
   // `2x+6=0` ends on `x=-3`, which is already the answer; `x+1=x+2` ends on

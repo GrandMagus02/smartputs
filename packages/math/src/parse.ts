@@ -37,7 +37,8 @@ export function parseLatex(ce: ComputeEngine, latex: string): Expression {
  * can act on.
  */
 function describeError(error: Expression): string {
-  const [, code, where] = error.json as unknown as unknown[];
+  const json = error.json;
+  const [, code, where] = Array.isArray(json) ? json : [];
   const parts = [unquote(code)];
   const at = where === undefined ? "" : unquote(Array.isArray(where) ? where[1] : where);
   if (at.length > 0) parts.push(`at ${at}`);

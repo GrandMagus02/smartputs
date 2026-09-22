@@ -219,10 +219,13 @@ const WITH_INTEGRATION_RULES = new WeakSet<ComputeEngine>();
 
 function loadIntegrationRulesOnce(ce: ComputeEngine): void {
   if (WITH_INTEGRATION_RULES.has(ce)) return;
-  // The loader is typed against the engine's interface, which declares
-  // `_deadline` as required where the class declares it optional. Same object
-  // at runtime; under `exactOptionalPropertyTypes` the two forms do not match,
-  // and one cast here is cheaper than relaxing the flag for the package.
+  // The §5 seam, and the only one left in this package: a third-party type
+  // that lies. The loader is typed against the engine's interface, which
+  // declares `_deadline` as required where the class declares it optional.
+  // Same object at runtime; under `exactOptionalPropertyTypes` the two forms
+  // do not match, and one cast here is cheaper than relaxing the flag for the
+  // package. Every other `as unknown as` this file's package once carried was
+  // a narrowing the compiler could be told about instead.
   loadIntegrationRules(ce as unknown as Parameters<typeof loadIntegrationRules>[0]);
   WITH_INTEGRATION_RULES.add(ce);
 }

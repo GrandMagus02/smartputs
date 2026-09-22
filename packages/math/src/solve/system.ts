@@ -41,10 +41,7 @@ export function solveSystem(
 
   const steps: Step[] = explainSystem(system, variables);
 
-  const found = system.solve([...variables]) as unknown as Record<
-    string,
-    Expression
-  > | null;
+  const found = system.solve([...variables]) as Record<string, Expression> | null;
   const solutions = found === null ? null : readSolutions(ce, found, variables);
   if (solutions === null) {
     steps.push({
