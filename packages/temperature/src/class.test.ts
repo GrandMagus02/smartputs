@@ -65,6 +65,20 @@ test("a reading plus a delta is a reading, in the reading's own unit", () => {
   expect(Temperature.parse("20c").add(TempDelta.parse("9f")).value).toBeCloseTo(25, 9);
 });
 
+test("a same-unit delta is added where the reading already is", () => {
+  // The cost this holds: `add` used to round-trip the delta through the
+  // canonical Celsius line even when it was already in the reading's unit, so
+  // a Fahrenheit shift paid 5/9 and 9/5 for nothing. `30f + 0.9f` came back as
+  // 30.900000000000002 and `0.9f + 0.9f` as 1.7999999999999998 -- the same
+  // float identity `rebase` short-circuits for every other kind (spec
+  // "short-circuit the identity"; `30deg - 15deg` is the canonical example).
+  expect(Temperature.parse("0.9f").add("0.9f").value).toBe(1.8);
+  expect(Temperature.parse("30f").add("0.9f").value).toBe(30.9);
+  expect(Temperature.parse("3.6c").add("3.6c").value).toBe(7.2);
+  // Kelvin shares Celsius's ratio, so it was already exact and stays so.
+  expect(Temperature.parse("1.8k").add("1.8k").value).toBe(3.6);
+});
+
 test("adding a delta leaves the receiver untouched", () => {
   const a = Temperature.parse("20c");
   const b = a.add("5c");

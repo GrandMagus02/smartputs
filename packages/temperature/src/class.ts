@@ -1,8 +1,6 @@
 import {
   createValueClass,
-  fromCanonical,
   type Input,
-  toCanonical,
   type ValueClass,
   type ValueInstance,
 } from "@smartput/shared";
@@ -55,12 +53,15 @@ function withDeltaAdd(base: ValueClass<TemperatureUnit>): TemperatureClass {
     add(this: TemperatureInstance, delta: DeltaInput): TemperatureInstance {
       // Read through the *delta* table, which has no offsets: "5f" as a
       // difference is 5/9 of a degree Celsius of warming, not -15C.
+      //
+      // `d.to` and not `fromCanonical(toCanonical(...))`: `to` goes through
+      // `rebase`, which returns the magnitude untouched when the delta is
+      // already in the reading's unit. The hand-rolled round trip skipped that
+      // short-circuit and multiplied and divided by 5/9 for nothing, so
+      // "0.9f + 0.9f" came back 1.7999999999999998 -- the identity the spec
+      // names with "30deg - 15deg".
       const d = TempDelta.from(delta);
-      const shift = fromCanonical(
-        TEMPDELTA_UNITS,
-        toCanonical(TEMPDELTA_UNITS, d.value, d.unit),
-        this.unit,
-      );
+      const shift = d.to(this.unit);
       // The reading keeps its own unit, matching the left-operand-wins rule
       // the ratio ops follow, and the shift is added where the reading already
       // is -- so 30c + 5c is 35, not 34.99999999999999.
