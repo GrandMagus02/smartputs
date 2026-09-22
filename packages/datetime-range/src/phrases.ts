@@ -54,6 +54,34 @@ const MERGED_WORDS: Record<string, { shift: number; window: string }> = {
   tonight: { shift: 0, window: "night" },
 };
 
+/**
+ * Both tables as entry lists.
+ *
+ * Built at module scope because `Object.entries` allocates a fresh array of
+ * fresh pairs on every call, and `dayWindowAt` is offered every token boundary
+ * of every keystroke — §7's "hoist tables to module scope", applied to the two
+ * tables that cannot change.
+ */
+const MERGED_ENTRIES = Object.entries(MERGED_WORDS);
+const DAY_ENTRIES = Object.entries(DAY_WORDS);
+
+/**
+ * How much text a head cut reads: at least as long as the longest word any
+ * grammar in this file opens with, which is `"yesterday's"` at 11.
+ *
+ * Only the lower bound is load-bearing, which is why the number sits above the
+ * tables rather than being derived from them. A head longer than the longest
+ * word copies a few characters nobody looks at; a head shorter than one would
+ * silently stop that word matching. An over-estimate cannot be wrong, so a
+ * `Math.max` over four tables would be bundle bytes spent on a hazard that does
+ * not exist.
+ *
+ * Cutting the head at all is the point: a matcher is offered every token
+ * boundary, so lowercasing the whole tail at each one is work proportional to
+ * the line, at every offset in it.
+ */
+const HEAD = 16;
+
 /** The whole span a window covers on the day `shift` days from `day`. */
 function windowSpan(
   day: Temporal.ZonedDateTime,
@@ -96,6 +124,15 @@ export interface PhraseSpan {
  * is deliberately derived from the *table entries*, never from the lowercased
  * slice, so a locale table with a multi-character lowering could not silently
  * move the span.
+ *
+ * The day word is tested first, against a lowercased head no longer than the
+ * longest one, and everything else — the tail copy, the window table's
+ * entries, `startOfDay()` — happens only once one has matched. Almost every
+ * offset in a line is not a day word, and that offset should cost a short
+ * `slice` and a handful of `startsWith` calls rather than a copy of the rest of
+ * the input. The boundary after the word is read off `input` directly, so
+ * "exactly this word" and "this word then a space" stay exact rather than
+ * becoming a fact about a truncated copy.
  */
 export function dayWindowAt(
   input: string,
@@ -103,19 +140,24 @@ export function dayWindowAt(
   windows: Record<string, Window>,
   now: Temporal.ZonedDateTime,
 ): PhraseSpan | null {
-  const rest = input.slice(offset).toLowerCase();
-  const day = now.startOfDay();
+  const head = input.slice(offset, offset + HEAD).toLowerCase();
 
-  for (const [word, merged] of Object.entries(MERGED_WORDS)) {
-    if (rest !== word && !rest.startsWith(`${word} `)) continue;
+  for (const [word, merged] of MERGED_ENTRIES) {
+    if (!head.startsWith(word)) continue;
+    // The word is the whole rest of the input, or it ends at a space — past
+    // the end reads `undefined`, which the `??` turns into the former.
+    if ((input[offset + word.length] ?? " ") !== " ") continue;
     const window = windows[merged.window];
     if (window === undefined) continue;
-    return { ...windowSpan(day, merged.shift, window), length: word.length };
+    return {
+      ...windowSpan(now.startOfDay(), merged.shift, window),
+      length: word.length,
+    };
   }
 
-  for (const [word, shift] of Object.entries(DAY_WORDS)) {
-    if (!rest.startsWith(`${word} `)) continue;
-    const after = rest.slice(word.length + 1);
+  for (const [word, shift] of DAY_ENTRIES) {
+    if (!head.startsWith(word) || input[offset + word.length] !== " ") continue;
+    const after = input.slice(offset + word.length + 1).toLowerCase();
     for (const [name, window] of Object.entries(windows)) {
       // `startsWith` rather than equality: the phrase may be followed by more
       // input, and the fold discards any claim that misses a token boundary,
@@ -129,7 +171,7 @@ export function dayWindowAt(
       // here rather than left to the solver to score.
       if (word === "next" && name === "day") continue;
       return {
-        ...windowSpan(day, shift, window),
+        ...windowSpan(now.startOfDay(), shift, window),
         length: word.length + 1 + name.length,
       };
     }
@@ -187,6 +229,11 @@ function splitOnCloser(
  * goes for `from X to <something chrono cannot read>`, which is why the closer
  * loop returns null instead of falling through to the bare-closer loop — the
  * text began with `from`, so it was never a bare `until`.
+ *
+ * The opening word is tested against the same short `HEAD` cut `dayWindowAt`
+ * uses, and the tail is copied only once one has matched. Every other token
+ * boundary in a line — which is nearly all of them — then costs a sixteen
+ * character slice instead of a copy of the rest of the input.
  */
 export function fromToAt(
   input: string,
@@ -195,12 +242,11 @@ export function fromToAt(
   now: Temporal.ZonedDateTime,
   parsers: readonly EndpointParser[],
 ): PhraseSpan | null {
-  const rest = input.slice(offset);
-  const lower = rest.toLowerCase();
+  const head = input.slice(offset, offset + HEAD).toLowerCase();
 
   for (const opener of OPENERS) {
-    if (!lower.startsWith(opener)) continue;
-    const afterOpen = rest.slice(opener.length);
+    if (!head.startsWith(opener)) continue;
+    const afterOpen = input.slice(offset + opener.length);
     const split = splitOnCloser(afterOpen);
     if (split === null) return null;
     const start = resolveEndpoint(split.left, ctx, parsers);
@@ -219,8 +265,8 @@ export function fromToAt(
   }
 
   for (const closer of BARE_CLOSERS) {
-    if (!lower.startsWith(closer)) continue;
-    const end = resolveEndpoint(rest.slice(closer.length), ctx, parsers);
+    if (!head.startsWith(closer)) continue;
+    const end = resolveEndpoint(input.slice(offset + closer.length), ctx, parsers);
     if (end === null) return null;
     return { start: now, end: end.zdt, length: closer.length + end.length };
   }
