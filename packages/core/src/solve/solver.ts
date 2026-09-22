@@ -210,13 +210,17 @@ function possibleKinds(
       break;
     case "quantity":
     case "literal":
-      for (const c of node.candidates.filter(keep)) out.add(c.kind);
+      // Filtered in place rather than through `.filter`: this runs once per
+      // convert node per solve, on the per-keystroke path, and the array it
+      // used to build was read once and dropped.
+      for (const c of node.candidates) if (keep(c)) out.add(c.kind);
       break;
     case "unary":
       return possibleKinds(node.operand, keep, registry);
     case "convert":
       for (const l of possibleKinds(node.operand, keep, registry)) {
-        for (const t of node.target.filter(keep)) {
+        for (const t of node.target) {
+          if (!keep(t)) continue;
           const sig = registry.ops.get(opKey("in", l, t.kind));
           if (sig !== undefined) out.add(sig.result);
         }
@@ -283,9 +287,15 @@ function collectSlots(
       // through to the operand-naming fallback with no rejection to quote.
       const reachable = possibleKinds(node.operand, keep, registry);
       const all = node.target.filter(keep);
-      const pruned = all.filter((c) =>
-        [...reachable].some((k) => registry.ops.has(opKey("in", k, c.kind))),
-      );
+      // The `Set` is walked directly. Spreading it inside the predicate — which
+      // is what this was — copied every reachable kind into a fresh array once
+      // per target candidate, and "in m" on a full registry has a lot of both.
+      const pruned = all.filter((c) => {
+        for (const k of reachable) {
+          if (registry.ops.has(opKey("in", k, c.kind))) return true;
+        }
+        return false;
+      });
       slots.push({ type: "unit", node, candidates: pruned.length > 0 ? pruned : all });
     }
   });
@@ -356,61 +366,68 @@ function typeOf(
   }
 }
 
-function contextBonus(
-  node: Node,
-  choices: Readonly<Record<NodeId, Candidate>>,
-  registry: Registry,
-): number {
-  let bonus = 0;
-  walk(node, (n) => {
-    if (n.type !== "binary") return;
-    const left = typeOf(n.left, choices, registry);
-    const right = typeOf(n.right, choices, registry);
-    if (left !== null && left === right && left !== NUMBER_KIND) bonus += CONTEXT_BONUS;
-  });
-  return bonus;
-}
-
 /**
- * The signature half of a candidate's score, and the mirror of `contextBonus`
- * above: same walk, same `typeOf` resolution, a different term.
+ * The two terms an *operator* contributes to an assignment's score: context
+ * agreement, and the weight the matched signature declares.
  *
- * It exists because every other weight layer prices a *reading* and this one
- * prices the *operation* — see `OpSignature.weight`. A signature that declares
- * no weight contributes 0, which is why adding this moved no corpus row.
+ * They were two functions, and the second's comment said what they had in
+ * common — "same walk, same `typeOf` resolution, a different term". They were
+ * also called back to back on every complete assignment, so every binary node
+ * had its operands typed twice, and `typeOf` recurses: for `1 m + 2 m + 3 m`
+ * that is the whole subtree re-walked for a number the caller before it had
+ * just computed. One walk, two accumulators, and each accumulator still sums
+ * in the order its own walk used, so no score moves.
+ *
+ * `signature` exists because every other weight layer prices a *reading* and
+ * this one prices the *operation* — see `OpSignature.weight`. A signature that
+ * declares no weight contributes 0, which is why adding it moved no corpus row.
  *
  * The `convert` branch resolves its signature exactly as `typeOf` does, down to
  * looking the target's kind up in `choices` rather than assuming `in` is an
  * identity on kind: a declared cross-kind `in` is as entitled to a weight as
- * any binary is.
+ * any binary is. A `convert` contributes no context bonus, which is why only
+ * the binary branch touches `context`.
  */
-function signatureWeight(
+function operatorTerms(
   node: Node,
   choices: Readonly<Record<NodeId, Candidate>>,
   registry: Registry,
-): number {
-  let total = 0;
+): { context: number; signature: number } {
+  let context = 0;
+  let signature = 0;
   walk(node, (n) => {
     if (n.type === "binary") {
       const left = typeOf(n.left, choices, registry);
       const right = typeOf(n.right, choices, registry);
       if (left === null || right === null) return;
-      total += registry.ops.get(opKey(n.op, left, right))?.weight ?? 0;
+      if (left === right && left !== NUMBER_KIND) context += CONTEXT_BONUS;
+      signature += registry.ops.get(opKey(n.op, left, right))?.weight ?? 0;
     } else if (n.type === "convert") {
       const operand = typeOf(n.operand, choices, registry);
       const target = choices[n.id];
       if (operand === null || target === undefined) return;
-      total += registry.ops.get(opKey("in", operand, target.kind))?.weight ?? 0;
+      signature += registry.ops.get(opKey("in", operand, target.kind))?.weight ?? 0;
     }
   });
-  return total;
+  return { context, signature };
 }
 
+/**
+ * A loop rather than `Math.max(...scores)`.
+ *
+ * `maxCandidates` is a caller's number and bounds `scores.length`, so an
+ * engine configured past the engine's argument limit would have turned an
+ * ambiguous input into a `RangeError` thrown from inside the scorer — not a
+ * reading of anything the user typed. The sum is accumulated in the order
+ * `reduce` walked, so no confidence moves.
+ */
 function softmax(scores: number[]): number[] {
   if (scores.length === 0) return [];
-  const max = Math.max(...scores);
+  let max = Number.NEGATIVE_INFINITY;
+  for (const s of scores) if (s > max) max = s;
   const exps = scores.map((s) => Math.exp(s - max));
-  const total = exps.reduce((a, b) => a + b, 0);
+  let total = 0;
+  for (const e of exps) total += e;
   return exps.map((e) => e / total);
 }
 
@@ -532,8 +549,7 @@ export function solve(
     if (index === slots.length) {
       const kind = typeOf(root, choices, registry, sink);
       if (kind === null) return;
-      const bonus = contextBonus(root, choices, registry);
-      const signature = signatureWeight(root, choices, registry);
+      const { context: bonus, signature } = operatorTerms(root, choices, registry);
       const cue = opts.cues?.[kind] ?? 0;
       const grammarTotal = grammar + agreementBonus(choices, numbers);
       viable.push({

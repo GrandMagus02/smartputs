@@ -25,7 +25,7 @@ import type { CueHit } from "./scan/cues";
 import { DEFAULT_CUE_WINDOW, DEFAULT_MAX_SPAN, Scanner } from "./scan/scan";
 import type { Rejection, Resolution } from "./solve/solver";
 import { Solver } from "./solve/solver-class";
-import { grammarBreakdown, weightBreakdown } from "./solve/weights";
+import { grammarBreakdown, grammarWeight, weightBreakdown } from "./solve/weights";
 import type {
   Assumption,
   Candidate,
@@ -641,9 +641,7 @@ function toExplanation(
   /** The `grammar:` half of an assignment's `grammarBonus`, so the agreement half is what is left. */
   const grammarSum = (a: Resolution): number =>
     Object.values(a.numbers).reduce(
-      (sum, reading) =>
-        sum +
-        grammarBreakdown(reading.locales, grammarLayers).reduce((n, c) => n + c.value, 0),
+      (sum, reading) => sum + grammarWeight(reading.locales, grammarLayers),
       0,
     );
   const tokens: Token[] = streamTokens.map((t) => ({

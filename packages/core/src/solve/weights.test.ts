@@ -1,5 +1,10 @@
 import { expect, test } from "bun:test";
-import { resolveWeight, weightBreakdown } from "./weights";
+import {
+  grammarBreakdown,
+  grammarWeight,
+  resolveWeight,
+  weightBreakdown,
+} from "./weights";
 
 const base = { kind: "duration", unit: "min", surface: "m", locale: "en", prior: 0 };
 
@@ -67,6 +72,35 @@ test('the "*" tag is never matched by a locale: selector', () => {
   // there is no selector that could name it and no row it could produce.
   const b = weightBreakdown({ ...base, locale: "*", layers: [{ "locale:*": 5 }] });
   expect(b).toEqual([{ selector: "prior", value: 0, layer: 0 }]);
+});
+
+// The cost of `resolveWeight` summing on its own instead of reducing the rows:
+// two functions that have to agree, with nothing but this test holding them
+// together. `explain()`'s Σcontributions === score invariant is what breaks if
+// they drift, so the case below carries every kind of term there is — prior, a
+// selector in each layer, a `locale:` row and the fuzzy charge — and asserts
+// the sum, not just the rows.
+test("resolveWeight is exactly the sum of the rows weightBreakdown reports", () => {
+  const args = {
+    kind: "length",
+    unit: "mi",
+    surface: "mile",
+    locale: "en",
+    prior: 0.5,
+    layers: [{ length: 2, "length:mi": 0.25 }, undefined, { "locale:en": -1.5 }],
+    fuzzy: { alias: "miles", distance: 2 },
+  };
+  const rows = weightBreakdown(args);
+  expect(rows.length).toBe(5);
+  expect(resolveWeight(args)).toBe(rows.reduce((sum, c) => sum + c.value, 0));
+});
+
+test("grammarWeight is exactly the sum of the rows grammarBreakdown reports", () => {
+  const locales = ["en", "ja", "de"];
+  const layers = [{ "grammar:en": 1 }, undefined, { "grammar:de": 5, "grammar:ja": 2 }];
+  const rows = grammarBreakdown(locales, layers);
+  expect(rows.length).toBe(3);
+  expect(grammarWeight(locales, layers)).toBe(rows.reduce((sum, c) => sum + c.value, 0));
 });
 
 test("the breakdown lists every contribution in layer order", () => {

@@ -99,8 +99,33 @@ export function weightBreakdown(args: WeightArgs): WeightContribution[] {
   return out;
 }
 
+/**
+ * The same sum `weightBreakdown` reports, summed without reporting it.
+ *
+ * It used to be `weightBreakdown(args).reduce(...)`, which is one row object
+ * per term plus the array holding them — allocated once per candidate, on the
+ * per-keystroke path `createResolver` runs. The rows are what `explain()`
+ * wants and what nothing else does. Measured at 221 ns -> 176 ns per call
+ * (20%), four representative candidates, 3M iterations, A/B in one process.
+ *
+ * The terms stay in `weightBreakdown`'s order — prior, then layer by layer and
+ * selector by selector, then the fuzzy charge — because float addition is not
+ * associative and a reordered sum is a different number. `selectorsFor` is
+ * shared rather than restated, so the two cannot disagree about which
+ * selectors exist.
+ */
 export function resolveWeight(args: WeightArgs): number {
-  return weightBreakdown(args).reduce((sum, c) => sum + c.value, 0);
+  let sum = args.prior;
+  const selectors = selectorsFor(args);
+  for (const layer of args.layers) {
+    if (layer === undefined) continue;
+    for (const selector of selectors) {
+      const value = layer[selector];
+      if (value !== undefined) sum += value;
+    }
+  }
+  if (args.fuzzy !== undefined) sum -= TYPO_PENALTY * args.fuzzy.distance;
+  return sum;
 }
 
 /**
@@ -137,9 +162,18 @@ export function grammarBreakdown(
   return out;
 }
 
+/** `grammarBreakdown`'s sum without its rows, for `resolveWeight`'s reason. */
 export function grammarWeight(
   locales: readonly string[],
   layers: readonly (Weights | undefined)[],
 ): number {
-  return grammarBreakdown(locales, layers).reduce((sum, c) => sum + c.value, 0);
+  let sum = 0;
+  for (const layer of layers) {
+    if (layer === undefined) continue;
+    for (const locale of locales) {
+      const value = layer[`grammar:${locale}`];
+      if (value !== undefined) sum += value;
+    }
+  }
+  return sum;
 }
