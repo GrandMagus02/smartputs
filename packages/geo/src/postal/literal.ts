@@ -178,6 +178,17 @@ function shadowed(word: string, ctx: MatchCtx): boolean {
   return word.length < MIN_ALIAS_LENGTH && ctx.isUnitAlias(word);
 }
 
+/**
+ * The letter run behind a code's digits when no space separates them:
+ * "1000mb" -> "mb". Hoisted for §7's reason — the walk runs per keystroke.
+ *
+ * Anchored both ends, so only a span that is *entirely* digits then letters
+ * asks the question. "SW1A 1AA" and "AD123" are not this shape, and they are
+ * not this collision either: a unit follows its quantity, so the digits have to
+ * come first for the span to have been a quantity.
+ */
+const UNIT_TAIL = /^\d+(\p{L}+)$/u;
+
 const WORD_CHAR = /[\p{L}\p{N}\p{M}]/u;
 const LETTER = /\p{L}/u;
 const DIGITS_ONLY = /^\d+$/;
@@ -404,6 +415,18 @@ export function createPostalLiteral(countries: readonly PostalCountry[]): Litera
       // question it saves is 178 regexes wide.
       const lettered = LETTER.test(code);
       if (!lettered && (offset !== 0 || end !== input.length)) continue;
+
+      // The guard above with the space taken out. `wordEnd` walks letters and
+      // digits alike and the Dutch format's separator is `\s?`, so "1000mb"
+      // arrives as a single word and a rule that reads the *last word* of the
+      // span never sees the `mb`. The cost is identical: the claim covers the
+      // lexer's number token and its unit word together, so the fold keeps no
+      // fallback and weighting this reading down would rank it against nothing
+      // — "1000mb" came back a Dutch place with the datasize reading gone.
+      // `nl 1000mb` and `1000mb nl` are how the code is still reached, which is
+      // the trade §6.2 already makes for "1234 kg".
+      const tail = lettered ? UNIT_TAIL.exec(code) : null;
+      if (tail !== null && shadowed(tail[1] as string, ctx)) continue;
 
       const rows = formats.filter((e) => e.test.test(code));
       if (rows.length === 0) continue;

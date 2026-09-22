@@ -314,6 +314,33 @@ test("a unit symbol inside the code's own shape stays the unit", () => {
   expect(units("1234-567 lisboa")).toEqual(["pt"]);
 });
 
+test("a unit symbol written against its number is still the unit", () => {
+  // The same collision as the test above with the space taken out. The guard
+  // there reads the *last word* of the span, and "1000mb" is one word, so it
+  // never fired: `wordEnd` walks letters and digits alike, the Netherlands'
+  // `\s?` makes the space optional, and `lettered` waved the whole token
+  // through at `POSTAL_WEIGHT`. Nothing survived underneath it either — the
+  // claim covers the lexer's number *and* its unit word, so `foldLiterals`
+  // keeps no fallback, and `1000mb` came back a Dutch place with the datasize
+  // reading gone rather than merely ranked below it.
+  for (const input of ["1000mb", "1000ms", "5000mi", "1234cm", "2000ft", "1500kb"]) {
+    expect(readings(input)).toEqual([]);
+    expect(answer(codes, input)).toBe(answer(names, input));
+  }
+
+  // The same cost, stated the same way: the unqualified reading is what is
+  // spent, and naming the country is how the code is still reached.
+  expect(units("nl 1000mb")).toEqual(["nl"]);
+  expect(units("1000mb nl")).toEqual(["nl"]);
+
+  // Letters nobody registered were never in doubt, spaced or not.
+  expect(units("1234ab")).toEqual(["nl"]);
+  // And a shape whose letters do not sit behind the digits is not this case at
+  // all: the collision is one-directional because a unit follows its quantity.
+  expect(units("AD123")).toEqual(["ad"]);
+  expect(units("SW1A 1AA")[0]).toBe("gb");
+});
+
 // ---- §6.2's hard constraint: ordinary numbers are untouched ----
 
 test("a bare numeric code is a number, with the place beneath it", () => {
