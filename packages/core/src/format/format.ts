@@ -29,6 +29,16 @@ export type { FormatOptions } from "../types";
 export const DISPLAY_PRECISION = 26;
 
 /**
+ * Every position in an integer digit string that starts a fresh group of
+ * three, counted from the right. Module scope because `formatNumber` runs once
+ * per rendered number per keystroke and a literal here is a fresh RegExp
+ * object each time — §7's rule about hoisting, applied to the one regex on
+ * this file's hot path. `replace` with a global regex resets `lastIndex`
+ * itself, so sharing the object carries no state between calls.
+ */
+const GROUP_BOUNDARY = /\B(?=(\d{3})+(?!\d))/g;
+
+/**
  * What `Result.formatted` keeps. Ruling R-C1.
  *
  * Distinct from `DISPLAY_PRECISION` (26) above, which is the ROUND-TRIP AND
@@ -126,7 +136,7 @@ export function formatNumber(
       ? fracPart
       : (fracPart ?? "").padEnd(opts.minFractionDigits, "0");
 
-  const grouped = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, group);
+  const grouped = intPart.replace(GROUP_BOUNDARY, group);
   const joined =
     paddedFrac === undefined || paddedFrac === ""
       ? grouped

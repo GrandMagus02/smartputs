@@ -109,6 +109,25 @@ test("compoundSplitter offers every split it can make, longest tail first", () =
   ]);
 });
 
+/**
+ * The cost this test protects: the cut loop starts at the first position whose
+ * tail is short enough to be a vocabulary word at all, not at `minPart`. That
+ * is what keeps a long token from costing a slice per character — but it is
+ * also exactly the kind of bound that can be set one position too tight and
+ * silently drop the longest legal split. A head far longer than the whole
+ * vocabulary, with the longest vocabulary word as its tail, is the case that
+ * fails first if it ever is.
+ */
+test("compoundSplitter finds the longest tail under an arbitrarily long head", () => {
+  const split = compoundSplitter({ vocabulary: LENGTHS, minPart: 3 });
+  const head = "band".repeat(40);
+  expect(split(`${head}zentimeter`, ctx(`${head}zentimeter`))).toEqual([
+    { form: "zentimeter", weight: -3 },
+    { form: "meter", weight: -3 },
+  ]);
+  expect(split("x".repeat(4000), ctx("x".repeat(4000)))).toEqual([]);
+});
+
 test("compoundSplitter accepts a Set as readily as an array", () => {
   const split = compoundSplitter({ vocabulary: new Set(LENGTHS), minPart: 3 });
   expect(split("Bandmeter", ctx("Bandmeter"))).toEqual([{ form: "meter", weight: -3 }]);

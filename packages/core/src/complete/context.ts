@@ -31,6 +31,14 @@ export interface CompletionContext {
  */
 const KEYWORDS = new WeakMap<Locale, ReadonlyMap<string, Keyword>>();
 
+/**
+ * The words of a head, with their offsets. Module scope for §7's reason —
+ * `conversionHead` runs once per keystroke — and safe to share: `matchAll`
+ * iterates a clone of the regex it is given, so nothing here carries a
+ * `lastIndex` from the previous call.
+ */
+const WORD_RUN = /\S+/g;
+
 function keywordsOf(locale: Locale): ReadonlyMap<string, Keyword> {
   const seen = KEYWORDS.get(locale);
   if (seen !== undefined) return seen;
@@ -67,7 +75,7 @@ export function conversionHead(
 ): string | null {
   const head = input.slice(0, upto);
   const keywords = keywordsOf(locale);
-  const words = [...head.matchAll(/\S+/g)];
+  const words = [...head.matchAll(WORD_RUN)];
 
   for (let i = words.length - 1; i >= 0; i -= 1) {
     const word = words[i];

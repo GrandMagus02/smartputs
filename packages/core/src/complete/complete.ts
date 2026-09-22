@@ -35,6 +35,14 @@ const DEFAULT_LIMIT = 10;
 const IMPLIED_COUNT = new Decimal(1);
 
 /**
+ * Whitespace runs inside a look-back row's typed text, collapsed to one space
+ * so "new   york" measures against "new york". Module scope because the one
+ * place it is used is a loop body a kind's completer feeds — §7's rule, and
+ * here the loop is per completer row per keystroke.
+ */
+const SPACE_RUN = /\s+/g;
+
+/**
  * The one alias `fragment` is a near-miss of, or null when there is none or
  * when two are equally near — `nearestWord`'s refusal, which is worth as much
  * here as it is in the parser: a completion list is read at a glance, and an
@@ -148,6 +156,25 @@ export function complete(args: {
         scaleFit(count, unit.typical) -
         TYPO_PENALTY * typo;
 
+      const key = `${entry.kind}:${entry.unit}`;
+      const existing = best.get(key);
+
+      // Strictly greater, and alias ascending on a tie, so two aliases of equal
+      // length (millimetre / millimeter) resolve the same way on every run.
+      //
+      // Decided before the word below is built, not after. A short fragment
+      // puts many aliases of one unit through this loop — "m" alone offers
+      // metre, metres, meter, meters, mi, mile… — and only the winner's word
+      // is ever read, so `selectForm` and `wordsFor` used to run once per
+      // losing alias on every keystroke. Nothing in the comparison reads the
+      // word, so moving it below the gate is the same decision made earlier.
+      if (
+        existing !== undefined &&
+        !(score > existing.score || (score === existing.score && alias < existing.alias))
+      ) {
+        continue;
+      }
+
       // Per row, not once per call: the form key is the language's answer for
       // *this* unit in *this* kind, and only the language knows whether that
       // varies — Ukrainian's does, and a single category chosen once for the
@@ -207,26 +234,14 @@ export function complete(args: {
             ? alias
             : (words.symbol ?? words.aliases[0]);
       const word = words?.forms?.[formKey] ?? owned ?? entry.unit;
-      const key = `${entry.kind}:${entry.unit}`;
-      const existing = best.get(key);
-
-      // Strictly greater, and alias ascending on a tie, so two aliases of equal
-      // length (millimetre / millimeter) resolve the same way on every run.
-      if (
-        existing === undefined ||
-        score > existing.score ||
-        (score === existing.score && alias < existing.alias)
-      ) {
-        best.set(key, {
-          alias,
-          span: fragment.span,
-          text:
-            input.slice(0, fragment.span.start) + word + input.slice(fragment.span.end),
-          kind: entry.kind,
-          unit: entry.unit,
-          score,
-        });
-      }
+      best.set(key, {
+        alias,
+        span: fragment.span,
+        text: input.slice(0, fragment.span.start) + word + input.slice(fragment.span.end),
+        kind: entry.kind,
+        unit: entry.unit,
+        score,
+      });
     }
   };
 
@@ -325,7 +340,7 @@ export function complete(args: {
               .slice(from, fragment.span.end)
               .normalize("NFKC")
               .toLocaleLowerCase(locale.id)
-              .replace(/\s+/g, " ");
+              .replace(SPACE_RUN, " ");
 
       // Three summands where the alias path has four. `scaleFit` is the missing
       // one: it reads the `typical` band off a ratio unit, meaning the magnitude

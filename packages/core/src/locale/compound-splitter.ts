@@ -73,7 +73,20 @@ export function compoundSplitter(opts: {
 }): Analyzer {
   const weight = opts.weight ?? -3;
   const vocabulary = new Set<string>();
-  for (const word of opts.vocabulary) vocabulary.add(word.toLowerCase());
+  // The longest word in it, which is also the longest tail a lookup can ever
+  // answer yes to — every shorter cut position produces a tail no vocabulary
+  // entry could equal, so the loop below starts where the tail first becomes
+  // short enough to exist rather than at `minPart`. Same answers, and it takes
+  // the scan from quadratic in the surface's length to linear in the
+  // vocabulary's: a pasted 4,000-character token used to cost 4,000 slices of
+  // ~4,000 characters, on every keystroke, in every language that installs
+  // this.
+  let longest = 0;
+  for (const word of opts.vocabulary) {
+    const folded = word.toLowerCase();
+    vocabulary.add(folded);
+    if (folded.length > longest) longest = folded.length;
+  }
   // Never 0: see the doc comment on why a bare vocabulary word is not a
   // compound of itself.
   const shortest = Math.max(1, opts.minPart);
@@ -84,7 +97,8 @@ export function compoundSplitter(opts: {
     // `cut` is the head's length, so it ascends from the shortest allowed head
     // to the longest one that still leaves a legal tail — which walks the
     // tails from longest to shortest.
-    for (let cut = shortest; cut <= folded.length - shortest; cut++) {
+    const from = Math.max(shortest, folded.length - longest);
+    for (let cut = from; cut <= folded.length - shortest; cut++) {
       const tail = folded.slice(cut);
       if (vocabulary.has(tail)) out.push({ form: tail, weight });
     }

@@ -1,4 +1,4 @@
-import { Decimal } from "../decimal";
+import type { Decimal } from "../decimal";
 
 /** An alias the user has finished typing. */
 export const EXACT_BONUS = 10;
@@ -42,5 +42,10 @@ export function scaleFit(
   const [lo, hi] = typical;
   // Magnitude, so "-30 min" is scored like "30 min".
   const n = count.abs();
-  return n.gte(new Decimal(lo)) && n.lte(new Decimal(hi)) ? SCALE_BONUS : 0;
+  // The bounds go to `gte`/`lte` as the plain numbers they are. Decimal
+  // coerces a comparison argument itself, so wrapping them here built a second
+  // Decimal per bound that the comparison then threw away — two allocations
+  // per candidate row, per keystroke, for a comparison that already did them.
+  // It also leaves `Decimal` a type-only import in this module.
+  return n.gte(lo) && n.lte(hi) ? SCALE_BONUS : 0;
 }
