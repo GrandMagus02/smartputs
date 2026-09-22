@@ -230,8 +230,19 @@ export function createFacade(args: {
       return new Q(value, unit);
     }
 
-    /** Canonical magnitude, the basis for every conversion and comparison. */
-    private canonical(): Decimal {
+    /**
+     * Canonical magnitude, the basis for every conversion and comparison.
+     *
+     * Not `private`, for the reason `combine` below is not: the affine
+     * prototype functions are defined outside this class body and have to call
+     * it on `this`, and `private` — which TypeScript checks syntactically,
+     * not through `this`'s type — forbids that however `this` is typed. It
+     * stays off the `Quantity` interface, so it is not public contract; what
+     * changed is that the four `as unknown as { canonical(): Decimal }` casts
+     * this used to force are gone, and renaming it now fails to compile
+     * instead of failing at the first `20°C + 5°C`.
+     */
+    canonical(): Decimal {
       return toCanonical(this.value, kind, this.unit, {
         locale: locale.id,
         ...(this.meta ? { meta: this.meta as Record<string, unknown> } : {}),
@@ -308,6 +319,17 @@ export function createFacade(args: {
   const affine = kind.spec.mode === "ratio" ? kind.spec.affine : undefined;
   const proto = Q.prototype as unknown as Record<string, unknown>;
 
+  /**
+   * An instance of ANOTHER facade — the delta kind's — seen from here.
+   *
+   * Every facade is a `Q` built by this same function, so the shape is exact;
+   * `Pick<Q, "canonical">` is what says so in a way the compiler checks, which
+   * is the difference between this and the `as unknown as { canonical():
+   * Decimal }` it replaces. A single `as`, because the target is a subtype of
+   * what `QuantityClass.from` declares.
+   */
+  type ForeignQuantity = Quantity & Pick<Q, "canonical">;
+
   if (affine === undefined) {
     // Ratio kinds: every unit is a pure multiple, so sums and products are
     // meaningful. An affine kind gets none of these — 20C * 2 has no meaning.
@@ -344,16 +366,14 @@ export function createFacade(args: {
       return DeltaClass;
     };
 
-    proto.add = function (this: Quantity, other: QuantityInput) {
+    proto.add = function (this: Q, other: QuantityInput) {
       // `other` is a difference, not a reading of this kind — interpret it
       // through the delta facade's own `from`, not `Q.from`. Reconstructing
       // it as a Temperature would re-apply temperature's offset (e.g. 5F
       // read as a *reading* is -15C; read as a *difference* it is 2.78C).
       const DeltaClass = requireDeltaClass();
-      const rhs = DeltaClass.from(other);
-      const total = (this as unknown as { canonical(): Decimal })
-        .canonical()
-        .plus((rhs as unknown as { canonical(): Decimal }).canonical());
+      const rhs = DeltaClass.from(other) as ForeignQuantity;
+      const total = this.canonical().plus(rhs.canonical());
       return new Q(
         fromCanonical(total, kind, this.unit, {
           locale: locale.id,
@@ -363,15 +383,13 @@ export function createFacade(args: {
         this.meta as Record<string, unknown>,
       );
     };
-    proto.diff = function (this: Quantity, other: QuantityInput) {
+    proto.diff = function (this: Q, other: QuantityInput) {
       // `other` here is a second reading of this same kind, so `Q.from` is
       // correct: it either passes an existing Temperature through, parses a
       // string with Temperature's own offsets, or treats a bare number as
       // canonical.
-      const rhs = Q.from(other);
-      const delta = (this as unknown as { canonical(): Decimal })
-        .canonical()
-        .minus((rhs as unknown as { canonical(): Decimal }).canonical());
+      const rhs = Q.from(other) as Q;
+      const delta = this.canonical().minus(rhs.canonical());
       const DeltaClass = requireDeltaClass();
       return new DeltaClass(delta, canonicalUnit);
     };

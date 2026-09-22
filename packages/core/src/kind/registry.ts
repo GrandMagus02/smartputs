@@ -213,10 +213,13 @@ function mergeWords(base: UnitWords, patch: UnitWords): UnitWords {
 function staticRatio(kind: NormalizedKind, unit: string): Decimal | null {
   const def = kind.units.get(unit);
   if (def === undefined) return null;
-  const ctx = {
+  // A literal `EvalCtx`, not a cast to one: `self` and `locale` are the only
+  // required fields, and a `as unknown as` here would be a fourth seam (§5)
+  // that also hid a real mismatch if `EvalCtx` ever grew a required field.
+  const ctx: EvalCtx = {
     self: { kind: kind.id, canonical: new Decimal(0), unit },
     locale: "*",
-  } as unknown as EvalCtx;
+  };
   try {
     const ratio = def.ratio(ctx);
     const offset = def.offset(ctx);
