@@ -3,6 +3,7 @@ import { Temporal } from "@smartput/datetime";
 import {
   assertOrdered,
   type EndpointParser,
+  rangeMatch,
   unwrapRange,
   WINDOWS,
   type Window,
@@ -143,15 +144,7 @@ export function createDatetimeRange(opts: DatetimeRangeOptions = {}): Kind {
       dayWindowAt(input, offset, windows, now) ??
       fromToAt(input, offset, ctx, now, parsers);
     if (span === null) return null;
-    const value = build(input, span.start, span.end);
-    return {
-      kind: DATETIME_RANGE_KIND,
-      unit: DATETIME_RANGE_UNIT,
-      canonical: value.canonical,
-      ...(value.meta ? { meta: value.meta } : {}),
-      length: span.length,
-      weight,
-    };
+    return rangeMatch(build(input, span.start, span.end), span.length, weight);
   };
 
   // A second matcher rather than a second reading out of the first, because the
@@ -159,15 +152,7 @@ export function createDatetimeRange(opts: DatetimeRangeOptions = {}): Kind {
   const calendarMatcher: LiteralMatcher = (input, offset, ctx) => {
     const span = calendarSpanAt(input, offset, ctx);
     if (span === null) return null;
-    const value = build(input, span.start, span.end);
-    return {
-      kind: DATETIME_RANGE_KIND,
-      unit: DATETIME_RANGE_UNIT,
-      canonical: value.canonical,
-      ...(value.meta ? { meta: value.meta } : {}),
-      length: span.length,
-      weight: calendarWeight,
-    };
+    return rangeMatch(build(input, span.start, span.end), span.length, calendarWeight);
   };
 
   return defineKind({

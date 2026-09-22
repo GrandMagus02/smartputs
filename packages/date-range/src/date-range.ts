@@ -10,6 +10,7 @@ import { addDuration, Temporal } from "@smartput/datetime";
 import {
   assertOrdered,
   RANGE_WEIGHTS,
+  rangeMatch,
   type SnapOptions,
   unwrapRange,
   wrapRange,
@@ -142,15 +143,7 @@ const phraseLiteral =
       ctx.timeZone,
     );
     const span = spanFor(phrase, now, opts);
-    const value = build(input, span.start, span.end);
-    return {
-      kind: DATE_RANGE_KIND,
-      unit: DATE_RANGE_UNIT,
-      canonical: value.canonical,
-      ...(value.meta ? { meta: value.meta } : {}),
-      length: phrase.text.length,
-      weight,
-    };
+    return rangeMatch(build(input, span.start, span.end), phrase.text.length, weight);
   };
 
 /**
@@ -170,15 +163,11 @@ const ordinalWeekLiteral =
   (input, offset, ctx) => {
     const match = ordinalWeekAt(input, offset, ctx, opts);
     if (match === null) return null;
-    const value = build(input, match.span.start, match.span.end);
-    return {
-      kind: DATE_RANGE_KIND,
-      unit: DATE_RANGE_UNIT,
-      canonical: value.canonical,
-      ...(value.meta ? { meta: value.meta } : {}),
-      length: match.length,
+    return rangeMatch(
+      build(input, match.span.start, match.span.end),
+      match.length,
       weight,
-    };
+    );
   };
 
 /** Both ends move by the same amount, so a shift preserves the span exactly. */

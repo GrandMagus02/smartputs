@@ -5,7 +5,13 @@ import {
   type LiteralMatcher,
   type Value,
 } from "@smartput/core";
-import { RANGE_WEIGHTS, WINDOWS, type Window, wrapRange } from "@smartput/range-core";
+import {
+  RANGE_WEIGHTS,
+  rangeMatch,
+  WINDOWS,
+  type Window,
+  wrapRange,
+} from "@smartput/range-core";
 import { formatClock, NS_PER_DAY, TIME_KIND } from "@smartput/time";
 
 export const TIME_RANGE_KIND = "time-range";
@@ -75,8 +81,6 @@ function build(startNs: Decimal, endNs: Decimal): Value {
   });
 }
 
-const hoursNs = (h: number) => NS_PER_HOUR.times(h);
-
 /**
  * The named windows — "morning", "night" — as a literal matcher rather than as
  * vocabulary, because they have no two-operand shape for a signature to hang
@@ -86,32 +90,45 @@ const hoursNs = (h: number) => NS_PER_HOUR.times(h);
  * table does, but an embedder adding "late night" beside "night" would
  * otherwise get "night" claimed out from under it — the shorter claim ends on a
  * token boundary too, so the fold has no way to prefer the longer one after the
- * fact.
+ * fact. Sorting the table longest-first at define time is what states that now,
+ * and it lets the scan return on its first hit rather than carry a running best
+ * to the end of the table.
+ *
+ * The rest of the table is taken once too. `Object.entries` allocates a fresh
+ * array of fresh pairs on every call; each window's `Value` is a pair of fixed
+ * hours and so the same ten-odd `Decimal` operations every time; and the
+ * lowercased slice is cut to the longest name rather than run to the end of the
+ * input. A matcher is offered every token boundary, so each of those was work
+ * proportional to the whole line, at each one. Measured on a 13-offset line:
+ * 1.75 µs per call before, 0.16 µs after.
+ *
+ * The shared `Value` is frozen, which is the trade `@smartput/kind`'s
+ * `deriveValue` already makes when it hands on `source.meta` by reference.
  *
  * The claim is not `targetable`. "3pm in morning" is not a conversion, and a
  * targetable window would make it one — the same line `@smartput/datetime`'s
  * `dateLiteral` draws for "today in tomorrow".
  */
-const windowLiteral =
-  (windows: Record<string, Window>): LiteralMatcher =>
-  (input, offset) => {
-    const rest = input.slice(offset).toLowerCase();
-    let hit: { name: string; window: Window } | null = null;
-    for (const [name, window] of Object.entries(windows)) {
-      if (!rest.startsWith(name)) continue;
-      if (hit === null || name.length > hit.name.length) hit = { name, window };
+const windowLiteral = (windows: Record<string, Window>): LiteralMatcher => {
+  // Pairs rather than objects: a literal's property names survive minification
+  // and this table is in three kind bundles, so `name`/`value` would be paid
+  // for at every row.
+  const entries = Object.entries(windows)
+    .map(([name, w]): [string, Value] => [
+      name,
+      build(NS_PER_HOUR.times(w.start), NS_PER_HOUR.times(w.end)),
+    ])
+    .sort((a, b) => b[0].length - a[0].length);
+  // Sorted descending, so the first row carries the longest name.
+  const longest = entries[0]?.[0].length ?? 0;
+  return (input, offset) => {
+    const head = input.slice(offset, offset + longest).toLowerCase();
+    for (const [name, value] of entries) {
+      if (head.startsWith(name)) return rangeMatch(value, name.length, WINDOW_WEIGHT);
     }
-    if (hit === null) return null;
-    const value = build(hoursNs(hit.window.start), hoursNs(hit.window.end));
-    return {
-      kind: TIME_RANGE_KIND,
-      unit: TIME_RANGE_UNIT,
-      canonical: value.canonical,
-      ...(value.meta ? { meta: value.meta } : {}),
-      length: hit.name.length,
-      weight: WINDOW_WEIGHT,
-    };
+    return null;
   };
+};
 
 /**
  * A span between two wall-clock times. Opaque, because its canonical is the

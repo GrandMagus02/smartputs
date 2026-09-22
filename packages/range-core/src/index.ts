@@ -10,6 +10,12 @@ export {
   startOfWeek,
   startOfYear,
 } from "./snap";
-export { assertOrdered, type RangeMeta, unwrapRange, wrapRange } from "./value";
+export {
+  assertOrdered,
+  type RangeMeta,
+  rangeMatch,
+  unwrapRange,
+  wrapRange,
+} from "./value";
 export { RANGE_WEIGHTS } from "./weights";
 export { WINDOWS, type Window } from "./windows";

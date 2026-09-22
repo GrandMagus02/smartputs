@@ -1,4 +1,4 @@
-import type { Decimal, Value } from "@smartput/core";
+import type { Decimal, LiteralMatch, Value } from "@smartput/core";
 import { Temporal } from "@smartput/datetime";
 import { InvertedRangeError } from "./errors";
 
@@ -55,6 +55,36 @@ export function wrapRange(
   meta: RangeMeta,
 ): Value {
   return Object.freeze({ kind, canonical, unit, meta: Object.freeze({ ...meta }) });
+}
+
+/**
+ * The claim a range kind hands core, built from the `Value` `wrapRange` just
+ * produced.
+ *
+ * Every range literal matcher in the repo ended in the same seven lines —
+ * restate the kind id, restate the unit, copy `canonical`, spread `meta` only
+ * when it exists, attach `length` and `weight`. Three of those copies named
+ * their kind and unit as constants a second time, so a `wrapRange` call and its
+ * claim could disagree about what was being claimed; reading both off the value
+ * closes that by construction.
+ *
+ * The `meta` spread is conditional rather than `meta: value.meta` because
+ * `exactOptionalPropertyTypes` is on repo-wide and `{ meta: undefined }` is not
+ * an absent `meta` — the same dance `deriveValue` does in `@smartput/kind`.
+ * `wrapRange` always sets one, but this takes a `Value` and a `Value` need not.
+ *
+ * Not `targetable`: no range claim is a conversion target. A kind that wanted
+ * one would be asking for a different helper, not an option on this one.
+ */
+export function rangeMatch(value: Value, length: number, weight: number): LiteralMatch {
+  return {
+    kind: value.kind,
+    unit: value.unit,
+    canonical: value.canonical,
+    ...(value.meta ? { meta: value.meta } : {}),
+    length,
+    weight,
+  };
 }
 
 /**
