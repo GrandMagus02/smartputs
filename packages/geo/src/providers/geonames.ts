@@ -270,7 +270,14 @@ export class GeoNames implements GeoProvider {
     let body: unknown;
     try {
       body = await res.json();
-    } catch {
+    } catch (error) {
+      // An abort reaches here whenever the headers arrived before the caller
+      // changed their mind, and it is the caller's own decision rather than
+      // anything about the payload. Rewriting it as a provider failure loses
+      // that: `Geo` tests `name === "AbortError"` to decide whether a
+      // superseded query may spend the next provider's request, so a swallowed
+      // abort is a request spent on an answer nobody is waiting for.
+      if (error instanceof Error && error.name === "AbortError") throw error;
       throw new PlaceProviderError(ID, "response was not JSON");
     }
 

@@ -178,6 +178,33 @@ test("an HTTP failure names the status", async () => {
   await expect(geonames({ username: "u", fetch }).search("Dar")).rejects.toThrow(/503/);
 });
 
+test("an abort while the body is still arriving stays an abort", async () => {
+  // The headers land, so `res.ok` is true and the failure surfaces from
+  // `res.json()` instead — which is the one place a caller's own `AbortError`
+  // and a malformed payload arrive through the same `catch`. Reported as
+  // "response was not JSON" it stops being an abort: `Geo.#fallback` tests
+  // `error.name` to decide whether a superseded query may spend the next
+  // provider's request, and a `PlaceProviderError` answers no to that question.
+  const aborted = new DOMException("The operation was aborted.", "AbortError");
+  const fetch = (async () =>
+    new Response(
+      new ReadableStream({
+        start(c) {
+          c.error(aborted);
+        },
+      }),
+    )) as unknown as typeof globalThis.fetch;
+
+  await expect(geonames({ username: "u", fetch }).search("Dar")).rejects.toThrow(
+    /aborted/,
+  );
+  const error = await geonames({ username: "u", fetch })
+    .search("Dar")
+    .catch((e: unknown) => e);
+  expect((error as Error).name).toBe("AbortError");
+  expect(error).not.toBeInstanceOf(PlaceProviderError);
+});
+
 test("an empty result set is an answer, not a failure", async () => {
   const { fetch } = stub(() => JSON.stringify({ geonames: [] }));
   expect(await geonames({ username: "u", fetch }).search("nowhere")).toEqual([]);
