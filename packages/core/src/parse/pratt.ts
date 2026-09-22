@@ -107,7 +107,14 @@ export function bindingOf(op: BinaryOp): number {
 export const CONVERT_BINDING = 5;
 
 export function parse(
-  tokens: Token[],
+  /**
+   * Read-only, and typed that way so a caller holding a frozen list — every
+   * `TokenStream` — can hand it over as it is. The parser walks `tokens` with
+   * an index and never writes to it; the `Token[]` this used to take forced
+   * `Parser.run` to copy the whole array on every call, which on the scan path
+   * is one copy per backoff attempt per anchor rather than one per input.
+   */
+  tokens: readonly Token[],
   resolver: Resolver,
   input: string,
   /**

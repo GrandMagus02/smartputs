@@ -332,8 +332,14 @@ export function createResolver(args: {
       // Keyed by (kind, unit) so the same answer reached through two readings
       // of one surface — an alias and a stem, say — is one answer, not two.
       const found = new Map<string, Candidate>();
+      // Both sides resolved once. `resolve` walks every installed language's
+      // analyzer chain, allocates a candidate per alias entry it reaches and
+      // sorts the result, and reading it from inside the outer loop paid for
+      // the right-hand side once per reading of the left — the same answer,
+      // rebuilt, for every rival reading of "km" in "km/h".
+      const rights = resolver.resolve(right.surface, right.position);
       for (const l of resolver.resolve(left.surface, left.position)) {
-        for (const r of resolver.resolve(right.surface, right.position)) {
+        for (const r of rights) {
           const sig = args.registry.ops.get(opKey(op, l.kind, r.kind));
           if (sig === undefined) continue;
           const unit = derivedUnitOf(args.registry, sig.result, l.unit, op, r.unit);

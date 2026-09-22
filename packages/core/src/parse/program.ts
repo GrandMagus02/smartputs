@@ -90,9 +90,11 @@ export class Parser {
 
   run(stream: TokenStream): Program {
     const node = parse(
-      // `parse` takes a mutable Token[]; a TokenStream's is frozen, so this is
-      // a shallow copy, not a cast past the readonly modifier.
-      [...stream.tokens],
+      // Handed over as it is: `parse` takes a `readonly Token[]` and walks it
+      // with an index, so the frozen list needs neither a copy nor a cast past
+      // the readonly modifier. The copy this replaced was paid on every call —
+      // and `scan.ts` calls this once per backoff attempt per anchor.
+      stream.tokens,
       this.resolver,
       stream.input.source,
       // Not `stream.input.mapSpan` bare: that detaches the method from its

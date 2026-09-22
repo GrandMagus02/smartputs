@@ -24,6 +24,17 @@ export const DEFAULT_CUE_WINDOW = 4;
  */
 export const DEFAULT_MAX_SPAN = 12;
 
+/**
+ * The three character classes this file tests, at module scope because a regex
+ * literal is a new object every time its line is evaluated and all three sit
+ * inside functions the scan calls once per token gap or once per span edge.
+ * See `gapBreaksRun` for what each one means and why two strings have to be
+ * read rather than one.
+ */
+const NON_SPACE = /\S/;
+const LINE_BOUNDARY = /[\n\r\t\u2028\u2029]/;
+const SPACE = /\s/;
+
 export interface ScannerOptions {
   normalizer?: Normalizer;
   tokenizer: Tokenizer;
@@ -132,7 +143,7 @@ export interface ScanMatch {
  * `"5 km"` to keep reading as one mark despite it.
  */
 function gapBreaksRun(prev: Token, cur: Token, normalized: NormalizedInput): boolean {
-  if (/\S/.test(normalized.text.slice(prev.end, cur.start))) return true;
+  if (NON_SPACE.test(normalized.text.slice(prev.end, cur.start))) return true;
   const mapped = normalized.mapSpan({ start: prev.end, end: cur.start });
   // The degraded `nfkcShifted` answer: no two adjacent tokens can genuinely
   // have the entire source sitting between them, so this shape can only mean
@@ -140,7 +151,7 @@ function gapBreaksRun(prev: Token, cur: Token, normalized: NormalizedInput): boo
   // treat the whole document as the gap.
   if (mapped.start === 0 && mapped.end === normalized.source.length) return false;
   const source = normalized.source.slice(mapped.start, mapped.end);
-  return /[\n\r\t\u2028\u2029]/.test(source);
+  return LINE_BOUNDARY.test(source);
 }
 
 /**
@@ -288,8 +299,8 @@ function isAnchor(
  */
 function trimSpan(source: string, span: Span): Span {
   let { start, end } = span;
-  while (start < end && /\s/.test(source[start] as string)) start += 1;
-  while (end > start && /\s/.test(source[end - 1] as string)) end -= 1;
+  while (start < end && SPACE.test(source[start] as string)) start += 1;
+  while (end > start && SPACE.test(source[end - 1] as string)) end -= 1;
   return { start, end };
 }
 

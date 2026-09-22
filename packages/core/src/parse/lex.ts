@@ -186,9 +186,93 @@ const COMPARISONS: ReadonlyArray<readonly [string, OpSymbol]> = [
 // automatically without either list; that was judged out of scope for M2.
 const UNIT_SYMBOLS = new Set(["%"]);
 
-function defaultSegment(run: string, localeId: string): string[] {
-  const segmenter = new Intl.Segmenter(localeId, { granularity: "word" });
-  return [...segmenter.segment(run)].filter((s) => s.isWordLike).map((s) => s.segment);
+/**
+ * The character classes `lex` asks about, at module scope because a regex
+ * literal is a new object every time the line it sits on is evaluated, and
+ * every one of these lines used to sit inside a predicate called once per
+ * character of input. Hoisting them is the rule in §7 of the code practices,
+ * and here it is also one literal where there were three.
+ */
+const LETTER = /\p{L}/u;
+/**
+ * A combining mark: `Mn`, `Mc` or `Me`. Continues a letter run, never starts
+ * one.
+ *
+ * An abugida writes its vowels as marks hung on a consonant, and Unicode
+ * classes those marks as `M` rather than `L`. So a Devanagari word is a
+ * *mixture* of the two categories — किलोग्राम is क + ि + ल + ो + ग + ् + र +
+ * ा + म, five letters and four marks interleaved — and a run built out of
+ * `\p{L}` alone stops at the first vowel. Hindi did not lex as words; it lexed
+ * as bare consonants, and `1 किलोग्राम` reported `Unknown unit "क"`. Every
+ * Indic, Thai, Khmer and Ethiopic script has the same shape.
+ *
+ * Continuation only, and that is what makes this strictly additive: a run
+ * still has to *begin* on a letter, so a stray mark with no letter in front of
+ * it keeps falling through to the unrecognized-character path exactly as it
+ * did before. The only inputs whose lexing changes are the ones where a mark
+ * followed a letter — which, for the languages already here, either cannot
+ * happen (`normalize()` runs NFKC first, and every Latin and Cyrillic
+ * diacritic in use composes onto its base letter) or was the bug above.
+ *
+ * The marks are not handed to `Intl.Segmenter` as a separate concern: they are
+ * part of the run string, and ICU already breaks a Devanagari run into words
+ * correctly once it is given the whole run rather than one consonant.
+ */
+const MARK = /\p{M}/u;
+/** Only `scanRun` asks, and only about a grammar's declared group separator. */
+const WHITESPACE = /\s/;
+
+const isDigit = (c: string) => c >= "0" && c <= "9";
+const isLetter = (c: string) => LETTER.test(c);
+const isMark = (c: string) => MARK.test(c);
+
+/**
+ * An apostrophe *between two letters* is part of the word, not a boundary.
+ *
+ * Ukrainian needs this to say its own numbers: п'ять (5), дев'ять (9),
+ * п'ятнадцять (15), п'ятдесят (50), дев'яносто (90) and the hundreds built
+ * on them all carry one, and none of them is a compound — the apostrophe is
+ * an orthographic mark separating a consonant from a following iotated
+ * vowel, as much a part of the word as any letter. Without this, `lex` cut
+ * "п'ять кг" into "п", "ять" and "кг", and every spelled Ukrainian numeral
+ * containing an apostrophe was unreachable through the parser while
+ * `ukrainian.numerals(["п'ять"])` answered 5 correctly — the table was right
+ * and the word never arrived.
+ *
+ * Three spellings, because three are in use and a user types whichever their
+ * keyboard offers: U+2019 is what Ukrainian typography and most word
+ * processors produce, U+02BC is the letter-apostrophe some standards
+ * prescribe, and U+0027 is what a plain keyboard gives. `normalize()` folds
+ * none of them, so they arrive here as typed.
+ *
+ * Between two *letters*, and deliberately not otherwise: a trailing
+ * apostrophe stays a boundary, so a prime-mark unit ("5 ft'") is unaffected,
+ * and so is any input that ends a quoted word. English is untouched by
+ * construction — no alias in the repo contains an apostrophe, and neither
+ * corpus contains one at all.
+ */
+const APOSTROPHES = new Set(["'", "’", "ʼ"]);
+
+/**
+ * ICU's word break over one letter run, against a segmenter the caller owns.
+ *
+ * The segmenter is a parameter rather than a local because building one costs
+ * ~9 us and using it costs ~0.8 us (measured, `Intl.Segmenter("en", { word })`),
+ * so a `new Intl.Segmenter` here charged every letter run of every keystroke
+ * for a construction that only depends on the locale — "10 kg in grams" paid
+ * three of them. `lex` builds at most one per call, lazily, because a language
+ * with its own `segment` hook never reaches this function at all.
+ *
+ * One pass rather than `[...segment(run)].filter().map()`: the spread and the
+ * two intermediate arrays are three allocations per run for a result that is
+ * almost always one word long.
+ */
+function defaultSegment(run: string, segmenter: Intl.Segmenter): string[] {
+  const words: string[] = [];
+  for (const piece of segmenter.segment(run)) {
+    if (piece.isWordLike) words.push(piece.segment);
+  }
+  return words;
 }
 
 /**
@@ -315,7 +399,7 @@ function nextSignificant(
   if (OPS[ch] !== undefined) return "op";
   if (COMPARISONS.some(([text]) => input.startsWith(text, at))) return "op";
   let end = at;
-  while (end < input.length && /\p{L}/u.test(input[end] as string)) end += 1;
+  while (end < input.length && isLetter(input[end] as string)) end += 1;
   const word = input.slice(at, end).toLocaleLowerCase(localeId);
   return keywords.get(word) === "in" ? "in" : "other";
 }
@@ -353,61 +437,13 @@ export function lex(
 ): Token[] {
   const tokens: Token[] = [];
   let i = 0;
-
-  const isDigit = (c: string) => c >= "0" && c <= "9";
-  const isLetter = (c: string) => /\p{L}/u.test(c);
   /**
-   * A combining mark: `Mn`, `Mc` or `Me`. Continues a letter run, never starts
-   * one.
-   *
-   * An abugida writes its vowels as marks hung on a consonant, and Unicode
-   * classes those marks as `M` rather than `L`. So a Devanagari word is a
-   * *mixture* of the two categories — किलोग्राम is क + ि + ल + ो + ग + ् + र +
-   * ा + म, five letters and four marks interleaved — and a run built out of
-   * `\p{L}` alone stops at the first vowel. Hindi did not lex as words; it lexed
-   * as bare consonants, and `1 किलोग्राम` reported `Unknown unit "क"`. Every
-   * Indic, Thai, Khmer and Ethiopic script has the same shape.
-   *
-   * Continuation only, and that is what makes this strictly additive: a run
-   * still has to *begin* on a letter, so a stray mark with no letter in front of
-   * it keeps falling through to the unrecognized-character path exactly as it
-   * did before. The only inputs whose lexing changes are the ones where a mark
-   * followed a letter — which, for the languages already here, either cannot
-   * happen (`normalize()` runs NFKC first, and every Latin and Cyrillic
-   * diacritic in use composes onto its base letter) or was the bug above.
-   *
-   * The marks are not handed to `Intl.Segmenter` as a separate concern: they are
-   * part of the run string, and ICU already breaks a Devanagari run into words
-   * correctly once it is given the whole run rather than one consonant.
+   * Built on the first letter run that needs it and reused for the rest — see
+   * `defaultSegment`. Undefined for a language with its own `segment` hook, and
+   * for any input with no letters in it at all.
    */
-  const isMark = (c: string) => /\p{M}/u.test(c);
+  let segmenter: Intl.Segmenter | undefined;
 
-  /**
-   * An apostrophe *between two letters* is part of the word, not a boundary.
-   *
-   * Ukrainian needs this to say its own numbers: п'ять (5), дев'ять (9),
-   * п'ятнадцять (15), п'ятдесят (50), дев'яносто (90) and the hundreds built
-   * on them all carry one, and none of them is a compound — the apostrophe is
-   * an orthographic mark separating a consonant from a following iotated
-   * vowel, as much a part of the word as any letter. Without this, `lex` cut
-   * "п'ять кг" into "п", "ять" and "кг", and every spelled Ukrainian numeral
-   * containing an apostrophe was unreachable through the parser while
-   * `ukrainian.numerals(["п'ять"])` answered 5 correctly — the table was right
-   * and the word never arrived.
-   *
-   * Three spellings, because three are in use and a user types whichever their
-   * keyboard offers: U+2019 is what Ukrainian typography and most word
-   * processors produce, U+02BC is the letter-apostrophe some standards
-   * prescribe, and U+0027 is what a plain keyboard gives. `normalize()` folds
-   * none of them, so they arrive here as typed.
-   *
-   * Between two *letters*, and deliberately not otherwise: a trailing
-   * apostrophe stays a boundary, so a prime-mark unit ("5 ft'") is unaffected,
-   * and so is any input that ends a quoted word. English is untouched by
-   * construction — no alias in the repo contains an apostrophe, and neither
-   * corpus contains one at all.
-   */
-  const APOSTROPHES = new Set(["'", "’", "ʼ"]);
   const isInnerApostrophe = (at: number) =>
     APOSTROPHES.has(input[at] as string) &&
     at > 0 &&
@@ -439,7 +475,7 @@ export function lex(
    * unconditional branch, where it already was.
    */
   const scanRun = (from: number, grammar: Grammar): number => {
-    const groupFoldsToSpace = grammar.group !== " " && /\s/.test(grammar.group);
+    const groupFoldsToSpace = grammar.group !== " " && WHITESPACE.test(grammar.group);
     const isFoldedGroup = (at: number) =>
       groupFoldsToSpace &&
       input[at] === " " &&
@@ -506,14 +542,8 @@ export function lex(
 
     if (isDigit(ch)) {
       const start = i;
-      const scans = grammars.map((grammar) => {
-        const end = scanRun(start, grammar);
-        return {
-          grammar,
-          end,
-          value: end > start ? parseNumber(input.slice(start, end), grammar) : null,
-        };
-      });
+      // Where each grammar stopped, and the furthest any of them reached.
+      //
       // The maximal run, over every grammar including the ones that then failed
       // to parse it. A grammar that stopped earlier was reading a word boundary
       // where another grammar reads a separator — English stopping at "1" in
@@ -521,16 +551,31 @@ export function lex(
       // it is a reading of a different run and is dropped. A grammar that
       // consumed the whole run and could not parse it takes no reading with it,
       // but it does not shorten the run either.
-      const end = Math.max(...scans.map((scan) => scan.end));
+      //
+      // Two passes rather than one, so `parseNumber` — which builds a `Decimal`
+      // — runs only for the grammars that reached `end`. The one pass parsed
+      // every grammar's own run and then threw away every reading of a shorter
+      // one, which is a discarded big number per losing grammar per digit run,
+      // on the path that runs per keystroke. It also means one `slice` for the
+      // whole branch instead of one per grammar plus one for the token's text.
+      const ends: number[] = [];
+      let end = start;
+      for (const grammar of grammars) {
+        const stop = scanRun(start, grammar);
+        ends.push(stop);
+        if (stop > end) end = stop;
+      }
+      const runText = input.slice(start, end);
       const byValue = new Map<string, { value: Decimal; locales: string[] }>();
-      for (const scan of scans) {
-        if (scan.end !== end || scan.value === null) continue;
-        const key = scan.value.toString();
+      for (const [g, grammar] of grammars.entries()) {
+        if (ends[g] !== end) continue;
+        const value = end > start ? parseNumber(runText, grammar) : null;
+        if (value === null) continue;
+        const key = value.toString();
         const hit = byValue.get(key);
-        if (hit === undefined)
-          byValue.set(key, { value: scan.value, locales: [...scan.grammar.locales] });
+        if (hit === undefined) byValue.set(key, { value, locales: [...grammar.locales] });
         else
-          for (const id of scan.grammar.locales)
+          for (const id of grammar.locales)
             if (!hit.locales.includes(id)) hit.locales.push(id);
       }
       const readings: NumberReading[] = [...byValue.values()].map((reading) => ({
@@ -553,7 +598,7 @@ export function lex(
         // is the solver's job; this is only what a reader who asks for one gets.
         value: chosen.value,
         readings,
-        text: input.slice(start, end),
+        text: runText,
         start,
         end,
       });
@@ -605,9 +650,13 @@ export function lex(
       let digitEnd = letterEnd;
       while (digitEnd < input.length && isDigit(input[digitEnd] as string)) digitEnd += 1;
       const run = input.slice(start, letterEnd);
-      const words = locale.language.segment
-        ? locale.language.segment(run)
-        : defaultSegment(run, locale.id);
+      let words: string[];
+      if (locale.language.segment !== undefined) {
+        words = locale.language.segment(run);
+      } else {
+        segmenter ??= new Intl.Segmenter(locale.id, { granularity: "word" });
+        words = defaultSegment(run, segmenter);
+      }
       const splits =
         digitEnd > letterEnd &&
         digitEnd < input.length &&
