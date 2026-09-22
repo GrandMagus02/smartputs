@@ -1,8 +1,9 @@
 import { expect, test } from "bun:test";
 import { english } from "@smartput/core/locale/en";
 import { Decimal } from "../decimal";
-import { composeLocale } from "../locale/compose";
+import { buildKeywords, composeLocale } from "../locale/compose";
 import { defineLanguage } from "../locale/define";
+import { grammarsFor } from "../locale/number";
 import type { Locale, NumeralParser, Weights } from "../types";
 import { lex, type Token } from "./lex";
 import { normalize } from "./normalize";
@@ -59,6 +60,34 @@ test("a scale word directly after digits multiplies them", () => {
     ["number", "1500000", 0, 11],
     ["word", "km", 12, 14],
   ]);
+});
+
+test("a scale word does not delete the other grammars' reading of the digits", () => {
+  // Ambiguity is data: "1,5" is fifteen to an English reader and one and a
+  // half to a Ukrainian one, and `lex` records both. Scaling only `value` and
+  // dropping `readings` deleted the Ukrainian reading outright — 1 500 000 was
+  // no longer reachable at all, not even ranked below 15 000 000 — which is the
+  // one thing no stage of this pipeline is allowed to do to a reading.
+  const uk = composeLocale(
+    defineLanguage({
+      id: "uk",
+      numberFormat: { group: "\u00a0", decimal: "," },
+      keywords: { in: ["в"] },
+      selectForm: () => "other",
+    }),
+  );
+  const tokens = lex(
+    "1,5 million",
+    en,
+    buildKeywords([en, uk]),
+    () => false,
+    grammarsFor([en, uk]),
+  );
+  const folded = foldNumerals(tokens, [en, uk]);
+  const first = folded[0];
+  expect(first?.type).toBe("number");
+  const readings = first?.type === "number" ? (first.readings ?? []) : [];
+  expect(readings.map((r) => r.value.toString()).sort()).toEqual(["1500000", "15000000"]);
 });
 
 test("a non-scale numeral after digits is left alone", () => {

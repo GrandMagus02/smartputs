@@ -197,9 +197,23 @@ export function foldNumerals(
           (m) => m.consumed === 1 && m.value.gte(100),
         );
         if (match !== null) {
+          // Every reading of the digits, scaled — not just the one `value`
+          // carries. `lex` records one reading per grammar that accepted the
+          // run ("1,5" is fifteen to an English reader and one and a half to a
+          // Ukrainian one), and rebuilding the token with only the format
+          // locale's reading deleted the rest: 1 500 000 was not ranked below
+          // 15 000 000, it was gone, which is the one thing no stage here may
+          // do to a reading. Scaling preserves their distinctness — the gate
+          // above admits only a claim worth 100 or more — so the field stays
+          // "one entry per accepting grammar, deduplicated by value".
+          const scaled = token.readings?.map((r) => ({
+            value: r.value.times(match.value),
+            locales: r.locales,
+          }));
           out.push({
             type: "number",
             value: token.value.times(match.value),
+            ...(scaled === undefined ? {} : { readings: scaled }),
             text: `${token.text} ${next.text}`,
             start: token.start,
             end: next.end,
