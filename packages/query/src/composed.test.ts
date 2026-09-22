@@ -1,5 +1,6 @@
 import { expect, test } from "bun:test";
 import { QueryEngine } from "./query";
+import { defineSchema } from "./schema";
 import { fixtureEngine, shop } from "./shop.fixture";
 import { SqlCompiler } from "./sql";
 
@@ -79,4 +80,32 @@ test("a city resolves through the gazetteer the consumer registered", () => {
   // A city is not a unit, so a city Value borrows its country's alpha-2 — which
   // is exactly what a country column stores, and why this reads as Ukraine.
   expect(out.params).toEqual(["ua"]);
+});
+
+test("a four-word alias the index holds is a four-word alias the parser reaches", () => {
+  // `Schema` indexes an alias up to four words and `schemaAt` walked the index
+  // by the *vocabulary's* bound of three, so the fourth word was declarable and
+  // unreachable — and the refusal blamed the user's first token for a line the
+  // schema author wrote correctly. Four words is not exotic in a warehouse
+  // schema: "cost of goods sold" and "total gross merchandise value" are both
+  // column names somebody has typed.
+  const wide = defineSchema({
+    tables: [
+      {
+        name: "orders",
+        key: "id",
+        columns: [
+          { name: "id" },
+          { name: "total_cents", aliases: ["total gross merchandise value"] },
+        ],
+      },
+    ],
+  });
+  expect(wide.lookup("total gross merchandise value")).toHaveLength(1);
+
+  const wideQ = new QueryEngine({ schema: wide, engine: fixtureEngine() });
+  const out = wideQ.compile("orders where total gross merchandise value > 500", sql);
+  expect(out.text).toBe(
+    'SELECT "orders".* FROM "orders" WHERE "orders"."total_cents" > $1',
+  );
 });

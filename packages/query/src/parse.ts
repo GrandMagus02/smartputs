@@ -18,7 +18,7 @@ import type {
   QueryIr,
 } from "./ir";
 import { geoOf, isMidnight, type OperandReader, type Reading, rangeOf } from "./link";
-import type { LexEntry, Schema } from "./schema";
+import { type LexEntry, MAX_ALIAS_WORDS, type Schema } from "./schema";
 import { MAX_PHRASE_WORDS, type QueryVocabulary, queryEn } from "./vocabulary";
 
 /** Nanoseconds in a day, for the one case that has to widen a date into a span. */
@@ -39,12 +39,19 @@ interface Tok {
 const SOLO = new Set(["(", ")", ","]);
 const CMP_CHARS = new Set(["<", ">", "=", "!", "≤", "≥", "≠"]);
 
+/**
+ * Hoisted, because a literal in the walk below is a new `RegExp` per character
+ * of every query lexed — 600k lexes of three ordinary queries: 513 ms with the
+ * literals, 455 ms with this.
+ */
+const SPACE = /\s/;
+
 export function lex(input: string): Tok[] {
   const out: Tok[] = [];
   let i = 0;
   while (i < input.length) {
     const ch = input[i] as string;
-    if (/\s/.test(ch)) {
+    if (SPACE.test(ch)) {
       i++;
       continue;
     }
@@ -56,7 +63,7 @@ export function lex(input: string): Tok[] {
     } else {
       while (i < input.length) {
         const c = input[i] as string;
-        if (/\s/.test(c) || SOLO.has(c) || CMP_CHARS.has(c)) break;
+        if (SPACE.test(c) || SOLO.has(c) || CMP_CHARS.has(c)) break;
         i++;
       }
     }
@@ -345,9 +352,16 @@ export class QueryParser {
 
   // ------------------------------------------------------------ vocabulary
 
-  /** The longest schema phrase at `from`, with the tokens it spans. */
+  /**
+   * The longest schema phrase at `from`, with the tokens it spans.
+   *
+   * Bounded by `MAX_ALIAS_WORDS` and not by the vocabulary's own
+   * `MAX_PHRASE_WORDS`: the two are different numbers, and reading a schema
+   * index by the clause words' bound is how a four-word alias came to be
+   * indexed and unreachable. See `MAX_ALIAS_WORDS`.
+   */
   private schemaAt(from: number): { entries: readonly LexEntry[]; words: number } | null {
-    for (let n = MAX_PHRASE_WORDS; n >= 1; n--) {
+    for (let n = MAX_ALIAS_WORDS; n >= 1; n--) {
       const w = this.words(n, from);
       if (w === null) continue;
       const entries = this.schema.lookup(w);

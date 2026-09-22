@@ -115,8 +115,18 @@ export type LexEntry =
   | { readonly type: "column"; readonly ref: ColumnRef }
   | { readonly type: "metric"; readonly metric: MetricDef };
 
-/** Longest alias phrase the index holds, in words. Bounds the linker's scan. */
-const MAX_PHRASE_WORDS = 4;
+/**
+ * Longest alias phrase the index holds, in words. Bounds the linker's scan.
+ *
+ * Exported so that it actually does. It is four and the vocabulary's
+ * `MAX_PHRASE_WORDS` is three, and `schemaAt` walked the schema index by the
+ * vocabulary's — so a four-word alias was indexed here and unreachable there,
+ * and a schema declaring `"total gross merchandise value"` got
+ * `No column, table or metric named "total"`, which blames the user for a line
+ * the schema author wrote correctly. Two bounds of the same name are what made
+ * that invisible; the scan now reads the one whose comment claims it.
+ */
+export const MAX_ALIAS_WORDS = 4;
 
 const fold = (s: string): string => s.trim().toLowerCase().replace(/\s+/g, " ");
 
@@ -226,7 +236,7 @@ export class Schema {
 
   private add(alias: string, entry: LexEntry): void {
     for (const form of inflections(alias)) {
-      if (form.split(" ").length > MAX_PHRASE_WORDS) continue;
+      if (form.split(" ").length > MAX_ALIAS_WORDS) continue;
       const bucket = this.index.get(form);
       if (bucket === undefined) this.index.set(form, [entry]);
       // One alias meaning two things is not an error here — `total` may be a
